@@ -1,10 +1,12 @@
 @import './tailwindcss.css';
 @import './search-trigger.css';
 @import './markdown.css';
+@import './sidebar.css';
+@import './right-sidebar.css';
 
 .container-wrapper {
   width: 100%;
-  padding-inline: calc(var(--spacing) * 2);
+  padding-inline: calc(var(--spacing) * 4);
   margin-inline: auto;
 }
 
@@ -59,4 +61,8 @@
       max-width: var(--breakpoint-2xl);
     }
   }
+}
+
+* {
+  border-color: var(--color-border);
 }

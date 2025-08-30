@@ -1,0 +1,53 @@
+@layer components {
+  .sidebar-pane {
+    @apply pt-4 text-sidebar-foreground w-(--sidebar-width) flex-col sticky top-[calc(var(--header-height)+1px)] z-30 hidden h-[calc(100svh-var(--header-height)-var(--footer-height))] bg-transparent lg:flex;
+  }
+
+  .sidebar-pane .sidebar-content {
+    @apply w-full;
+  }
+
+  .sidebar-pane .sidebar-content {
+    @apply w-full;
+  }
+
+  .sidebar-pane .top-level {
+    @apply w-full;
+  }
+
+  .sidebar-pane summary {
+    @apply flex px-2;
+    @apply ring-sidebar-ring flex h-8 shrink-0 items-center rounded-md text-xs outline-hidden transition-[margin,opacity] duration-200 ease-linear focus-visible:ring-2 [&>svg]:size-4 [&>svg]:shrink-0 group-data-[collapsible=icon]:-mt-8 group-data-[collapsible=icon]:opacity-0 text-muted-foreground font-medium;
+  }
+
+  .sidebar-pane summary span {
+    @apply ring-sidebar-ring flex h-8 shrink-0 items-center rounded-md text-xs outline-hidden transition-[margin,opacity] duration-200 ease-linear focus-visible:ring-2 [&>svg]:size-4 [&>svg]:shrink-0 group-data-[collapsible=icon]:-mt-8 group-data-[collapsible=icon]:opacity-0 text-muted-foreground font-medium;
+  }
+
+  .sidebar-pane details {
+    @apply p-2;
+  }
+  .sidebar-pane details ul {
+    @apply flex flex-col gap-0.5;
+  }
+
+  .sidebar-pane a {
+    @apply h-7.5 flex items-center font-medium;
+  }
+  .sidebar-pane a span {
+    @apply px-2 h-full rounded-sm flex items-center border-transparent;
+  }
+  .sidebar-pane a:hover span {
+    @apply bg-muted border-muted;
+  }
+
+  .sidebar-pane a[aria-current='page'] span {
+    @apply bg-accent border-accent;
+  }
+
+  :where(a)[aria-current='page'],
+  :where(a)[aria-current='page']:hover,
+  :where(a)[aria-current='page']:focus {
+    background: transparent;
+  }
+}

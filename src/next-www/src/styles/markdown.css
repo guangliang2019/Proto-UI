@@ -1,5 +1,55 @@
 @layer components {
+  .main-pane {
+    @apply w-full;
+  }
+
   main[data-pagefind-body] h1 {
     @apply scroll-m-20 text-4xl font-semibold tracking-tight sm:text-3xl xl:text-4xl;
+  }
+
+  main[data-pagefind-body] h2 {
+    @apply scroll-m-20 border-b pb-2 text-3xl font-semibold tracking-tight first:mt-0;
+  }
+
+  main[data-pagefind-body] h3 {
+    @apply scroll-m-20 text-2xl font-semibold tracking-tight;
+  }
+
+  main[data-pagefind-body] h4 {
+    @apply scroll-m-20 text-xl font-semibold tracking-tight;
+  }
+
+  main[data-pagefind-body] p {
+    @apply leading-7 [&:not(:first-child)]:mt-6;
+  }
+
+  main[data-pagefind-body] blockquote {
+    @apply mt-6 border-l-2 pl-6 italic;
+  }
+
+  main[data-pagefind-body] table {
+    width: 100%;
+  }
+  main[data-pagefind-body] table tr {
+    @apply even:bg-muted m-0 border-t p-0;
+  }
+  main[data-pagefind-body] table th {
+    @apply border px-4 py-2 text-left font-bold [&[align=center]]:text-center [&[align=right]]:text-right;
+  }
+
+  main[data-pagefind-body] ul {
+    @apply my-6 ml-6 list-disc [&>li]:mt-2;
+  }
+
+  main[data-pagefind-body] code {
+    @apply bg-muted relative rounded-sm px-[0.3rem] py-[0.2rem] font-mono text-sm font-semibold;
+  }
+
+  main[data-pagefind-body] hr {
+    @apply mt-4 mb-12;
+  }
+
+  main[data-pagefind-body] .sl-heading-wrapper {
+    @apply flex;
   }
 }

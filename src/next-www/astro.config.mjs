@@ -37,6 +37,8 @@ export default defineConfig({
         ThemeProvider: './src/components/override/ThemeProvider.astro',
         TableOfContents: './src/components/override/TableOfContents/TableOfContents.astro',
         TwoColumnContent: './src/components/override/TwoColumnContent.astro',
+        PageTitle: './src/components/override/PageTitle.astro',
+        MarkdownContent: './src/components/override/MarkdownContent.astro'
       },
     }),
   ],
