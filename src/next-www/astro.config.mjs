@@ -31,10 +31,45 @@ export default defineConfig({
             {
               label: '安装 & 使用',
               slug: 'overview/installation',
-              badge: { text: '计划中', class: 'text-xs px-2 h-5 rounded-full bg-zinc-800' },
+              badge: { text: '计划中', class: 'text-xs px-1.5 h-4.5 rounded-full bg-zinc-800' },
             },
           ],
         },
+        {
+          label: '白皮书 & 哲学',
+          items: [
+            { label: '设计哲学', slug: 'whitepaper/philosophy' },
+            { label: '与现有方案比较', slug: 'whitepaper/comparison' },
+            { label: 'FAQ', slug: 'whitepaper/faq' },
+          ],
+        },
+        {
+          label: '协议 & 语法',
+          items: [
+            { label: '核心概念 & API 总览', slug: 'protocol/general' },
+            { label: 'asHook: 原型的组合', slug: 'protocol/as-hook' },
+            { label: 'Context', slug: 'protocol/context' },
+            { label: 'Debug 语法', slug: 'protocol/debug' },
+            { label: 'Event', slug: 'protocol/event' },
+            { label: 'Expose', slug: 'protocol/expose' },
+            { label: 'Lifecycle', slug: 'protocol/lifecycle' },
+            { label: 'Props', slug: 'protocol/props' },
+            { label: 'Renderer 语法', slug: 'protocol/renderer' },
+            { label: 'State', slug: 'protocol/state' },
+            { label: 'Style 语法', slug: 'protocol/style' },
+            {
+              label: 'Variant 语法',
+              slug: 'protocol/variant',
+              badge: { text: '计划中', class: 'text-xs px-1.5 h-4.5 rounded-full bg-zinc-800' },
+            },
+            
+          ],
+        },
+        {
+          label: '原型库',
+          autogenerate: { directory: 'prototypes' },
+          
+        }
       ],
       components: {
         Hero: './src/components/override/Hero.astro',

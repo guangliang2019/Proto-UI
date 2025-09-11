@@ -1,6 +1,6 @@
 @layer components {
   .sidebar-pane {
-    @apply pt-4 text-sidebar-foreground w-(--sidebar-width) flex-col sticky top-[calc(var(--header-height)+1px)] z-30 hidden h-[calc(100svh-var(--header-height)-var(--footer-height))] bg-transparent lg:flex;
+    @apply pt-4 pb-12 text-sidebar-foreground w-(--sidebar-width) flex-col z-30 hidden bg-transparent lg:flex;
   }
 
   .sidebar-pane .sidebar-content {
@@ -32,7 +32,7 @@
   }
 
   .sidebar-pane a {
-    @apply h-7.5 flex items-center font-medium;
+    @apply h-7.5 flex items-center font-medium flex justify-between;
   }
   .sidebar-pane a span {
     @apply px-2 h-full rounded-sm flex items-center border-transparent;

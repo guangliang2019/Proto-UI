@@ -11,8 +11,8 @@
     @apply text-muted-foreground hover:text-foreground text-[0.8rem] no-underline transition-colors data-[depth=3]:pl-4 data-[depth=4]:pl-6;
   }
 
-  .right-sidebar a[aria-current='true'] {
-    @apply text-foreground;
+  .right-sidebar a[in-view] {
+    @apply text-foreground/80;
   }
 
   .right-sidebar ul {
