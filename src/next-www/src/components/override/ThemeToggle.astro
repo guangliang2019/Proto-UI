@@ -1,6 +1,7 @@
 ---
 // const labelLight = Astro.locals?.t?.('themeSelect.light') ?? 'Light theme';
 // const labelDark = Astro.locals?.t?.('themeSelect.dark') ?? 'Dark theme';
+
 ---
 
 <button
@@ -55,6 +56,7 @@
     // 点击切换
     btn.addEventListener('click', () => {
       window.StarlightTheme.toggle();
+
     });
 
     // 响应全局变更（来自其它控件）
