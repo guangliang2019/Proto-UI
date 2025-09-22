@@ -10,6 +10,7 @@ export default defineConfig({
     starlight({
       title: 'Proto UI',
 
+
       social: [{ icon: 'github', label: 'GitHub', href: 'https://github.com/withastro/starlight' }],
       sidebar: [
         {

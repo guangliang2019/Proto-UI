@@ -1,6 +1,7 @@
 @import 'tailwindcss';
 
-@theme {
+
+ [data-theme="light"] {
   --radius: 0.625rem;
   --color-background: oklch(100% 0 0);
   --color-foreground: oklch(14.5% 0 0);
@@ -34,14 +35,15 @@
   --color-sidebar-border: oklch(92.2% 0 0);
   --color-sidebar-ring: oklch(70.8% 0 0);
   --color-surface: oklch(98% 0 0);
-  --color-surface-foreground: var(--foreground);
-  --color-code: var(--surface);
-  --color-code-foreground: var(--surface-foreground);
+  --color-surface-foreground: oklch(1 0 89.876);
+  --color-code: var(--color-surface);
+  --color-code-foreground: var(--color-surface-foreground);
   --color-code-highlight: oklch(96% 0 0);
-  --color-code-number: oklch(56% 0 0);
+  --color-code-number: oklch(1 0 89.876);
   --color-selection: oklch(14.5% 0 0);
   --color-selection-foreground: oklch(100% 0 0);
 }
+
 
 @theme (prefers-color-scheme: dark) {
   --color-background: oklch(14.5% 0 0);
@@ -107,13 +109,15 @@
     --chart-4: 280 65% 60%;
     --chart-5: 340 75% 55%;
   }
+
+
 }
 
 body {
-  background-color: hsl(var(--background));
-  color: hsl(var(--foreground));
+  background-color: hsl(var(--color-background));
+  color: hsl(var(--color-foreground));
   font-family:
-    var(--font-geist-sans),
+    var(--color-font-geist-sans),
     ui-sans-serif,
     system-ui,
     -apple-system,
