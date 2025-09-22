@@ -9,8 +9,21 @@ export default defineConfig({
   integrations: [
     starlight({
       title: 'Proto UI',
-
-
+      head: [
+        // 双 theme-color
+        {
+          tag: 'meta',
+          attrs: {
+            name: 'theme-color',
+            content: '#ffffff',
+            media: '(prefers-color-scheme: light)',
+          },
+        },
+        {
+          tag: 'meta',
+          attrs: { name: 'theme-color', content: '#0a0a0a', media: '(prefers-color-scheme: dark)' },
+        },
+      ],
       social: [{ icon: 'github', label: 'GitHub', href: 'https://github.com/withastro/starlight' }],
       sidebar: [
         {
@@ -63,14 +76,12 @@ export default defineConfig({
               slug: 'protocol/variant',
               badge: { text: '计划中', class: 'text-xs px-1.5 h-4.5 rounded-full bg-zinc-800' },
             },
-            
           ],
         },
         {
           label: '原型库',
           autogenerate: { directory: 'prototypes' },
-          
-        }
+        },
       ],
       components: {
         Hero: './src/components/override/Hero.astro',

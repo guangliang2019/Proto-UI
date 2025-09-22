@@ -1,7 +1,8 @@
 @import 'tailwindcss';
 
+@custom-variant dark (&:where([data-theme=dark], [data-theme=dark] *));
 
- [data-theme="light"] {
+@theme {
   --radius: 0.625rem;
   --color-background: oklch(100% 0 0);
   --color-foreground: oklch(14.5% 0 0);
@@ -44,8 +45,8 @@
   --color-selection-foreground: oklch(100% 0 0);
 }
 
-
-@theme (prefers-color-scheme: dark) {
+:root.dark,
+:root[data-theme="dark"] {
   --color-background: oklch(14.5% 0 0);
   --color-foreground: oklch(98.5% 0 0);
   --color-card: oklch(20.5% 0 0);
@@ -109,8 +110,6 @@
     --chart-4: 280 65% 60%;
     --chart-5: 340 75% 55%;
   }
-
-
 }
 
 body {

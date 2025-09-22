@@ -1,6 +1,5 @@
 ---
 /** 无前端变量输出，全部靠内联 JS 防 FOUC */
-
 ---
 
 <meta name="color-scheme" content="light dark" />
@@ -35,7 +34,9 @@
       },
       set(theme /* 'light' | 'dark' */) {
         const t = theme === 'light' ? 'light' : 'dark';
-        try { localStorage.setItem(KEY, t); } catch (e) {}
+        try {
+          localStorage.setItem(KEY, t);
+        } catch (e) {}
         apply(t);
         // 通知所有 UI 控件同步自身外观
         document.dispatchEvent(new CustomEvent('starlight-theme:change', { detail: { theme: t } }));
@@ -49,25 +50,30 @@
       },
     };
 
-    // 如果你希望在“无用户选择时”继续跟随系统，可监听系统变更；
-    // 但本版本是“两态固定选择”，一旦写入 localStorage 就不再随系统变动。
-    // 如需“首次无存储时随系统自动更新”，可将下面监听打开，并加一个 flag 仅在无存储时生效。
+    // 如果恰好监听到了主题切换，那么随系统切换主题
     mql.addEventListener('change', () => {
-      if (!localStorage.getItem(KEY)) {
-        apply(getSystem());
-        document.dispatchEvent(new CustomEvent('starlight-theme:change', { detail: { theme: getSystem() } }));
-      }
+      apply(getSystem());
+      document.dispatchEvent(
+        new CustomEvent('starlight-theme:change', { detail: { theme: getSystem() } })
+      );
     });
   })();
-
 </script>
 
 {/* 图标模板（与原始的两个 SVG 兼容，可直接引用类名 .light / .dark） */}
 <template id="starlight-theme-icons">
-  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
-       viewBox="0 0 24 24" fill="none" stroke="currentColor"
-       stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-       class="size-4.5 light">
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="24"
+    height="24"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    stroke-width="2"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+    class="size-4.5 light"
+  >
     <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
     <path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"></path>
     <path d="M12 3l0 18"></path>
@@ -75,10 +81,18 @@
     <path d="M12 14.3l7.37 -7.37"></path>
     <path d="M12 19.6l8.85 -8.85"></path>
   </svg>
-  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
-       viewBox="0 0 24 24" fill="none" stroke="currentColor"
-       stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-       class="size-4.5 dark rotate-180">
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="24"
+    height="24"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    stroke-width="2"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+    class="size-4.5 dark rotate-180"
+  >
     <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
     <path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"></path>
     <path d="M12 3l0 18"></path>
@@ -87,5 +101,3 @@
     <path d="M12 19.6l8.85 -8.85"></path>
   </svg>
 </template>
-
-

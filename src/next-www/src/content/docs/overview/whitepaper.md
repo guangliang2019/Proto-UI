@@ -1,6 +1,6 @@
 ---
 title: 白皮书概要
-description: Proto UI 的简略版白皮书
+description: 为什么？是什么？怎么做？
 ---
 
 ## 为什么会有 Proto UI
