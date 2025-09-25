@@ -45,20 +45,17 @@ export class VueRenderer implements RendererAPI<VNode> {
   }
 
   createVNode() {
-    console.log('t1',this._slots);
+    // TODO: 这里的render的挂载并没有解决
     this._render?.();
-    const slotNames = Object.keys(this._slots);
-    console.log('t2',slotNames)
     return this._slots
   }
   
   createElement(type: any, props: Record<string, any>, children: any) { 
     switch (typeof type) {
       case 'string':
-        console.log('string',children,type,props);
         switch (typeof children) {
           case 'object':
-            console.log('children',children,type,props);
+            // TODO: 这里的slot问题可能还没有解决
             if (children instanceof Element) return h(type, props, elementToVNode(children));
 
             if (children === null) return h(type, props, [h('slot')]);
@@ -97,12 +94,10 @@ export class VueRenderer implements RendererAPI<VNode> {
 
   createComment(content: string) {
     // TODO: 删掉或略过
-    console.log('createComment111',content);
     return h('text', {}, content) as any;
   }
 
   createFragment(children: any) {
-    console.log('createFragment111',children);
     return h(
       'fragment',
       {},
@@ -119,7 +114,6 @@ export class VueRenderer implements RendererAPI<VNode> {
 
   createText(content: string) {
     // TODO: 删掉或略过
-    console.log('createText111',content);
     return h('text', {}, content) as any;
   }
 };
