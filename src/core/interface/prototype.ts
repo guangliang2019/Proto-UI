@@ -70,7 +70,7 @@ export interface UpdateContext<T> {
 /**
  * 原型配置项
  */
-export interface Prototype<Props extends {} = {}, Exposes extends {} = {}, El = Element> {
+export interface Prototype<Props extends {} = {}, Exposes extends {} = {}> {
   /** 组件名称 */
   name: string;
   /** 可观察的属性 */
@@ -79,17 +79,17 @@ export interface Prototype<Props extends {} = {}, Exposes extends {} = {}, El = 
   /**
    * 设置函数
    */
-  setup: PrototypeSetup<Props, Exposes, El>;
+  setup: PrototypeSetup<Props, Exposes>;
 }
 
 /**
  * 原型设置函数的返回值
  */
-export type PrototypeSetupResult<El = Element> = (renderer: Renderer<El>) => El | void;
+export type PrototypeSetupResult = <El = Element>(renderer: Renderer<El>) => El | void;
 
 /**
  * 原型设置函数
  */
-export type PrototypeSetup<Props extends {} = {}, Exposes extends {} = {}, El = Element> = (
+export type PrototypeSetup<Props extends {} = {}, Exposes extends {} = {}> = (
   p: PrototypeAPI<Props, Exposes>
-) => PrototypeSetupResult<El> | void;
+) => PrototypeSetupResult | void;

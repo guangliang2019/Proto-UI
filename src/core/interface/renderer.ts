@@ -9,7 +9,7 @@ import {
 } from './managers';
 import { Prototype } from './prototype';
 
-export type ElementType = string | Prototype<any> | symbol;
+export type ElementType = string | Prototype<any, any> | symbol;
 export type ElementChild = string | number | boolean | null | undefined | Element;
 
 export type ElementChildren = ElementChild | ElementChild[];
