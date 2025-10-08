@@ -195,16 +195,15 @@ const TestVueComponent = defineComponent({
     // 测试生命周期
     onMounted(() => {
     });
-    // TODO: 这里 hadcnTabs 的 defaultValue: 'account' 部分没有生效 ，是 props.define 实现有问题
     return () =>
       h('div', { class: 'space-y-4 p-4' }, [
 
-        h(ShadcnTabs, { defaultValue: 'account', Test:'test' }, [
+        h(ShadcnTabs, { defaultValue: 'account' }, [
           h(ShadcnTabsList, [
-            h(ShadcnTabsTrigger, { value: 'account1' }, ['Account']),
-            h(ShadcnTabsTrigger, { value: 'password23' }, ['Password']),
+            h(ShadcnTabsTrigger, { value: 'account' }, ['Account']),
+            h(ShadcnTabsTrigger, { value: 'password' }, ['Password']),
           ]),
-          h(ShadcnTabsContent, { value: 'account1' }, [
+          h(ShadcnTabsContent, { value: 'account' }, [
             h('div', { class: 'rounded-xl border bg-card text-card-foreground shadow mt-2' }, [
               h('div', { class: 'flex flex-col space-y-1.5 p-6' }, [
                 h('h3', { class: 'font-semibold leading-none tracking-tight' }, ['Account']),
@@ -214,16 +213,16 @@ const TestVueComponent = defineComponent({
               ]),
             ]),
           ]),
-          // h(ShadcnTabsContent, { value: 'password2' }, [
-          //   h('div', { class: 'rounded-xl border bg-card text-card-foreground shadow mt-2' }, [
-          //     h('div', { class: 'flex flex-col space-y-1.5 p-6' }, [
-          //       h('h3', { class: 'font-semibold leading-none tracking-tight' }, ['Password']),
-          //       h('p', { class: 'text-sm text-muted-foreground' }, [
-          //         "Change your password here. After saving, you'll be logged out.",
-          //       ]),
-          //     ]),
-          //   ]),
-          // ]),
+          h(ShadcnTabsContent, { value: 'password' }, [
+            h('div', { class: 'rounded-xl border bg-card text-card-foreground shadow mt-2' }, [
+              h('div', { class: 'flex flex-col space-y-1.5 p-6' }, [
+                h('h3', { class: 'font-semibold leading-none tracking-tight' }, ['Password']),
+                h('p', { class: 'text-sm text-muted-foreground' }, [
+                  "Change your password here. After saving, you'll be logged out.",
+                ]),
+              ]),
+            ]),
+          ]),
         ]),
       ]);
   },

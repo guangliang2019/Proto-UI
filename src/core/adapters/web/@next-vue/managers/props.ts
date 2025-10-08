@@ -19,6 +19,7 @@ class VuePropsManager<T extends object> implements PropsManager<T> {
 
   // 没有初始化，可能某个功能用不了， 换名
   initRef(element: HTMLElement, options: PropsOptions<T> = {}) {
+  
     this._initFlag = true;
     this._element = element;
     this._options = options;
@@ -92,38 +93,17 @@ class VuePropsManager<T extends object> implements PropsManager<T> {
       },
       {} as Record<string, any>
     );
-
     return vueProps;
   }
 
 
   // 获取vue的props的实际值
   getVuePropsActualValue(vueProps: T) {
-
     this._props = { ...this._props, ...vueProps } as T;
   }
 
   getProps(): T {
-    // TODO：这里可能需要用户在写setup的时候可能会直接写p.props.get()，而不是放到其他方法中。
-    const actualProps = { ...this._props };
-    // 从 attributes 获取实际值
-    Array.from(this._element?.attributes || []).forEach((attr) => {
-      const propName = kebabToCamel(attr.name) as keyof T;
-      actualProps[propName] = this.deserializeFromAttribute(attr.name, attr.value);
-    });
-
-    // 从 DOM 属性获取实际值
-    Object.getOwnPropertyNames(this._element || {}).forEach((key) => {
-      if (
-        !(key in HTMLElement.prototype) &&
-        !key.startsWith('_') &&
-        (this._element as any)[key] !== undefined
-      ) {
-        actualProps[key as keyof T] = (this._element as any)[key];
-      }
-    });
-    console.log(actualProps, 'actualProps');
-    return actualProps as T;
+    return { ...this._props } as T;
   }
 
   setProps(props: Partial<T>): void {
@@ -170,7 +150,6 @@ class VuePropsManager<T extends object> implements PropsManager<T> {
   }
 
   mount() {
-    console.log(this._pendingProxies, 'pendingProxies123123');
     this._pendingProxies.forEach((key) => {
       this.defineProps(key as T);
     });
@@ -179,7 +158,6 @@ class VuePropsManager<T extends object> implements PropsManager<T> {
 
   // TODO: 这里的问题，如果包裹起来的化，整个 props会被覆盖掉
   defineProps(defaultProps: T): void {
-    console.log(defaultProps, 'defaultProps123123');
     this._defineProps = { ...this._defineProps, ...defaultProps } as T;
 
     if (!this._initFlag) {
