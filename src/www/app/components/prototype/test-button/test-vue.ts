@@ -12,11 +12,6 @@ import { optimizeTailwindClasses } from '@/www/utils/tailwind';
 import { CONFIG } from '@/components/shadcn/_config';
 
 import { PrototypeAPI } from '@/core/interface';
-// 定义组件的 props 接口
-interface TestVueProps {
-  value?: string;
-  name?: string;
-}
 
 /**
  * 让使用了 asButton 的组件具有按钮的行为
@@ -86,6 +81,7 @@ const asButton = <
   });
   // 点击
   p.event.on('click', (e) => {
+    console.log('vue1','click');
     const props = p.props.get();
     if (!focus.value || props.disabled) return;
     props.onClick?.(e as MouseEvent);
@@ -121,7 +117,6 @@ const PrototypeButton = definePrototype<ShadcnButtonProps, ButtonExposes>({
     p.props.watch(['variant'], () => {
       p.view.update();
     });
-
     // handle class names
     let _originalCls = '';
     p.lifecycle.onMounted(() => {
@@ -192,18 +187,18 @@ const vueButton = VueAdapter(PrototypeButton);
 
 const TestVueComponent = defineComponent({
   setup() {
-    // 测试生命周期
     onMounted(() => {
     });
+    // TODO: 在vue中h函数 使用自定义组件的第三个参数使用函数也就是 () => {[]}
     return () =>
       h('div', { class: 'space-y-4 p-4' }, [
-
-        h(ShadcnTabs, { defaultValue: 'account' }, [
-          h(ShadcnTabsList, [
-            h(ShadcnTabsTrigger, { value: 'account' }, ['Account']),
-            h(ShadcnTabsTrigger, { value: 'password' }, ['Password']),
+        // h(vueButton, { variant: 'secondary' }, ['Button']),
+        h(VueShadcnTabs, { defaultValue: 'account' }, [
+          h(VueShadcnTabsList, [
+            h(VueShadcnTabsTrigger, { value: 'account' }, ['Account']),
+            h(VueShadcnTabsTrigger, { value: 'password' }, ['Password']),
           ]),
-          h(ShadcnTabsContent, { value: 'account' }, [
+          h(VueShadcnTabsContent, { value: 'account' }, [
             h('div', { class: 'rounded-xl border bg-card text-card-foreground shadow mt-2' }, [
               h('div', { class: 'flex flex-col space-y-1.5 p-6' }, [
                 h('h3', { class: 'font-semibold leading-none tracking-tight' }, ['Account']),
@@ -213,7 +208,7 @@ const TestVueComponent = defineComponent({
               ]),
             ]),
           ]),
-          h(ShadcnTabsContent, { value: 'password' }, [
+          h(VueShadcnTabsContent, { value: 'password' }, [
             h('div', { class: 'rounded-xl border bg-card text-card-foreground shadow mt-2' }, [
               h('div', { class: 'flex flex-col space-y-1.5 p-6' }, [
                 h('h3', { class: 'font-semibold leading-none tracking-tight' }, ['Password']),
@@ -233,7 +228,7 @@ export default TestVueComponent;
 import { asTabs } from '@/core/behaviors/as-tabs';
 import { TabsProps, TabsExposes } from '@/core/behaviors/as-tabs';
 const ShadcnTabsPrototype = definePrototype<TabsProps, TabsExposes>({
-  name: `${CONFIG.shadcn.prefix}-tabs`,
+  name: `vue-${CONFIG.shadcn.prefix}-tabs`,
   setup: (p) => {
 
     asTabs(p);
@@ -242,12 +237,12 @@ const ShadcnTabsPrototype = definePrototype<TabsProps, TabsExposes>({
   },
 });
 
-const ShadcnTabs = VueAdapter(ShadcnTabsPrototype);
+const VueShadcnTabs = VueAdapter(ShadcnTabsPrototype);
 
 import { asTabsTrigger, TabsTriggerProps } from '@/core/behaviors/as-tabs';
 
 const ShadcnTabsTriggerPrototype = definePrototype<TabsTriggerProps>({
-  name: `${CONFIG.shadcn.prefix}-tabs-trigger`,
+  name: `vue-${CONFIG.shadcn.prefix}-tabs-trigger`,
   setup: (p) => {
     asTabsTrigger(p);
 
@@ -265,12 +260,12 @@ const ShadcnTabsTriggerPrototype = definePrototype<TabsTriggerProps>({
   },
 });
 
-const ShadcnTabsTrigger = VueAdapter(ShadcnTabsTriggerPrototype);
+const VueShadcnTabsTrigger = VueAdapter(ShadcnTabsTriggerPrototype);
 
 import { TabsContext } from '@/core/behaviors/as-tabs';
 
 const ShadcnTabsListPrototype = definePrototype({
-  name: `${CONFIG.shadcn.prefix}-tabs-list`,
+  name: `vue-${CONFIG.shadcn.prefix}-tabs-list`,
   setup: (p) => {
     p.context.watch(TabsContext);
 
@@ -288,12 +283,12 @@ const ShadcnTabsListPrototype = definePrototype({
   },
 });
 
-const ShadcnTabsList = VueAdapter(ShadcnTabsListPrototype);
+const VueShadcnTabsList = VueAdapter(ShadcnTabsListPrototype);
 
 import { asTabsContent, TabsContentProps } from '@/core/behaviors/as-tabs';
 
 const ShadcnTabsContentPrototype = definePrototype<TabsContentProps>({
-  name: `${CONFIG.shadcn.prefix}-tabs-content`,
+  name: `vue-${CONFIG.shadcn.prefix}-tabs-content`,
   setup: (p) => {
     asTabsContent(p);
 
@@ -311,6 +306,6 @@ const ShadcnTabsContentPrototype = definePrototype<TabsContentProps>({
   },
 });
 
-const ShadcnTabsContent = VueAdapter(ShadcnTabsContentPrototype);
+const VueShadcnTabsContent = VueAdapter(ShadcnTabsContentPrototype);
 
 
