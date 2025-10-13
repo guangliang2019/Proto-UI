@@ -19,15 +19,12 @@ export class VueContextManager implements ContextManager {
   private contextListeners = new Set<ContextListener<any>>();
   private component: Component | undefined;
   private contextCenter: WebContextCenter | undefined;
-  
-  constructor() {
-    // 不再需要 WebContextCenter
-  }
+
   init(component: Component) {
     this.component = component;
     this.contextCenter = WebContextCenter.getInstance();
   }
-  
+
   getProvidedContexts(): Set<Context> {
     return this.providedContexts;
   }
@@ -59,7 +56,6 @@ export class VueContextManager implements ContextManager {
     notifyListeners = true
   ): void {
     this.consumedValues.set(context, value);
-    console.log(this.consumedValues, 'consumedValues');
     // 通知监听器
     if (notifyListeners) {
       this.notifyListeners(context, value, changedKeys);
@@ -135,6 +131,6 @@ export class VueContextManager implements ContextManager {
     // 不再需要从 ContextCenter 获取消费者
     // 直接返回空数组，因为 Vue 会自动处理依赖关系
     // return [];
-   return this.contextCenter?.getConsumers(context, this.component) ?? [];
+    return this.contextCenter?.getConsumers(context, this.component) ?? [];
   }
 }

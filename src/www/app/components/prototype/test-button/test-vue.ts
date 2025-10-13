@@ -81,7 +81,7 @@ const asButton = <
   });
   // 点击
   p.event.on('click', (e) => {
-    console.log('vue1','click');
+    console.log('vue1', 'click');
     const props = p.props.get();
     if (!focus.value || props.disabled) return;
     props.onClick?.(e as MouseEvent);

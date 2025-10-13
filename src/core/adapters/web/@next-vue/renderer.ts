@@ -36,26 +36,25 @@ export class VueRenderer implements RendererAPI<VNode> {
   private _slots: any;
   private _render: void | PrototypeSetupResult<VNode<RendererNode, RendererElement, {
     [key: string]: any;
-}>>;
+  }>>;
   constructor(render: void | PrototypeSetupResult<VNode<RendererNode, RendererElement, {
     [key: string]: any;
-}>>, slots: any) {
+  }>>, slots: any) {
     this._render = render;
     this._slots = slots;
   }
 
   createVNode() {
-    // TODO: 这里的render的挂载并没有解决
-    this._render?.();
+    // TODO: 这里就很神奇，只要执行就像，什么参数其实都可以
+    this._render?.(this.createElement);
     return this._slots
   }
-  
-  createElement(type: any, props: Record<string, any>, children: any) { 
+
+  createElement(type: any, props?: Record<string, any>, children?: any) {
     switch (typeof type) {
       case 'string':
         switch (typeof children) {
           case 'object':
-            // TODO: 这里的slot问题可能还没有解决
             if (children instanceof Element) return h(type, props, elementToVNode(children));
 
             if (children === null) return h(type, props, [h('slot')]);
@@ -65,10 +64,9 @@ export class VueRenderer implements RendererAPI<VNode> {
               return h(
                 type,
                 props,
-                 children.map((child) => {
+                children.map((child) => {
                   if (child instanceof Element) return elementToVNode(child);
                   if (child === null) return null;
-                  
                   return child;
                 })
               );
@@ -77,7 +75,7 @@ export class VueRenderer implements RendererAPI<VNode> {
             return h(type, props, [h('slot')]);
           default:
             return h(type, props, children);
-            
+
         }
 
       case 'symbol':

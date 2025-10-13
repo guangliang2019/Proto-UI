@@ -26,66 +26,67 @@ type PendingContextOperation<T = any> = {
   type: 'provide' | 'watch';
   context: Context<T>;
 } & (
-  | {
+    | {
       type: 'provide';
       initialValue?: T;
       initialValueFn?: (update: (value: Partial<T>, notify?: boolean) => void) => T;
     }
-  | {
+    | {
       type: 'watch';
       callback?: (value: T, changedKeys: string[]) => void;
     }
-);
+  );
 
-export const VueAdapter = <Props extends {}, Exposes extends {} = {}>(
-  prototype: Prototype<Props, Exposes, VNode>
+
+export const VueAdapter = <Props extends {}, Exposes extends {} = {}, El = any>(
+  prototype: Prototype<Props, Exposes, El>
 ) => {
   // 创建一个临时的 propsManager 用于获取 Vue props 定义
   const _tempPropsManager = new VuePropsManager<Props>();
-  
+
   // 调用 prototype.setup 一次以获取 props 定义
   const _tempP = {
     props: {
       define: (props: Props) => _tempPropsManager.defineProps(props),
-      set: () => {},
+      set: () => { },
       get: () => ({} as Props),
-      watch: () => {},
+      watch: () => { },
     },
-    state: { define: () => ({} as any), watch: () => {} },
-    context: { provide: () => {}, watch: () => {}, get: () => undefined as any },
-    expose: { define: () => {}, get: () => undefined },
+    state: { define: () => ({} as any), watch: () => { } },
+    context: { provide: () => { }, watch: () => { }, get: () => undefined as any },
+    expose: { define: () => { }, get: () => undefined },
     lifecycle: {
-      onCreated: () => {},
-      onMounted: () => {},
-      onUpdated: () => {},
-      onBeforeUnmount: () => {},
-      onBeforeDestroy: () => {},
+      onCreated: () => { },
+      onMounted: () => { },
+      onUpdated: () => { },
+      onBeforeUnmount: () => { },
+      onBeforeDestroy: () => { },
     },
-    role: { asTrigger: () => {} },
+    role: { asTrigger: () => { } },
     event: {
-      on: () => {},
-      off: () => {},
-      emit: () => {},
-      once: () => {},
-      click: () => {},
-      clearAll: () => {},
-      onGlobal: () => {},
-      offGlobal: () => {},
-      onceGlobal: () => {},
-      clearGlobal: () => {},
-      focus: { set: () => {}, setPriority: () => {}, getPriority: () => 0 },
-      setAttribute: () => {},
-      removeAttribute: () => {},
+      on: () => { },
+      off: () => { },
+      emit: () => { },
+      once: () => { },
+      click: () => { },
+      clearAll: () => { },
+      onGlobal: () => { },
+      offGlobal: () => { },
+      onceGlobal: () => { },
+      clearGlobal: () => { },
+      focus: { set: () => { }, setPriority: () => { }, getPriority: () => 0 },
+      setAttribute: () => { },
+      removeAttribute: () => { },
     },
     view: {
       getElement: () => document.createElement('div'),
-      update: async () => {},
-      forceUpdate: async () => {},
+      update: async () => { },
+      forceUpdate: async () => { },
       insertElement: () => 0,
       compareElementPosition: () => 0,
     },
   } as PrototypeAPI<Props, Exposes>;
-  
+
   // 调用一次获取 props 定义
   prototype.setup(_tempP);
   const vuePropsDefinition = _tempPropsManager.getVuePropsDefinition();
@@ -93,9 +94,8 @@ export const VueAdapter = <Props extends {}, Exposes extends {} = {}>(
   // 构建 Vue 组件
   return defineComponent({
     props: vuePropsDefinition,
-    setup(props, { attrs, slots }) {
-      console.log('[VueAdapter-Refactored] 创建新的组件实例, props:', props);
-      
+    setup(props, { slots }) {
+
       // ✅ 为每个实例创建独立的 managers
       const _eventManager = new VueEventManager();
       const _propsManager = new VuePropsManager<Props>();
@@ -105,7 +105,8 @@ export const VueAdapter = <Props extends {}, Exposes extends {} = {}>(
       let _pendingContextOperations: PendingContextOperation[] = [];
       const _contextManager = new VueContextManager();
       const _exposes: Exposes = {} as Exposes;
-      
+      const _contextUnsubscribers: Array<() => void> = [];
+
       // ✅ 为每个实例创建独立的 getElement
       let _getElement: () => HTMLElement = () => {
         throw new Error('[VueAdapter] getElement is not implemented');
@@ -185,7 +186,9 @@ export const VueAdapter = <Props extends {}, Exposes extends {} = {}>(
             if (providedValue !== undefined) {
               return providedValue;
             }
-            return inject(context.id);
+            // 从 inject 获取容器，返回容器中的值
+            const contextContainer = inject<any>(context.id);
+            return contextContainer?.value;
           },
         },
         expose: {
@@ -274,7 +277,7 @@ export const VueAdapter = <Props extends {}, Exposes extends {} = {}>(
 
       // ✅ 第一步：立即设置 props，确保后续代码能访问
       _propsManager.getVuePropsActualValue(props as Props);
-      
+
       // _temp_rootElement 是用来存储这个组件的根元素的
       const _temp_rootElement = createPrototypeElement();
       const _rootRef = ref<HTMLElement | null>(null);
@@ -295,14 +298,51 @@ export const VueAdapter = <Props extends {}, Exposes extends {} = {}>(
       // 处理所有待处理的 Context 操作
       _pendingContextOperations.forEach((operation) => {
         if (operation.type === 'provide') {
-          const value = operation.initialValueFn
-            ? operation.initialValueFn((value, notify = true) => {})
+          // 创建包含值和订阅者的容器
+          const subscribers = new Set<(value: any, changedKeys: string[]) => void>();
+          const contextContainer = {
+            value: undefined as any,
+            subscribe: (callback: (value: any, changedKeys: string[]) => void) => {
+              subscribers.add(callback);
+              return () => subscribers.delete(callback);
+            },
+          };
+
+          // 定义更新函数
+          const updateFn = (partialValue: Partial<any>, notify = true) => {
+            const oldValue = contextContainer.value;
+            contextContainer.value = { ...oldValue, ...partialValue };
+            _contextManager.setProvidedValue(operation.context, contextContainer.value);
+
+            // 找出变化的键
+            const changedKeys = Object.keys(partialValue);
+
+            // 通知所有订阅者
+            if (notify) {
+              subscribers.forEach(callback => callback(contextContainer.value, changedKeys));
+            }
+          };
+
+          // 初始化值
+          contextContainer.value = operation.initialValueFn
+            ? operation.initialValueFn(updateFn)
             : operation.initialValue;
-          provide(operation.context.id, value);
+
+          _contextManager.provideContext(operation.context, contextContainer.value);
+
+          // 通过 provide 传递容器（不是值！）
+          provide(operation.context.id, contextContainer);
         } else if (operation.type === 'watch') {
-          const value = inject(operation.context.id);
-          if (value !== undefined) {
-            _contextManager.setConsumedValue(operation.context, value, [], false);
+          const contextContainer = inject<any>(operation.context.id);
+          if (contextContainer) {
+            // 设置初始值
+            _contextManager.setConsumedValue(operation.context, contextContainer.value, [], false);
+
+            // 订阅更新
+            const unsubscribe = contextContainer.subscribe((newValue: any, changedKeys: string[]) => {
+              _contextManager.setConsumedValue(operation.context, newValue, changedKeys, true);
+            });
+            _contextUnsubscribers.push(unsubscribe);
           }
         }
       });
@@ -312,14 +352,12 @@ export const VueAdapter = <Props extends {}, Exposes extends {} = {}>(
         _lifecycleManager.trigger('mounting');
         const realElement = _getElement();
 
-        console.log('[VueAdapter-Refactored] onMounted, element:', realElement);
-
         // 暴露 API - 使用 realElement
         Object.entries(_exposes).forEach(([key, value]) => {
           if (key in realElement) {
             console.warn(
               `[VueAdapter] Property "${key}" already exists on the "${prototype.name}", ` +
-                'exposing it will override the original property.'
+              'exposing it will override the original property.'
             );
           }
           Object.defineProperty(realElement, key, {
@@ -340,13 +378,18 @@ export const VueAdapter = <Props extends {}, Exposes extends {} = {}>(
 
         _lifecycleManager.trigger('mounted');
       });
-      
+
       onBeforeUnmount(() => {
         _lifecycleManager.trigger('beforeUnmount');
+
+        // 取消所有 Context 订阅
+        _contextUnsubscribers.forEach(unsubscribe => unsubscribe());
+        _contextManager.destroy();
+
         _eventManager.destroy();
       });
 
-      const _vueRenderer = new VueRenderer(_render, slots);
+      const _vueRenderer = new VueRenderer(_render as any, slots);
 
       return () =>
         h(
