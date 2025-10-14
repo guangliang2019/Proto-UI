@@ -1,66 +1,128 @@
-// @/core/adapters/web/@react/index.ts
-// 仅类型导入：不会进运行时 bundle
-import type { Prototype } from '@/core/interface';
+// createReactAdapter.ts
+import type { Prototype, PrototypeAPI } from '@/core/interface';
 import type * as ReactNS from 'react';
-import type * as ReactDOMClient from 'react-dom/client';
+import { ReactRuntime } from './interface';
+import { createReactH, defaultRender } from './h';
+import { createEventAPI } from './event';
+import { createStateAPI } from './state';
+import { createPropsAPI } from './props';
 
-export type ReactRuntime = {
-  React: typeof ReactNS;
-  ReactDOM: typeof ReactDOMClient;
-  version?: string;
-};
+// 简单的守卫函数
+function isPrototypeLike(v: any): v is Prototype<any, any> {
+  return v && typeof v === 'object' && typeof v.setup === 'function' && typeof v.name === 'string';
+}
 
-// 工具：取出 Props，自动加 children 以便在 JSX 中更自然
-type PropsOf<T> = T extends { props: infer P } ? P : T extends Prototype<infer P, any> ? P : never;
-
-type WithChildren<P> = P & { children?: ReactNS.ReactNode };
-
-// 有暴露（Exposes 走 ref）
-type ExposesOf<T> = T extends { exposes: infer X }
-  ? X
-  : T extends Prototype<any, infer X>
-    ? X
-    : void;
-
-type IsVoid<T> = [T] extends [void] ? true : false;
-
-type AdapterComponentAutoOf<TProto> =
-  IsVoid<ExposesOf<TProto>> extends true
-    ? ReactNS.JSXElementConstructor<WithChildren<PropsOf<TProto>>>
-    : ReactNS.ForwardRefExoticComponent<
-        WithChildren<PropsOf<TProto>> & ReactNS.RefAttributes<ExposesOf<TProto>>
-      >;
-
-export type ReactAdapter = <Proto extends Prototype>(
-  Prototype: Proto
-) => AdapterComponentAutoOf<Proto>;
-
-export function createReactAdapter(runtime: {
-  React: typeof ReactNS;
-  ReactDOM: typeof import('react-dom/client');
-}): ReactAdapter {
+export function createReactAdapter(runtime: ReactRuntime) {
   const { React } = runtime;
+  const cache = new WeakMap<Prototype<any, any>, ReactNS.ElementType>();
 
-  // 用一个“更宽”的元素类型，避免 createElement 推断成 DOMElement：
-  type ReactAnyType = ReactNS.ElementType<any>; // 函数组件 | 类组件 | 原生标签 string | exotic component
+  const adapt = <Props extends {}, Exposes extends {}>(proto: Prototype<Props, Exposes>) => {
+    const RootElement = React.forwardRef<Exposes, { children?: ReactNS.ReactNode } & Props>(
+      (props, ref) => {
+        const rootElRef = React.useRef<HTMLElement | null>(null);
 
-  const adapter = (<Proto extends Prototype<any, any>>(prototype: Proto) => {
-    type P = WithChildren<PropsOf<Proto>>;
-    type X = ExposesOf<Proto>; // 可能是 void，也可能是暴露 API
+        const renderRef = React.useRef<null | ((h: any) => any)>(null);
+        const pRef = React.useRef<PrototypeAPI<Props, Exposes> | null>(null);
 
-    // 始终返回 forwardRef 组件（X=void 时 ref 是可选且不会被用到）
-    const Comp = React.forwardRef<X, P>((props, _ref) => {
-      // 把“要渲染的目标”视为 React 的广义元素类型，避免 DOMElement 泛型污染
-      const target = prototype.name as ReactAnyType;
-      // 收敛返回类型为 ReactElement（而非 DOMElement）
-      return React.createElement(target, props) as ReactNS.ReactElement;
-    });
+        // --- props API（供 setup 期定义 & 运行期只读 + 订阅）
+        const propsAPI = React.useMemo(
+          () => createPropsAPI<Readonly<Props>>(React, () => props as Props),
+          // props 对象在每次渲染都会变化引用，但 API 本身不应重建
+          // 因此依赖仅限 React（稳定），真实值由 getReactProps() 捕获
+          [React]
+        );
+        const eventAPI = React.useMemo(
+          () => createEventAPI(React, () => rootElRef.current),
+          [React]
+        );
+        const stateAPI = React.useMemo(
+          () => createStateAPI(React, () => rootElRef.current),
+          [React]
+        );
 
-    // 这个断言是安全的：
-    // - X === void 时：ForwardRefExoticComponent<P & RefAttributes<void>> 具备 call signature，可当 JSXElementConstructor<P> 使用
-    // - X !== void 时：恰好就是 ForwardRefExoticComponent
-    return Comp as unknown as AdapterComponentAutoOf<Proto>;
-  }) satisfies ReactAdapter;
+        if (renderRef.current === null) {
+          const p: PrototypeAPI<Props, Exposes> = {
+            props: {
+              define: propsAPI.define,
+              get: propsAPI.get,
+              watch: propsAPI.watch,
+            },
+            expose: (ex: any) => {
+              if (typeof ref === 'function') ref(ex);
+              else if (ref) (ref as React.RefObject<Exposes | null>).current = ex;
+            },
+            event: {
+              on: eventAPI.on,
+              off: eventAPI.off,
+              onGlobal: eventAPI.onGlobal,
+              offGlobal: eventAPI.offGlobal,
+            },
+            state: {
+              define: stateAPI.define,
+              watch: stateAPI.watch,
+            },
+            view: {
+              update: () => Promise.resolve(),
+            }
+            // TODO: context...
+          } as any;
+          pRef.current = p;
 
-  return adapter;
+          const fromSetup = proto.setup?.(p);
+          renderRef.current = typeof fromSetup === 'function' ? fromSetup : defaultRender;
+        } else {
+          if (pRef.current) (pRef.current as any).props = props;
+        }
+
+        // root 出现/变化：事件与状态的 DOM Bridge 同步
+        React.useLayoutEffect(() => {
+          eventAPI.refresh();
+          stateAPI.refresh();
+        });
+
+        React.useEffect(() => {
+          return () => {
+            // 卸载统一清理
+            stateAPI.cleanup();
+            eventAPI.cleanup();
+            if (typeof ref === 'function') ref(null as any);
+            else if (ref) (ref as React.MutableRefObject<Exposes | null>).current = null;
+          };
+          // eslint-disable-next-line react-hooks/exhaustive-deps
+        }, []);
+
+        const h = React.useMemo(
+          () =>
+            createReactH(React, props.children, {
+              resolveType: (t: any) => {
+                if (!isPrototypeLike(t)) return undefined;
+                let C = cache.get(t);
+                if (!C) {
+                  C = adapt(t) as unknown as ReactNS.ElementType;
+                  cache.set(t, C);
+                }
+                return C;
+              },
+            }),
+          [React, props.children]
+        );
+
+        const inner = renderRef.current!(h) ?? null;
+
+        const Target = (proto.name || React.Fragment) as ReactNS.ElementType;
+        const { children: _ignored, ...rest } = props as Record<string, unknown>;
+        const withRefProps =
+          Target === React.Fragment
+            ? rest
+            : { ...rest, ref: rootElRef as unknown as React.LegacyRef<any> };
+
+        return React.createElement(Target, withRefProps, inner);
+      }
+    );
+
+    RootElement.displayName = proto.name ? `Proto(${proto.name})` : 'Proto(Component)';
+    return RootElement;
+  };
+
+  return adapt;
 }
