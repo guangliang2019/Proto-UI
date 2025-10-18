@@ -1,6 +1,8 @@
 import { AttributeManager, State, StateManager } from '@/core/interface';
 import { isValidKebabCase, kebabToCamel } from '@/core/utils/naming';
-
+/**
+ * Vue Adapter 状态管理器
+ */
 class VueStateManager implements StateManager {
   private currentAttribute: string | undefined;
   private currentStateType: unknown;
@@ -149,21 +151,6 @@ class VueStateManager implements StateManager {
     return this.states.get(index)!;
   }
 
-  flushAttributes(): void {
-    this.pendingAttributes.forEach(({ value, serialize }, attribute) => {
-      this.currentAttribute = attribute;
-      const serializedValue = serialize(value);
-      this.currentAttribute = undefined;
-      if (serializedValue === null) {
-        this.host?.removeAttribute(attribute);
-      } else {
-        this.host?.setAttribute(attribute, serializedValue);
-      }
-  
-  
-    });
-    this.pendingAttributes.clear();
-  }
 
   getStates(): Readonly<Record<string, any>> {
     return Object.fromEntries(

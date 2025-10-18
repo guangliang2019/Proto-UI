@@ -125,7 +125,6 @@ export const VueAdapter = <Props extends {}, Exposes extends {} = {}, El = any>(
         });
       };
 
-      // ✅ 为每个实例构建独立的 PrototypeAPI
       const _p: PrototypeAPI<Props, Exposes> = {
         props: {
           define: (props: Props) => {
@@ -159,7 +158,6 @@ export const VueAdapter = <Props extends {}, Exposes extends {} = {}, El = any>(
             };
           },
         },
-        // TODO: 这里重构， 这里需要重新判断是使用provide/inject 还和webComponent一样 ，要注意的是该适配器的是手动更新的，使用这个 provide/inject 只是去连接而已
         context: {
           provide: <T>(context: Context<T>, valueBuilder: (update: UpdateContext<T>) => T) => {
             _pendingContextOperations.push({
@@ -390,7 +388,6 @@ export const VueAdapter = <Props extends {}, Exposes extends {} = {}, El = any>(
       });
 
       const _vueRenderer = new VueRenderer(_render as any, slots);
-
       return () =>
         h(
           prototype.name,

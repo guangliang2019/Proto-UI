@@ -9,10 +9,10 @@ import {
 } from './managers';
 import { Prototype } from './prototype';
 
-export type ElementType = string | Prototype<any> | symbol;
-export type ElementChild = string | number | boolean | null | undefined | Element;
+export type ElementType = string | Prototype<any, any> | symbol;
+export type ElementChild<El = Element> = string | number | boolean | null | undefined | El;
 
-export type ElementChildren = ElementChild | ElementChild[];
+export type ElementChildren<El = Element> = ElementChild<El> | ElementChild<El>[];
 
 export interface ElementProps {
   // 基础属性
@@ -46,7 +46,7 @@ export interface RendererContext {
 export type Renderer<El = Element> = (
   type: ElementType,
   props?: ElementProps,
-  children?: ElementChildren
+  children?: ElementChildren<El>
 ) => El;
 
 export interface RendererAPI<El = Element> {
@@ -55,3 +55,6 @@ export interface RendererAPI<El = Element> {
   createComment?(content: string): any;
   createFragment?(children?: ElementChildren): El;
 }
+export const defaultRender = <El = Element>(h: Renderer<El>): El => {
+  return h('slot');
+};
