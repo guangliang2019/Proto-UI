@@ -49,6 +49,12 @@ export type Renderer<El = Element> = (
   children?: ElementChildren<El>
 ) => El;
 
+export interface RendererAPI<El = Element> {
+  createElement(type: ElementType, props?: ElementProps, children?: ElementChildren): El;
+  createText?(content: string): any;
+  createComment?(content: string): any;
+  createFragment?(children?: ElementChildren): El;
+}
 export const defaultRender = <El = Element>(h: Renderer<El>): El => {
   return h('slot');
 };

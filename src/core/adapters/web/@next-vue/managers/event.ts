@@ -44,12 +44,16 @@ class VueEventManager implements EventManager {
   }
 
   on(eventName: string, handler: EventHandler, options?: EventOptions) {
-    if (!this._eventMap.has(eventName)) {
-      this._eventMap.set(eventName, new Set());
-    }
-    this._eventMap.get(eventName)?.add(handler);
     if (this._initFlag) {
-      this._rootRef?.addEventListener(eventName, handler, options);
+      // 已初始化：直接绑定到 DOM
+      if (!this._eventMap.has(eventName)) {
+        this._eventMap.set(eventName, new Set());
+      }
+      const wasAdded = !this._eventMap.get(eventName)?.has(handler);
+      if (wasAdded) {
+        this._eventMap.get(eventName)?.add(handler);
+        this._rootRef?.addEventListener(eventName, handler, options);
+      }
     } else {
       this._pendingEvents.push({ eventName, handler, options });
     }
@@ -118,6 +122,7 @@ class VueEventManager implements EventManager {
     if (!this._initFlag) {
       throw new Error('[Vue Adapter] 调用 mount 方法时, 需要先调用 init 方法');
     }
+
     this._pendingEvents.forEach((event) => {
       this.on(event.eventName, event.handler, event.options);
     });

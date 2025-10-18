@@ -105,7 +105,7 @@ export class WebPropsManager<T extends object> implements PropsManager<T> {
       this.changeCallbacks.forEach((callback) => callback(this.getProps()));
     }
 
-    console.debug('[WebPropsManager] Initialized with props:', this.props);
+    // console.debug('[WebPropsManager] Initialized with props:', this.props);
   }
 
   /**

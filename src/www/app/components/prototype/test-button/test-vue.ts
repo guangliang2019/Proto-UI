@@ -12,11 +12,6 @@ import { optimizeTailwindClasses } from '@/www/utils/tailwind';
 import { CONFIG } from '@/components/shadcn/_config';
 
 import { PrototypeAPI } from '@/core/interface';
-// 定义组件的 props 接口
-interface TestVueProps {
-  value?: string;
-  name?: string;
-}
 
 /**
  * 让使用了 asButton 的组件具有按钮的行为
@@ -86,6 +81,7 @@ const asButton = <
   });
   // 点击
   p.event.on('click', (e) => {
+    console.log('vue1', 'click');
     const props = p.props.get();
     if (!focus.value || props.disabled) return;
     props.onClick?.(e as MouseEvent);
@@ -121,7 +117,6 @@ const PrototypeButton = definePrototype<ShadcnButtonProps, ButtonExposes>({
     p.props.watch(['variant'], () => {
       p.view.update();
     });
-
     // handle class names
     let _originalCls = '';
     p.lifecycle.onMounted(() => {
@@ -192,25 +187,125 @@ const vueButton = VueAdapter(PrototypeButton);
 
 const TestVueComponent = defineComponent({
   setup() {
-    // 测试生命周期
     onMounted(() => {
-      console.log('Vue 组件已挂载');
     });
-    // TODO: 要想办法得到这里的button才行不然没办法得到
+    // TODO: 在vue中h函数 使用自定义组件的第三个参数使用函数也就是 () => {[]}
     return () =>
       h('div', { class: 'space-y-4 p-4' }, [
-        // h(testPrototype, { value: '123', name: '123' }),
-        h(vueButton, { variant: 'primary' }, [
-         
-          h('br'),
-          h('div', {}, ['1']),
-
+        // h(vueButton, { variant: 'secondary' }, ['Button']),
+        h(VueShadcnTabs, { defaultValue: 'account' }, [
+          h(VueShadcnTabsList, [
+            h(VueShadcnTabsTrigger, { value: 'account' }, ['Account']),
+            h(VueShadcnTabsTrigger, { value: 'password' }, ['Password']),
+          ]),
+          h(VueShadcnTabsContent, { value: 'account' }, [
+            h('div', { class: 'rounded-xl border bg-card text-card-foreground shadow mt-2' }, [
+              h('div', { class: 'flex flex-col space-y-1.5 p-6' }, [
+                h('h3', { class: 'font-semibold leading-none tracking-tight' }, ['Account']),
+                h('p', { class: 'text-sm text-muted-foreground' }, [
+                  "Make changes to your account here. Click save when you're done.",
+                ]),
+              ]),
+            ]),
+          ]),
+          h(VueShadcnTabsContent, { value: 'password' }, [
+            h('div', { class: 'rounded-xl border bg-card text-card-foreground shadow mt-2' }, [
+              h('div', { class: 'flex flex-col space-y-1.5 p-6' }, [
+                h('h3', { class: 'font-semibold leading-none tracking-tight' }, ['Password']),
+                h('p', { class: 'text-sm text-muted-foreground' }, [
+                  "Change your password here. After saving, you'll be logged out.",
+                ]),
+              ]),
+            ]),
+          ]),
         ]),
-
-
       ]);
   },
 });
 
 export default TestVueComponent;
+
+import { asTabs } from '@/core/behaviors/as-tabs';
+import { TabsProps, TabsExposes } from '@/core/behaviors/as-tabs';
+const ShadcnTabsPrototype = definePrototype<TabsProps, TabsExposes>({
+  name: `vue-${CONFIG.shadcn.prefix}-tabs`,
+  setup: (p) => {
+
+    asTabs(p);
+    p.lifecycle.onMounted(() => {
+    });
+  },
+});
+
+const VueShadcnTabs = VueAdapter(ShadcnTabsPrototype);
+
+import { asTabsTrigger, TabsTriggerProps } from '@/core/behaviors/as-tabs';
+
+const ShadcnTabsTriggerPrototype = definePrototype<TabsTriggerProps>({
+  name: `vue-${CONFIG.shadcn.prefix}-tabs-trigger`,
+  setup: (p) => {
+    asTabsTrigger(p);
+
+    // get original class
+    let _originalCls = '';
+    p.lifecycle.onMounted(() => {
+      _originalCls = p.view.getElement().className;
+    });
+
+    return () => {
+      const _computedClass =
+        'cursor-pointer inline-flex items-center justify-center whitespace-nowrap rounded-md px-3 py-1 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow';
+      p.view.getElement().className = [_computedClass, _originalCls].join(' ').trimEnd();
+    };
+  },
+});
+
+const VueShadcnTabsTrigger = VueAdapter(ShadcnTabsTriggerPrototype);
+
+import { TabsContext } from '@/core/behaviors/as-tabs';
+
+const ShadcnTabsListPrototype = definePrototype({
+  name: `vue-${CONFIG.shadcn.prefix}-tabs-list`,
+  setup: (p) => {
+    p.context.watch(TabsContext);
+
+    // get original class
+    let _originalCls = '';
+    p.lifecycle.onMounted(() => {
+      _originalCls = p.view.getElement().className;
+    });
+
+    return () => {
+      const _computedClass =
+        'h-9 items-center justify-center rounded-lg bg-muted p-1 text-muted-foreground grid w-full grid-cols-2';
+      p.view.getElement().className = [_computedClass, _originalCls].join(' ').trimEnd();
+    };
+  },
+});
+
+const VueShadcnTabsList = VueAdapter(ShadcnTabsListPrototype);
+
+import { asTabsContent, TabsContentProps } from '@/core/behaviors/as-tabs';
+
+const ShadcnTabsContentPrototype = definePrototype<TabsContentProps>({
+  name: `vue-${CONFIG.shadcn.prefix}-tabs-content`,
+  setup: (p) => {
+    asTabsContent(p);
+
+    // get original class
+    let _originalCls = '';
+    p.lifecycle.onMounted(() => {
+      _originalCls = p.view.getElement().className;
+    });
+
+    return () => {
+      p.view.getElement().className = [_originalCls, 'data-[state=inactive]:hidden']
+        .join(' ')
+        .trimEnd();
+    };
+  },
+});
+
+const VueShadcnTabsContent = VueAdapter(ShadcnTabsContentPrototype);
+
 
