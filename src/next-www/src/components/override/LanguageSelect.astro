@@ -31,10 +31,18 @@ const title = locale==='en'?'English':'简体中文'
 <script is:inline>
     function handleLanguageSwitch() {
         const currentLocale = this.dataset.currentLocale
+        const newLocale = currentLocale === 'en' ? 'zh-cn' : 'en';
         const newPath = currentLocale === 'en'
             ? this.dataset.zhPath
             : this.dataset.enPath;
+        
         if (newPath) {
+            // 保存用户的语言偏好到 Cookie（有效期 1 年）
+            const expires = new Date();
+            expires.setFullYear(expires.getFullYear() + 1);
+            document.cookie = `preferred-locale=${newLocale}; path=/; expires=${expires.toUTCString()}; SameSite=Lax`;
+            
+            console.log('[Language Switch] Saved locale to cookie:', newLocale);
             window.location.pathname = newPath;
         }
     }

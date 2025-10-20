@@ -3,6 +3,7 @@ import { defineConfig } from 'astro/config';
 import starlight from '@astrojs/starlight';
 
 import tailwindcss from '@tailwindcss/vite';
+import { fileURLToPath } from 'node:url';
 
 // https://astro.build/config
 export default defineConfig({
@@ -12,7 +13,6 @@ export default defineConfig({
 
       defaultLocale: 'zh-cn',
       locales: {
-
         en: {
           label: 'English',
         },
@@ -24,6 +24,21 @@ export default defineConfig({
       },
       head: [
         // 双 theme-color
+        {
+          tag: 'script',
+          attrs: {
+            type: 'importmap',
+          },
+          content: `
+          {
+            "imports": {
+              "react": "https://esm.sh/react@18",
+              "react-dom/client": "https://esm.sh/react-dom@18/client",
+              "vue": "https://esm.sh/vue@3"
+            }
+          }
+          `,
+        },
         {
           tag: 'meta',
           attrs: {
@@ -46,14 +61,13 @@ export default defineConfig({
             'zh-CN': '概要',
           },
           items: [
-
             {
               label: '项目介绍',
               translations: {
                 en: 'Project Introduction',
                 'zh-CN': '项目介绍',
               },
-              slug: 'overview/introduction'
+              slug: 'overview/introduction',
             },
             {
               label: '白皮书概要',
@@ -61,7 +75,7 @@ export default defineConfig({
                 en: 'Whitepaper Overview',
                 'zh-CN': '白皮书概要',
               },
-              slug: 'overview/whitepaper'
+              slug: 'overview/whitepaper',
             },
             {
               label: '原型库',
@@ -69,7 +83,7 @@ export default defineConfig({
                 en: 'Prototype Library',
                 'zh-CN': '原型库',
               },
-              slug: 'overview/prototypes'
+              slug: 'overview/prototypes',
             },
             {
               label: '适配器库',
@@ -77,7 +91,7 @@ export default defineConfig({
                 en: 'Adapter Library',
                 'zh-CN': '适配器库',
               },
-              slug: 'overview/adapters'
+              slug: 'overview/adapters',
             },
             {
               label: '时间线 & 里程碑',
@@ -85,7 +99,7 @@ export default defineConfig({
                 en: 'Timeline & Milestones',
                 'zh-CN': '时间线 & 里程碑',
               },
-              slug: 'overview/milestone'
+              slug: 'overview/milestone',
             },
             {
               label: '贡献指引',
@@ -97,7 +111,7 @@ export default defineConfig({
               badge: {
                 text: {
                   'zh-CN': '征集中',
-                  en: 'collection'
+                  en: 'collection',
                 },
                 class: 'text-xs px-1.5 h-4.5 rounded-full bg-lime-400 text-black',
               },
@@ -111,13 +125,13 @@ export default defineConfig({
               slug: 'overview/installation',
               badge: {
                 text: {
-                  'zh-CN':'计划中',
-                  en: 'planning'
+                  'zh-CN': '计划中',
+                  en: 'planning',
                 },
 
-                class: 'text-xs px-1.5 h-4.5 rounded-full bg-zinc-800'
+                class: 'text-xs px-1.5 h-4.5 rounded-full bg-zinc-800',
               },
-            }
+            },
           ],
         },
         {
@@ -126,7 +140,7 @@ export default defineConfig({
             en: 'Timeline & Milestones',
             'zh-CN': '时间线 & 里程碑',
           },
-          slug: 'overview/milestone'
+          slug: 'overview/milestone',
         },
         {
           label: '白皮书 & 哲学',
@@ -141,7 +155,7 @@ export default defineConfig({
                 en: 'Design Philosophy',
                 'zh-CN': '设计哲学',
               },
-              slug: 'whitepaper/philosophy'
+              slug: 'whitepaper/philosophy',
             },
             {
               label: '与现有方案比较',
@@ -149,7 +163,7 @@ export default defineConfig({
                 en: 'Comparison with Existing Solutions',
                 'zh-CN': '与现有方案比较',
               },
-              slug: 'whitepaper/comparison'
+              slug: 'whitepaper/comparison',
             },
             {
               label: 'FAQ',
@@ -157,7 +171,7 @@ export default defineConfig({
                 en: 'FAQ',
                 'zh-CN': 'FAQ',
               },
-              slug: 'whitepaper/faq'
+              slug: 'whitepaper/faq',
             },
           ],
         },
@@ -174,7 +188,7 @@ export default defineConfig({
                 en: 'Core Concepts & API Overview',
                 'zh-CN': '核心概念 & API 总览',
               },
-              slug: 'protocol/general'
+              slug: 'protocol/general',
             },
             {
               label: 'asHook: 原型的组合',
@@ -182,7 +196,7 @@ export default defineConfig({
                 en: 'asHook: Prototype Composition',
                 'zh-CN': 'asHook: 原型的组合',
               },
-              slug: 'protocol/as-hook'
+              slug: 'protocol/as-hook',
             },
             {
               label: 'Context',
@@ -190,7 +204,7 @@ export default defineConfig({
                 en: 'Context',
                 'zh-CN': 'Context',
               },
-              slug: 'protocol/context'
+              slug: 'protocol/context',
             },
             {
               label: 'Debug 语法',
@@ -198,7 +212,7 @@ export default defineConfig({
                 en: 'Debug Syntax',
                 'zh-CN': 'Debug 语法',
               },
-              slug: 'protocol/debug'
+              slug: 'protocol/debug',
             },
             {
               label: 'Event',
@@ -206,7 +220,7 @@ export default defineConfig({
                 en: 'Event',
                 'zh-CN': 'Event',
               },
-              slug: 'protocol/event'
+              slug: 'protocol/event',
             },
             {
               label: 'Expose',
@@ -214,7 +228,7 @@ export default defineConfig({
                 en: 'Expose',
                 'zh-CN': 'Expose',
               },
-              slug: 'protocol/expose'
+              slug: 'protocol/expose',
             },
             {
               label: 'Lifecycle',
@@ -222,7 +236,7 @@ export default defineConfig({
                 en: 'Lifecycle',
                 'zh-CN': 'Lifecycle',
               },
-              slug: 'protocol/lifecycle'
+              slug: 'protocol/lifecycle',
             },
             {
               label: 'Props',
@@ -230,7 +244,7 @@ export default defineConfig({
                 en: 'Props',
                 'zh-CN': 'Props',
               },
-              slug: 'protocol/props'
+              slug: 'protocol/props',
             },
             {
               label: 'Renderer 语法',
@@ -238,7 +252,7 @@ export default defineConfig({
                 en: 'Renderer Syntax',
                 'zh-CN': 'Renderer 语法',
               },
-              slug: 'protocol/renderer'
+              slug: 'protocol/renderer',
             },
             {
               label: 'State',
@@ -246,7 +260,7 @@ export default defineConfig({
                 en: 'State',
                 'zh-CN': 'State',
               },
-              slug: 'protocol/state'
+              slug: 'protocol/state',
             },
             {
               label: 'Style 语法',
@@ -254,7 +268,7 @@ export default defineConfig({
                 en: 'Style Syntax',
                 'zh-CN': 'Style 语法',
               },
-              slug: 'protocol/style'
+              slug: 'protocol/style',
             },
             {
               label: 'Variant 语法',
@@ -268,7 +282,7 @@ export default defineConfig({
                   en: 'Planned',
                   'zh-CN': '计划中',
                 },
-                class: 'text-xs px-1.5 h-4.5 rounded-full bg-zinc-800'
+                class: 'text-xs px-1.5 h-4.5 rounded-full bg-zinc-800',
               },
             },
           ],
@@ -293,13 +307,23 @@ export default defineConfig({
         TwoColumnContent: './src/components/override/TwoColumnContent.astro',
         PageTitle: './src/components/override/PageTitle.astro',
         MarkdownContent: './src/components/override/MarkdownContent.astro',
-        LanguageSelect: './src/components/override/LanguageSelect.astro'
-
+        LanguageSelect: './src/components/override/LanguageSelect.astro',
       },
     }),
   ],
-
   vite: {
+    resolve: {
+      alias: {
+        '@': fileURLToPath(new URL('../../src', import.meta.url)),
+        '@core': fileURLToPath(new URL('../../src/core', import.meta.url)),
+      },
+      // monorepo + pnpm/yarn link 时常见，保持符号链接不被“解析扁平”
+      preserveSymlinks: true,
+    },
+    server: {
+      // 允许 dev server 读取到仓库根（否则访问 ../../src 会被拦）
+      fs: { allow: ['..', '../../'] },
+    },
     plugins: [tailwindcss()],
   },
 });

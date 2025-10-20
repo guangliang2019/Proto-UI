@@ -20,6 +20,6 @@
     "jsx": "preserve",
     "lib": ["dom", "esnext"]
   },
-  "include": ["src/**/*.ts"],
+  "include": ["src/**/*.ts", "src/next-www/src/demos/react/Counter.tsx"],
   "exclude": ["node_modules", "dist"]
 }
