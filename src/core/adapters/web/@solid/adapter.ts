@@ -22,7 +22,7 @@ const createSolidAdapter = (runtime: SolidRuntime) => {
         return [];
       }, props);
 
-      return rootElement;
+      return rootComponent;
     };
   };
 
