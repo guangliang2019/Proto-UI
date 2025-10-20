@@ -17,7 +17,7 @@ export function createReactAdapter(runtime: ReactRuntime) {
   const cache = new WeakMap<Prototype<any, any>, ReactNS.ElementType>();
 
   const adapt = <Props extends {}, Exposes extends {}>(proto: Prototype<Props, Exposes>) => {
-    const RootElement = React.forwardRef<Exposes, { children?: ReactNS.ReactNode } & Props>(
+    const RootElement = React.forwardRef<Exposes, ReactNS.PropsWithChildren<Props>>(
       (props, ref) => {
         const rootElRef = React.useRef<HTMLElement | null>(null);
 
@@ -63,7 +63,7 @@ export function createReactAdapter(runtime: ReactRuntime) {
             },
             view: {
               update: () => Promise.resolve(),
-            }
+            },
             // TODO: context...
           } as any;
           pRef.current = p;
