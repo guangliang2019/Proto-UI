@@ -410,7 +410,6 @@ export const VueAdapter = <Props extends {}, Exposes extends {} = {}>(
 
       onMounted(() => {
 
-        console.log('onMounted')
       // 推迟执行
 
         // 这里必须要在挂载之后才能执行
@@ -512,7 +511,6 @@ export const VueAdapter = <Props extends {}, Exposes extends {} = {}>(
       // 且这个_renderer 并没有写全
       return () => {
         if (!prototypeRender) {
-          console.log('prototypeRender is not defined');
           return null;
         }
         return prototypeRender(_renderer);

@@ -14,7 +14,6 @@ export default class TestButtonBasic extends DocCode {
           class: 'w-full h-full',
           id: 'vue-app',
           onClick: () => {
-            console.log('clicked1');
           },
         },
         ['Click me111']
