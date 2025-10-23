@@ -11,8 +11,8 @@ const REACT_DOM_SOURCE = 'https://esm.sh/react-dom@18/client';
 // 异步加载 React 与 ReactDOM
 async function loadReact(): Promise<{ React: typeof ReactTypes; ReactDOM: typeof ReactDOMTypes }> {
   const [React, ReactDOM] = await Promise.all([
-    import(REACT_SOURCE) as Promise<typeof ReactTypes>,
-    import(REACT_DOM_SOURCE) as Promise<typeof ReactDOMTypes>,
+    import(/* @vite-ignore */ REACT_SOURCE) as Promise<typeof ReactTypes>,
+    import(/* @vite-ignore */ REACT_DOM_SOURCE) as Promise<typeof ReactDOMTypes>,
   ]);
   return { React, ReactDOM };
 }

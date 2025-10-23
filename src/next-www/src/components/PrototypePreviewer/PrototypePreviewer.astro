@@ -5,12 +5,13 @@ import type { RuntimeId } from './runtimes/registry';
 
 
 interface Props {
-  prototypeId: string;                    // 方案A：在前端通过 registerPrototype(id, proto) 注册后使用
+  prototypeId: string;                    // 原型 ID
   initialRuntime?: RuntimeId;             // 默认 'wc'
   props?: Record<string, unknown>;        // 传给原型适配后组件的 props
   class?: string;
   toolbar?: boolean;                      // 是否渲染运行时切换 UI，默认 true
   runtimes?: RuntimeId[];                 // 可选的运行时列表，默认 ['wc','react','vue']
+  loader?: string;                        // 动态导入路径，例如 './demo-inline'
 }
 
 const {
@@ -19,7 +20,8 @@ const {
   props: protoProps = {},
   class: className = '',
   toolbar = true,
-  runtimes = ['wc', 'react']
+  runtimes = ['wc', 'react'],
+  loader
 } = Astro.props;
 
 if (!prototypeId) {
@@ -36,6 +38,7 @@ const rid = `pp-${Math.random().toString(36).slice(2)}`;
   data-initial-runtime={initialRuntime}
   data-props={JSON.stringify(protoProps)}
   data-runtimes={JSON.stringify(runtimes)}
+  data-loader={loader || ''}
 >
   {toolbar && (
     <div class="toolbar">
@@ -63,6 +66,7 @@ const rid = `pp-${Math.random().toString(36).slice(2)}`;
         const initialRuntime = (root.dataset.initialRuntime || 'wc') as RuntimeId;
         const demoProps = root.dataset.props ? JSON.parse(root.dataset.props) : {};
         const runtimeList = root.dataset.runtimes ? JSON.parse(root.dataset.runtimes) : ['wc', 'react'];
+        const loader = root.dataset.loader || '';
 
         if (!prototypeId) {
           console.error('[PrototypePreviewer] missing prototypeId', root);
@@ -75,6 +79,7 @@ const rid = `pp-${Math.random().toString(36).slice(2)}`;
           initialRuntime,
           demoProps,
           runtimeList,
+          loader,
         });
       });
     }

@@ -1,6 +1,7 @@
 // src/next-www/src/components/PrototypePreviewer/previewer-client.ts
 import { runtimeLoaders } from './runtimes/registry';
 import { getPrototype } from './registry';
+import { loadPrototype } from './prototype-modules';
 import type { RuntimeId } from './runtimes/registry';
 
 interface PreviewerOptions {
@@ -9,10 +10,11 @@ interface PreviewerOptions {
   initialRuntime: RuntimeId;
   demoProps: Record<string, unknown>;
   runtimeList: RuntimeId[];
+  loader?: string; // 动态导入路径
 }
 
 export function initPreviewer(options: PreviewerOptions) {
-  const { root, prototypeId, initialRuntime, demoProps, runtimeList } = options;
+  const { root, prototypeId, initialRuntime, demoProps, runtimeList, loader } = options;
 
   // 防重复初始化
   if (root.dataset.inited === '1') {
@@ -51,7 +53,33 @@ export function initPreviewer(options: PreviewerOptions) {
     root.dispatchEvent(new CustomEvent(name, { detail, bubbles: true }));
   }
 
-  async function switchTo(id: string) {
+  // 动态加载原型模块
+  let loaderPromise: Promise<void> | null = null;
+  async function ensurePrototypeLoaded() {
+    if (loaderPromise) return loaderPromise; // 已在加载中
+    
+    loaderPromise = (async () => {
+      try {
+        // 方式1：使用自定义 loader（废弃的旧方式，保留兼容）
+        if (loader) {
+          const baseUrl = import.meta.url.replace(/\/[^/]+$/, '/');
+          const modulePath = new URL(loader, baseUrl).href;
+          await import(/* @vite-ignore */ modulePath);
+          return;
+        }
+        
+        // 方式2：自动按需加载（推荐）
+        await loadPrototype(prototypeId);
+      } catch (err) {
+        console.error('[PrototypePreviewer] 加载原型模块失败:', prototypeId, err);
+        throw err;
+      }
+    })();
+    
+    return loaderPromise;
+  }
+
+  async function switchTo(id: string, retryCount = 0) {
     if (destroyed) return;
     const myVersion = ++version;
     if (select) select.disabled = true;
@@ -60,6 +88,9 @@ export function initPreviewer(options: PreviewerOptions) {
       // 卸载旧 runtime
       if (current?.api?.unmount) await current.api.unmount(host);
       else host.innerHTML = '';
+
+      // 确保原型已加载（如果有 loader）
+      await ensurePrototypeLoaded();
 
       // 并行加载：运行时 API + 原型对象引用
       const [api, proto] = await Promise.all([
@@ -74,6 +105,10 @@ export function initPreviewer(options: PreviewerOptions) {
       current = { id, api };
       dispatch('runtime:changed', { id });
     } catch (err) {
+      // 如果是原型未找到的错误，不需要重试（动态加载应该已经处理了）
+      // 旧的重试逻辑已被更可靠的动态加载机制取代
+      
+      // 显示错误信息
       host.innerHTML = '';
       const pre = document.createElement('pre');
       pre.textContent =
@@ -121,18 +156,3 @@ export function initPreviewer(options: PreviewerOptions) {
   });
   ro.observe(document.body, { childList: true, subtree: true });
 }
-
-import { definePrototype } from '@/core';
-import { registerPrototype } from './registry';
-
-const DemoInline = definePrototype({
-  name: 'demo-inline',
-  setup(p) {
-    return (h) => {
-      const r = (h as any).createElement ? (h as any).createElement : h;
-      return r('div', { class: 'text-red-500' }, 'Hello World');
-    };
-  },
-});
-
-registerPrototype('demo-inline', DemoInline);

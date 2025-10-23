@@ -86,7 +86,7 @@ export function createReactAdapter(runtime: ReactRuntime) {
             stateAPI.cleanup();
             eventAPI.cleanup();
             if (typeof ref === 'function') ref(null as any);
-            else if (ref) (ref as React.MutableRefObject<Exposes | null>).current = null;
+            else if (ref) (ref as React.RefObject<Exposes | null>).current = null;
           };
           // eslint-disable-next-line react-hooks/exhaustive-deps
         }, []);
@@ -114,7 +114,7 @@ export function createReactAdapter(runtime: ReactRuntime) {
         const withRefProps =
           Target === React.Fragment
             ? rest
-            : { ...rest, ref: rootElRef as unknown as React.LegacyRef<any> };
+            : { ...rest, ref: rootElRef as React.RefAttributes<Exposes>['ref'] };
 
         return React.createElement(Target, withRefProps, inner);
       }
