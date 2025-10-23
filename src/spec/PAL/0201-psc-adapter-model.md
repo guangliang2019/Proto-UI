@@ -3,9 +3,9 @@ rfc: 0201
 title: Adapter 基本模型
 status: Draft
 category: Core
-version: 0.1.0
+version: 0.1.1
 created: 2025-09-29
-updated: 2025-09-29
+updated: 2025-10-22
 authors: [Proto UI Core Team]
 reviewers: []
 discussions: https://github.com/proto-ui/proto-ui/discussions
@@ -87,6 +87,28 @@ affects_compliance: [PAL-Core]
 - **MUST**：当宿主无法完全实现 PAL-Core 的某一能力时，Adapter 必须在能力矩阵（RFC 0290）中声明“部分实现”或“不适用”。  
 - **SHOULD**：提供开发者文档，解释宿主差异与补丁策略，以避免误用。  
 
+### 3.5 语义一致性与宿主哲学
+
+- **MUST**：Adapter 与 Compiler 的首要目标是**保持语义一致**。  
+  - 在任何宿主上，Prototype 的语义解释必须与 PAL-Core 规范一致，**不得因性能或宿主习惯而产生行为差异**。  
+  - 当宿主与 PAL-Core 的语义存在不完全重合时，Adapter **必须优先保持语义正确性**，其次追求交互与开发体验一致性，最后才考虑性能与实现复杂度。  
+
+- **SHOULD**：实现者遵循以下优先级：  
+  1. **语义一致性（Semantic Consistency）** —— 行为与意义完全一致；  
+  2. **体验一致性（Experiential Consistency）** —— 用户与开发者感知到的交互、调试、开发体验一致；  
+  3. **性能一致性（Performance Consistency）** —— 在不损害前两者的前提下，追求宿主内最佳性能表现。  
+
+  > 换言之，**语义第一、体验第二、性能第三** 是 Adapter 与 Compiler 的基本优先级原则。  
+
+- **MUST NOT**：Adapter 或 Compiler 不得为追求性能或宿主特化而牺牲 Prototype 语义。任何偏离 PAL-Core 语义的优化或捷径均视为违规。  
+
+- **MUST**：当宿主框架的设计哲学**不包含“组件实例”概念**，或其运行时行为**显式拒绝组件抽象**（如 Solid.js 一类编译期展开体系），不得强行构造或模拟组件实例。  
+  - 在此类宿主中，**Adapter 不适用**，实现者应采用 Compiler 路径或声明“不提供适配”；  
+  - 若强行构造组件概念会**违背宿主的哲学或破坏其响应模型**，实现者 **MUST NOT** 提供此类 Adapter 或 Compiler。  
+
+- **MAY**：若宿主允许通过包装方式（Wrapper Component）引入外部实体，而不破坏宿主语义，可提供“包装式 Adapter”或“桥接 Compiler”；但其行为 **MUST** 明确标注为“语义外嵌”，并在能力矩阵中注明限制。  
+
+
 ## 4. 模块化能力（PAL-Core 的适配模块）
 
 - **SHOULD**：Adapter 以**模块化**形式提供 PAL-Core 的能力，便于独立演化与复用：  
@@ -99,6 +121,9 @@ affects_compliance: [PAL-Core]
   - Compiler = **静态生成**；Adapter = **运行时映射**。  
 - **MAY**：Compiler **可以**调用 Adapter 的能力模块（作为库）来执行涉及运行时语义的优化（如事件汇总、属性归并），但这不构成规范上的强依赖。  
 - **MUST NOT**：Adapter 不得依赖 Compiler 才能运行。
+
+> - **NOTE**：无论是运行时 Adapter 还是静态 Compiler，其产物**均需遵守 3.5 所定义的语义与宿主一致性原则**。  
+>   当宿主缺乏组件实例或语义相悖时，Compiler 路径优先；若两者皆不符，应声明“不适用宿主”。
 
 ## 6. 合规性要求
 
@@ -151,3 +176,10 @@ Prototype ──(0201 Adapter)──▶ Component(on Host)
 ## 变更记录
 
 - 0.1.0 (2025-09-29): 初稿。确立 Adapter 纯函数形态与工厂可选；明确“不得改语义”；逻辑型原型的渲染权归属 Prototype；模块化能力；与 Compiler 的弱耦合关系；RootElement 映射与最终产物约束；新增“抹平不对称能力”条款。
+
+- 0.1.1 (2025-10-22):  
+  新增 “3.5 语义一致性与宿主哲学” 条款。确立语义＞一致性＞性能 的优先级原则；  
+  明确禁止在无组件哲学的宿主中强行构造组件抽象；  
+  新增第 5 节交叉说明，定义 Adapter / Compiler 的适用边界。  
+
+`affects_compliance`: [PAL-Core, PAL-Compiler]
