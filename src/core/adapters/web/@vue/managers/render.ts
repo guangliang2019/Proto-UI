@@ -1,23 +1,18 @@
 import { RenderManager } from '@/core/interface';
-import { nextTick } from 'vue';
+import { ComponentInternalInstance } from 'vue';
 
-export const createRenderManager = (): RenderManager => {
-  let renderRequested = false;
+export class VueRenderManager implements RenderManager {
+  private host: ComponentInternalInstance | null = null;
 
-  return {
-    requestRender: () => {
-      if (!renderRequested) {
-        renderRequested = true;
-        nextTick(() => {
-          renderRequested = false;
-        });
-      }
-    },
-    forceRender: () => {
-      renderRequested = false;
-      nextTick(() => {
-        // 强制立即渲染
-      });
-    },
-  };
-};
+  init(host: ComponentInternalInstance) {
+    this.host = host;
+  }
+
+  requestRender() {
+    this.host?.proxy?.$forceUpdate();
+  }
+
+  forceRender() {
+    this.host?.proxy?.$forceUpdate();
+  }
+}

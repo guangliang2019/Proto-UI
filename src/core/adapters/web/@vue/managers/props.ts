@@ -1,56 +1,55 @@
-import { PropsManager, PropsOptions, SerializationRule } from '@/core/interface';
-import { ComponentInternalInstance, getCurrentInstance, watch } from 'vue';
-import { camelToKebab, kebabToCamel } from '@/core/utils/naming';
+class VuePropsManager<T extends Record<string, any> = Record<string, any>> {
+  private _props: T = {} as T;
+  private _changeCallbacks: Array<(props: T) => void> = [];
+  private _lock = false; // 防止递归触发
 
-
-export const createPropsManager = <T extends object>(element:ComponentInternalInstance, options: PropsOptions<T> = {}): PropsManager<T> => {
-  const instance = element;
-  if (!instance) {
-    throw new Error('[VuePropsManager] getCurrentInstance() must be called inside setup().');
-  }
-  const vueProps = instance.props as T;
-
-  // 添加一个 Set 来存储回调函数
-  const changeCallbacks = new Set<(props: T) => void>();
-
-
-  return {
-    getProps: () => vueProps,
-    setProps: (_props: Partial<T>) => {
-      // Vue 的 props 是只读的，不能直接修改
-      console.warn('[VuePropsManager] Props are read-only in Vue');
-    },
-    serializeToAttribute: () => {
-      throw new Error('[VuePropsManager] not should serializeToAttribute in Vue');
-    },
-    deserializeFromAttribute: () => {
-      throw new Error('[VuePropsManager] not should deserializeFromAttribute in Vue');
-    },
-    // 这里应该跟webComponent的一样 
-    onPropsChange: (callback: (props: T) => void) => {
-      changeCallbacks.add(callback);
-      return () => changeCallbacks.delete(callback);
-    },
-    defineProps: (defaultProps: T) => {
-      //  这个的defaultProps 转成vue的props的类型定义， 由TS -> JS
-      // todo 需要这个这个吗 缺少required属性 缺少validator支持 缺少多类型支持
-
-      const vueProps = Object.entries(defaultProps).reduce((acc, [key, value]) => {
-        const type = Object.prototype.toString.call(value).slice(8, -1);
-        acc[key] = {
-          type: type === 'Date' ? Date :
-                 type === 'Array' ? Array :
-                 type === 'String' ? String :
-                 type === 'Number' ? Number :
-                 type === 'Boolean' ? Boolean :
-                 type === 'Function' ? Function :
-                 Object,
-          default: type === 'Object' || type === 'Array' ? () => value : value
-        };
-        return acc;
-      }, {} as Record<string, any>);
-      
-      return vueProps;
+  constructor(initial?: T) {
+    if (initial) {
+      this._props = { ...initial };
     }
-  };
-};
+  }
+
+  /** 获取当前 props 状态 */
+  getProps(): T {
+    return { ...this._props };
+  }
+
+  /** 更新 props 状态，触发所有回调 */
+  setProps(props: Partial<T>) {
+    if (this._lock) return;
+    this._lock = true;
+
+    this._props = { ...this._props, ...props };
+    if (Object.keys(props).length > 0) {
+      this._changeCallbacks.forEach((cb) => cb(this.getProps()));
+    }
+
+    this._lock = false;
+  }
+
+  /** 注册 props 变化监听器 */
+  onPropsChange(callback: (props: T) => void) {
+    this._changeCallbacks.push(callback);
+  }
+
+  /** 定义初始 props */
+  defineProps(initial: T) {
+    this._props = { ...this._props, ...initial };
+  }
+
+  /** 生成 Vue defineComponent 所需的 props 定义 */
+  getVuePropsDefinition(): Record<string, any> {
+    return Object.keys(this._props).reduce((acc, key) => {
+      const value = this._props[key];
+      acc[key] = { type: value != null ? (value.constructor as any) : Object, default: value };
+      return acc;
+    }, {} as Record<string, any>);
+  }
+
+  /** 将 Vue props 的初始值同步到内部状态 */
+  getVuePropsActualValue(vueProps: Partial<T>) {
+    this._props = { ...this._props, ...vueProps };
+  }
+}
+
+export default VuePropsManager;
