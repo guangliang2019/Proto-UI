@@ -1,5 +1,6 @@
-import '@/components/prototype/tabs';
 import './github-button';
+import './LanguageSelector'; // ✅ 引入刚才写的文件
+import '@/components/prototype/tabs';
 import { Div, h, Nav, PrototypeTabsTrigger, Span } from '@/www/utils/dom';
 
 export default class WebsiteNav extends HTMLElement {
@@ -32,6 +33,9 @@ export default class WebsiteNav extends HTMLElement {
               PrototypeTabsTrigger({ value: 'examples', class: this._navItemsCls }, ['Examples']),
             ]),
             Div({ class: 'flex flex-1 items-center justify-between space-x-2 md:justify-end' }, [
+              // ✅ 这里直接放我们写的组件标签
+              h('language-selector', { class: 'mr-2' }), 
+              
               h('github-button'),
             ]),
           ]),
@@ -41,4 +45,6 @@ export default class WebsiteNav extends HTMLElement {
   }
 }
 
-customElements.define('website-nav', WebsiteNav);
+if (!customElements.get('website-nav')) {
+  customElements.define('website-nav', WebsiteNav);
+}
