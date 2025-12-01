@@ -10,46 +10,136 @@ function localizedPathname(locale: string | undefined): string {
     return localizedUrl(Astro.url, locale, context.trailingSlash).pathname;
 }
 
-const locale = Astro.locals.starlightRoute.locale
-const title = locale==='en'?'English':'简体中文'
+const currentLocale = Astro.locals.starlightRoute.locale;
 
+// Get all available locales from config
+const locales = config.locales ? Object.keys(config.locales) : [];
+
+// If no locales available, don't render the component
+if (locales.length === 0) {
+    return;
+}
+
+const localeOptions = locales.map((localeKey) => ({
+    value: localeKey,
+    label: config.locales![localeKey].label || localeKey,
+    path: localizedPathname(localeKey),
+    isCurrent: localeKey === currentLocale,
+}));
+
+// Build the locale paths data attribute for JavaScript
+const localePaths: Record<string, string> = {};
+localeOptions.forEach((opt) => {
+    localePaths[opt.value] = opt.path;
+});
 ---
-<span style="width: 80px;text-align: center">{title}</span>
-<div id="languageSwatchButton" style="display: flex;justify-content: center;"
-        data-current-locale={locale}
-        data-en-path={localizedPathname('en')}
-        data-zh-path={localizedPathname('zh-cn')}
->
 
-        <svg  viewBox="0 0 1024 1024"  xmlns="http://www.w3.org/2000/svg" p-id="4719" width="20" height="20"><path d="M670.72 325.696L511.552 152l87.68-87.872 360.96 389.504L832 453.76v0.64H64V325.76h606.72z m-318.4 382.08l157.248 172.8-94.976 79.552L63.872 579.84l147.712-0.704v-0.128H960v128.768H352.32z" fill="var(--color-foreground)" p-id="4720"></path></svg>
+<div class="language-select-wrapper relative inline-flex items-center">
+    <label class="sr-only" for="language-select">选择语言 / Select Language</label>
+    <select
+        id="language-select"
+        class="language-select appearance-none inline-flex items-center justify-center whitespace-nowrap text-sm font-medium transition-all outline-none h-8 rounded-md gap-1.5 px-3 pr-8 cursor-pointer bg-transparent text-foreground hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50 focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]"
+        aria-label="选择语言 / Select Language"
+        autocomplete="off"
+        data-current-locale={currentLocale || ''}
+        data-locale-paths={JSON.stringify(localePaths)}
+        value={currentLocale || ''}
+    >
+        {localeOptions.map((option) => (
+            <option value={option.value} selected={option.isCurrent}>
+                {option.label}
+            </option>
+        ))}
+    </select>
+    <svg
+        class="language-select-arrow absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none text-foreground opacity-60 transition-opacity w-4 h-4"
+        width="16"
+        height="16"
+        viewBox="0 0 16 16"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+        aria-hidden="true"
+    >
+        <path
+            d="M4 6L8 10L12 6"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+        />
+    </svg>
 </div>
 
 <style>
+    .language-select-wrapper:hover .language-select-arrow {
+        opacity: 1;
+    }
 
+    /* Custom arrow removal for different browsers */
+    .language-select {
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        border: 1px solid transparent;
+    }
+
+    /* Ensure option styles work in dropdown */
+    .language-select option {
+        background-color: hsl(var(--color-popover));
+        color: hsl(var(--color-popover-foreground));
+        padding: 0.5rem;
+    }
+
+    /* Focus visible border */
+    .language-select:focus-visible {
+        border-color: hsl(var(--color-ring));
+    }
+
+    /* For Firefox */
+    @-moz-document url-prefix() {
+        .language-select {
+            text-indent: 0;
+        }
+    }
 </style>
 
 <script is:inline>
-    function handleLanguageSwitch() {
-        const currentLocale = this.dataset.currentLocale
-        const newLocale = currentLocale === 'en' ? 'zh-cn' : 'en';
-        const newPath = currentLocale === 'en'
-            ? this.dataset.zhPath
-            : this.dataset.enPath;
-        
-        if (newPath) {
-            // 保存用户的语言偏好到 Cookie（有效期 1 年）
-            const expires = new Date();
-            expires.setFullYear(expires.getFullYear() + 1);
-            document.cookie = `preferred-locale=${newLocale}; path=/; expires=${expires.toUTCString()}; SameSite=Lax`;
-            
-            console.log('[Language Switch] Saved locale to cookie:', newLocale);
-            window.location.pathname = newPath;
+    (function () {
+        function initLanguageSelect() {
+            const select = document.getElementById('language-select');
+            if (!select) return;
+
+            const currentLocale = select.dataset.currentLocale || '';
+            let localePaths = {};
+            try {
+                localePaths = JSON.parse(select.dataset.localePaths || '{}');
+            } catch (e) {
+                console.error('[Language Select] Failed to parse locale paths:', e);
+                return;
+            }
+
+            function handleLanguageChange() {
+                const newLocale = select.value;
+                const newPath = localePaths[newLocale];
+
+                if (newPath && newLocale && newLocale !== currentLocale) {
+                    // Save user's language preference to Cookie (valid for 1 year)
+                    const expires = new Date();
+                    expires.setFullYear(expires.getFullYear() + 1);
+                    document.cookie = `preferred-locale=${newLocale}; path=/; expires=${expires.toUTCString()}; SameSite=Lax`;
+
+                    console.log('[Language Switch] Saved locale to cookie:', newLocale);
+                    window.location.pathname = newPath;
+                }
+            }
+
+            select.addEventListener('change', handleLanguageChange);
         }
-    }
-    document.addEventListener('DOMContentLoaded', () => {
-        const btn = document.getElementById('languageSwatchButton')
-        if (btn) {
-            btn.addEventListener('click', handleLanguageSwitch)
+
+        // Ensure DOM is ready
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initLanguageSelect);
+        } else {
+            initLanguageSelect();
         }
-    });
+    })();
 </script>
