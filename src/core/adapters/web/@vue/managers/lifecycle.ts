@@ -1,31 +1,35 @@
 import { LifecycleManager } from '@/core/interface';
 
-export const createVueLifecycleManager = (): LifecycleManager => {
-  const _callbacks = new Map<string, Set<() => void>>();
-  const _triggeredTypes = new Set<string>();
+class VueLifecycleManager implements LifecycleManager {
+  private callbacks = new Map<string, Set<() => void>>();
+  private triggeredTypes = new Set<string>();
 
-  return {
-    add: (type: string, callback: () => void) => {
-      if (!_callbacks.has(type)) {
-        _callbacks.set(type, new Set());
-      }
-      _callbacks.get(type)!.add(callback);
-    },
-    trigger: (type: string) => {
-      _triggeredTypes.add(type);
-      _callbacks.get(type)?.forEach((callback) => callback());
-    },
-    clear: (type: string) => {
-      if (type) {
-        _callbacks.get(type)?.clear();
-        _triggeredTypes.delete(type);
-      } else {
-        _callbacks.clear();
-        _triggeredTypes.clear();
-      }
-    },
-    hasTriggered: (type: string) => {
-      return _triggeredTypes.has(type);
-    },
-  };
-};
+  add(type: string, callback: () => void): void {
+    if (!this.callbacks.has(type)) {
+      this.callbacks.set(type, new Set());
+    }
+    this.callbacks.get(type)!.add(callback);
+  }
+  trigger(type: string): void {
+    this.triggeredTypes.add(type);
+    this.callbacks.get(type)?.forEach((callback) => callback());
+  }
+  clear(type: string): void {
+    if (type) {
+      this.callbacks.get(type)?.clear();
+      this.triggeredTypes.delete(type);
+    } else {
+      this.callbacks.clear();
+      this.triggeredTypes.clear();
+    }
+  }
+  /**
+   * 检查指定的生命周期是否已触发
+   * @param type 生命周期类型
+   */
+  hasTriggered(type: string): boolean {
+    return this.triggeredTypes.has(type);
+  }
+}
+
+export default VueLifecycleManager;

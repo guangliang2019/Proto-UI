@@ -1,5 +1,5 @@
 import { definePrototype } from '@/core';
-import VueAdapter from '@/core/adapters/web/@next-vue';
+import  { createVueAdapter } from '@/core/adapters/web/@vue';
 import {
   ButtonState,
   ButtonExposes,
@@ -12,6 +12,13 @@ import { optimizeTailwindClasses } from '@/www/utils/tailwind';
 import { CONFIG } from '@/components/shadcn/_config';
 
 import { PrototypeAPI } from '@/core/interface';
+import * as Vue from 'vue';
+import * as VueRuntimeDom from '@vue/runtime-dom';
+const vueRuntime= {
+  Vue: Vue,
+  VueDom: VueRuntimeDom,
+}
+
 
 /**
  * 让使用了 asButton 的组件具有按钮的行为
@@ -183,7 +190,7 @@ const PrototypeButton = definePrototype<ShadcnButtonProps, ButtonExposes>({
     };
   },
 });
-const vueButton = VueAdapter(PrototypeButton);
+const vueButton = createVueAdapter(vueRuntime, PrototypeButton);
 
 const TestVueComponent = defineComponent({
   setup() {
@@ -237,7 +244,7 @@ const ShadcnTabsPrototype = definePrototype<TabsProps, TabsExposes>({
   },
 });
 
-const VueShadcnTabs = VueAdapter(ShadcnTabsPrototype);
+const VueShadcnTabs = createVueAdapter(vueRuntime, ShadcnTabsPrototype);
 
 import { asTabsTrigger, TabsTriggerProps } from '@/core/behaviors/as-tabs';
 
@@ -260,7 +267,7 @@ const ShadcnTabsTriggerPrototype = definePrototype<TabsTriggerProps>({
   },
 });
 
-const VueShadcnTabsTrigger = VueAdapter(ShadcnTabsTriggerPrototype);
+const VueShadcnTabsTrigger = createVueAdapter(vueRuntime, ShadcnTabsTriggerPrototype);
 
 import { TabsContext } from '@/core/behaviors/as-tabs';
 
@@ -283,7 +290,7 @@ const ShadcnTabsListPrototype = definePrototype({
   },
 });
 
-const VueShadcnTabsList = VueAdapter(ShadcnTabsListPrototype);
+const VueShadcnTabsList = createVueAdapter(vueRuntime, ShadcnTabsListPrototype);
 
 import { asTabsContent, TabsContentProps } from '@/core/behaviors/as-tabs';
 
@@ -306,6 +313,6 @@ const ShadcnTabsContentPrototype = definePrototype<TabsContentProps>({
   },
 });
 
-const VueShadcnTabsContent = VueAdapter(ShadcnTabsContentPrototype);
+const VueShadcnTabsContent = createVueAdapter(vueRuntime, ShadcnTabsContentPrototype);
 
 
