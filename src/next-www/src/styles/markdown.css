@@ -60,4 +60,95 @@
   main[data-pagefind-body] .sl-heading-wrapper {
     @apply flex;
   }
+
+  /* 增强图片容器样式 */
+  main[data-pagefind-body] .enhanced-image-wrapper {
+    @apply my-8 mx-auto;
+    max-width: 100%;
+  }
+
+  main[data-pagefind-body] .enhanced-image-container {
+    @apply relative overflow-hidden rounded-xl border;
+    @apply bg-muted/30;
+    @apply shadow-lg;
+    @apply transition-all duration-300;
+    @apply border-border;
+    padding: 0.75rem;
+  }
+
+  /* 暗色模式下的容器样式 */
+  [data-theme='dark'] main[data-pagefind-body] .enhanced-image-container {
+    @apply border-border;
+    @apply shadow-xl;
+    background: hsl(var(--muted) / 0.2);
+  }
+
+  /* 图片本身样式 */
+  main[data-pagefind-body] .enhanced-image {
+    @apply block w-full h-auto;
+    @apply rounded-lg;
+    @apply transition-opacity duration-300;
+    margin: 0;
+    display: block;
+  }
+
+  /* SVG 特殊处理 */
+  main[data-pagefind-body] .enhanced-image-svg .enhanced-image-container {
+    @apply bg-transparent;
+    padding: 1rem;
+    border: 1px solid transparent;
+  }
+
+  main[data-pagefind-body] .enhanced-image-svg-element {
+    /* SVG 可以通过 CSS 变量控制颜色 */
+    /* 如果 SVG 内部使用了 currentColor，这里会生效 */
+    color: hsl(var(--foreground));
+    /* 确保 SVG 能够响应主题变化 */
+    transition: color 0.3s ease, filter 0.3s ease;
+  }
+
+  /* SVG 在暗色模式下的特殊处理 */
+  [data-theme='dark'] main[data-pagefind-body] .enhanced-image-svg-element {
+    /* 可以在这里覆盖 SVG 的颜色变量 */
+    filter: brightness(0.95);
+  }
+
+  /* 为 SVG 预留主题变量接口 */
+  main[data-pagefind-body] .enhanced-image-svg-element svg {
+    /* 如果 SVG 内部元素使用了 CSS 变量，这里可以设置 */
+    --svg-fill-primary: hsl(var(--foreground));
+    --svg-fill-secondary: hsl(var(--muted-foreground));
+    --svg-stroke-primary: hsl(var(--border));
+  }
+
+  /* 图片标题样式 */
+  main[data-pagefind-body] .enhanced-image-caption {
+    @apply mt-3 text-center text-sm;
+    @apply text-muted-foreground;
+    @apply leading-relaxed;
+  }
+
+  /* 响应式调整 */
+  @media (max-width: 768px) {
+    main[data-pagefind-body] .enhanced-image-wrapper {
+      @apply my-6;
+    }
+
+    main[data-pagefind-body] .enhanced-image-container {
+      padding: 0.5rem;
+      @apply rounded-lg;
+    }
+  }
+
+  /* 确保图片加载时的平滑过渡 */
+  main[data-pagefind-body] .enhanced-image {
+    opacity: 1;
+    transition: opacity 0.3s ease-in-out;
+  }
+
+  /* 图片加载失败时的样式 */
+  main[data-pagefind-body] .enhanced-image:not([src]),
+  main[data-pagefind-body] .enhanced-image[src=''] {
+    opacity: 0.5;
+  }
 }
