@@ -4,7 +4,7 @@ import { WebAttributeManagerImpl } from "../../../attribute";
 import { GlobalEventManager, InteractionManager } from "../../../@web-component/managers/event";
 import { getComponent } from "@/core/utils/component";
 import { EVENT_MANAGER_SYMBOL, EventHandler, EventOptions, EventManager as IEventManager } from "@/core/interface";
-import { ARIA_CONTEXT_ATTRIBUTES, ARIA_STATE_ATTRIBUTES, INTERACTIVE_ATTRIBUTES, INTERACTIVE_STYLES, STANDARD_DOM_EVENTS } from "../../../@vue/managers/types";
+import { ARIA_CONTEXT_ATTRIBUTES, ARIA_STATE_ATTRIBUTES, INTERACTIVE_ATTRIBUTES, INTERACTIVE_STYLES, STANDARD_DOM_EVENTS } from "./types";
 
 class VueEventManager implements IEventManager {
   private events: Map<string, Set<EventItem>> = new Map();
