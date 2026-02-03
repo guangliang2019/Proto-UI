@@ -4,6 +4,7 @@ import starlight from '@astrojs/starlight';
 
 import tailwindcss from '@tailwindcss/vite';
 import { fileURLToPath } from 'node:url';
+import { rehypeEnhancedImage } from './src/utils/rehype-enhanced-image.js';
 
 // https://astro.build/config
 export default defineConfig({
@@ -308,6 +309,9 @@ export default defineConfig({
         PageTitle: './src/components/override/PageTitle.astro',
         MarkdownContent: './src/components/override/MarkdownContent.astro',
         LanguageSelect: './src/components/override/LanguageSelect.astro',
+      },
+      markdown: {
+        rehypePlugins: [rehypeEnhancedImage],
       },
     }),
   ],
