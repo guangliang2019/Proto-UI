@@ -4,6 +4,9 @@ import { PAGE_TITLE_ID } from '../../constants';
 
 const { data } = Astro.locals.starlightRoute.entry;
 const { title = data.title, tagline, image, actions = [] } = data.hero || {};
+const locale = Astro.locals.starlightRoute.locale;
+const whitepaperHref = locale && locale !== 'root' ? `/${locale}/overview/whitepaper/` : '/overview/whitepaper/';
+const whitepaperLabel = locale === 'zh-cn' ? '白皮书概要' : 'Whitepaper Overview';
 
 let darkImage: ImageMetadata | undefined;
 let lightImage: ImageMetadata | undefined;
@@ -28,9 +31,9 @@ if (image) {
       <a
         data-slot="badge"
         class="inline-flex items-center justify-center border px-2 py-0.5 text-xs font-medium w-fit whitespace-nowrap shrink-0 [&>svg]:size-3 gap-1 [&>svg]:pointer-events-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive transition-[color,box-shadow] overflow-hidden border-transparent bg-secondary text-secondary-foreground [a&]:hover:bg-secondary/90 rounded-full"
-        href="/contribute"
+        href={whitepaperHref}
       >
-        Contributors Wanted! <svg
+        {whitepaperLabel} <svg
           xmlns="http://www.w3.org/2000/svg"
           width="24"
           height="24"

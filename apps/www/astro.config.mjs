@@ -56,10 +56,10 @@ export default defineConfig({
       social: [{ icon: 'github', label: 'GitHub', href: 'https://github.com/withastro/starlight' }],
       sidebar: [
         {
-          label: '概要',
+          label: 'Overview',
           translations: {
-            en: 'Summary',
-            'zh-CN': '概要',
+            en: 'Overview',
+            'zh-CN': 'Overview',
           },
           items: [
             {
@@ -95,6 +95,21 @@ export default defineConfig({
               slug: 'overview/adapters',
             },
             {
+              label: '贡献者索引',
+              translations: {
+                en: 'Contributor Index',
+                'zh-CN': '贡献者索引',
+              },
+              slug: 'overview/contribute',
+              badge: {
+                text: {
+                  'zh-CN': '征集中',
+                  en: 'collecting',
+                },
+                class: 'text-xs px-1.5 h-4.5 rounded-full bg-lime-400 text-black',
+              },
+            },
+            {
               label: '时间线 & 里程碑',
               translations: {
                 en: 'Timeline & Milestones',
@@ -102,46 +117,80 @@ export default defineConfig({
               },
               slug: 'overview/milestone',
             },
-            {
-              label: '贡献指引',
-              translations: {
-                en: 'Contribution Guidelines',
-                'zh-CN': '贡献指引',
-              },
-              slug: 'overview/contribute',
-              badge: {
-                text: {
-                  'zh-CN': '征集中',
-                  en: 'collection',
-                },
-                class: 'text-xs px-1.5 h-4.5 rounded-full bg-lime-400 text-black',
-              },
-            },
+          ],
+        },
+        {
+          label: 'Usage',
+          translations: {
+            en: 'Usage',
+            'zh-CN': '使用',
+          },
+          items: [
             {
               label: '安装 & 使用',
               translations: {
                 en: 'Installation & Usage',
                 'zh-CN': '安装 & 使用',
               },
-              slug: 'overview/installation',
+              slug: 'usage/installation',
               badge: {
                 text: {
                   'zh-CN': '计划中',
-                  en: 'planning',
+                  en: 'planned',
                 },
-
                 class: 'text-xs px-1.5 h-4.5 rounded-full bg-zinc-800',
               },
+            },
+            {
+              label: '快速开始',
+              translations: {
+                en: 'Quick Start',
+                'zh-CN': '快速开始',
+              },
+              slug: 'usage/quick-start',
             },
           ],
         },
         {
-          label: '时间线 & 里程碑',
+          label: 'Contributing',
           translations: {
-            en: 'Timeline & Milestones',
-            'zh-CN': '时间线 & 里程碑',
+            en: 'Contributing',
+            'zh-CN': '贡献',
           },
-          slug: 'overview/milestone',
+          items: [
+            {
+              label: '贡献概览',
+              translations: {
+                en: 'Contributing Overview',
+                'zh-CN': '贡献概览',
+              },
+              slug: 'contributing',
+            },
+            {
+              label: '编写原型',
+              translations: {
+                en: 'Write a Prototype',
+                'zh-CN': '编写原型',
+              },
+              slug: 'contributing/write-prototype',
+            },
+            {
+              label: '编写适配器',
+              translations: {
+                en: 'Write an Adapter',
+                'zh-CN': '编写适配器',
+              },
+              slug: 'contributing/write-adapter',
+            },
+            {
+              label: '契约与测试',
+              translations: {
+                en: 'Contracts & Tests',
+                'zh-CN': '契约与测试',
+              },
+              slug: 'contributing/contracts',
+            },
+          ],
         },
         {
           label: '白皮书 & 哲学',
@@ -156,7 +205,7 @@ export default defineConfig({
                 en: 'Design Philosophy',
                 'zh-CN': '设计哲学',
               },
-              slug: 'whitepaper/philosophy',
+              slug: 'reference/whitepaper/philosophy',
             },
             {
               label: '与现有方案比较',
@@ -164,7 +213,7 @@ export default defineConfig({
                 en: 'Comparison with Existing Solutions',
                 'zh-CN': '与现有方案比较',
               },
-              slug: 'whitepaper/comparison',
+              slug: 'reference/whitepaper/comparison',
             },
             {
               label: 'FAQ',
@@ -172,7 +221,7 @@ export default defineConfig({
                 en: 'FAQ',
                 'zh-CN': 'FAQ',
               },
-              slug: 'whitepaper/faq',
+              slug: 'reference/whitepaper/faq',
             },
           ],
         },
@@ -189,7 +238,7 @@ export default defineConfig({
                 en: 'Core Concepts & API Overview',
                 'zh-CN': '核心概念 & API 总览',
               },
-              slug: 'protocol/general',
+              slug: 'reference/protocol/general',
             },
             {
               label: 'asHook: 原型的组合',
@@ -197,7 +246,7 @@ export default defineConfig({
                 en: 'asHook: Prototype Composition',
                 'zh-CN': 'asHook: 原型的组合',
               },
-              slug: 'protocol/as-hook',
+              slug: 'reference/protocol/as-hook',
             },
             {
               label: 'Context',
@@ -205,7 +254,7 @@ export default defineConfig({
                 en: 'Context',
                 'zh-CN': 'Context',
               },
-              slug: 'protocol/context',
+              slug: 'reference/protocol/context',
             },
             {
               label: 'Debug 语法',
@@ -213,7 +262,7 @@ export default defineConfig({
                 en: 'Debug Syntax',
                 'zh-CN': 'Debug 语法',
               },
-              slug: 'protocol/debug',
+              slug: 'reference/protocol/debug',
             },
             {
               label: 'Event',
@@ -221,7 +270,7 @@ export default defineConfig({
                 en: 'Event',
                 'zh-CN': 'Event',
               },
-              slug: 'protocol/event',
+              slug: 'reference/protocol/event',
             },
             {
               label: 'Expose',
@@ -229,7 +278,7 @@ export default defineConfig({
                 en: 'Expose',
                 'zh-CN': 'Expose',
               },
-              slug: 'protocol/expose',
+              slug: 'reference/protocol/expose',
             },
             {
               label: 'Lifecycle',
@@ -237,7 +286,7 @@ export default defineConfig({
                 en: 'Lifecycle',
                 'zh-CN': 'Lifecycle',
               },
-              slug: 'protocol/lifecycle',
+              slug: 'reference/protocol/lifecycle',
             },
             {
               label: 'Props',
@@ -245,7 +294,7 @@ export default defineConfig({
                 en: 'Props',
                 'zh-CN': 'Props',
               },
-              slug: 'protocol/props',
+              slug: 'reference/protocol/props',
             },
             {
               label: 'Renderer 语法',
@@ -253,7 +302,7 @@ export default defineConfig({
                 en: 'Renderer Syntax',
                 'zh-CN': 'Renderer 语法',
               },
-              slug: 'protocol/renderer',
+              slug: 'reference/protocol/renderer',
             },
             {
               label: 'State',
@@ -261,7 +310,7 @@ export default defineConfig({
                 en: 'State',
                 'zh-CN': 'State',
               },
-              slug: 'protocol/state',
+              slug: 'reference/protocol/state',
             },
             {
               label: 'Style 语法',
@@ -269,7 +318,7 @@ export default defineConfig({
                 en: 'Style Syntax',
                 'zh-CN': 'Style 语法',
               },
-              slug: 'protocol/style',
+              slug: 'reference/protocol/style',
             },
             {
               label: 'Variant 语法',
@@ -277,7 +326,7 @@ export default defineConfig({
                 en: 'Variant Syntax',
                 'zh-CN': 'Variant 语法',
               },
-              slug: 'protocol/variant',
+              slug: 'reference/protocol/variant',
               badge: {
                 text: {
                   en: 'Planned',
@@ -294,7 +343,7 @@ export default defineConfig({
             en: 'Prototype Libraries',
             'zh-CN': '原型库',
           },
-          autogenerate: { directory: 'prototypes' },
+          autogenerate: { directory: 'reference/prototypes' },
         },
       ],
       components: {

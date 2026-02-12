@@ -21,9 +21,9 @@ There are currently two long-term contributors, committed to **maintaining activ
 ## Participation & Feedback
 
 - **Usage**: You can find installation and usage guides in the documentation (under continuous improvement).
-- **Contribution**: We welcome contributions in any form, including document revisions, adapter development, and issue feedback. Please refer to the [Contribution Guidelines](./contribution.md).
+- **Contribution**: We welcome contributions in any form, including document revisions, adapter development, and issue feedback. Please refer to the [Contributing Overview](/en/contributing/).
 - **Communication**: Raise questions and share ideas in GitHub Issues or community channels.
 
 ---
 
-> If you are new to this project, it is recommended to start with the [Whitepaper Overview](./whitepaper-overview.md), where the problems we aim to solve and core ideas are introduced.
+> If you are new to this project, it is recommended to start with the [Whitepaper Overview](/en/overview/whitepaper/), where the problems we aim to solve and core ideas are introduced.

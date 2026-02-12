@@ -38,7 +38,7 @@ React16、Vue3、Flutter、WebComponent...新的 UI 框架和规范不断出现�
 
 ## 下一步往哪里看
 
-- 👉 想直接体验：参见 **安装与使用指南（进行中）**
-- 👉 想快速理解原型体系：参见 **原型总览**
-- 👉 想知道如何在不同平台运行：参见 **适配器总览**
-- 👉 想深入动机与设计取舍：阅读 **完整白皮书**
+- 👉 想直接体验：参见 [安装与使用指南（进行中）](/zh-cn/usage/installation/)
+- 👉 想快速理解原型体系：参见 [原型总览](/zh-cn/overview/prototypes/)
+- 👉 想知道如何在不同平台运行：参见 [适配器总览](/zh-cn/overview/adapters/)
+- 👉 想深入动机与设计取舍：阅读 [完整白皮书](/zh-cn/reference/whitepaper/philosophy/)

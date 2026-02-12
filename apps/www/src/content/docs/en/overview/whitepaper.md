@@ -40,7 +40,7 @@ In simple terms, Proto UI is more like a "component generator": it first abstrac
 
 ## What to Explore Next
 
-- 👉 Want to experience directly: See **Installation & Usage Guide (In Progress)**
-- 👉 Want to quickly understand the prototype system: See **Prototype Overview**
-- 👉 Want to know how to run on different platforms: See **Adapter Overview**
-- 👉 Want to dive into motivations and design trade-offs: Read the **Full White Paper**
+- 👉 Want to experience directly: See [Installation & Usage Guide (In Progress)](/en/usage/installation/)
+- 👉 Want to quickly understand the prototype system: See [Prototype Overview](/en/overview/prototypes/)
+- 👉 Want to know how to run on different platforms: See [Adapter Overview](/en/overview/adapters/)
+- 👉 Want to dive into motivations and design trade-offs: Read the [Full White Paper](/en/reference/whitepaper/philosophy/)
