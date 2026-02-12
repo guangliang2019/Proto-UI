@@ -1,74 +1,84 @@
-# Prototype UI
+# Proto UI
 
-## Overview
+**Proto UI is a Human–Computer Interaction (HCI) protocol and a component generator for any framework or platform.**
 
-Prototype UI is a headless UI library built with Web Components, offering a novel approach to component integration. Inspired by shadcn/ui, it bypasses traditional package management by directly incorporating component source code into your project via a CLI. This provides unparalleled customization and control, allowing you to tailor the components directly within your codebase while maintaining a lightweight footprint.
+It describes interaction logic as a protocol-level model (a *prototype*), then maps that model to concrete components in different technologies. The goal is to make interaction logic explicit, stable, and reusable across ecosystems.
 
-Website: [https://prototype-ui.dev](https://prototype-ui.dev)
+English | [中文](README.zh-CN.md)
 
-## Features
+---
 
-- **Non-Package Distribution**: Instead of traditional package installation, components are seamlessly integrated into your project through our CLI, promoting a more tailored development experience.
-- **Customizable**: Full code transparency allows you to modify and adapt components to meet your specific requirements.
-- **Accessibility**: Committed to the latest accessibility standards, ensuring usability for all users.
-- **Lightweight**: The entire library contributes less than 10 KB to your project, emphasizing efficiency and performance.
+## Why now
 
-## Installation (Working in Progress)
+We already have too many frameworks, yet their component logic is largely the same. Proto UI collects that shared interaction logic as a reusable asset, so components can be generated across React, Vue, Web Components, and beyond without re-inventing the interaction model each time.
 
-```bash
-npx @prototype-ui/cli init
-# Or for a specific theme:
-npx @prototype-ui/cli init
-(and choose your prefer theme in an interactive menu)
-```
+---
 
-# Usage
+## What Proto UI is **not**
 
-```shell
-$ npx @prototype-ui/cli --help
+- **Not production-ready yet.** It is usable, but not stable enough for critical production workloads. It is suitable for demos, experiments, and small real projects where you accept risk.
+- **Not a new framework.** Proto UI does not ask you to abandon your existing stack. It generates components for your stack and aims to add **zero runtime dependency** in v1.
 
+---
 
-██████╗ ██████╗  ██████╗ ████████╗ ██████╗
-██╔══██╗██╔══██╗██╔═══██╗╚══██╔══╝██╔═══██╗
-██████╔╝██████╔╝██║   ██║   ██║   ██║   ██║
-██╔═══╝ ██╔══██╗██║   ██║   ██║   ██║   ██║
-██║     ██║  ██║╚██████╔╝   ██║   ╚██████╔╝
-╚═╝     ╚═╝  ╚═╝ ╚═════╝    ╚═╝    ╚═════╝
-████████╗██╗   ██╗██████╗ ███████╗    ██╗   ██╗██╗
-╚══██╔══╝╚██╗ ██╔╝██╔══██╗██╔════╝    ██║   ██║██║
-   ██║    ╚████╔╝ ██████╔╝█████╗█████╗██║   ██║██║
-   ██║     ╚██╔╝  ██╔═══╝ ██╔══╝╚════╝██║   ██║██║
-   ██║      ██║   ██║     ███████╗    ╚██████╔╝██║
-   ╚═╝      ╚═╝   ╚═╝     ╚══════╝     ╚═════╝ ╚═╝
+## How it works (short version)
 
-Usage: prototype-ui [options] [command]
+Proto UI supports two paths:
 
-CLI for prototype-ui project
+- **Adapter (v0):** `Prototype -> Adapter -> Component Instance`
+- **Compiler (v1):** `Prototype -> Compiler -> Component Code`
 
-Options:
-  -v, --version       Output the current version
-  -h, --help          display help for command
+Adapters are already usable and help validate feasibility. Compilers will provide the same semantics with zero runtime overhead.
 
-Commands:
-  init                Initialize a new prototype-ui project
-  add <component>     Add a new component to the project
-  remove <component>  Remove a component from the project (maybe not safe)
-  list                List all components in the project
-  help [command]      display help for command
-```
+---
 
-## Note
+## What you can do today
 
-The code is provided "as is" for maximum flexibility in use and integration into various projects.
+- Use **React / Vue / Web Components** adapters to generate native component instances from the same prototype.
+- Build and test cross-framework demos with consistent interaction logic.
+- Explore ideas like Headless UI on Web Components or cross-technology design systems.
 
-## Contributing
+---
 
-Contributions are welcome and encouraged. Although the Web Components ecosystem may not be as extensive as those for frameworks like React, Vue, or Lit, Prototype UI strives to emulate best practices from these established communities. We convert and reimplement functionalities from these frameworks into Web Components, diligently crediting original developers and their contributions.
+## Current stage and roadmap
 
-## Development
+- **v0 (now):** Validate the protocol and build adapters for major Web technologies. Research adapters for non-Web tech (e.g., Flutter).
+- **v1 (next):** Shift to compiler-first output, ensure zero runtime overhead, and extend support to non-Web platforms.
 
-Run the project locally with `npm run dev`. For optimal performance, Node version 18 or higher is recommended.
+The architecture is stable enough to move from v0 to v1 without destructive rewrites.
 
-## Guangliang's Note
+---
 
-For smaller projects or situations where CLI integration isn't ideal, you can include the entire Prototype UI library via a script tag. This method is also efficient (projected output size under 30KB) and provides a quick way to get started. However, it offers less granular control over individual components. See the documentation for details on script tag integration.
+## Where to look in this repo
+
+- **Contracts (like RFCs):** `/internal/contracts`
+- **Adapters:** `/packages/adapters`
+- **Prototype libraries (planned):** `/packages/prototype-libs`
+- **Docs / website content:** `/apps/www/src/content`
+
+---
+
+## Who should care
+
+- Component library authors
+- Frontend engineers who care about interaction quality
+- HCI practitioners and researchers
+- Design system maintainers and UED teams
+- Students who want to explore foundational UI work
+
+---
+
+## Contributing and discussion
+
+- **Website:** [proto-ui.com](https://proto-ui.com) (docs and demos are in preparation)
+- **Issues:** GitHub Issues are the main entry point for contributions.
+- **Discord:** [Join the community](https://discord.gg/hMuSD6gH)
+- **Email:** guangliang2018@foxmail.com
+
+If you want to help with adapters, prototypes, docs, or community building, we would love to talk.
+
+---
+
+## License
+
+MIT

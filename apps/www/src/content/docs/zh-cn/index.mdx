@@ -1,0 +1,18 @@
+---
+title: Proto UI：让交互协议化
+description: Proto UI 是一个开源项目，探索如何在跨平台、跨框架、跨交互媒介中建立统一的人机交互协议。
+template: splash
+hero:
+  tagline: 人机交互理应存在的协议 · 跨平台 · 跨框架 · 跨交互媒介 · 完全开源
+  actions:
+    - text: 阅读文档
+      link: /zh-cn/overview/whitepaper/
+    - text: 试试 Demo
+      link: /#
+      icon: external
+      variant: minimal
+---
+import { PrototypePreviewer } from '../../../components/PrototypePreviewer';
+
+{/* 原型会自动按需加载，只需指定 prototypeId 即可 */}
+<PrototypePreviewer prototypeId="demo-inline" initialRuntime="wc" />

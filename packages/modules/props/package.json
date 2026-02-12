@@ -1,0 +1,17 @@
+{
+  "name": "@proto-ui/modules.props",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@proto-ui/core": "workspace:*",
+    "@proto-ui/types": "workspace:*",
+    "@proto-ui/modules.base": "workspace:*"
+  },
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "default": "./src/index.ts"
+    }
+  }
+}

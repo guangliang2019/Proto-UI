@@ -1,3 +1,14 @@
 {
-  "cSpell.words": ["guangliang", "lucide", "Shadcn", "tailwindcss"]
+  "cSpell.words": [
+    "focusability",
+    "FOUC",
+    "guangliang",
+    "lucide",
+    "MVVM",
+    "pagefind",
+    "safelist",
+    "Shadcn",
+    "tailwindcss",
+    "vnode"
+  ]
 }

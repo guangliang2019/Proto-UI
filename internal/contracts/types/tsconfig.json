@@ -1,0 +1,15 @@
+{
+  "extends": "../../../tsconfig.json",
+  "compilerOptions": {
+    "noEmit": true,
+
+    // 关键：让 TS 按 node 的包解析规则走（含 exports / types 字段）
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+
+    // 可选：你 repo 如果本来就是 ESM/NodeNext，这两行保持一致即可
+    "verbatimModuleSyntax": true,
+    "skipLibCheck": false
+  },
+  "include": ["./**/*.type-test.ts"]
+}

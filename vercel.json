@@ -1,6 +1,6 @@
 {
-  "rewrites": [
-    { "source": "/robots.txt", "destination": "/robots.txt" },
-    { "source": "/(.*)", "destination": "/index.html" }
-  ]
+  "version": 2,
+  "buildCommand": "pnpm --filter apps-www build",
+  "outputDirectory": "apps/www/dist",
+  "installCommand": "pnpm install --frozen-lockfile"
 }

@@ -1,37 +1,20 @@
 {
-  "name": "prototype-ui",
-  "version": "0.0.1",
-  "description": "Headless UI with Web Component",
-  "main": "index.js",
+  "name": "proto-ui",
+  "private": true,
   "type": "module",
   "devDependencies": {
-    "@types/jest": "^29.5.14",
-    "@types/node": "^22.7.4",
-    "@typescript-eslint/eslint-plugin": "^8.0.1",
-    "@typescript-eslint/parser": "^8.0.1",
-    "autoprefixer": "^10.4.20",
-    "inquirer": "^12.3.1",
-    "postcss": "^8.4.41",
-    "prettier": "^3.3.3",
-    "tailwindcss": "^3.4.10",
-    "tsc": "^2.0.4",
-    "typescript": "^5.7.3",
-    "vite": "^5.4.0"
+    "tsx": "^4.0.0",
+    "typescript": "^5.0.0",
+    "vitest": "^2.0.0",
+    "happy-dom": "^15.0.0",
+    "@proto-ui/types": "workspace:*"
   },
   "scripts": {
-    "dev": "vite",
-    "dev-cli": "node ./dev-cli/index.cjs",
-    "build": "vite build --emptyOutDir"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/guangliang2019/Prototype-UI.git"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/guangliang2019/Prototype-UI/issues"
-  },
-  "homepage": "https://github.com/guangliang2019/Prototype-UI#readme"
+    "docs:dev": "pnpm --filter apps-www dev",
+    "docs:build": "pnpm --filter apps-www build",
+    "docs:preview": "pnpm --filter apps-www preview",
+    "test": "pnpm -s test:types && pnpm -s test:runtime",
+    "test:types": "echo \"[types] checking type contracts...\" && tsc -p internal/contracts/types/tsconfig.json && echo \"[types] OK\"",
+    "test:runtime": "vitest run"
+  }
 }
