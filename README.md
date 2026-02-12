@@ -1,61 +1,84 @@
-# Proto UI (Refactor Workspace)
+# Proto UI
 
-This repository is an active refactor workspace for **Proto UI**.
+**Proto UI is a Human–Computer Interaction (HCI) protocol and a component generator for any framework or platform.**
 
-It exists to restructure the core architecture using a **contract-driven approach**.  
-Once the refactor reaches a stable point, its contents will replace the current Proto UI main repository.
+It describes interaction logic as a protocol-level model (a *prototype*), then maps that model to concrete components in different technologies. The goal is to make interaction logic explicit, stable, and reusable across ecosystems.
 
-If you are looking for **current progress**, this repo is the right place.  
-The main Proto UI repository may appear quiet during this phase by design.
+English | [中文](README.zh-CN.md)
 
 ---
 
-## What is happening here
+## Why now
 
-This refactor focuses on:
-
-- Making runtime semantics explicit and testable
-- Freezing v0 contracts module by module
-- Reducing implicit coupling between systems (props, template, lifecycle, etc.)
-- Preparing a stable foundation for official prototypes and asHook accumulation
-
-The work is incremental and contract-first:
-each module is clarified → frozen → covered by contract tests before moving on.
+We already have too many frameworks, yet their component logic is largely the same. Proto UI collects that shared interaction logic as a reusable asset, so components can be generated across React, Vue, Web Components, and beyond without re-inventing the interaction model each time.
 
 ---
 
-## Current status
+## What Proto UI is **not**
 
-- ✅ **Template v0** — frozen
-- ✅ **Runtime lifecycle (with host) v0** — frozen
-- ✅ **Props v0** — refactored, frozen, and fully covered by contract tests
-
-Upcoming work is expected to move toward:
-
-- feedback
-- rule (built on top of stabilized props & feedback)
-
-Details live in `/internal/contracts` and corresponding `*.contract.test.ts` files.
+- **Not production-ready yet.** It is usable, but not stable enough for critical production workloads. It is suitable for demos, experiments, and small real projects where you accept risk.
+- **Not a new framework.** Proto UI does not ask you to abandon your existing stack. It generates components for your stack and aims to add **zero runtime dependency** in v1.
 
 ---
 
-## About contribution
+## How it works (short version)
 
-This repository is not optimized for casual drive-by contributions yet.
+Proto UI supports two paths:
 
-If you are interested in:
+- **Adapter (v0):** `Prototype -> Adapter -> Component Instance`
+- **Compiler (v1):** `Prototype -> Compiler -> Component Code`
 
-- contract design
-- runtime semantics
-- protocol-oriented UI architecture
-
-feel free to open discussions or reach out first.  
-The architecture is still being actively shaped, but some modules are already considered stable.
+Adapters are already usable and help validate feasibility. Compilers will provide the same semantics with zero runtime overhead.
 
 ---
 
-## Note
+## What you can do today
 
-This is a **temporary workspace repository**.
+- Use **React / Vue / Web Components** adapters to generate native component instances from the same prototype.
+- Build and test cross-framework demos with consistent interaction logic.
+- Explore ideas like Headless UI on Web Components or cross-technology design systems.
 
-When the refactor is complete, its contents will be merged into and replace the main Proto UI repository, which already contains the full project configuration and public-facing setup.
+---
+
+## Current stage and roadmap
+
+- **v0 (now):** Validate the protocol and build adapters for major Web technologies. Research adapters for non-Web tech (e.g., Flutter).
+- **v1 (next):** Shift to compiler-first output, ensure zero runtime overhead, and extend support to non-Web platforms.
+
+The architecture is stable enough to move from v0 to v1 without destructive rewrites.
+
+---
+
+## Where to look in this repo
+
+- **Contracts (like RFCs):** `/internal/contracts`
+- **Adapters:** `/packages/adapters`
+- **Prototype libraries (planned):** `/packages/prototype-libs`
+- **Docs / website content:** `/apps/www/src/content`
+
+---
+
+## Who should care
+
+- Component library authors
+- Frontend engineers who care about interaction quality
+- HCI practitioners and researchers
+- Design system maintainers and UED teams
+- Students who want to explore foundational UI work
+
+---
+
+## Contributing and discussion
+
+- **Website:** [proto-ui.com](https://proto-ui.com) (docs and demos are in preparation)
+- **Issues:** GitHub Issues are the main entry point for contributions.
+- **Discord:** [Join the community](https://discord.gg/hMuSD6gH)
+- **Email:** guangliang2018@foxmail.com
+
+If you want to help with adapters, prototypes, docs, or community building, we would love to talk.
+
+---
+
+## License
+
+MIT
