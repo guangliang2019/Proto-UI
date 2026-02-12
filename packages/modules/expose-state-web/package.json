@@ -1,0 +1,18 @@
+{
+  "name": "@proto-ui/modules.expose-state-web",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@proto-ui/core": "workspace:*",
+    "@proto-ui/types": "workspace:*",
+    "@proto-ui/modules.base": "workspace:*",
+    "@proto-ui/modules.expose-state": "workspace:*"
+  },
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "default": "./src/index.ts"
+    }
+  }
+}

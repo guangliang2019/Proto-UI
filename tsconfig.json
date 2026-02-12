@@ -1,25 +1,19 @@
 {
   "compilerOptions": {
-    "outDir": "./dist",
-    "rootDir": "./src",
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./src/*"]
+      "@proto-ui/*": [
+        "packages/*/src",
+        "packages/modules/*/src",
+        "packages/adapters/*/src",
+        "packages/legacy/*/src"
+      ]
     },
-    "target": "ES6",
-    "module": "ESNext",
-    "moduleResolution": "node",
-    "resolveJsonModule": true,
-    "declaration": true,
+    "target": "ES2022",
+    "module": "ES2022",
+    "moduleResolution": "Bundler",
     "strict": true,
-    "esModuleInterop": true,
-    "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true,
-    "experimentalDecorators": true,
-    "emitDecoratorMetadata": true,
-    "jsx": "preserve",
-    "lib": ["dom", "esnext"]
-  },
-  "include": ["src/**/*.ts", "src/next-www/src/demos/react/Counter.tsx"],
-  "exclude": ["node_modules", "dist"]
+    "noEmit": true,
+    "skipLibCheck": true
+  }
 }
