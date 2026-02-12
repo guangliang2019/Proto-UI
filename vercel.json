@@ -1,8 +1,0 @@
-{
-  "buildCommand": "cd src/next-www && npm install && npm run build",
-  "outputDirectory": "src/next-www/dist",
-  "rewrites": [
-    { "source": "/robots.txt", "destination": "/robots.txt" },
-    { "source": "/(.*)", "destination": "/index.html" }
-  ]
-}

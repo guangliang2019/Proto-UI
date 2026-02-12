@@ -1,80 +1,61 @@
-# Proto UI
+# Proto UI (Refactor Workspace)
 
-**One UI Protocol. Any Platform.**  
-Decouple interaction logic from visual design, enabling any design system and any tech stack to interoperate, combine, and progressively enhance.
+This repository is an active refactor workspace for **Proto UI**.
 
-[English](README.md) | [简体中文](README.zh-CN.md)
+It exists to restructure the core architecture using a **contract-driven approach**.  
+Once the refactor reaches a stable point, its contents will replace the current Proto UI main repository.
 
----
-
-## Why We Believe This Will Work
-
-Proto UI is not a paper concept — it’s distilled from real-world production experience.  
-In my previous role, I spent two years building an enterprise-grade design system and component library across **Flutter, Swift, Kotlin, Vue2, Vue3, React, and WeChat Mini Programs**.
-
-All platforms ran on a unified programming paradigm, achieving:
-
-- Consistent interaction logic across multiple platforms
-- Decoupling of visual design and interaction behavior
-- Progressive capability enhancement (accessibility, platform-specific features, interaction replacements)
-
-Proto UI abstracts this practice into a universal modeling method and formalizes it as a protocol:
-
-> **Prototype → Adapter → Component → Host Runtime**  
-> This allows any tech stack to reuse the same interaction logic and composition patterns.
+If you are looking for **current progress**, this repo is the right place.  
+The main Proto UI repository may appear quiet during this phase by design.
 
 ---
 
-## What We Have Completed
+## What is happening here
 
-✅ **Web Component adapter & compiler**  
-✅ **Headless UI prototypes** (Button / Menu / Dialog, etc.)  
-✅ **Shadcn UI prototypes** (partially complete)  
-✅ Core protocol APIs: `p.event` / `p.state` / `p.context` / `p.lifecycle` / `p.props`  
-✅ Automatic event lifecycle management & `asHook` conflict warnings
+This refactor focuses on:
 
----
+- Making runtime semantics explicit and testable
+- Freezing v0 contracts module by module
+- Reducing implicit coupling between systems (props, template, lifecycle, etc.)
+- Preparing a stable foundation for official prototypes and asHook accumulation
 
-## What We’re Building Next
-
-- **Cross-platform adapters**: Qt / Flutter / React Native / Web
-- **Cross-design-system composition**: mix Material + Fluent freely
-- **Cross-technology bridging**: mix React components and Web Components with a semantic bridge beyond `postMessage`
-- **Progressive enhancement**: accessibility mode, child/elder-friendly modes, swappable interaction logic
-
-**Once implemented in the protocol core, these capabilities will automatically be available to all prototyped component libraries — no rewrites required.**
+The work is incremental and contract-first:
+each module is clarified → frozen → covered by contract tests before moving on.
 
 ---
 
-## Why Join Now
+## Current status
 
-- The protocol core is already stable; future adapter work will rarely need refactoring
-- Early contributors can directly influence core APIs and specifications
-- Any adapter or prototype you connect will automatically benefit from all future protocol enhancements
+- ✅ **Template v0** — frozen
+- ✅ **Runtime lifecycle (with host) v0** — frozen
+- ✅ **Props v0** — refactored, frozen, and fully covered by contract tests
 
----
+Upcoming work is expected to move toward:
 
-## How to Contribute
+- feedback
+- rule (built on top of stabilized props & feedback)
 
-1. **Explore the protocol chain**  
-   Clone this repo, run `examples/`, and see how a Prototype runs on a host platform through an Adapter.
-2. **Build an adapter**  
-   Follow the [Adapter Development Guide](link-to-doc) to support your preferred platform or framework.
-3. **Contribute a prototype**  
-   Abstract common interaction patterns into Prototypes that can serve any platform.
-4. **Propose ideas**  
-   Discuss cross-platform interaction patterns, progressive enhancement capabilities, and protocol extensions.
+Details live in `/internal/contracts` and corresponding `*.contract.test.ts` files.
 
 ---
 
-## Links
+## About contribution
 
-- [Documentation site](link-to-doc-site) (full overview & guides)
-- [Issue tracker](link-to-issues) (adapter tasks & core API discussions)
-- Community chat (Discord / QQ / Slack)
+This repository is not optimized for casual drive-by contributions yet.
+
+If you are interested in:
+
+- contract design
+- runtime semantics
+- protocol-oriented UI architecture
+
+feel free to open discussions or reach out first.  
+The architecture is still being actively shaped, but some modules are already considered stable.
 
 ---
 
-> **Note**  
-> Proto UI is in an early stage — its core feasibility is already validated, and we are building out more adapter chains.  
-> We welcome all discussions, adapters, and prototype contributions for cross-technology UI protocols.
+## Note
+
+This is a **temporary workspace repository**.
+
+When the refactor is complete, its contents will be merged into and replace the main Proto UI repository, which already contains the full project configuration and public-facing setup.
