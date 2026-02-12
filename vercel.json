@@ -1,0 +1,6 @@
+{
+  "version": 2,
+  "buildCommand": "pnpm --filter apps-www build",
+  "outputDirectory": "apps/www/dist",
+  "installCommand": "pnpm install --frozen-lockfile"
+}
