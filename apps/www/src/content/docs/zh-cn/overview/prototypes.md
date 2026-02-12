@@ -5,12 +5,12 @@ description: Proto UI 已支持与计划支持的设计语言原型库入口
 ## 已支持的原型库
 
 <Grid cols="2">
-  <Card title="Shadcn 原型库" href="/prototypes/shadcn" badge="已支持">
+  <Card title="Shadcn 原型库" href="/zh-cn/reference/prototypes/shadcn" badge="已支持">
     <p>原作者：<a href="https://ui.shadcn.com/" target="_blank">shadcn</a></p>
     <p>说明：非官方派生，Proto UI 不重构，仅提供交互逻辑原型。</p>
   </Card>
 
-  <Card title="Material 原型库" href="/prototypes/material" badge="已支持">
+  <Card title="Material 原型库" href="/zh-cn/reference/prototypes/material" badge="已支持">
     <p>原作者：<a href="https://m3.material.io/" target="_blank">Google Material Design</a></p>
     <p>说明：非官方派生版本。</p>
   </Card>

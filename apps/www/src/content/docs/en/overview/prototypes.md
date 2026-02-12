@@ -8,12 +8,12 @@ description: Entry points for design language prototype libraries supported and 
 ## Supported Prototype Libraries
 
 <Grid cols="2">
-  <Card title="Shadcn Prototype Library" href="/prototypes/shadcn" badge="Supported">
+  <Card title="Shadcn Prototype Library" href="/en/reference/prototypes/shadcn" badge="Supported">
     <p>Original Author: <a href="https://ui.shadcn.com/" target="_blank">shadcn</a></p>
     <p>Description: Unofficial derivative. Proto UI does not refactor it, only provides interactive logic prototypes.</p>
   </Card>
 
-  <Card title="Material Prototype Library" href="/prototypes/material" badge="Supported">
+  <Card title="Material Prototype Library" href="/en/reference/prototypes/material" badge="Supported">
     <p>Original Author: <a href="https://m3.material.io/" target="_blank">Google Material Design</a></p>
     <p>Description: Unofficial derivative version.</p>
   </Card>
