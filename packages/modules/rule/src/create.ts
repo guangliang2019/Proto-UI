@@ -1,23 +1,23 @@
 // packages/modules/rule/src/create.ts
-import { createModule, defineModule } from "@proto-ui/modules.base";
-import type { ModuleFactoryArgs } from "@proto-ui/modules.base";
-import type { PropsBaseType } from "@proto-ui/types";
+import { createModule, defineModule } from '@proto-ui/modules.base';
+import type { ModuleFactoryArgs } from '@proto-ui/modules.base';
+import type { PropsBaseType } from '@proto-ui/types';
 
-import type { RuleFacade, RuleModule, RulePort } from "./types";
-import { RuleModuleImpl } from "./impl";
-import type { PropsFacade, PropsPort } from "@proto-ui/modules.props";
-import type { StatePort } from "@proto-ui/modules.state";
-import type { FeedbackPort } from "@proto-ui/modules.feedback";
-import type { ContextFacade } from "@proto-ui/modules.context";
+import type { RuleFacade, RuleModule, RulePort } from './types';
+import { RuleModuleImpl } from './impl';
+import type { PropsFacade, PropsPort } from '@proto-ui/modules.props';
+import type { StatePort } from '@proto-ui/modules.state';
+import type { FeedbackPort } from '@proto-ui/modules.feedback';
+import type { ContextFacade } from '@proto-ui/modules.context';
 
 export function createRuleModule<Props extends PropsBaseType>(
   ctx: ModuleFactoryArgs
 ): RuleModule<Props> {
   const { init, caps, deps } = ctx;
 
-  return createModule<"rule", "instance", RuleFacade<Props>, RulePort<Props>>({
-    name: "rule",
-    scope: "instance",
+  return createModule<'rule', 'instance', RuleFacade<Props>, RulePort<Props>>({
+    name: 'rule',
+    scope: 'instance',
     init,
     caps,
     deps,
@@ -25,11 +25,11 @@ export function createRuleModule<Props extends PropsBaseType>(
       const impl = new RuleModuleImpl<Props>();
 
       const resolveDeps = () => ({
-        propsFacade: deps.tryFacade<PropsFacade<Props>>("props"),
-        propsPort: deps.tryPort<PropsPort<Props>>("props"),
-        statePort: deps.tryPort<StatePort>("state"),
-        feedbackPort: deps.tryPort<FeedbackPort>("feedback"),
-        contextFacade: deps.tryFacade<ContextFacade>("context"),
+        propsFacade: deps.tryFacade<PropsFacade<Props>>('props'),
+        propsPort: deps.tryPort<PropsPort<Props>>('props'),
+        statePort: deps.tryPort<StatePort>('state'),
+        feedbackPort: deps.tryPort<FeedbackPort>('feedback'),
+        contextFacade: deps.tryFacade<ContextFacade>('context'),
       });
 
       impl.attachExecutor(resolveDeps);
@@ -54,8 +54,8 @@ export function createRuleModule<Props extends PropsBaseType>(
 }
 
 export const RuleModuleDef = defineModule({
-  name: "rule",
+  name: 'rule',
   deps: [],
-  optionalDeps: ["props", "state", "context", "feedback"],
+  optionalDeps: ['props', 'state', 'context', 'feedback'],
   create: createRuleModule,
 });

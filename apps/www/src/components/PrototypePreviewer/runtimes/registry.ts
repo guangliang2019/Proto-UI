@@ -4,7 +4,11 @@ export type RuntimeId = 'wc' | 'react';
 export type RuntimeAPI = {
   id: RuntimeId;
   label: string;
-  mount(host: HTMLElement, prototype: any, options?: { props?: Record<string, unknown> }): Promise<void> | void;
+  mount(
+    host: HTMLElement,
+    prototype: any,
+    options?: { props?: Record<string, unknown> }
+  ): Promise<void> | void;
   unmount(host: HTMLElement): Promise<void> | void;
 };
 

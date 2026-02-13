@@ -1,18 +1,12 @@
 // packages/modules/rule/src/impl.ts
-import type {
-  RuleIR,
-  RuleSpec,
-  RuleEvalCtx,
-  RuleEvalResult,
-  RuleExtension,
-} from "./types";
-import { compileRule } from "./compile";
-import { evaluateRulesToPlan } from "./eval";
-import type { PropsBaseType } from "@proto-ui/types";
-import type { PropsFacade, PropsPort } from "@proto-ui/modules.props";
-import type { StatePort } from "@proto-ui/modules.state";
-import type { FeedbackPort } from "@proto-ui/modules.feedback";
-import type { ContextFacade } from "@proto-ui/modules.context";
+import type { RuleIR, RuleSpec, RuleEvalCtx, RuleEvalResult, RuleExtension } from './types';
+import { compileRule } from './compile';
+import { evaluateRulesToPlan } from './eval';
+import type { PropsBaseType } from '@proto-ui/types';
+import type { PropsFacade, PropsPort } from '@proto-ui/modules.props';
+import type { StatePort } from '@proto-ui/modules.state';
+import type { FeedbackPort } from '@proto-ui/modules.feedback';
+import type { ContextFacade } from '@proto-ui/modules.context';
 
 type RuleExecutorDeps<Props extends PropsBaseType> = {
   propsFacade?: PropsFacade<Props>;
@@ -38,7 +32,7 @@ export class RuleModuleImpl<Props extends PropsBaseType> {
   define(spec: RuleSpec<Props>) {
     const ir = compileRule(spec, {
       registerStateHandle: (id, handle) => {
-        if (handle && typeof handle.get === "function") {
+        if (handle && typeof handle.get === 'function') {
           this.stateHandleById.set(id, handle);
         }
       },
@@ -81,9 +75,9 @@ export class RuleModuleImpl<Props extends PropsBaseType> {
 
     for (const ext of this.extensions) {
       const before = ext.beforePlan?.(evalCtx);
-      if (before?.kind === "short-circuit") {
+      if (before?.kind === 'short-circuit') {
         if (before.execute) before.execute(evalCtx);
-        return { kind: "short-circuit", executed: !!before.execute };
+        return { kind: 'short-circuit', executed: !!before.execute };
       }
     }
 
@@ -93,7 +87,7 @@ export class RuleModuleImpl<Props extends PropsBaseType> {
       plan = ext.afterPlan ? ext.afterPlan(plan, evalCtx) : plan;
     }
 
-    return { kind: "plan", plan };
+    return { kind: 'plan', plan };
   }
 
   attachExecutor(resolveDeps: () => RuleExecutorDeps<Props>): void {
@@ -101,8 +95,8 @@ export class RuleModuleImpl<Props extends PropsBaseType> {
     this.deps = resolveDeps();
   }
 
-  onProtoPhase(phase: "setup" | "mounted" | "updated" | "unmounted"): void {
-    if (phase === "mounted") {
+  onProtoPhase(phase: 'setup' | 'mounted' | 'updated' | 'unmounted'): void {
+    if (phase === 'mounted') {
       this.ensureDeps();
       if (!this.stateWatchesInstalled) this.installStateWatches();
       this.driverActive = true;
@@ -110,14 +104,14 @@ export class RuleModuleImpl<Props extends PropsBaseType> {
       return;
     }
 
-    if (phase === "updated") {
+    if (phase === 'updated') {
       this.ensureDeps();
       if (!this.stateWatchesInstalled) this.installStateWatches();
       if (this.driverActive) this.evaluateAndApply();
       return;
     }
 
-    if (phase === "unmounted") {
+    if (phase === 'unmounted') {
       this.stopDriver();
       return;
     }
@@ -136,7 +130,7 @@ export class RuleModuleImpl<Props extends PropsBaseType> {
     const seen = new Set<any>();
     for (const r of ir) {
       for (const dep of r.deps) {
-        if (dep.kind !== "state") continue;
+        if (dep.kind !== 'state') continue;
         if (seen.has(dep.id)) continue;
         seen.add(dep.id);
         const h = this.resolveStateHandle(dep.id) as any;
@@ -182,17 +176,17 @@ export class RuleModuleImpl<Props extends PropsBaseType> {
       props,
       readContext: (key: any) => {
         if (!contextFacade) return undefined;
-        if ("tryRead" in contextFacade) {
+        if ('tryRead' in contextFacade) {
           return contextFacade.tryRead(key as any) ?? undefined;
         }
-        if ("read" in contextFacade) {
+        if ('read' in contextFacade) {
           return contextFacade.read(key as any);
         }
         return undefined;
       },
     } as RuleEvalCtx<Props>);
 
-    if (res.kind !== "plan" || res.plan.kind !== "style.tokens") {
+    if (res.kind !== 'plan' || res.plan.kind !== 'style.tokens') {
       if (this.unUseRuleStyle) {
         this.unUseRuleStyle();
         this.unUseRuleStyle = null;
@@ -209,7 +203,7 @@ export class RuleModuleImpl<Props extends PropsBaseType> {
 
     if (tokens.length > 0) {
       this.unUseRuleStyle = feedbackPort.useStyleRuntime({
-        kind: "tw",
+        kind: 'tw',
         tokens,
       });
     }

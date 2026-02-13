@@ -2,8 +2,7 @@
 
 > Status: Draft – v0 (Positioning & Stance)
 >
-> This is the English contract set overview for rule.
-> It explains rule's positioning, value, and stance on extension modules.
+> This is the English contract set overview for rule. It explains rule's positioning, value, and stance on extension modules.
 
 ---
 
@@ -31,8 +30,7 @@ Proto UI encourages rule extensions for **specific hosts / specific scenarios**:
 - Integrate as modules without changing rule’s serializable core
 - Preserve v0 best practices as reusable assets
 
-These extensions are recommended (though not the primary v0 workstream).
-Proto UI will actively encourage their accumulation.
+These extensions are recommended (though not the primary v0 workstream). Proto UI will actively encourage their accumulation.
 
 ---
 
@@ -44,8 +42,7 @@ When all are true:
 - adapter enables `expose-state-web` (maps to CSS variables / DOM attributes)
 - intent is only `feedback.style`
 
-then the rule can be compiled into **static selector styles** with no runtime execution.
-This is semantically equivalent and recommended in v0.
+then the rule can be compiled into **static selector styles** with no runtime execution. This is semantically equivalent and recommended in v0.
 
 ---
 
@@ -75,6 +72,7 @@ Extensions may **short-circuit Plan** when conditions are met and execute direct
 ## 6. Contract Index (v0)
 
 When dependencies:
+
 - `when.expr.v0.md`
 - `when.deps.props.v0.md`
 - `when.deps.state.v0.md`
@@ -83,11 +81,13 @@ When dependencies:
 - `when.deps.context.wiring.v0.md`
 
 Intent capabilities:
+
 - `intent.compose.v0.md`
 - `intent.feedback.style.v0.md`
 - `intent.state.v0.md`
 
 Other:
+
 - `define.setup-only.v0.md`
 - `runtime.apply.v0.md`
 
@@ -96,17 +96,19 @@ Other:
 ## 7. Test Matrix Index (Suggested)
 
 When dimensions:
+
 - props
 - state (Owned / Borrowed / Observed)
 - context
 
 Intent dimensions:
+
 - feedback.style
 - state.set
 
 Suggested combinations:
+
 - when.props x intent.feedback.style
 - when.state(Owned/Borrowed/Observed) x intent.state
 - when.context x intent.feedback.style
 - when.context x intent.state
-

@@ -2,8 +2,7 @@
 
 > 状态：Draft – v0（实现对齐）
 >
-> 本契约规定 rule 的条件表达式（when）语言：
-> 其语义必须可分析、可序列化，并支持依赖收集。
+> 本契约规定 rule 的条件表达式（when）语言：其语义必须可分析、可序列化，并支持依赖收集。
 
 ---
 
@@ -28,19 +27,19 @@
 
 ```ts
 type WhenExpr<Props> =
-  | { type: "true" }
-  | { type: "false" }
-  | { type: "eq"; left: WhenValue<Props>; right: WhenLiteral }
-  | { type: "not"; expr: WhenExpr<Props> }
-  | { type: "all"; exprs: WhenExpr<Props>[] }
-  | { type: "any"; exprs: WhenExpr<Props>[] };
+  | { type: 'true' }
+  | { type: 'false' }
+  | { type: 'eq'; left: WhenValue<Props>; right: WhenLiteral }
+  | { type: 'not'; expr: WhenExpr<Props> }
+  | { type: 'all'; exprs: WhenExpr<Props>[] }
+  | { type: 'any'; exprs: WhenExpr<Props>[] };
 ```
 
 ```ts
 type WhenValue<Props> =
-  | { type: "prop"; key: keyof Props }
-  | { type: "state"; id: StateId }
-  | { type: "context"; key: ContextKey<any> };
+  | { type: 'prop'; key: keyof Props }
+  | { type: 'state'; id: StateId }
+  | { type: 'context'; key: ContextKey<any> };
 
 type WhenLiteral = string | number | boolean | null;
 ```

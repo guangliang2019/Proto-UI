@@ -3,9 +3,7 @@
 > **Status**: Draft – implementation-ready  
 > **Version**: v0
 >
-> This document defines the **Proto UI event type system (EventTypeV0)**,
-> including semantic layering, interpretation responsibilities,
-> and adapter constraints.
+> This document defines the **Proto UI event type system (EventTypeV0)**, including semantic layering, interpretation responsibilities, and adapter constraints.
 >
 > This document is **normative**.
 
@@ -13,9 +11,7 @@
 
 ## 0. Design Goals & Philosophical Premises
 
-Proto UI’s event system is **not** an abstraction of any single platform
-(e.g. the Web), but a protocol-level model of
-**human–computer interaction (HCI) intent and state transitions**.
+Proto UI’s event system is **not** an abstraction of any single platform (e.g. the Web), but a protocol-level model of **human–computer interaction (HCI) intent and state transitions**.
 
 Therefore:
 
@@ -55,43 +51,32 @@ type EventTypeV0 = CoreEventType | OptionalEventType | ExtensionEventType;
 - Independent of UI frameworks
 - Modeling **the lifecycle of user intent**
 
-These events have the **highest abstraction level**
-and are the ones Proto UI aims to keep **maximally stable over time**.
+These events have the **highest abstraction level** and are the ones Proto UI aims to keep **maximally stable over time**.
 
 ---
 
 ### 2.2 Press Event Family — Activation Intent
 
-“Press” does **not** mean “mouse click” or “touch tap”.
-It represents the **user’s intent to activate an interaction target**
-and the evolution of that intent.
+“Press” does **not** mean “mouse click” or “touch tap”. It represents the **user’s intent to activate an interaction target** and the evolution of that intent.
 
 #### 2.2.1 Event Set
 
 ```ts
-"press.start";
-"press.end";
-"press.cancel";
-"press.commit";
+'press.start';
+'press.end';
+'press.cancel';
+'press.commit';
 ```
 
 #### 2.2.2 Semantic Definitions (Normative)
 
-- **`press.start`**
-  Activation intent begins.
-  The user explicitly starts an activation action on a target.
+- **`press.start`** Activation intent begins. The user explicitly starts an activation action on a target.
 
-- **`press.end`**
-  Activation intent ends.
-  The activation action is released, regardless of success.
+- **`press.end`** Activation intent ends. The activation action is released, regardless of success.
 
-- **`press.commit`**
-  Activation intent is confirmed.
-  A **valid activation** has been completed.
+- **`press.commit`** Activation intent is confirmed. A **valid activation** has been completed.
 
-- **`press.cancel`**
-  Activation intent is canceled.
-  The activation process is aborted and MUST NOT be treated as successful.
+- **`press.cancel`** Activation intent is canceled. The activation process is aborted and MUST NOT be treated as successful.
 
 #### 2.2.3 Interpretation Responsibility (Normative)
 
@@ -102,13 +87,11 @@ and the evolution of that intent.
 #### 2.2.4 Examples (Non-normative)
 
 - Pointer devices:
-
   - `press.start` → pointerdown
   - `press.commit` → pointerup on the same target
   - `press.cancel` → pointerup on a different target
 
 - Keyboard input:
-
   - `press.start` → keydown
   - `press.commit` → keyup
   - `press.cancel` → host-defined (e.g. focus loss)
@@ -118,8 +101,8 @@ and the evolution of that intent.
 ### 2.3 Key Event Family — Input Activation
 
 ```ts
-"key.down";
-"key.up";
+'key.down';
+'key.up';
 ```
 
 #### Semantic Notes
@@ -153,12 +136,12 @@ These events:
 ### 3.2 Pointer Event Family
 
 ```ts
-"pointer.down";
-"pointer.move";
-"pointer.up";
-"pointer.cancel";
-"pointer.enter";
-"pointer.leave";
+'pointer.down';
+'pointer.move';
+'pointer.up';
+'pointer.cancel';
+'pointer.enter';
+'pointer.leave';
 ```
 
 - Describe spatial interaction via pointer-like devices
@@ -170,13 +153,13 @@ These events:
 ### 3.3 Focus & Text Events
 
 ```ts
-"nav.focus";
-"nav.blur";
-"text.focus";
-"text.blur";
-"input";
-"change";
-"context.menu";
+'nav.focus';
+'nav.blur';
+'text.focus';
+'text.blur';
+'input';
+'change';
+'context.menu';
 ```
 
 - `nav.*`: navigation focus (non-text interaction)
@@ -211,12 +194,10 @@ Characteristics:
 ### 4.3 Naming Rules (Normative)
 
 - `native:*`
-
   - Direct mapping to host-native event names
   - e.g. `native:click`, `native:keydown`
 
 - `host.*`
-
   - Host-defined higher-level events
   - e.g. `host.dragStart`, `host.viewResize`
 
@@ -237,7 +218,6 @@ Implementations **MUST reject**:
 - Non-string event types
 - Empty strings
 - Event names that do not satisfy at least one of:
-
   - Belongs to `CoreEventType`
   - Belongs to `OptionalEventType`
   - Matches `native:*`
@@ -249,7 +229,6 @@ Implementations **MUST reject**:
 
 - v0 **MUST NOT** remove or redefine existing Core events
 - v0 MAY:
-
   - Add Optional events
   - Add Host-level events
 

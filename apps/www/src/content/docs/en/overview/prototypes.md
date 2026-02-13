@@ -1,9 +1,7 @@
 ---
 title: Prototype Libraries
 description: Entry points for design language prototype libraries supported and planned by Proto UI
-
 ---
-
 
 ## Supported Prototype Libraries
 
@@ -48,6 +46,7 @@ Proto UI has **no direct affiliation** with the official teams of any design lan
 We retain and label original authors and official website links, and all derived prototypes are **unofficial versions**.
 
 Attitude towards copyright and refactoring:
+
 - Proto UI does not claim copyright for these derived prototypes;
 - Before the original authors make a statement, the relevant implementations are in a state of **suspension with maintenance**:
   - **Suspension**: No further refactoring or copyright claim will be conducted;
@@ -63,6 +62,7 @@ Attitude towards copyright and refactoring:
 Proto UI focuses on **protocolization and standardization of interactive logic**, rather than building a competitive UI library.
 
 On this basis, we sincerely look forward to cooperating with the official teams of various design languages:
+
 - Whether it is **taking over, claiming ownership, or giving tacit approval**,
 - It is support for the **cause of interactive protocolization**.
 

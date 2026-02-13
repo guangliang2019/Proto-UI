@@ -6,7 +6,7 @@ import type {
   ModuleInit,
   ModuleScope,
   CapsVaultView,
-} from "@proto-ui/core";
+} from '@proto-ui/core';
 
 export type ModuleDeps = {
   /**
@@ -73,7 +73,7 @@ export function createModule<
   Name extends string,
   Scope extends ModuleScope,
   Facade extends ModuleFacade,
-  Port = undefined
+  Port = undefined,
 >(args: {
   name: Name;
   scope: Scope;

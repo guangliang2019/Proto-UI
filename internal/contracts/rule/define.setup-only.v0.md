@@ -2,8 +2,7 @@
 
 ## Purpose
 
-This contract defines how rules are declared during setup and compiled into RuleIR.
-Rule declarations are static and must not depend on runtime state.
+This contract defines how rules are declared during setup and compiled into RuleIR. Rule declarations are static and must not depend on runtime state.
 
 ---
 
@@ -94,4 +93,3 @@ The following MUST throw synchronously:
 - calling `def.rule` outside setup
 - using non-builder values inside `when`
 - using unsupported operations inside `intent`
-

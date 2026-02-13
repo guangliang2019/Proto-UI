@@ -1,7 +1,7 @@
-import type { CapsVaultView } from "@proto-ui/core";
-import { capUnavailable, illegalPhase } from "@proto-ui/core";
-import { ModuleBase } from "@proto-ui/modules.base";
-import type { EventPort } from "@proto-ui/modules.event";
+import type { CapsVaultView } from '@proto-ui/core';
+import { capUnavailable, illegalPhase } from '@proto-ui/core';
+import { ModuleBase } from '@proto-ui/modules.base';
+import type { EventPort } from '@proto-ui/modules.event';
 
 import {
   AS_TRIGGER_GET_PROTO_CAP,
@@ -9,17 +9,13 @@ import {
   AS_TRIGGER_PARENT_CAP,
   type AsTriggerParentGetter,
   type AsTriggerPrototypeGetter,
-} from "./caps";
+} from './caps';
 
 export class AsTriggerModuleImpl extends ModuleBase {
   private readonly prototypeName: string;
   private readonly eventPort: EventPort;
 
-  constructor(
-    caps: CapsVaultView,
-    prototypeName: string,
-    eventPort: EventPort
-  ) {
+  constructor(caps: CapsVaultView, prototypeName: string, eventPort: EventPort) {
     super(caps);
     this.prototypeName = prototypeName;
     this.eventPort = eventPort;
@@ -28,7 +24,7 @@ export class AsTriggerModuleImpl extends ModuleBase {
   private ensureSetup(op: string) {
     this.sys?.ensureSetup(op);
 
-    if (!this.sys && this.protoPhase !== "setup") {
+    if (!this.sys && this.protoPhase !== 'setup') {
       throw illegalPhase(op, this.protoPhase, {
         prototypeName: this.prototypeName,
       });
@@ -63,7 +59,7 @@ export class AsTriggerModuleImpl extends ModuleBase {
   }
 
   apply(): void {
-    this.ensureSetup("asTrigger.apply");
+    this.ensureSetup('asTrigger.apply');
 
     const self = this.getInstanceToken();
     const getParent = this.getParentGetter();
@@ -77,9 +73,7 @@ export class AsTriggerModuleImpl extends ModuleBase {
       if (!curProto) break;
 
       const trace = (curProto as any).__asHooks as Array<{ name?: string }>;
-      const hasTrigger = Array.isArray(trace)
-        ? trace.some((e) => e?.name === "asTrigger")
-        : false;
+      const hasTrigger = Array.isArray(trace) ? trace.some((e) => e?.name === 'asTrigger') : false;
 
       if (!hasTrigger) break;
 

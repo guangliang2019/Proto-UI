@@ -3,8 +3,7 @@
 > **状态**：Draft – implementation-ready  
 > **版本**：v0
 >
-> 本文档定义 **Proto UI 的事件类型体系（EventTypeV0）**，
-> 以及不同层级事件的语义边界、解释责任与适配约束。
+> 本文档定义 **Proto UI 的事件类型体系（EventTypeV0）**，以及不同层级事件的语义边界、解释责任与适配约束。
 >
 > 本文档是 **规范性（Normative）文档**。
 
@@ -12,8 +11,7 @@
 
 ## 0. 设计目标与哲学前提
 
-Proto UI 的事件系统不是对某一平台（如 Web）的抽象封装，
-而是对 **人机交互（HCI）中的“意图变化”与“状态转换”** 的建模。
+Proto UI 的事件系统不是对某一平台（如 Web）的抽象封装，而是对 **人机交互（HCI）中的“意图变化”与“状态转换”** 的建模。
 
 因此：
 
@@ -53,42 +51,32 @@ type EventTypeV0 = CoreEventType | OptionalEventType | ExtensionEventType;
 - 与具体 UI 框架无关
 - 描述的是 **“用户意图的生命周期”**
 
-这些事件具有最高的抽象层级，
-也是 Proto UI 希望 **优先保证长期稳定性** 的事件集合。
+这些事件具有最高的抽象层级，也是 Proto UI 希望 **优先保证长期稳定性** 的事件集合。
 
 ---
 
 ### 2.2 Press 事件族：激活意图（Activation Intent）
 
-Press 并不等价于“鼠标点击”或“触屏点击”，
-它表示的是 **“用户试图激活某个交互目标”** 这一意图的演化过程。
+Press 并不等价于“鼠标点击”或“触屏点击”，它表示的是 **“用户试图激活某个交互目标”** 这一意图的演化过程。
 
 #### 2.2.1 事件列表
 
 ```ts
-"press.start";
-"press.end";
-"press.cancel";
-"press.commit";
+'press.start';
+'press.end';
+'press.cancel';
+'press.commit';
 ```
 
 #### 2.2.2 语义说明（规范）
 
-- **`press.start`**
-  激活意图开始
-  用户明确开始对某个交互目标施加激活动作
+- **`press.start`** 激活意图开始用户明确开始对某个交互目标施加激活动作
 
-- **`press.end`**
-  激活意图结束
-  用户结束了激活动作（不论是否成功）
+- **`press.end`** 激活意图结束用户结束了激活动作（不论是否成功）
 
-- **`press.commit`**
-  激活意图确认
-  用户完成了一个**有效的激活行为**
+- **`press.commit`** 激活意图确认用户完成了一个**有效的激活行为**
 
-- **`press.cancel`**
-  激活意图取消
-  激活过程被中断，且不应被视为一次成功激活
+- **`press.cancel`** 激活意图取消激活过程被中断，且不应被视为一次成功激活
 
 #### 2.2.3 解释责任（Normative）
 
@@ -99,13 +87,11 @@ Press 并不等价于“鼠标点击”或“触屏点击”，
 #### 2.2.4 示例（非规范性）
 
 - Pointer 设备：
-
   - `press.start` → pointerdown
   - `press.commit` → pointerup 且未离开目标
   - `press.cancel` → pointerup 但目标发生变化
 
 - 键盘：
-
   - `press.start` → keydown
   - `press.commit` → keyup
   - `press.cancel` → 由 Host 决定（如焦点丢失）
@@ -115,8 +101,8 @@ Press 并不等价于“鼠标点击”或“触屏点击”，
 ### 2.3 Key 事件族：输入激活（Key Intent）
 
 ```ts
-"key.down";
-"key.up";
+'key.down';
+'key.up';
 ```
 
 #### 语义说明
@@ -149,12 +135,12 @@ Key 事件用于描述 **“某种输入通道被激活 / 释放”**：
 ### 3.2 Pointer 事件族
 
 ```ts
-"pointer.down";
-"pointer.move";
-"pointer.up";
-"pointer.cancel";
-"pointer.enter";
-"pointer.leave";
+'pointer.down';
+'pointer.move';
+'pointer.up';
+'pointer.cancel';
+'pointer.enter';
+'pointer.leave';
 ```
 
 - 描述基于指针类设备的空间交互
@@ -166,13 +152,13 @@ Key 事件用于描述 **“某种输入通道被激活 / 释放”**：
 ### 3.3 焦点与文本事件
 
 ```ts
-"nav.focus";
-"nav.blur";
-"text.focus";
-"text.blur";
-"input";
-"change";
-"context.menu";
+'nav.focus';
+'nav.blur';
+'text.focus';
+'text.blur';
+'input';
+'change';
+'context.menu';
 ```
 
 - `nav.*`：导航焦点（通常用于非文本交互）
@@ -207,12 +193,10 @@ Host 级事件表示：
 ### 4.3 命名规范（Normative）
 
 - `native:*`
-
   - 表示直接映射 Host 的原生事件名
   - 例如：`native:click`、`native:keydown`
 
 - `host.*`
-
   - 表示 Host 自定义的高阶事件
   - 例如：`host.dragStart`、`host.viewResize`
 
@@ -233,7 +217,6 @@ Host 级事件表示：
 - 非字符串事件类型
 - 空字符串
 - 不符合以下任一条件的事件名：
-
   - 属于 CoreEventType
   - 属于 OptionalEventType
   - 匹配 `native:*`
@@ -245,7 +228,6 @@ Host 级事件表示：
 
 - v0 **不允许删除或重定义**已有 Core 事件
 - v0 允许：
-
   - 增加 Optional 事件
   - 增加 Host 级事件
 

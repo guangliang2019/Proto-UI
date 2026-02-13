@@ -1,5 +1,5 @@
-export { AsTriggerModuleDef } from "./create";
-export type { AsTriggerFacade, AsTriggerModule } from "./types";
+export { AsTriggerModuleDef } from './create';
+export type { AsTriggerFacade, AsTriggerModule } from './types';
 export {
   AS_TRIGGER_INSTANCE_CAP,
   AS_TRIGGER_PARENT_CAP,
@@ -7,4 +7,4 @@ export {
   type AsTriggerInstanceToken,
   type AsTriggerParentGetter,
   type AsTriggerPrototypeGetter,
-} from "./caps";
+} from './caps';

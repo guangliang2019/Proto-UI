@@ -2,15 +2,11 @@
 
 ## 1. Purpose
 
-This contract defines how a Web Component adapter consumes exported
-style intent from feedback and **applies it to the host element**.
+This contract defines how a Web Component adapter consumes exported style intent from feedback and **applies it to the host element**.
 
-In v0, the adapter primarily realizes style intent by mapping tokens
-to **class-based output**, assisted by Tailwind as a runtime style system.
+In v0, the adapter primarily realizes style intent by mapping tokens to **class-based output**, assisted by Tailwind as a runtime style system.
 
-This contract does NOT define how style intent is generated or merged.
-It only defines the responsibilities and invariants of the adapter
-when applying style intent to the host.
+This contract does NOT define how style intent is generated or merged. It only defines the responsibilities and invariants of the adapter when applying style intent to the host.
 
 ---
 
@@ -18,8 +14,7 @@ when applying style intent to the host.
 
 ### 2.1 Style Intent Input
 
-The adapter consumes style intent via `feedback.style.export`,
-conceptually represented as:
+The adapter consumes style intent via `feedback.style.export`, conceptually represented as:
 
 ```ts
 {
@@ -47,22 +42,19 @@ The adapter applies styles to the **component host element**.
 
 ### 3.1 Primary Strategy: Class Mapping
 
-In v0, the adapter SHOULD realize style intent by mapping exported tokens
-to **class names applied on the host element**.
+In v0, the adapter SHOULD realize style intent by mapping exported tokens to **class names applied on the host element**.
 
 - Each token is treated as a class-like identifier
 - Tokens are added to the host’s `classList`
 - Token-to-class mapping is identity-based by default
 
-This strategy aligns with Tailwind’s runtime model and enables
-downstream customization via standard CSS.
+This strategy aligns with Tailwind’s runtime model and enables downstream customization via standard CSS.
 
 ---
 
 ### 3.2 Optional Optimization: CSS Variables
 
-The adapter MAY choose to introduce CSS variables as an optimization
-strategy.
+The adapter MAY choose to introduce CSS variables as an optimization strategy.
 
 Examples include (non-exhaustive):
 
@@ -70,11 +62,9 @@ Examples include (non-exhaustive):
 - enabling theme-level overrides
 - improving runtime update performance
 
-Such optimizations MUST preserve the semantic meaning of tokens
-and MUST NOT change observable behavior.
+Such optimizations MUST preserve the semantic meaning of tokens and MUST NOT change observable behavior.
 
-The presence or absence of CSS variables is an implementation detail
-and MUST NOT be relied upon by component authors.
+The presence or absence of CSS variables is an implementation detail and MUST NOT be relied upon by component authors.
 
 ---
 
@@ -82,8 +72,7 @@ and MUST NOT be relied upon by component authors.
 
 ### 4.1 Initial Application
 
-The adapter MUST apply all exported tokens to the host element
-when the component is mounted.
+The adapter MUST apply all exported tokens to the host element when the component is mounted.
 
 - Tokens MUST be applied as a coherent set
 - Partial application is not allowed
@@ -92,8 +81,7 @@ when the component is mounted.
 
 ### 4.2 Update Semantics
 
-Although v0 style intent is static, the adapter MUST follow these rules
-to remain compatible with future extensions:
+Although v0 style intent is static, the adapter MUST follow these rules to remain compatible with future extensions:
 
 - Re-applying style intent MUST NOT reorder tokens semantically
 - Later updates MUST NOT reintroduce tokens that were previously removed
@@ -126,12 +114,9 @@ Feedback does not dictate scheduling.
 
 The adapter MUST satisfy the following constraints:
 
-- **Order Preservation**
-  Style application MUST NOT invert the relative order of user interactions.
+- **Order Preservation** Style application MUST NOT invert the relative order of user interactions.
 
-- **Bounded Latency**
-  Applied styles MUST become observable no later than:
-
+- **Bounded Latency** Applied styles MUST become observable no later than:
   - the host’s next render/commit cycle, or
   - the next animation frame
 
@@ -152,17 +137,11 @@ If the host environment controls render timing:
 
 All adapter implementations MUST preserve the following invariants:
 
-1. **Semantic Equivalence**
-   The realized host styles MUST reflect the same semantic intent
-   described by exported tokens.
+1. **Semantic Equivalence** The realized host styles MUST reflect the same semantic intent described by exported tokens.
 
-2. **No Implicit Priority Injection**
-   The adapter MUST NOT introduce additional priority or cascade rules
-   beyond what is implied by semantic merge.
+2. **No Implicit Priority Injection** The adapter MUST NOT introduce additional priority or cascade rules beyond what is implied by semantic merge.
 
-3. **Host Agnosticism**
-   The adapter MUST NOT rely on undocumented host behavior
-   or undefined class ordering semantics.
+3. **Host Agnosticism** The adapter MUST NOT rely on undocumented host behavior or undefined class ordering semantics.
 
 ---
 
@@ -179,8 +158,7 @@ Style realization failures SHOULD degrade gracefully where possible.
 
 ## 8. Debug and Compliance Signaling (Optional)
 
-The adapter MAY expose diagnostic information for debugging purposes,
-such as:
+The adapter MAY expose diagnostic information for debugging purposes, such as:
 
 - realization strategy (`class-based`, `class+vars`)
 - application timing (`immediate`, `next-frame`, `host-commit`)

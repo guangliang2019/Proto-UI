@@ -1,8 +1,6 @@
 # exec-phase-guard.v0.md
 
-> Status: Draft – implementation-aligned (v0)
-> This contract specifies Proto UI’s **execution phase guard** as provided by `SystemCaps`.
-> It is a shared foundation used by runtime + modules to enforce “setup vs runtime vs disposed”.
+> Status: Draft – implementation-aligned (v0) This contract specifies Proto UI’s **execution phase guard** as provided by `SystemCaps`. It is a shared foundation used by runtime + modules to enforce “setup vs runtime vs disposed”.
 
 ---
 
@@ -31,12 +29,10 @@ This contract defines:
 ## 1. Terminology
 
 - **GuardDomain**: coarse execution domain used for module API gating.
-
   - `"setup"`: prototype is executing `proto.setup(def)` (def-only world).
   - `"runtime"`: any execution after setup (callbacks / render / host-driven paths).
 
 - **ProtoPhase**: logical lifecycle checkpoint (semantic timeline), controlled by runtime.
-
   - v0 set is minimal and comes from `@proto-ui/core`:
     - `"setup"`
     - `"created"`
@@ -76,15 +72,13 @@ type WithSystemCaps = { __sys: SystemCaps };
 - `domain()` MUST return `"setup"` **iff** the runtime’s current execution is inside `proto.setup(def)`.
 - Otherwise it MUST return `"runtime"`.
 
-> Implementation note: runtime may have finer-grained internal phases (render/callback/unknown),
-> but domain is intentionally binary for v0 modules.
+> Implementation note: runtime may have finer-grained internal phases (render/callback/unknown), but domain is intentionally binary for v0 modules.
 
 ### 3.2 ProtoPhase semantics (v0)
 
 - `protoPhase()` MUST reflect the current logical lifecycle checkpoint as set by runtime.
 - Runtime is responsible for updating protoPhase at the correct time.
-- Modules may read protoPhase for diagnostics or conditional behavior, but MUST NOT be required
-  to function correctly based on protoPhase granularity.
+- Modules may read protoPhase for diagnostics or conditional behavior, but MUST NOT be required to function correctly based on protoPhase granularity.
 
 ### 3.3 Disposed semantics (v0)
 
@@ -145,8 +139,7 @@ Recommended categories (not required in v0):
 ### 6.2 Stability
 
 - The `__sys` reference MUST remain stable for the lifetime of the module hub.
-- After dispose, caps may be reset/invalidated, but `__sys.isDisposed()` must still behave consistently
-  while any previously returned handle attempts to operate.
+- After dispose, caps may be reset/invalidated, but `__sys.isDisposed()` must still behave consistently while any previously returned handle attempts to operate.
 
 ---
 
@@ -155,14 +148,11 @@ Recommended categories (not required in v0):
 Implementations must be validated for:
 
 1. Domain gating:
-
    - calling `ensureRuntime` in setup throws
    - calling `ensureSetup` in runtime throws
 
 2. Dispose gating:
-
    - after dispose, `ensureNotDisposed/ensureSetup/ensureRuntime` all throw
 
 3. Diagnostics:
-
    - thrown errors contain `op` and identifying info (prototypeName recommended)

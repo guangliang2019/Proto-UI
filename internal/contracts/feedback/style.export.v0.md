@@ -2,11 +2,9 @@
 
 ## 1. Purpose
 
-This contract defines how merged style intent recorded by feedback
-is **exported for consumption** by adapters and internal modules.
+This contract defines how merged style intent recorded by feedback is **exported for consumption** by adapters and internal modules.
 
-The export represents a **stable semantic snapshot** of style intent.
-It does not encode rendering strategy, scheduling, or host-specific behavior.
+The export represents a **stable semantic snapshot** of style intent. It does not encode rendering strategy, scheduling, or host-specific behavior.
 
 ---
 
@@ -14,8 +12,7 @@ It does not encode rendering strategy, scheduling, or host-specific behavior.
 
 ### 2.1 Export API
 
-The feedback module MUST provide a way to export the current merged
-style intent.
+The feedback module MUST provide a way to export the current merged style intent.
 
 Conceptually, the export is equivalent to:
 
@@ -25,11 +22,9 @@ type FeedbackStyleExport = {
 };
 ```
 
-- `tokens` is the result of semantic merge as defined in
-  `feedback/style.merge.semantic.v0`.
+- `tokens` is the result of semantic merge as defined in `feedback/style.merge.semantic.v0`.
 
-The exact API surface (method name, access pattern) is implementation-defined,
-but the exported shape and semantics MUST follow this contract.
+The exact API surface (method name, access pattern) is implementation-defined, but the exported shape and semantics MUST follow this contract.
 
 ---
 
@@ -48,8 +43,7 @@ Exporting does not mutate feedback state.
 
 ### 3.2 Determinism
 
-Given identical setup-time inputs, exporting style intent MUST produce
-an identical result.
+Given identical setup-time inputs, exporting style intent MUST produce an identical result.
 
 The exported result MUST be independent of:
 
@@ -62,8 +56,7 @@ The exported result MUST be independent of:
 
 ## 4. Semantics of the Exported Tokens
 
-The exported `tokens` list describes **what visual intents exist**,
-not how they are realized.
+The exported `tokens` list describes **what visual intents exist**, not how they are realized.
 
 The export:
 
@@ -72,8 +65,7 @@ The export:
 - Does NOT encode priority or cascade rules
 - Does NOT encode selectors or conditions
 
-How these tokens are translated into host output is the responsibility
-of adapters or higher-level compilation steps.
+How these tokens are translated into host output is the responsibility of adapters or higher-level compilation steps.
 
 ---
 
@@ -102,8 +94,7 @@ Higher-level modules (e.g. rule engines or optimizers) MAY:
 - compare snapshots across evaluations
 - replace or recompute exports based on conditions
 
-Such modules MUST treat the export as **semantic input**, not as
-a rendering instruction.
+Such modules MUST treat the export as **semantic input**, not as a rendering instruction.
 
 ---
 
@@ -111,15 +102,11 @@ a rendering instruction.
 
 All consumers of `feedback.style.export` MUST respect the following:
 
-1. **Semantic Equivalence**
-   Different realization strategies MUST preserve the same visual intent.
+1. **Semantic Equivalence** Different realization strategies MUST preserve the same visual intent.
 
-2. **Order Preservation**
-   The relative order implied by semantic merge MUST NOT be violated.
+2. **Order Preservation** The relative order implied by semantic merge MUST NOT be violated.
 
-3. **No Implicit Priorities**
-   Consumers MUST NOT infer priority or dominance beyond what is
-   expressed by semantic merge.
+3. **No Implicit Priorities** Consumers MUST NOT infer priority or dominance beyond what is expressed by semantic merge.
 
 ---
 

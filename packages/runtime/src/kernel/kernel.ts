@@ -10,21 +10,21 @@ import {
   TemplateChildren,
   __AS_HOOK_CURRENT_DEF,
   __AS_HOOK_PRIV_FACADES,
-} from "@proto-ui/core";
-import { PropsBaseType } from "@proto-ui/types";
+} from '@proto-ui/core';
+import { PropsBaseType } from '@proto-ui/types';
 import {
   createDefHandle,
   createLifecycleRegistry,
   createRunHandle,
   LifecycleRegistry,
   type EventCallbacksSink,
-} from "./handles";
-import type { RuleFacade } from "@proto-ui/modules.rule";
-import type { ModuleOrchestratorFacadeView } from "../orchestrator/module-orchestrator/types";
-import type { PropsFacade } from "@proto-ui/modules.props";
-import type { ExecPhase } from "@proto-ui/modules.base";
-import type { RuntimeTimeline } from "./timeline";
-import { attachAsHookRuntime } from "./as-hook";
+} from './handles';
+import type { RuleFacade } from '@proto-ui/modules.rule';
+import type { ModuleOrchestratorFacadeView } from '../orchestrator/module-orchestrator/types';
+import type { PropsFacade } from '@proto-ui/modules.props';
+import type { ExecPhase } from '@proto-ui/modules.base';
+import type { RuntimeTimeline } from './timeline';
+import { attachAsHookRuntime } from './as-hook';
 
 export type Kernel<P extends PropsBaseType> = {
   getPhase(): Phase;
@@ -54,7 +54,7 @@ export function createKernel<P extends PropsBaseType>(
   modules: ModuleOrchestratorFacadeView,
   opt?: CreateKernelOptions & { eventSink?: EventCallbacksSink<P> }
 ): Kernel<P> {
-  let phase: ExecPhase = "unknown";
+  let phase: ExecPhase = 'unknown';
   let timeline: RuntimeTimeline | null = null;
 
   const setPhase = (p: ExecPhase) => {
@@ -68,7 +68,7 @@ export function createKernel<P extends PropsBaseType>(
   };
 
   const lifecycle = createLifecycleRegistry<P>();
-  const rules = modules.getFacades()["rule"] as RuleFacade<P>;
+  const rules = modules.getFacades()['rule'] as RuleFacade<P>;
 
   const def = createDefHandle<P>(st, lifecycle, rules, modules, opt?.eventSink);
   attachAsHookRuntime(def, st, proto, opt?.asHook);
@@ -82,7 +82,7 @@ export function createKernel<P extends PropsBaseType>(
   // ----------------
   // setup
   // ----------------
-  setPhase("setup");
+  setPhase('setup');
   (globalThis as any)[__AS_HOOK_CURRENT_DEF] = def;
   let maybeRender: RenderFn | void;
   try {
@@ -91,7 +91,7 @@ export function createKernel<P extends PropsBaseType>(
     (globalThis as any)[__AS_HOOK_CURRENT_DEF] = undefined;
   }
   const renderFn: RenderFn = maybeRender ?? ((renderer) => [renderer.r.slot()]);
-  setPhase("unknown");
+  setPhase('unknown');
 
   // ----------------
   // run handle
@@ -106,9 +106,7 @@ export function createKernel<P extends PropsBaseType>(
   // NOTE: createRunHandle only depends on the facade view.
   const run = createRunHandle<P>(() => {
     if (!runUpdateImpl) {
-      throw new Error(
-        `[Runtime] run.update() is not supported in host-free execution.`
-      );
+      throw new Error(`[Runtime] run.update() is not supported in host-free execution.`);
     }
     runUpdateImpl();
   }, modules);
@@ -117,7 +115,7 @@ export function createKernel<P extends PropsBaseType>(
   // read / renderer
   // ----------------
   const facades = modules.getFacades();
-  const propsFacade = facades["props"] as PropsFacade<P>;
+  const propsFacade = facades['props'] as PropsFacade<P>;
 
   const read: RenderReadHandle<P> = {
     props: propsFacade as any,
@@ -130,11 +128,11 @@ export function createKernel<P extends PropsBaseType>(
   // render
   // ----------------
   const renderOnce = () => {
-    setPhase("render");
+    setPhase('render');
     const children = renderFn(renderer);
-    setPhase("unknown");
+    setPhase('unknown');
 
-    timeline?.mark("tree:logical-ready");
+    timeline?.mark('tree:logical-ready');
     return children;
   };
 

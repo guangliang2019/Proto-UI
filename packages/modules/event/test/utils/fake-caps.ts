@@ -1,18 +1,18 @@
 // packages/modules/event/test/utils/fake-caps.ts
-import { SYS_CAP } from "@proto-ui/modules.base";
-import { EVENT_GLOBAL_TARGET_CAP, EVENT_ROOT_TARGET_CAP } from "../../src/caps";
+import { SYS_CAP } from '@proto-ui/modules.base';
+import { EVENT_GLOBAL_TARGET_CAP, EVENT_ROOT_TARGET_CAP } from '../../src/caps';
 
-type ExecPhase = "setup" | "render" | "callback" | "unknown";
-type ProtoPhase = "setup" | "mounted" | "updated" | "unmounted";
+type ExecPhase = 'setup' | 'render' | 'callback' | 'unknown';
+type ProtoPhase = 'setup' | 'mounted' | 'updated' | 'unmounted';
 
 export function createSysCaps() {
-  let execPhase: ExecPhase = "setup";
-  let protoPhase: ProtoPhase = "setup";
+  let execPhase: ExecPhase = 'setup';
+  let protoPhase: ProtoPhase = 'setup';
   let disposed = false;
 
   const sys = {
     execPhase: () => execPhase,
-    domain: () => (execPhase === "setup" ? "setup" : "runtime"),
+    domain: () => (execPhase === 'setup' ? 'setup' : 'runtime'),
     protoPhase: () => protoPhase,
     isDisposed: () => disposed,
 
@@ -23,38 +23,32 @@ export function createSysCaps() {
     ensureExecPhase(op: string, expected: ExecPhase | ExecPhase[]) {
       const list = Array.isArray(expected) ? expected : [expected];
       if (!list.includes(execPhase)) {
-        const e = new Error(
-          `[Phase] ${op} expected ${list.join("|")} got ${execPhase}`
-        ) as any;
-        e.code = "EVENT_PHASE_VIOLATION";
+        const e = new Error(`[Phase] ${op} expected ${list.join('|')} got ${execPhase}`) as any;
+        e.code = 'EVENT_PHASE_VIOLATION';
         throw e;
       }
     },
 
     ensureSetup(op: string) {
-      if (execPhase !== "setup") {
-        const e = new Error(
-          `[Phase] ${op} setup-only, got ${execPhase}`
-        ) as any;
-        e.code = "EVENT_PHASE_VIOLATION";
+      if (execPhase !== 'setup') {
+        const e = new Error(`[Phase] ${op} setup-only, got ${execPhase}`) as any;
+        e.code = 'EVENT_PHASE_VIOLATION';
         throw e;
       }
     },
 
     ensureRuntime(op: string) {
-      if (execPhase === "setup") {
+      if (execPhase === 'setup') {
         const e = new Error(`[Phase] ${op} runtime-only, got setup`) as any;
-        e.code = "EVENT_PHASE_VIOLATION";
+        e.code = 'EVENT_PHASE_VIOLATION';
         throw e;
       }
     },
 
     ensureCallback(op: string) {
-      if (execPhase !== "callback") {
-        const e = new Error(
-          `[Phase] ${op} callback-only, got ${execPhase}`
-        ) as any;
-        e.code = "EVENT_PHASE_VIOLATION";
+      if (execPhase !== 'callback') {
+        const e = new Error(`[Phase] ${op} callback-only, got ${execPhase}`) as any;
+        e.code = 'EVENT_PHASE_VIOLATION';
         throw e;
       }
     },
@@ -112,11 +106,8 @@ export function makeCaps(args: {
     },
 
     // test-only: mutate caps entries
-    __set(key: "getRootTarget" | "getGlobalTarget", val: any) {
-      const t =
-        key === "getRootTarget"
-          ? EVENT_ROOT_TARGET_CAP
-          : EVENT_GLOBAL_TARGET_CAP;
+    __set(key: 'getRootTarget' | 'getGlobalTarget', val: any) {
+      const t = key === 'getRootTarget' ? EVENT_ROOT_TARGET_CAP : EVENT_GLOBAL_TARGET_CAP;
 
       if (val === undefined) store.delete(t.id);
       else store.set(t.id, val);

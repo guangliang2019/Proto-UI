@@ -1,21 +1,11 @@
 // packages/runtime/src/orchestrator/module-orchestrator/runtime-module-orchestrator.ts
-import type {
-  CapEntries,
-  CapsVaultView,
-  ModuleFacade,
-  ProtoPhase,
-} from "@proto-ui/core";
-import {
-  SYS_CAP,
-  type SystemCaps,
-  type ExecPhase,
-  CapsVault,
-} from "@proto-ui/modules.base";
+import type { CapEntries, CapsVaultView, ModuleFacade, ProtoPhase } from '@proto-ui/core';
+import { SYS_CAP, type SystemCaps, type ExecPhase, CapsVault } from '@proto-ui/modules.base';
 
-import type { ModuleDeps, ModuleDef } from "@proto-ui/modules.base";
-import type { AnyModule, ModuleOrchestrator, ModuleWiring } from "./types";
-import type { CapsController } from "../caps";
-import { buildModuleGraph, type ModuleDepsSpec } from "./graph";
+import type { ModuleDeps, ModuleDef } from '@proto-ui/modules.base';
+import type { AnyModule, ModuleOrchestrator, ModuleWiring } from './types';
+import type { CapsController } from '../caps';
+import { buildModuleGraph, type ModuleDepsSpec } from './graph';
 
 export type ModuleDecl = ModuleDef;
 
@@ -30,7 +20,7 @@ export class RuntimeModuleOrchestrator implements ModuleOrchestrator {
   private readonly prototypeName: string;
   private readonly getExecPhase: () => ExecPhase;
 
-  private protoPhase: ProtoPhase = "setup";
+  private protoPhase: ProtoPhase = 'setup';
   private disposed = false;
 
   private records: ModuleRecord[] = [];
@@ -43,10 +33,7 @@ export class RuntimeModuleOrchestrator implements ModuleOrchestrator {
   // runtime-owned callback ctx (opaque)
   private callbackCtx: unknown = undefined;
 
-  constructor(
-    init: { prototypeName: string; getPhase: () => ExecPhase },
-    modules: ModuleDecl[]
-  ) {
+  constructor(init: { prototypeName: string; getPhase: () => ExecPhase }, modules: ModuleDecl[]) {
     this.prototypeName = init.prototypeName;
     this.getExecPhase = init.getPhase;
 
@@ -57,7 +44,7 @@ export class RuntimeModuleOrchestrator implements ModuleOrchestrator {
     // --- sys caps implementation (runtime-owned object) ---
     const sys: SystemCaps = {
       execPhase: () => this.getExecPhase(),
-      domain: () => (this.getExecPhase() === "setup" ? "setup" : "runtime"),
+      domain: () => (this.getExecPhase() === 'setup' ? 'setup' : 'runtime'),
       protoPhase: () => this.protoPhase,
       isDisposed: () => this.disposed,
 
@@ -73,20 +60,18 @@ export class RuntimeModuleOrchestrator implements ModuleOrchestrator {
         if (!ex.includes(actual)) {
           fail(
             `exec-phase violation: ${this.prototypeName} op=${op} ` +
-              `expected=${ex.join("|")} actual=${actual} protoPhase=${
-                this.protoPhase
-              }`
+              `expected=${ex.join('|')} actual=${actual} protoPhase=${this.protoPhase}`
           );
         }
       },
 
       ensureSetup: (op) => {
-        sys.ensureExecPhase(op, "setup");
+        sys.ensureExecPhase(op, 'setup');
       },
 
       ensureRuntime: (op) => {
         if (this.disposed) fail(`${this.prototypeName} is disposed. op=${op}`);
-        if (this.getExecPhase() === "setup") {
+        if (this.getExecPhase() === 'setup') {
           fail(
             `runtime-only violation: ${this.prototypeName} op=${op} ` +
               `actual=setup protoPhase=${this.protoPhase}`
@@ -95,13 +80,11 @@ export class RuntimeModuleOrchestrator implements ModuleOrchestrator {
       },
 
       ensureCallback: (op) => {
-        sys.ensureExecPhase(op, "callback");
+        sys.ensureExecPhase(op, 'callback');
       },
 
       getCallbackCtx: () => {
-        return this.getExecPhase() === "callback"
-          ? this.callbackCtx
-          : undefined;
+        return this.getExecPhase() === 'callback' ? this.callbackCtx : undefined;
       },
     };
 
@@ -173,10 +156,7 @@ export class RuntimeModuleOrchestrator implements ModuleOrchestrator {
     };
   }
 
-  private createDepsAccess(
-    moduleName: string,
-    spec: ModuleDepsSpec
-  ): ModuleDeps {
+  private createDepsAccess(moduleName: string, spec: ModuleDepsSpec): ModuleDeps {
     const allow = new Set<string>([...spec.hard, ...spec.optional]);
     const require = (name: string) => {
       if (!allow.has(name)) {
@@ -201,9 +181,7 @@ export class RuntimeModuleOrchestrator implements ModuleOrchestrator {
       require(name);
       const p = this.ports[name];
       if (!p) {
-        throw new Error(
-          `[Runtime] ${this.prototypeName}/${moduleName} missing dep port: ${name}`
-        );
+        throw new Error(`[Runtime] ${this.prototypeName}/${moduleName} missing dep port: ${name}`);
       }
       return p as T;
     };
@@ -225,10 +203,7 @@ export class RuntimeModuleOrchestrator implements ModuleOrchestrator {
   // adapter-facing controller
   // -------------------------
 
-  private createController(
-    moduleName: string,
-    vault: CapsVault
-  ): CapsController {
+  private createController(moduleName: string, vault: CapsVault): CapsController {
     const prototypeName = this.prototypeName;
 
     const findReserved = (entries: CapEntries): string | null => {

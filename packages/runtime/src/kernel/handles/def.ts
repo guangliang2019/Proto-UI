@@ -1,18 +1,18 @@
 // packages/runtime/src/kernel/handles/def.ts
-import type { DefHandle, RunHandle, StyleHandle } from "@proto-ui/core";
-import { illegalPhase } from "../guard";
-import type { RuleSpec, RuleFacade } from "@proto-ui/modules.rule";
-import type { PropsBaseType } from "@proto-ui/types";
-import type { ModuleOrchestratorFacadeView } from "../../orchestrator/module-orchestrator/types";
-import type { FeedbackFacade } from "@proto-ui/modules.feedback";
-import type { PropsFacade } from "@proto-ui/modules.props";
-import type { EventFacade } from "@proto-ui/modules.event";
-import type { StateFacade } from "@proto-ui/modules.state";
-import type { ContextFacade } from "@proto-ui/modules.context";
-import type { ExposeFacade } from "@proto-ui/modules.expose";
-import { RuntimeEventCallbacks } from "../event";
+import type { DefHandle, RunHandle, StyleHandle } from '@proto-ui/core';
+import { illegalPhase } from '../guard';
+import type { RuleSpec, RuleFacade } from '@proto-ui/modules.rule';
+import type { PropsBaseType } from '@proto-ui/types';
+import type { ModuleOrchestratorFacadeView } from '../../orchestrator/module-orchestrator/types';
+import type { FeedbackFacade } from '@proto-ui/modules.feedback';
+import type { PropsFacade } from '@proto-ui/modules.props';
+import type { EventFacade } from '@proto-ui/modules.event';
+import type { StateFacade } from '@proto-ui/modules.state';
+import type { ContextFacade } from '@proto-ui/modules.context';
+import type { ExposeFacade } from '@proto-ui/modules.expose';
+import { RuntimeEventCallbacks } from '../event';
 
-export type LifecycleKind = "created" | "mounted" | "updated" | "unmounted";
+export type LifecycleKind = 'created' | 'mounted' | 'updated' | 'unmounted';
 
 export interface LifecycleRegistry<P extends PropsBaseType> {
   created: Array<(run: RunHandle<P>) => void>;
@@ -22,7 +22,7 @@ export interface LifecycleRegistry<P extends PropsBaseType> {
 }
 
 export interface DefRuntimeState {
-  getPhase(): "setup" | "render" | "callback" | "unknown";
+  getPhase(): 'setup' | 'render' | 'callback' | 'unknown';
   prototypeName: string;
 }
 
@@ -30,9 +30,7 @@ export interface EventCallbacksSink<P extends PropsBaseType> {
   setEventCallbacks(callbacks: RuntimeEventCallbacks<P>): void;
 }
 
-export function createLifecycleRegistry<
-  P extends PropsBaseType
->(): LifecycleRegistry<P> {
+export function createLifecycleRegistry<P extends PropsBaseType>(): LifecycleRegistry<P> {
   return { created: [], mounted: [], updated: [], unmounted: [] };
 }
 
@@ -44,26 +42,21 @@ export const createDefHandle = <P extends PropsBaseType, E = Record<string, unkn
   eventSink?: EventCallbacksSink<P>
 ): DefHandle<P, E> => {
   const facades = modules.getFacades();
-  const feedback = facades["feedback"] as FeedbackFacade;
-  const props = facades["props"] as PropsFacade<P>;
+  const feedback = facades['feedback'] as FeedbackFacade;
+  const props = facades['props'] as PropsFacade<P>;
 
-  const state = facades["state"] as StateFacade;
-  const context = facades["context"] as ContextFacade;
-  const expose = facades["expose"] as ExposeFacade;
+  const state = facades['state'] as StateFacade;
+  const context = facades['context'] as ContextFacade;
+  const expose = facades['expose'] as ExposeFacade;
 
-  const eventFacade = facades["event"] as EventFacade;
+  const eventFacade = facades['event'] as EventFacade;
   const eventCallbacks = new RuntimeEventCallbacks<P>();
   eventSink?.setEventCallbacks(eventCallbacks);
 
   const ensureSetup = (op: string) => {
     const phase = st.getPhase();
-    if (phase !== "setup") {
-      illegalPhase(
-        op,
-        st.prototypeName,
-        phase,
-        `Use 'run' inside runtime callbacks, not 'def'.`
-      );
+    if (phase !== 'setup') {
+      illegalPhase(op, st.prototypeName, phase, `Use 'run' inside runtime callbacks, not 'def'.`);
     }
   };
 
@@ -138,12 +131,12 @@ export const createDefHandle = <P extends PropsBaseType, E = Record<string, unkn
     },
 
     expose: (key, value) => {
-      ensureSetup("def.expose");
+      ensureSetup('def.expose');
       expose.expose(key as any, value as any);
     },
 
     rule: (spec: RuleSpec<any>) => {
-      ensureSetup("def.rule");
+      ensureSetup('def.rule');
       rules.rule(spec as any);
     },
 
@@ -165,7 +158,7 @@ export const createDefHandle = <P extends PropsBaseType, E = Record<string, unkn
       off: (token) => {
         ensureSetup(`def.event.off`);
         const id = (token as any)?.id;
-        if (typeof id === "string" && id) {
+        if (typeof id === 'string' && id) {
           eventCallbacks.remove(id);
         }
         eventFacade.off(token);
@@ -174,45 +167,41 @@ export const createDefHandle = <P extends PropsBaseType, E = Record<string, unkn
 
     state: {
       bool(semantic, defaultValue) {
-        ensureSetup("def.state.bool");
+        ensureSetup('def.state.bool');
         return state.bool(semantic, defaultValue);
       },
       enum(semantic, defaultValue, spec) {
-        ensureSetup("def.state.enum");
+        ensureSetup('def.state.enum');
         return state.enum(semantic, defaultValue, spec);
       },
       string(semantic, defaultValue, spec) {
-        ensureSetup("def.state.string");
+        ensureSetup('def.state.string');
         return state.string(semantic, defaultValue, spec);
       },
       numberRange(semantic, defaultValue, spec) {
-        ensureSetup("def.state.numberRange");
+        ensureSetup('def.state.numberRange');
         return state.numberRange(semantic, defaultValue, spec);
       },
       numberDiscrete(semantic, defaultValue, spec) {
-        ensureSetup("def.state.numberDiscrete");
+        ensureSetup('def.state.numberDiscrete');
         return state.numberDiscrete(semantic, defaultValue, spec);
       },
     },
 
     context: {
       provide(key, defaultValue) {
-        ensureSetup("def.context.provide");
+        ensureSetup('def.context.provide');
         return context.provide(key, defaultValue);
       },
       subscribe(key, cb) {
-        ensureSetup("def.context.subscribe");
+        ensureSetup('def.context.subscribe');
         if (!cb) return context.subscribe(key);
-        return context.subscribe(key, (ctx, next, prev) =>
-          cb(ctx as RunHandle<P>, next, prev)
-        );
+        return context.subscribe(key, (ctx, next, prev) => cb(ctx as RunHandle<P>, next, prev));
       },
       trySubscribe(key, cb) {
-        ensureSetup("def.context.trySubscribe");
+        ensureSetup('def.context.trySubscribe');
         if (!cb) return context.trySubscribe(key);
-        return context.trySubscribe(key, (ctx, next, prev) =>
-          cb(ctx as RunHandle<P>, next, prev)
-        );
+        return context.trySubscribe(key, (ctx, next, prev) => cb(ctx as RunHandle<P>, next, prev));
       },
     },
   };

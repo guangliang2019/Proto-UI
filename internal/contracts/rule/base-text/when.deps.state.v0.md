@@ -2,8 +2,7 @@
 
 > 状态：Draft – v0（实现对齐）
 >
-> 本契约规定 **rule 能依赖哪些 state handle view**，以及这种依赖的语义含义。
-> v0 对“观察”宽松，对“变更”严格禁止。
+> 本契约规定 **rule 能依赖哪些 state handle view**，以及这种依赖的语义含义。v0 对“观察”宽松，对“变更”严格禁止。
 
 ---
 
@@ -74,8 +73,7 @@ rule **允许**依赖 Observed view，即使：
 
 ### 4.1 观察不等于写入
 
-when 能观察某个 state handle view **不代表** intent 必然可以写入该 state。
-可写性由 intent 契约决定（例如 Observed 不可写）。
+when 能观察某个 state handle view **不代表** intent 必然可以写入该 state。可写性由 intent 契约决定（例如 Observed 不可写）。
 
 ### 4.2 禁止命令式逻辑
 

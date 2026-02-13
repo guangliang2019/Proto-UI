@@ -8,8 +8,8 @@ import {
   StateSpec,
   StateSetReason,
   StringStateDefineSpec,
-} from "@proto-ui/types";
-import { StateSubscribeCallback, StateWatchCallback } from "./handles";
+} from '@proto-ui/types';
+import { StateSubscribeCallback, StateWatchCallback } from './handles';
 
 export type Unsubscribe = () => void;
 
@@ -26,8 +26,7 @@ export interface OwnedStateHandle<V> {
 }
 
 /** Borrowed: typically from asHook import; may be influenced by side effects. */
-export interface BorrowedStateHandle<V, P extends PropsBaseType>
-  extends OwnedStateHandle<V> {
+export interface BorrowedStateHandle<V, P extends PropsBaseType> extends OwnedStateHandle<V> {
   /**
    * register: setup-only (guarded)
    * invoke: runtime-only (by contract, state changes won't trigger in setup)
@@ -83,3 +82,8 @@ export interface StateDefAPI {
     spec?: NumberDiscreteStateDefineSpec
   ): OwnedStateHandle<number>;
 }
+
+export type State<V> =
+  | OwnedStateHandle<V>
+  | BorrowedStateHandle<V, any>
+  | ObservedStateHandle<V, any>;

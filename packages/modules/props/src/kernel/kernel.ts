@@ -1,17 +1,11 @@
 // packages/modules/props/src/kernel/kernel.ts
-import type {
-  EmptyBehavior,
-  PropSpec,
-  PropsSpecMap,
-  PropsBaseType,
-} from "@proto-ui/types";
-import { mergeSpecs } from "./merge";
-import type { PropsDefaults, PropsSnapshot } from "@proto-ui/core";
-import type { PropsKernelDiag } from "../types";
-import type { PropsResolveMeta } from "./types";
+import type { EmptyBehavior, PropSpec, PropsSpecMap, PropsBaseType } from '@proto-ui/types';
+import { mergeSpecs } from './merge';
+import type { PropsDefaults, PropsSnapshot } from '@proto-ui/core';
+import type { PropsKernelDiag } from '../types';
+import type { PropsResolveMeta } from './types';
 
-const hasOwn = (obj: object, key: PropertyKey) =>
-  Object.prototype.hasOwnProperty.call(obj, key);
+const hasOwn = (obj: object, key: PropertyKey) => Object.prototype.hasOwnProperty.call(obj, key);
 
 function shallowFreeze<T extends object>(o: T): Readonly<T> {
   return Object.freeze({ ...(o as any) });
@@ -21,11 +15,7 @@ function objectIs(a: any, b: any) {
   return Object.is(a, b);
 }
 
-function diffKeys(
-  prev: Record<string, any>,
-  next: Record<string, any>,
-  keys: string[]
-) {
+function diffKeys(prev: Record<string, any>, next: Record<string, any>, keys: string[]) {
   const changed: string[] = [];
   for (const k of keys) {
     if (!objectIs((prev as any)[k], (next as any)[k])) changed.push(k);
@@ -61,9 +51,7 @@ export class PropsKernel<P extends PropsBaseType> {
    */
   private prevValid: Partial<Record<keyof P, any>> = {};
 
-  private raw: Readonly<P & PropsBaseType> = Object.freeze(
-    {} as Readonly<P & PropsBaseType>
-  );
+  private raw: Readonly<P & PropsBaseType> = Object.freeze({} as Readonly<P & PropsBaseType>);
   private resolved: PropsSnapshot<P> = Object.freeze({} as PropsSnapshot<P>);
 
   private diags: PropsKernelDiag[] = [];
@@ -76,19 +64,17 @@ export class PropsKernel<P extends PropsBaseType> {
   /** setup-only */
   define(input: PropsSpecMap<P>) {
     const { specs, diags } = mergeSpecs(this.specs, input);
-    const hasError = diags.some((d: PropsKernelDiag) => d.level === "error");
+    const hasError = diags.some((d: PropsKernelDiag) => d.level === 'error');
     if (hasError) {
       const msg = diags
-        .filter((d: PropsKernelDiag) => d.level === "error")
-        .map((d: PropsKernelDiag) =>
-          d.key ? `${d.key}: ${d.message}` : d.message
-        )
-        .join("; ");
+        .filter((d: PropsKernelDiag) => d.level === 'error')
+        .map((d: PropsKernelDiag) => (d.key ? `${d.key}: ${d.message}` : d.message))
+        .join('; ');
       throw new Error(`[Props] define merge error: ${msg}`);
     }
     for (const d of diags) {
-      if (d.level === "warning") {
-        this.diags.push({ level: "warning", key: d.key, message: d.message });
+      if (d.level === 'warning') {
+        this.diags.push({ level: 'warning', key: d.key, message: d.message });
       }
     }
 
@@ -107,16 +93,12 @@ export class PropsKernel<P extends PropsBaseType> {
       // no declared specs => no defaults allowed
       const keys = Object.keys(partial as any);
       if (keys.length > 0) {
-        throw new Error(
-          `[Props] setDefaults() rejects keys not in specs: ${keys.join(", ")}`
-        );
+        throw new Error(`[Props] setDefaults() rejects keys not in specs: ${keys.join(', ')}`);
       }
     } else {
       for (const k of Object.keys(partial as any)) {
         if (!hasOwn(this.specs, k)) {
-          throw new Error(
-            `[Props] setDefaults() rejects key not in specs: ${k}`
-          );
+          throw new Error(`[Props] setDefaults() rejects key not in specs: ${k}`);
         }
       }
     }
@@ -158,15 +140,10 @@ export class PropsKernel<P extends PropsBaseType> {
     const prevRaw = this.raw;
     const prevResolved = this.resolved;
 
-    const nextRaw = shallowFreeze(nextRawInput ?? {}) as Readonly<
-      P & PropsBaseType
-    >;
+    const nextRaw = shallowFreeze(nextRawInput ?? {}) as Readonly<P & PropsBaseType>;
     this.raw = nextRaw;
 
-    const { snapshot: nextResolved, meta } = this.resolve(
-      nextRaw,
-      /* strict */ true
-    );
+    const { snapshot: nextResolved, meta } = this.resolve(nextRaw, /* strict */ true);
     this.resolved = nextResolved;
 
     if (!this.hydrated) {
@@ -176,11 +153,7 @@ export class PropsKernel<P extends PropsBaseType> {
 
     // Compute diffs
     const declKeys = Object.keys(this.specs);
-    const changedAllResolved = diffKeys(
-      prevResolved as any,
-      nextResolved as any,
-      declKeys
-    );
+    const changedAllResolved = diffKeys(prevResolved as any, nextResolved as any, declKeys);
 
     const unionKeys = Array.from(
       new Set([...Object.keys(prevRaw as any), ...Object.keys(nextRaw as any)])
@@ -240,16 +213,15 @@ export class PropsKernel<P extends PropsBaseType> {
 
       if (provided) providedKeys.push(k);
 
-      const eb: EmptyBehavior = (decl as any).empty ?? "fallback";
+      const eb: EmptyBehavior = (decl as any).empty ?? 'fallback';
       const rawVal = provided ? (raw as any)[k] : undefined;
 
-      const isProvidedEmpty =
-        provided && (rawVal === null || rawVal === undefined);
+      const isProvidedEmpty = provided && (rawVal === null || rawVal === undefined);
       const isMissing = !provided;
 
       // 1) Missing => defaults ONLY (contract: missing must NOT fall back to prevValid)
       if (isMissing) {
-        const requireNonEmpty = strict && eb === "error";
+        const requireNonEmpty = strict && eb === 'error';
         const fb = this.pickFallbackMissingOnly(k, decl, requireNonEmpty);
 
         if (!fb.ok) {
@@ -267,14 +239,13 @@ export class PropsKernel<P extends PropsBaseType> {
       if (isProvidedEmpty) {
         emptyKeys.push(k);
 
-        if (eb === "accept") {
+        if (eb === 'accept') {
           out[k] = null;
           acceptedEmptyKeys.push(k);
           continue;
         }
 
-        const mode: "any" | "non-empty" =
-          strict && eb === "error" ? "non-empty" : "any";
+        const mode: 'any' | 'non-empty' = strict && eb === 'error' ? 'non-empty' : 'any';
 
         const fb = this.pickFallbackProvidedUnusable(k, decl, mode);
 
@@ -301,8 +272,7 @@ export class PropsKernel<P extends PropsBaseType> {
       // 4) Provided non-empty but invalid => invalidKeys + fallback/error
       invalidKeys.push(k);
 
-      const mode: "any" | "non-empty" =
-        strict && eb === "error" ? "non-empty" : "any";
+      const mode: 'any' | 'non-empty' = strict && eb === 'error' ? 'non-empty' : 'any';
 
       const fb = this.pickFallbackProvidedUnusable(k, decl, mode);
 
@@ -329,24 +299,21 @@ export class PropsKernel<P extends PropsBaseType> {
     };
   }
 
-  private validateNonEmptyValue(
-    v: any,
-    decl: PropSpec
-  ): { ok: true; value: any } | { ok: false } {
+  private validateNonEmptyValue(v: any, decl: PropSpec): { ok: true; value: any } | { ok: false } {
     switch ((decl as any).kind) {
-      case "boolean":
-        if (typeof v !== "boolean") return { ok: false };
+      case 'boolean':
+        if (typeof v !== 'boolean') return { ok: false };
         break;
-      case "string":
-        if (typeof v !== "string") return { ok: false };
+      case 'string':
+        if (typeof v !== 'string') return { ok: false };
         break;
-      case "number":
-        if (typeof v !== "number" || Number.isNaN(v)) return { ok: false };
+      case 'number':
+        if (typeof v !== 'number' || Number.isNaN(v)) return { ok: false };
         break;
-      case "object":
-        if (typeof v !== "object") return { ok: false };
+      case 'object':
+        if (typeof v !== 'object') return { ok: false };
         break;
-      case "any":
+      case 'any':
       default:
         break;
     }
@@ -357,7 +324,7 @@ export class PropsKernel<P extends PropsBaseType> {
     }
 
     if ((decl as any).range) {
-      if (typeof v !== "number") return { ok: false };
+      if (typeof v !== 'number') return { ok: false };
       const min = (decl as any).range.min ?? -Infinity;
       const max = (decl as any).range.max ?? Infinity;
       if (v < min || v > max) return { ok: false };
@@ -408,7 +375,7 @@ export class PropsKernel<P extends PropsBaseType> {
       }
     }
 
-    if (hasOwn(decl as any, "default")) {
+    if (hasOwn(decl as any, 'default')) {
       const r = tryTake((decl as any).default, true);
       if (r.ok) return r;
     }
@@ -427,12 +394,12 @@ export class PropsKernel<P extends PropsBaseType> {
   private pickFallbackProvidedUnusable(
     key: string,
     decl: PropSpec,
-    mode: "any" | "non-empty"
+    mode: 'any' | 'non-empty'
   ): FallbackResult {
     const acceptAny = (v: any) => v !== undefined;
     const acceptNonEmpty = (v: any) => v !== null && v !== undefined;
 
-    const accept = mode === "non-empty" ? acceptNonEmpty : acceptAny;
+    const accept = mode === 'non-empty' ? acceptNonEmpty : acceptAny;
 
     const tryTake = (v: any, usedDefault: boolean): FallbackResult => {
       if (!accept(v)) return { ok: false, usedDefault, isNonEmpty: false };
@@ -457,12 +424,12 @@ export class PropsKernel<P extends PropsBaseType> {
       }
     }
 
-    if (hasOwn(decl as any, "default")) {
+    if (hasOwn(decl as any, 'default')) {
       const r = tryTake((decl as any).default, true);
       if (r.ok) return r;
     }
 
-    if (mode === "any") {
+    if (mode === 'any') {
       return { ok: true, value: null, usedDefault: true, isNonEmpty: false };
     }
 

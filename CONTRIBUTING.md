@@ -42,4 +42,3 @@ New dependencies are **discouraged** and must be **explicitly discussed** in an 
 
 - GitHub Issues are the primary entry point.
 - Discord is available for quick syncs, but not required.
-

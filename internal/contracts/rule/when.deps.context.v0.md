@@ -88,15 +88,13 @@ If traversal fails due to missing keys or non-objects:
 
 ## 4. Equality & comparison
 
-Context-derived values participate in `when` conditions using normal rule semantics.
-No extra equality guarantees are provided.
+Context-derived values participate in `when` conditions using normal rule semantics. No extra equality guarantees are provided.
 
 ---
 
 ## 5. State handle prohibition (v0)
 
-State handles are forbidden in context.
-If detected, treat as invalid structure and resolve to `null`.
+State handles are forbidden in context. If detected, treat as invalid structure and resolve to `null`.
 
 ---
 
@@ -117,4 +115,3 @@ Diagnostics MUST NOT alter semantics.
 - Context dependency is declarative and serializable
 - Missing providers or invalid paths resolve to `null`
 - No state handles in context
-

@@ -1,29 +1,29 @@
 // packages/runtime/test/contract/rule.props-style.smoke.v0.contract.test.ts
-import { describe, it, expect } from "vitest";
-import type { Prototype } from "@proto-ui/core";
-import { tw } from "@proto-ui/core";
-import { executeWithHost, type RuntimeHost } from "../../src";
+import { describe, it, expect } from 'vitest';
+import type { Prototype } from '@proto-ui/core';
+import { tw } from '@proto-ui/core';
+import { executeWithHost, type RuntimeHost } from '../../src';
 
 /**
  * Smoke contract: when.props x intent.feedback.style (v0)
  */
-describe("rule contract smoke: props -> style (v0)", () => {
-  it("evaluates rule on props and produces style tokens", () => {
+describe('rule contract smoke: props -> style (v0)', () => {
+  it('evaluates rule on props and produces style tokens', () => {
     const proto: Prototype<{ active?: boolean }> = {
-      name: "rule-props-style-smoke",
+      name: 'rule-props-style-smoke',
       setup(def) {
-        def.props.define({ active: { type: "bool", default: false } } as any);
+        def.props.define({ active: { type: 'bool', default: false } } as any);
         def.rule({
-          when: (w) => w.prop("active").eq(true),
-          intent: (i) => i.feedback.style.use(tw("text-red-500")),
+          when: (w) => w.prop('active').eq(true),
+          intent: (i) => i.feedback.style.use(tw('text-red-500')),
         });
-        return (r) => [r.el("div", "ok")];
+        return (r) => [r.el('div', 'ok')];
       },
     };
 
     let rawProps: Record<string, any> = { active: false };
     const host: RuntimeHost<any> = {
-      prototypeName: "rule-props-style-smoke",
+      prototypeName: 'rule-props-style-smoke',
       getRawProps() {
         return rawProps;
       },
@@ -45,7 +45,7 @@ describe("rule contract smoke: props -> style (v0)", () => {
     rawProps = { active: true };
     controller.applyRawProps(rawProps);
     tokens = controller.getRuleStyleTokens();
-    expect(tokens).toContain("text-red-500");
+    expect(tokens).toContain('text-red-500');
 
     // deactivate -> no tokens
     rawProps = { active: false };

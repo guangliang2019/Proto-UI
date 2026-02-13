@@ -2,12 +2,9 @@
 
 > 状态：Draft – v0（实现对齐）
 >
-> 本契约定义 Proto UI v0 的 **expose 信息通路**：
-> 组件通过 `def.expose` 主动向 App Maker 暴露输出 API（方法、句柄、常量等）。
-> 该通路方向为 **Component → App Maker**，与 props（App Maker → Component）互为对立输入/输出。
+> 本契约定义 Proto UI v0 的 **expose 信息通路**：组件通过 `def.expose` 主动向 App Maker 暴露输出 API（方法、句柄、常量等）。该通路方向为 **Component → App Maker**，与 props（App Maker → Component）互为对立输入/输出。
 >
-> **定位声明（v0）**：expose 是“注册式的输出 API 绑定”，用于将组件内部能力以稳定 key 公开给宿主消费。
-> expose 本身不提供订阅、不建立依赖、不自动更新已暴露值。
+> **定位声明（v0）**：expose 是“注册式的输出 API 绑定”，用于将组件内部能力以稳定 key 公开给宿主消费。expose 本身不提供订阅、不建立依赖、不自动更新已暴露值。
 
 ---
 
@@ -75,8 +72,7 @@ def.expose<K extends keyof E>(key: K, value: E[K]): void
    - `value` 以引用/值的方式被保存为 expose 映射项。
    - v0 **不要求**对后续 `value` 的变化进行追踪或同步。
 
-> 说明（信息性）：
-> 若希望宿主侧可监听变化，推荐暴露 `state handle` 或提供主动拉取/订阅方法。
+> 说明（信息性）：若希望宿主侧可监听变化，推荐暴露 `state handle` 或提供主动拉取/订阅方法。
 
 ---
 

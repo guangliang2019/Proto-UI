@@ -1,9 +1,9 @@
 // packages/runtime/src/instance/execute/callback-scope.ts
-import type { PropsBaseType } from "@proto-ui/types";
-import type { RunHandle } from "@proto-ui/core";
-import type { ExecPhase } from "@proto-ui/modules.base";
-import type { ModuleOrchestrator } from "../../orchestrator/module-orchestrator";
-import type { PropsPort, PropsWatchTask } from "@proto-ui/modules.props";
+import type { PropsBaseType } from '@proto-ui/types';
+import type { RunHandle } from '@proto-ui/core';
+import type { ExecPhase } from '@proto-ui/modules.base';
+import type { ModuleOrchestrator } from '../../orchestrator/module-orchestrator';
+import type { PropsPort, PropsWatchTask } from '@proto-ui/modules.props';
 
 /**
  * Centralize callback-phase semantics:
@@ -22,12 +22,12 @@ export class CallbackScope<P extends PropsBaseType> {
   ) {}
 
   private syncPropsFromHost() {
-    const propsPort = this.moduleHub.getPort<PropsPort<P>>("props");
+    const propsPort = this.moduleHub.getPort<PropsPort<P>>('props');
     propsPort?.syncFromHost?.();
   }
 
   private dispatchPropsTasks(ctx: RunHandle<P>) {
-    const propsPort = this.moduleHub.getPort<PropsPort<P>>("props");
+    const propsPort = this.moduleHub.getPort<PropsPort<P>>('props');
     const tasks = propsPort?.consumeTasks?.() ?? [];
     for (const t of tasks as PropsWatchTask<P>[]) {
       // ctx is run; module-props does not know what ctx is.
@@ -40,7 +40,7 @@ export class CallbackScope<P extends PropsBaseType> {
    * This guarantees cleanup even if callback throws.
    */
   run<T>(ctx: RunHandle<P>, fn: () => T): T {
-    this.setPhase("callback");
+    this.setPhase('callback');
 
     // Provide callback ctx for modules via SYS_CAP.getCallbackCtx()
     (this.moduleHub as any).__setCallbackCtx?.(ctx);
@@ -52,7 +52,7 @@ export class CallbackScope<P extends PropsBaseType> {
     } finally {
       // clear ctx to avoid accidental leakage
       (this.moduleHub as any).__setCallbackCtx?.(undefined);
-      this.setPhase("unknown");
+      this.setPhase('unknown');
     }
   }
 
@@ -62,7 +62,7 @@ export class CallbackScope<P extends PropsBaseType> {
    * and we only want to dispatch watch tasks.
    */
   runNoSync<T>(ctx: RunHandle<P>, fn: () => T): T {
-    this.setPhase("callback");
+    this.setPhase('callback');
     (this.moduleHub as any).__setCallbackCtx?.(ctx);
 
     try {
@@ -70,7 +70,7 @@ export class CallbackScope<P extends PropsBaseType> {
       return fn();
     } finally {
       (this.moduleHub as any).__setCallbackCtx?.(undefined);
-      this.setPhase("unknown");
+      this.setPhase('unknown');
     }
   }
 

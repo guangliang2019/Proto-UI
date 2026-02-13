@@ -1,12 +1,7 @@
 // packages/modules/props/src/kernel/merge.ts
-import type {
-  EmptyBehavior,
-  PropsBaseType,
-  PropSpec,
-  PropsSpecMap,
-} from "@proto-ui/types";
+import type { EmptyBehavior, PropsBaseType, PropSpec, PropsSpecMap } from '@proto-ui/types';
 
-export type MergeDiagLevel = "warning" | "error";
+export type MergeDiagLevel = 'warning' | 'error';
 
 export type MergeDiag = {
   level: MergeDiagLevel;
@@ -24,11 +19,11 @@ function hasOwn(obj: any, key: string) {
 }
 
 function isNumberOrUndef(x: any) {
-  return x === undefined || (typeof x === "number" && !Number.isNaN(x));
+  return x === undefined || (typeof x === 'number' && !Number.isNaN(x));
 }
 
 function isValidEmptyBehavior(x: any): x is EmptyBehavior {
-  return x === "accept" || x === "fallback" || x === "error";
+  return x === 'accept' || x === 'fallback' || x === 'error';
 }
 
 function isSupersetEnum(next?: readonly any[], prev?: readonly any[]) {
@@ -44,10 +39,7 @@ function isSupersetEnum(next?: readonly any[], prev?: readonly any[]) {
  * - enum: incoming must be a superset of prev (or equal), else error.
  * - range: incoming must be wider/equal (or omit), else error.
  */
-function rangeWider(
-  next?: { min?: number; max?: number },
-  prev?: { min?: number; max?: number }
-) {
+function rangeWider(next?: { min?: number; max?: number }, prev?: { min?: number; max?: number }) {
   if (!prev) return true;
   if (!next) return false;
 
@@ -91,12 +83,12 @@ export function mergeSpecs<A extends PropsBaseType, B extends PropsBaseType>(
     // -----------------------------
     // v0 minimal spec shape checks
     // -----------------------------
-    if (hasOwn(next as any, "empty")) {
+    if (hasOwn(next as any, 'empty')) {
       const e = (next as any).empty;
       // explicit undefined is treated as invalid shape
       if (e === undefined || !isValidEmptyBehavior(e)) {
         diags.push({
-          level: "error",
+          level: 'error',
           key,
           message: `empty must be one of "fallback" | "accept" | "error"`,
         });
@@ -108,7 +100,7 @@ export function mergeSpecs<A extends PropsBaseType, B extends PropsBaseType>(
       const r = (next as any).range;
       if (!isNumberOrUndef(r.min)) {
         diags.push({
-          level: "error",
+          level: 'error',
           key,
           message: `range.min must be a number`,
         });
@@ -116,7 +108,7 @@ export function mergeSpecs<A extends PropsBaseType, B extends PropsBaseType>(
       }
       if (!isNumberOrUndef(r.max)) {
         diags.push({
-          level: "error",
+          level: 'error',
           key,
           message: `range.max must be a number`,
         });
@@ -133,11 +125,11 @@ export function mergeSpecs<A extends PropsBaseType, B extends PropsBaseType>(
     // -----------------------------
     // kind conflict
     // -----------------------------
-    const prevKind = (prev as any).kind ?? "any";
-    const nextKind = (next as any).kind ?? "any";
+    const prevKind = (prev as any).kind ?? 'any';
+    const nextKind = (next as any).kind ?? 'any';
     if (prevKind !== nextKind) {
       diags.push({
-        level: "error",
+        level: 'error',
         key,
         message: `kind conflict: ${prevKind} vs ${nextKind}`,
       });
@@ -150,21 +142,20 @@ export function mergeSpecs<A extends PropsBaseType, B extends PropsBaseType>(
     // - looser => warning + KEEP prev stricter
     // - omit => no-op
     // -----------------------------
-    const prevEmpty: EmptyBehavior = ((prev as any).empty ?? "fallback") as any;
-    const nextEmpty: EmptyBehavior = ((next as any).empty ?? "fallback") as any;
+    const prevEmpty: EmptyBehavior = ((prev as any).empty ?? 'fallback') as any;
+    const nextEmpty: EmptyBehavior = ((next as any).empty ?? 'fallback') as any;
 
-    const rank = (e: EmptyBehavior) =>
-      e === "accept" ? 0 : e === "fallback" ? 1 : 2;
+    const rank = (e: EmptyBehavior) => (e === 'accept' ? 0 : e === 'fallback' ? 1 : 2);
 
     let mergedEmpty: EmptyBehavior = prevEmpty;
 
-    if (hasOwn(next as any, "empty")) {
+    if (hasOwn(next as any, 'empty')) {
       const pr = rank(prevEmpty);
       const nr = rank(nextEmpty);
 
       if (nr > pr) {
         diags.push({
-          level: "error",
+          level: 'error',
           key,
           message: `empty behavior becomes stricter (${prevEmpty} -> ${nextEmpty})`,
         });
@@ -173,7 +164,7 @@ export function mergeSpecs<A extends PropsBaseType, B extends PropsBaseType>(
 
       if (nr < pr) {
         diags.push({
-          level: "warning",
+          level: 'warning',
           key,
           message: `empty behavior becomes looser (${prevEmpty} -> ${nextEmpty})`,
         });
@@ -194,7 +185,7 @@ export function mergeSpecs<A extends PropsBaseType, B extends PropsBaseType>(
 
       if (!isSupersetEnum(nextEnum, prevEnum)) {
         diags.push({
-          level: "error",
+          level: 'error',
           key,
           message: `enum becomes stricter (subset)`,
         });
@@ -205,7 +196,7 @@ export function mergeSpecs<A extends PropsBaseType, B extends PropsBaseType>(
       // (i.e. prev is not a superset of next)
       if (!isSupersetEnum(prevEnum, nextEnum)) {
         diags.push({
-          level: "warning",
+          level: 'warning',
           key,
           message: `enum widened (superset)`,
         });
@@ -218,16 +209,12 @@ export function mergeSpecs<A extends PropsBaseType, B extends PropsBaseType>(
     // - wider => warning
     // -----------------------------
     if ((prev as any).range || (next as any).range) {
-      const prevRange = (prev as any).range as
-        | { min?: number; max?: number }
-        | undefined;
-      const nextRange = (next as any).range as
-        | { min?: number; max?: number }
-        | undefined;
+      const prevRange = (prev as any).range as { min?: number; max?: number } | undefined;
+      const nextRange = (next as any).range as { min?: number; max?: number } | undefined;
 
       if (rangeNarrower(nextRange, prevRange)) {
         diags.push({
-          level: "error",
+          level: 'error',
           key,
           message: `range becomes stricter (narrower)`,
         });
@@ -237,7 +224,7 @@ export function mergeSpecs<A extends PropsBaseType, B extends PropsBaseType>(
       // warn if next is wider than prev (not just equal)
       if (prevRange && nextRange && !rangeWider(prevRange, nextRange)) {
         diags.push({
-          level: "warning",
+          level: 'warning',
           key,
           message: `range widened`,
         });
@@ -259,7 +246,7 @@ export function mergeSpecs<A extends PropsBaseType, B extends PropsBaseType>(
       // allow add
     } else if (prevHasValidator && !nextHasValidator) {
       diags.push({
-        level: "error",
+        level: 'error',
         key,
         message: `validator removal is disallowed in merge`,
       });
@@ -270,7 +257,7 @@ export function mergeSpecs<A extends PropsBaseType, B extends PropsBaseType>(
       (prev as any).validator !== (next as any).validator
     ) {
       diags.push({
-        level: "error",
+        level: 'error',
         key,
         message: `validator replacement is disallowed in merge`,
       });
@@ -282,8 +269,8 @@ export function mergeSpecs<A extends PropsBaseType, B extends PropsBaseType>(
     // - first-time default allowed
     // - changing default => warning + KEEP prev
     // -----------------------------
-    const hasPrevDefault = "default" in (prev as any);
-    const hasNextDefault = "default" in (next as any);
+    const hasPrevDefault = 'default' in (prev as any);
+    const hasNextDefault = 'default' in (next as any);
 
     let mergedDefault = (prev as any).default;
 
@@ -295,7 +282,7 @@ export function mergeSpecs<A extends PropsBaseType, B extends PropsBaseType>(
       (prev as any).default !== (next as any).default
     ) {
       diags.push({
-        level: "warning",
+        level: 'warning',
         key,
         message: `default overridden in define(); prefer setDefaults()`,
       });

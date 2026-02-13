@@ -1,10 +1,8 @@
 # Runtime Lifecycle with Host (v0)
 
-This document defines the **runtime lifecycle contract** for Proto UI when running with a host (adapter).
-It describes what prototype authors may rely on, and what host implementations (WC/React/Vue/etc.) may choose.
+This document defines the **runtime lifecycle contract** for Proto UI when running with a host (adapter). It describes what prototype authors may rely on, and what host implementations (WC/React/Vue/etc.) may choose.
 
-> Scope: v0, host-based execution (`executeWithHost`).
-> Non-goals: describing DOM patching strategy, performance guarantees, or framework-specific scheduling details.
+> Scope: v0, host-based execution (`executeWithHost`). Non-goals: describing DOM patching strategy, performance guarantees, or framework-specific scheduling details.
 
 ---
 
@@ -19,8 +17,7 @@ It describes what prototype authors may rely on, and what host implementations (
 
 ## Contract: Lifecycle Semantics (cross-host)
 
-The following semantics are the **minimum guarantees** prototype code may depend on.
-Hosts are allowed to provide stronger guarantees.
+The following semantics are the **minimum guarantees** prototype code may depend on. Hosts are allowed to provide stronger guarantees.
 
 ### created
 
@@ -69,8 +66,7 @@ This mirrors common host component models (e.g. a framework state update does no
 - The host/runtime may choose to coalesce multiple update intents into fewer commits.
 - If an update intent is coalesced into a single commit, `updated` runs once for that commit.
 
-**v0 note**: `updated` exists as a lifecycle hook, but not all adapters must expose a public API that triggers it frequently.
-It is primarily for internal correctness and for future patch/update strategies.
+**v0 note**: `updated` exists as a lifecycle hook, but not all adapters must expose a public API that triggers it frequently. It is primarily for internal correctness and for future patch/update strategies.
 
 ### unmounted
 
@@ -101,8 +97,7 @@ These ordering constraints are guaranteed:
 
 ## Implementation Note: v0 executeWithHost behavior
 
-This section documents the current v0 implementation of `executeWithHost`.
-It is **not** the cross-host contract.
+This section documents the current v0 implementation of `executeWithHost`. It is **not** the cross-host contract.
 
 Current behavior (v0):
 
@@ -110,11 +105,9 @@ Current behavior (v0):
 - `created` runs once before the initial commit.
 - Initial render is computed and committed immediately via `host.commit(children)`.
 - `mounted` is scheduled via `host.schedule(() => ...)`.
-- `controller.update()` triggers a synchronous render + `host.commit(...)` in the current runtime implementation,
-  then runs `updated` callbacks.
+- `controller.update()` triggers a synchronous render + `host.commit(...)` in the current runtime implementation, then runs `updated` callbacks.
 
-Adapters may still choose to interpret `RunHandle.update()` differently (e.g. to forward intent into a framework scheduler),
-as long as the ordering constraints hold.
+Adapters may still choose to interpret `RunHandle.update()` differently (e.g. to forward intent into a framework scheduler), as long as the ordering constraints hold.
 
 ---
 
@@ -123,7 +116,6 @@ as long as the ordering constraints hold.
 Host profiles are _adapter-specific decisions_ built on top of this contract.
 
 - Web Component Adapter:
-
   - may commit synchronously on `update()` (stronger than contract)
   - chooses a specific scheduling primitive for `mounted` (microtask or macrotask)
   - implements Light DOM slot projection (see `adapter-web-component/slot-light-dom.v0.md`)

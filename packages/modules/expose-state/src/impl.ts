@@ -1,24 +1,20 @@
 // packages/modules/expose-state/src/impl.ts
-import type { CapsVaultView, ProtoPhase, OwnedStateHandle } from "@proto-ui/core";
-import { ModuleBase } from "@proto-ui/modules.base";
-import type { ModuleDeps } from "@proto-ui/modules.base";
-import type { StateEvent, StateSpec } from "@proto-ui/types";
+import type { CapsVaultView, ProtoPhase, OwnedStateHandle } from '@proto-ui/core';
+import { ModuleBase } from '@proto-ui/modules.base';
+import type { ModuleDeps } from '@proto-ui/modules.base';
+import type { StateEvent, StateSpec } from '@proto-ui/types';
 
-import { EXPOSE_SET_EXPOSES_CAP } from "@proto-ui/modules.expose";
-import type { ExposePort } from "@proto-ui/modules.expose";
-import type { StatePort } from "@proto-ui/modules.state";
+import { EXPOSE_SET_EXPOSES_CAP } from '@proto-ui/modules.expose';
+import type { ExposePort } from '@proto-ui/modules.expose';
+import type { StatePort } from '@proto-ui/modules.state';
 
-import type {
-  ExposeStateDiag,
-  ExposeStateExternalHandle,
-  ExposeStatePort,
-} from "./types";
+import type { ExposeStateDiag, ExposeStateExternalHandle, ExposeStatePort } from './types';
 
-const STATE_ID = "__stateId";
-const STATE_SPEC = "__stateSpec";
+const STATE_ID = '__stateId';
+const STATE_SPEC = '__stateSpec';
 
 function isStateHandleLike(x: any): x is OwnedStateHandle<any> {
-  return !!x && typeof x === "object" && typeof x.get === "function" && !!x[STATE_ID];
+  return !!x && typeof x === 'object' && typeof x.get === 'function' && !!x[STATE_ID];
 }
 
 function getSpecFromHandle(handle: any): StateSpec | null {
@@ -29,7 +25,7 @@ function getSpecFromHandle(handle: any): StateSpec | null {
 function toDiag(key: string, value: unknown, isState: boolean): ExposeStateDiag {
   return {
     key,
-    kind: isState ? "state" : "value",
+    kind: isState ? 'state' : 'value',
     valueType: typeof value,
   };
 }
@@ -43,8 +39,8 @@ export class ExposeStateModuleImpl extends ModuleBase {
 
   constructor(caps: CapsVaultView, deps: ModuleDeps) {
     super(caps);
-    this.exposePort = deps.requirePort<ExposePort>("expose");
-    this.statePort = deps.requirePort<StatePort>("state");
+    this.exposePort = deps.requirePort<ExposePort>('expose');
+    this.statePort = deps.requirePort<StatePort>('state');
   }
 
   // -------------------------
@@ -53,13 +49,13 @@ export class ExposeStateModuleImpl extends ModuleBase {
 
   readonly port: ExposeStatePort = {
     get: (key) => {
-      this.ensureAlive("rt.exposeState.get");
+      this.ensureAlive('rt.exposeState.get');
       this.sync();
       return this.cache.get(key);
     },
 
     getAll: () => {
-      this.ensureAlive("rt.exposeState.getAll");
+      this.ensureAlive('rt.exposeState.getAll');
       this.sync();
       const out: Record<string, unknown> = {};
       for (const [k, v] of this.cache) out[k] = v;
@@ -67,7 +63,7 @@ export class ExposeStateModuleImpl extends ModuleBase {
     },
 
     getDiagnostics: () => {
-      this.ensureAlive("rt.exposeState.getDiagnostics");
+      this.ensureAlive('rt.exposeState.getDiagnostics');
       this.sync();
       const diags: ExposeStateDiag[] = [];
       for (const [k, v] of this.cache) {
@@ -84,7 +80,7 @@ export class ExposeStateModuleImpl extends ModuleBase {
 
   override onProtoPhase(phase: ProtoPhase): void {
     super.onProtoPhase(phase);
-    if (phase === "unmounted") this.dispose();
+    if (phase === 'unmounted') this.dispose();
   }
 
   override afterRenderCommit(): void {
@@ -124,9 +120,7 @@ export class ExposeStateModuleImpl extends ModuleBase {
 
       const spec = getSpecFromHandle(value);
       if (!spec) {
-        throw new Error(
-          `[ExposeState] missing StateSpec on exposed handle: ${key}`
-        );
+        throw new Error(`[ExposeState] missing StateSpec on exposed handle: ${key}`);
       }
 
       const external = this.wrapExternalHandle(value, spec);
@@ -147,7 +141,7 @@ export class ExposeStateModuleImpl extends ModuleBase {
         return off;
       },
       unsubscribe: (off) => {
-        if (typeof off === "function") off();
+        if (typeof off === 'function') off();
       },
       spec,
     };

@@ -2,13 +2,9 @@
 
 > Status: Draft – v0
 >
-> This contract defines **expose-state** in Proto UI v0:
-> a component exposes an internal state slot as an **external state handle** to the App Maker
-> via `def.expose`.
+> This contract defines **expose-state** in Proto UI v0: a component exposes an internal state slot as an **external state handle** to the App Maker via `def.expose`.
 >
-> **Positioning (v0):** expose-state is a “same-source, different-handle” output projection.
-> The external handle is **not** the same object as internal state handles,
-> but it reads from the same state slot.
+> **Positioning (v0):** expose-state is a “same-source, different-handle” output projection. The external handle is **not** the same object as internal state handles, but it reads from the same state slot.
 
 ---
 
@@ -62,9 +58,7 @@ v0 explicitly does not provide or guarantee:
 def.expose<K extends keyof E>(key: K, value: E[K]): void
 ```
 
-> Note: in expose-state, `value` is an internal handle view,
-> while `E[K]` describes the external state type.
-> The type system should model this projection explicitly (via mapping or declaration merging).
+> Note: in expose-state, `value` is an internal handle view, while `E[K]` describes the external state type. The type system should model this projection explicitly (via mapping or declaration merging).
 
 ---
 
@@ -135,8 +129,7 @@ type ExternalState<V> = {
 
 ### 5.3 Event shape alignment (relative consistency)
 
-If the system has established a `StateEvent<V>` shape (see `packages/types/src/state.ts`),
-External State subscriptions should be **relatively consistent** with internal state events:
+If the system has established a `StateEvent<V>` shape (see `packages/types/src/state.ts`), External State subscriptions should be **relatively consistent** with internal state events:
 
 - **No** `run` handle as the first parameter
 - The event object shape matches `StateEvent<V>` (`next/prev/reason`, `disconnect`, etc.)

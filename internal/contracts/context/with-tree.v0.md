@@ -1,7 +1,6 @@
 # internal/contracts/context/with-tree.v0.md
 
-> Status: Draft – implementation-ready (contract-first)
-> This contract specifies Proto UI **context**: tree-based provider resolution, setup-only subscription intent, runtime reads and updates, and strict value constraints for v0 portability.
+> Status: Draft – implementation-ready (contract-first) This contract specifies Proto UI **context**: tree-based provider resolution, setup-only subscription intent, runtime reads and updates, and strict value constraints for v0 portability.
 
 ---
 

@@ -99,8 +99,7 @@ Adapter / Compiler 实现者可以**安全地假设**：
 - slot 要么不存在，要么只出现一次
 - slot 始终是匿名的，且不携带任何参数
 - 若宿主支持原生 slot 机制（例如 Shadow DOM），可直接映射
-- 若宿主不支持，可使用宿主提供的机制实现投影
-  （例如 Light DOM + MutationObserver）
+- 若宿主不支持，可使用宿主提供的机制实现投影（例如 Light DOM + MutationObserver）
 
 ---
 

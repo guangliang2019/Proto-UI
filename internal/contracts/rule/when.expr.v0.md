@@ -2,8 +2,7 @@
 
 ## Purpose
 
-Defines the condition language used by rule declarations.
-Conditions are declarative, analyzable, and dependency-tracked.
+Defines the condition language used by rule declarations. Conditions are declarative, analyzable, and dependency-tracked.
 
 ---
 
@@ -28,19 +27,19 @@ Conditions are declarative, analyzable, and dependency-tracked.
 
 ```ts
 type WhenExpr<Props> =
-  | { type: "true" }
-  | { type: "false" }
-  | { type: "eq"; left: WhenValue<Props>; right: WhenLiteral }
-  | { type: "not"; expr: WhenExpr<Props> }
-  | { type: "all"; exprs: WhenExpr<Props>[] }
-  | { type: "any"; exprs: WhenExpr<Props>[] };
+  | { type: 'true' }
+  | { type: 'false' }
+  | { type: 'eq'; left: WhenValue<Props>; right: WhenLiteral }
+  | { type: 'not'; expr: WhenExpr<Props> }
+  | { type: 'all'; exprs: WhenExpr<Props>[] }
+  | { type: 'any'; exprs: WhenExpr<Props>[] };
 ```
 
 ```ts
 type WhenValue<Props> =
-  | { type: "prop"; key: keyof Props }
-  | { type: "state"; id: StateId }
-  | { type: "context"; key: ContextKey<any> };
+  | { type: 'prop'; key: keyof Props }
+  | { type: 'state'; id: StateId }
+  | { type: 'context'; key: ContextKey<any> };
 
 type WhenLiteral = string | number | boolean | null;
 ```
@@ -93,4 +92,3 @@ Dependency recording MUST be:
 - Evaluation MUST be pure
 - No side effects during evaluation
 - Identical inputs MUST yield identical results
-

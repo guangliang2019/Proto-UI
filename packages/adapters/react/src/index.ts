@@ -1,2 +1,2 @@
-export * from "./adapt";
-export * from "./template";
+export * from './adapt';
+export * from './template';

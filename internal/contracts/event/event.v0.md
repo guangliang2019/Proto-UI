@@ -3,9 +3,7 @@
 > **Status**: Draft – implementation-ready (contract-first)  
 > **Version**: v0
 >
-> This document defines the **Proto UI Event information flow contract**:
-> setup-time registration semantics, runtime callback guarantees, binding timing,
-> lifecycle cleanup rules, and the observable behavior exposed via `def.event`.
+> This document defines the **Proto UI Event information flow contract**: setup-time registration semantics, runtime callback guarantees, binding timing, lifecycle cleanup rules, and the observable behavior exposed via `def.event`.
 >
 > This document is **normative**.
 
@@ -13,8 +11,7 @@
 
 ## Layering Note (Normative)
 
-This contract describes the **observable behavior and guarantees**
-available to Component Authors through `def.event`.
+This contract describes the **observable behavior and guarantees** available to Component Authors through `def.event`.
 
 It does **not** prescribe:
 
@@ -111,12 +108,9 @@ Where:
 
 #### Layering Constraint (Normative)
 
-- The presence of `run` in the callback signature is a requirement of the
-  **event information flow**, not of any specific event module implementation.
-- Event modules **MUST NOT** be required to understand, construct,
-  or reason about runtime handles.
-- Associating the correct `run` handle with a dispatched event
-  is the responsibility of the runtime.
+- The presence of `run` in the callback signature is a requirement of the **event information flow**, not of any specific event module implementation.
+- Event modules **MUST NOT** be required to understand, construct, or reason about runtime handles.
+- Associating the correct `run` handle with a dispatched event is the responsibility of the runtime.
 
 ---
 
@@ -132,8 +126,7 @@ Where:
 - Registrations made via `def.event.onGlobal(...)` bind to a **Global Target**.
 - The event facade **MUST NOT** expose or allow selection of the concrete global target.
 
-> _Informative note:_
-> Web adapters commonly choose `window` as the global target.
+> _Informative note:_ Web adapters commonly choose `window` as the global target.
 
 ---
 
@@ -152,9 +145,7 @@ Event listeners are bound by the runtime at a well-defined safe point.
 - A root target is required **only if** at least one root-scoped registration exists
 - A global target is required **only if** at least one global registration exists
 
-> _Informative:_
-> Runtimes MAY perform binding unconditionally, but components with no registrations
-> must not incur cost or risk.
+> _Informative:_ Runtimes MAY perform binding unconditionally, but components with no registrations must not incur cost or risk.
 
 ---
 
@@ -188,9 +179,7 @@ Additional fields MAY exist as long as they do not affect runtime behavior.
 - Passing an unknown or already-removed token **MUST be a no-op**
 - Invalid token shapes **MUST throw** an `EVENT_INVALID_ARGUMENT` error
 
-> v0 explicitly specifies:
-> **There is no removal API based on `(type, cb, options)`**.
-> All removal MUST be token-based.
+> v0 explicitly specifies: **There is no removal API based on `(type, cb, options)`**. All removal MUST be token-based.
 
 ---
 
@@ -207,7 +196,6 @@ Normative rules:
 1. `desc()` **MUST be setup-only**
 2. Calls after setup **MUST throw** a phase-violation error
 3. In production builds, `desc()` MAY be a no-op, but:
-
    - it MUST remain callable
    - it MUST return the same token instance
 
@@ -216,11 +204,9 @@ Normative rules:
 ## 5. Lifecycle and Automatic Cleanup
 
 - All listeners registered via `def.event`:
-
   - **MUST be automatically removed when the component instance unmounts**
 
-- Manual removal via `off(token)` MAY remove listeners earlier,
-  but is not required for correctness
+- Manual removal via `off(token)` MAY remove listeners earlier, but is not required for correctness
 
 ---
 
@@ -229,21 +215,18 @@ Normative rules:
 Event uses `EventTypeV0` as its event type universe.
 
 - The full definition of `EventTypeV0` is **not included in this document**
-- Its normative definition lives in:
-  `internal/contracts/event/event-types.v0.md`
+- Its normative definition lives in: `internal/contracts/event/event-types.v0.md`
 
 This document only requires that:
 
 - Implementations MUST reject invalid event type strings
-- Unsupported but valid event types MUST follow the behavior defined
-  in the event-types contract
+- Unsupported but valid event types MUST follow the behavior defined in the event-types contract
 
 ---
 
 ## 7. Target Mutation and Interaction Proxying (System-level Capability)
 
-> This section describes **infrastructure-level requirements**
-> and **does not expose any API to Component Authors**.
+> This section describes **infrastructure-level requirements** and **does not expose any API to Component Authors**.
 
 ### 7.1 Design Intent
 
@@ -256,13 +239,11 @@ The event system MUST be able to correctly handle:
 ### 7.2 Normative Requirements (v0)
 
 1. If the event system is bound and the target changes:
-
    - subsequent bindings **MUST refer to the new target**
 
 2. This behavior MUST be completely transparent to Component Authors
 3. Component Authors MUST NOT and MUST NOT need to manage target changes
-4. The implementation strategy is not prescribed
-   (rebinding, stable wrappers, delegation, etc. are all valid)
+4. The implementation strategy is not prescribed (rebinding, stable wrappers, delegation, etc. are all valid)
 
 ---
 

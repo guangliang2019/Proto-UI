@@ -2,11 +2,9 @@
 
 > Status: Draft – v0
 >
-> 本契约规定 Proto UI v0 中的 **interaction signals（交互信号）**：
-> 它们的语义定位、信号集合、生命周期规则，以及可观察性约束。
+> 本契约规定 Proto UI v0 中的 **interaction signals（交互信号）**：它们的语义定位、信号集合、生命周期规则，以及可观察性约束。
 >
-> interaction signals 表达的是**系统级交互事实**，
-> 而非组件作者定义的状态或事件回调。
+> interaction signals 表达的是**系统级交互事实**，而非组件作者定义的状态或事件回调。
 
 ---
 
@@ -77,8 +75,7 @@ v0 必须至少提供以下 interaction signals：
 
 - 在组件 unmount / dispose 后，`focused` **不得**保持为 `true`
 
-> 注：v0 不规定“focus”是 root-focus 还是 focus-within，
-> 只要求语义内部一致，由 adapter 决定具体策略。
+> 注：v0 不规定“focus”是 root-focus 还是 focus-within，只要求语义内部一致，由 adapter 决定具体策略。
 
 ---
 
@@ -127,8 +124,7 @@ interaction signals **可以被观察**，但 v0 仅作最小承诺：
 - 不保证通知的同步/异步模型
 - 不保证多个观察者之间的顺序
 
-interaction signal 本身不定义具体的观察 API 形态，
-只要求其变化**在系统层面是可感知的**。
+interaction signal 本身不定义具体的观察 API 形态，只要求其变化**在系统层面是可感知的**。
 
 ---
 
@@ -139,8 +135,7 @@ interaction signal 与 event 是两个不同层级的概念：
 - event 表达的是**瞬时发生的交互事件**
 - interaction signal 表达的是**持续性的交互事实**
 
-interaction signal 可以由 event 驱动，
-但 event 本身不是 interaction signal。
+interaction signal 可以由 event 驱动，但 event 本身不是 interaction signal。
 
 ---
 
@@ -152,8 +147,7 @@ interaction signal **不是 state**：
 - 它不具备 Owned / Borrowed 等作者控制视图
 - 它不由组件作者写入
 
-interaction signal **可以被投影为 state-shaped 视图**，
-但该投影不改变其系统所有权。
+interaction signal **可以被投影为 state-shaped 视图**，但该投影不改变其系统所有权。
 
 该投影机制由独立契约规定（见相关文档）。
 

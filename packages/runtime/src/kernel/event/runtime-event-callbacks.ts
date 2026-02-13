@@ -1,5 +1,5 @@
-import type { RunHandle } from "@proto-ui/core";
-import type { PropsBaseType } from "@proto-ui/types";
+import type { RunHandle } from '@proto-ui/core';
+import type { PropsBaseType } from '@proto-ui/types';
 
 export class RuntimeEventCallbacks<P extends PropsBaseType> {
   private map = new Map<string, (run: RunHandle<P>, ev: any) => void>();
@@ -23,4 +23,4 @@ export class RuntimeEventCallbacks<P extends PropsBaseType> {
   }
 }
 
-export const __RT_EVENT_CALLBACKS = Symbol.for("__rt_event_callbacks");
+export const __RT_EVENT_CALLBACKS = Symbol.for('__rt_event_callbacks');

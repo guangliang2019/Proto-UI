@@ -1,7 +1,7 @@
 // packages/adapters/web-component/src/feedback-style.ts
-import { mergeTwTokensV0 } from "@proto-ui/core";
+import { mergeTwTokensV0 } from '@proto-ui/core';
 
-const KEY = "__proto_ui_applied_style_tokens_v0__";
+const KEY = '__proto_ui_applied_style_tokens_v0__';
 
 /**
  * v0: map style tokens -> host classList (Tailwind runtime).
@@ -21,10 +21,7 @@ export function applyStyleTokensToHost(el: HTMLElement, tokens: string[]) {
   (el as any)[KEY] = merged;
 }
 
-export function applyFeedbackStyleTokensToHost(
-  el: HTMLElement,
-  tokens: string[]
-): () => void {
+export function applyFeedbackStyleTokensToHost(el: HTMLElement, tokens: string[]): () => void {
   const pre = new Set<string>();
   for (const c of Array.from(el.classList)) pre.add(c);
 
@@ -68,9 +65,7 @@ export type OwnedTokenApplier = {
  * - Never removes user classes
  * - `apply([])` removes all previously owned tokens
  */
-export function createOwnedTwTokenApplier(
-  host: HTMLElement
-): OwnedTokenApplier {
+export function createOwnedTwTokenApplier(host: HTMLElement): OwnedTokenApplier {
   let owned = new Set<string>();
 
   const apply = (nextTokens: string[]) => {
@@ -78,7 +73,7 @@ export function createOwnedTwTokenApplier(
     const nextList: string[] = [];
     const nextSet = new Set<string>();
     for (const t of nextTokens) {
-      const tok = (t ?? "").trim();
+      const tok = (t ?? '').trim();
       if (!tok) continue;
       if (nextSet.has(tok)) continue;
       nextSet.add(tok);

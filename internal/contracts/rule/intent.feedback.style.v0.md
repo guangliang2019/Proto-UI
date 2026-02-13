@@ -45,4 +45,3 @@ This channel is **semantic-merge**, not last-wins.
 - Runtime MAY dynamically apply `feedback.style` based on rule evaluation
 - In specific cases, rules MAY be compiled into static styles and skip runtime execution
 - Concrete optimizations are adapter/extension responsibilities
-

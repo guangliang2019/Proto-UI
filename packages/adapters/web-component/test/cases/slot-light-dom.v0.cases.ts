@@ -1,7 +1,7 @@
 // packages/adapters/web-component/test/cases/slot-light-dom.v0.cases.ts
 
-import type { Prototype } from "@proto-ui/core";
-import { AdaptToWebComponent } from "@proto-ui/adapters.web-component";
+import type { Prototype } from '@proto-ui/core';
+import { AdaptToWebComponent } from '@proto-ui/adapters.web-component';
 
 export type LightSlotCase = {
   name: string;
@@ -14,23 +14,23 @@ function flushMacroTask(): Promise<void> {
 
 export const LIGHT_SLOT_V0_CASES: LightSlotCase[] = [
   {
-    name: "G1: projects initial light children into slot; no <slot> in DOM",
+    name: 'G1: projects initial light children into slot; no <slot> in DOM',
     run: () => {
       const P: Prototype = {
-        name: "x-contract-light-slot-1",
+        name: 'x-contract-light-slot-1',
         setup() {
-          return (r) => [r.el("div", [r.r.slot()])];
+          return (r) => [r.el('div', [r.r.slot()])];
         },
       };
 
       AdaptToWebComponent(P);
 
-      const el = document.createElement("x-contract-light-slot-1") as any;
+      const el = document.createElement('x-contract-light-slot-1') as any;
       el.innerHTML = `<span>a</span><span>b</span>`;
       document.body.appendChild(el);
 
-      if (el.querySelector("slot")) {
-        throw new Error("Expected no <slot> element in Light DOM.");
+      if (el.querySelector('slot')) {
+        throw new Error('Expected no <slot> element in Light DOM.');
       }
 
       const got = el.innerHTML;
@@ -42,31 +42,23 @@ export const LIGHT_SLOT_V0_CASES: LightSlotCase[] = [
   },
 
   {
-    name: "G2: keeps correct order around slot (prefix/suffix)",
+    name: 'G2: keeps correct order around slot (prefix/suffix)',
     run: () => {
       const P: Prototype = {
-        name: "x-contract-light-slot-2",
+        name: 'x-contract-light-slot-2',
         setup() {
-          return (r) => [
-            r.el("div", [
-              r.el("span", "prefix"),
-              r.r.slot(),
-              r.el("span", "suffix"),
-            ]),
-          ];
+          return (r) => [r.el('div', [r.el('span', 'prefix'), r.r.slot(), r.el('span', 'suffix')])];
         },
       };
 
       AdaptToWebComponent(P);
 
-      const el = document.createElement("x-contract-light-slot-2") as any;
+      const el = document.createElement('x-contract-light-slot-2') as any;
       el.innerHTML = `<em>x</em><strong>y</strong>`;
       document.body.appendChild(el);
 
       const expected =
-        `<div><span>prefix</span>` +
-        `<em>x</em><strong>y</strong>` +
-        `<span>suffix</span></div>`;
+        `<div><span>prefix</span>` + `<em>x</em><strong>y</strong>` + `<span>suffix</span></div>`;
 
       if (el.innerHTML !== expected) {
         throw new Error(`Expected ${expected}, got ${el.innerHTML}`);
@@ -75,21 +67,21 @@ export const LIGHT_SLOT_V0_CASES: LightSlotCase[] = [
   },
 
   {
-    name: "G3: supports text nodes in light children pool",
+    name: 'G3: supports text nodes in light children pool',
     run: () => {
       const P: Prototype = {
-        name: "x-contract-light-slot-3",
+        name: 'x-contract-light-slot-3',
         setup() {
-          return (r) => [r.el("div", [r.r.slot()])];
+          return (r) => [r.el('div', [r.r.slot()])];
         },
       };
 
       AdaptToWebComponent(P);
 
-      const el = document.createElement("x-contract-light-slot-3") as any;
-      el.appendChild(document.createTextNode("hello"));
-      const s = document.createElement("span");
-      s.textContent = "world";
+      const el = document.createElement('x-contract-light-slot-3') as any;
+      el.appendChild(document.createTextNode('hello'));
+      const s = document.createElement('span');
+      s.textContent = 'world';
       el.appendChild(s);
 
       document.body.appendChild(el);
@@ -102,18 +94,18 @@ export const LIGHT_SLOT_V0_CASES: LightSlotCase[] = [
   },
 
   {
-    name: "G4: update() must not duplicate or drop projected children",
+    name: 'G4: update() must not duplicate or drop projected children',
     run: async () => {
       const P: Prototype = {
-        name: "x-contract-light-slot-4",
+        name: 'x-contract-light-slot-4',
         setup() {
-          return (r) => [r.el("div", [r.r.slot()])];
+          return (r) => [r.el('div', [r.r.slot()])];
         },
       };
 
       AdaptToWebComponent(P);
 
-      const el = document.createElement("x-contract-light-slot-4") as any;
+      const el = document.createElement('x-contract-light-slot-4') as any;
       el.innerHTML = `<span>x</span>`;
       document.body.appendChild(el);
 
@@ -127,31 +119,29 @@ export const LIGHT_SLOT_V0_CASES: LightSlotCase[] = [
       await Promise.resolve();
 
       if (el.innerHTML !== expected) {
-        throw new Error(
-          `Expected ${expected} after update, got ${el.innerHTML}`
-        );
+        throw new Error(`Expected ${expected} after update, got ${el.innerHTML}`);
       }
     },
   },
 
   {
-    name: "G5: projects new direct children appended after connected (MO; macro task)",
+    name: 'G5: projects new direct children appended after connected (MO; macro task)',
     run: async () => {
       const P: Prototype = {
-        name: "x-contract-light-slot-5",
+        name: 'x-contract-light-slot-5',
         setup() {
-          return (r) => [r.el("div", [r.r.slot()])];
+          return (r) => [r.el('div', [r.r.slot()])];
         },
       };
 
       AdaptToWebComponent(P);
 
-      const el = document.createElement("x-contract-light-slot-5") as any;
+      const el = document.createElement('x-contract-light-slot-5') as any;
       document.body.appendChild(el);
 
       // after connected: user appends a new node to host element
-      const k = document.createElement("span");
-      k.textContent = "k";
+      const k = document.createElement('span');
+      k.textContent = 'k';
       el.appendChild(k);
 
       // MO callback is not guaranteed to run in microtask; use macro task flush

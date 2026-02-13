@@ -27,8 +27,7 @@ Defines how `when` evaluation is wired to state changes.
 
 ### 1.1 Declaration
 
-Rule dependencies are declared via RuleIR.
-If RuleIR references a state:
+Rule dependencies are declared via RuleIR. If RuleIR references a state:
 
 - that state MUST be treated as a reactive dependency
 - dependency is on the **value**, not callbacks
@@ -114,4 +113,3 @@ This contract does NOT:
 - Rules are state-driven
 - Any referenced state change MUST trigger re-evaluation
 - View type does not weaken reactivity
-

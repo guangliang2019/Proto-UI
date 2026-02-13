@@ -1,27 +1,26 @@
 # Module Orchestrator (Internal)
 
-This document explains how module dependencies and wiring are defined and used.
-It is an internal engineering guide (not a contract).
+This document explains how module dependencies and wiring are defined and used. It is an internal engineering guide (not a contract).
 
 ---
 
 ## 1) Module Definition
 
-Modules are registered through `defineModule` and `ModuleDef`.
-Each module declares its dependency set explicitly.
+Modules are registered through `defineModule` and `ModuleDef`. Each module declares its dependency set explicitly.
 
 Example:
 
 ```ts
 export const FooModuleDef = defineModule({
-  name: "foo",
-  deps: ["props", "state"],
-  optionalDeps: ["event"],
+  name: 'foo',
+  deps: ['props', 'state'],
+  optionalDeps: ['event'],
   create: createFooModule,
 });
 ```
 
 Notes:
+
 - `deps` are **hard**: must exist and be initialized before this module.
 - `optionalDeps` are **soft**: if present, must be initialized before this module.
 
@@ -29,17 +28,17 @@ Notes:
 
 ## 2) Dependency Access (Facade / Port)
 
-Modules receive a `deps` helper via `ModuleFactoryArgs`.
-This helper **only** allows access to declared dependencies.
+Modules receive a `deps` helper via `ModuleFactoryArgs`. This helper **only** allows access to declared dependencies.
 
 ```ts
-const props = ctx.deps.requireFacade<PropsFacade>("props");
-const statePort = ctx.deps.requirePort<StatePort>("state");
+const props = ctx.deps.requireFacade<PropsFacade>('props');
+const statePort = ctx.deps.requirePort<StatePort>('state');
 
-const event = ctx.deps.tryFacade<EventFacade>("event"); // optional
+const event = ctx.deps.tryFacade<EventFacade>('event'); // optional
 ```
 
 Rules:
+
 - Accessing an **undeclared** dependency throws.
 - `require*` throws if the dependency is missing.
 - `try*` returns `undefined` if missing, but still throws if undeclared.
@@ -64,11 +63,12 @@ Adapters inject host capabilities through the wiring API, not by touching module
 
 ```ts
 const wiring = orchestrator.getWiring();
-wiring.attach("props", entries);
-wiring.reset("props");
+wiring.attach('props', entries);
+wiring.reset('props');
 ```
 
 Rules:
+
 - Wiring is **flat**: module name → caps entries
 - `reset()` can target a single module or all attached host caps
 
@@ -77,9 +77,9 @@ Rules:
 ## 5) Intent
 
 This design keeps:
+
 - module dependencies explicit
 - module access controlled
 - host caps injection isolated from module internals
 
-It allows future orchestration strategies (deps graph, ordering rules, diagnostics)
-without changing module authoring APIs.
+It allows future orchestration strategies (deps graph, ordering rules, diagnostics) without changing module authoring APIs.

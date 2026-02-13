@@ -1,6 +1,6 @@
-import { describe, it, expect } from "vitest";
-import type { Prototype, TemplateChildren } from "@proto-ui/core";
-import { executeWithHost, RuntimeHost } from "../../src";
+import { describe, it, expect } from 'vitest';
+import type { Prototype, TemplateChildren } from '@proto-ui/core';
+import { executeWithHost, RuntimeHost } from '../../src';
 
 function createMockHost(prototypeName: string) {
   const calls: string[] = [];
@@ -13,12 +13,12 @@ function createMockHost(prototypeName: string) {
       return {};
     },
     commit(children, signal) {
-      calls.push("commit");
+      calls.push('commit');
       commits.push(children);
       signal?.done();
     },
     schedule(task) {
-      calls.push("schedule-mounted");
+      calls.push('schedule-mounted');
       scheduled.push(task);
     },
     // 关键点：不注入 event caps
@@ -28,18 +28,16 @@ function createMockHost(prototypeName: string) {
   return { host, calls, scheduled, commits };
 }
 
-describe("runtime contract: event (v0)", () => {
-  it("no registrations => event.bind is a no-op and must not require caps", () => {
-    const protoName = `t-runtime-no-event-${Math.random()
-      .toString(16)
-      .slice(2)}`;
+describe('runtime contract: event (v0)', () => {
+  it('no registrations => event.bind is a no-op and must not require caps', () => {
+    const protoName = `t-runtime-no-event-${Math.random().toString(16).slice(2)}`;
     const { host } = createMockHost(protoName);
 
     const P: Prototype = {
       name: protoName,
       setup(_def: any) {
         // 不注册 def.event.*
-        return (r: any) => [r.el("div", {}, ["ok"])];
+        return (r: any) => [r.el('div', {}, ['ok'])];
       },
     };
 

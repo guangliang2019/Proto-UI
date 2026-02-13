@@ -5,7 +5,7 @@
  * - Only supports Tailwind-flavored tokens
  * - Keep as IR; adapters decide how to realize it.
  */
-export type StyleHandle = { kind: "tw"; tokens: string[] };
+export type StyleHandle = { kind: 'tw'; tokens: string[] };
 
 export type TemplateStyleHandle = StyleHandle;
 
@@ -17,17 +17,17 @@ export type TemplateStyleHandle = StyleHandle;
  * - tw("a", "b", "c")
  */
 export function tw(tokens: string, ...more: string[]): StyleHandle {
-  const all = [tokens, ...more].join(" ").trim();
+  const all = [tokens, ...more].join(' ').trim();
   const list = all ? all.split(/\s+/g) : [];
-  return { kind: "tw", tokens: list };
+  return { kind: 'tw', tokens: list };
 }
 
 export function isTemplateStyleHandle(v: any): v is StyleHandle {
   return (
     v &&
-    typeof v === "object" &&
-    v.kind === "tw" &&
+    typeof v === 'object' &&
+    v.kind === 'tw' &&
     Array.isArray(v.tokens) &&
-    v.tokens.every((x: any) => typeof x === "string")
+    v.tokens.every((x: any) => typeof x === 'string')
   );
 }

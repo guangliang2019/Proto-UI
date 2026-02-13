@@ -51,8 +51,7 @@ In v0, only **default slot** is supported:
 
 ### G4. ReservedType: slot (Light DOM)
 
-In Light DOM mode, `slot` MUST NOT render a `<slot>` element.
-Instead, the adapter MUST project external nodes into the slot position.
+In Light DOM mode, `slot` MUST NOT render a `<slot>` element. Instead, the adapter MUST project external nodes into the slot position.
 
 #### Projection rules
 

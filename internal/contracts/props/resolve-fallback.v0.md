@@ -1,7 +1,6 @@
 # Resolve & Fallback Contract (v0)
 
-This document defines how raw props are resolved into runtime-visible props
-and how empty or invalid values are handled.
+This document defines how raw props are resolved into runtime-visible props and how empty or invalid values are handled.
 
 ---
 
@@ -19,8 +18,7 @@ For each declared prop key, raw input is classified into one of the following st
   The key is present and its value is neither `null` nor `undefined`.
 
 - **invalid**  
-  A provided-non-empty value that fails validation
-  (kind / enum / range / validator).
+  A provided-non-empty value that fails validation (kind / enum / range / validator).
 
 ---
 
@@ -48,34 +46,26 @@ For each declared prop key, raw input is classified into one of the following st
 
 ## PROP-V0-2110 Handle Wiring
 
-The public runtime APIs described in **PROP-V0-2100** MUST be reachable through
-phase handles, not only on internal managers.
+The public runtime APIs described in **PROP-V0-2100** MUST be reachable through phase handles, not only on internal managers.
 
 ### Requirements
 
-- In **callback-time**, the `run` parameter passed into any props watcher callback
-  (resolved or raw) MUST provide:
-
+- In **callback-time**, the `run` parameter passed into any props watcher callback (resolved or raw) MUST provide:
   - `run.props.get()`
   - `run.props.getRaw()`
   - `run.props.isProvided(key)`
 
-- In **render-time**, the readonly handle `read.props` MUST provide the same API
-  surface as `run.props` (it is typed as `RunHandle["props"]`).
+- In **render-time**, the readonly handle `read.props` MUST provide the same API surface as `run.props` (it is typed as `RunHandle["props"]`).
 
 ### Behavioral Alignment
 
 Within a single callback invocation:
 
-- For resolved watchers `cb(run, next, prev, info)`, `run.props.get()` MUST be
-  behaviorally equivalent to `next`.
+- For resolved watchers `cb(run, next, prev, info)`, `run.props.get()` MUST be behaviorally equivalent to `next`.
 
-- For raw watchers `cb(run, nextRaw, prevRaw, info)`, `run.props.getRaw()` MUST be
-  behaviorally equivalent to `nextRaw`.
+- For raw watchers `cb(run, nextRaw, prevRaw, info)`, `run.props.getRaw()` MUST be behaviorally equivalent to `nextRaw`.
 
-“Behaviorally equivalent” means: deep-equal values for all keys, and the same key
-set under the contract rules. Implementations may or may not return the same object
-identity.
+“Behaviorally equivalent” means: deep-equal values for all keys, and the same key set under the contract rules. Implementations may or may not return the same object identity.
 
 ---
 
@@ -93,8 +83,7 @@ identity.
 - When input is provided-empty, resolved value becomes `null`
 - `accept` does **not** apply to missing input
 - Missing input continues to follow fallback semantics
-- Invalid provided-non-empty input does **not** become `null`
-  and follows fallback or error rules
+- Invalid provided-non-empty input does **not** become `null` and follows fallback or error rules
 
 ---
 
@@ -158,8 +147,7 @@ Validation is applied only to provided-non-empty input.
 - range failure → invalid
 - validator returns false or throws → invalid
 
-Invalid values participate in fallback or error handling,
-depending on EmptyBehavior.
+Invalid values participate in fallback or error handling, depending on EmptyBehavior.
 
 ---
 
@@ -169,7 +157,6 @@ Props v0 intentionally avoids defining a strict type system.
 
 - Validation rules are **minimal and permissive**
 - Complex types are allowed but not standardized
-- No guarantees are made about how complex values are passed
-  across different adapters or platforms
+- No guarantees are made about how complex values are passed across different adapters or platforms
 
 This boundary is considered a **deliberate v0 limitation**.

@@ -2,8 +2,7 @@
 
 > Status: Draft – v0
 >
-> 本契约规定 Proto UI v0 中 **state handle 的视图体系（handle views）**：
-> `OwnedStateHandle`、`BorrowedStateHandle` 与 `ObservedStateHandle`。
+> 本契约规定 Proto UI v0 中 **state handle 的视图体系（handle views）**： `OwnedStateHandle`、`BorrowedStateHandle` 与 `ObservedStateHandle`。
 >
 > 本文不重新定义 state 本体语义，仅描述**同一 state slot 在不同使用语境下所呈现的能力集合差异**。
 
@@ -19,8 +18,7 @@ State handle 视图用于表达：
 - **该使用者对该 state 拥有怎样的控制权**
 - **哪些操作是被允许或被刻意禁止的**
 
-视图的存在目的不是技术限制，而是**语义与风格约束**：
-通过 API 形状，明确哪些用法是被鼓励的，哪些用法是被阻止的。
+视图的存在目的不是技术限制，而是**语义与风格约束**：通过 API 形状，明确哪些用法是被鼓励的，哪些用法是被阻止的。
 
 ### 0.2 边界（重要）
 
@@ -51,8 +49,7 @@ State handle 视图用于表达：
 
 这些使用者之间，对 state 的**控制权、责任与预期**并不相同。
 
-因此，Proto UI 不将“state handle”视为单一形态，而是将其拆分为多种**视图（view）**，
-每一种视图都对应一种明确的使用语义。
+因此，Proto UI 不将“state handle”视为单一形态，而是将其拆分为多种**视图（view）**，每一种视图都对应一种明确的使用语义。
 
 ---
 

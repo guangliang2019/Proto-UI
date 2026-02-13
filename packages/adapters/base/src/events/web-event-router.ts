@@ -35,75 +35,75 @@ export function createWebProtoEventRouter(opt: {
 
   // pointer -> pointer.*
   unsubs.push(
-    listen(rootEl, "pointerdown", (e) => {
+    listen(rootEl, 'pointerdown', (e) => {
       if (!opt.isEnabled()) return;
-      emit(protoRootBus, "pointer.down", e);
+      emit(protoRootBus, 'pointer.down', e);
     })
   );
   unsubs.push(
-    listen(rootEl, "pointermove", (e) => {
+    listen(rootEl, 'pointermove', (e) => {
       if (!opt.isEnabled()) return;
-      emit(protoRootBus, "pointer.move", e);
+      emit(protoRootBus, 'pointer.move', e);
     })
   );
   unsubs.push(
-    listen(rootEl, "pointerup", (e) => {
+    listen(rootEl, 'pointerup', (e) => {
       if (!opt.isEnabled()) return;
-      emit(protoRootBus, "pointer.up", e);
+      emit(protoRootBus, 'pointer.up', e);
     })
   );
   unsubs.push(
-    listen(rootEl, "pointercancel", (e) => {
+    listen(rootEl, 'pointercancel', (e) => {
       if (!opt.isEnabled()) return;
-      emit(protoRootBus, "pointer.cancel", e);
+      emit(protoRootBus, 'pointer.cancel', e);
     })
   );
   unsubs.push(
-    listen(rootEl, "pointerenter", (e) => {
+    listen(rootEl, 'pointerenter', (e) => {
       if (!opt.isEnabled()) return;
-      emit(protoRootBus, "pointer.enter", e);
+      emit(protoRootBus, 'pointer.enter', e);
     })
   );
   unsubs.push(
-    listen(rootEl, "pointerleave", (e) => {
+    listen(rootEl, 'pointerleave', (e) => {
       if (!opt.isEnabled()) return;
-      emit(protoRootBus, "pointer.leave", e);
+      emit(protoRootBus, 'pointer.leave', e);
     })
   );
 
   // key -> key.* (global)
   unsubs.push(
-    listen(globalEl, "keydown", (e: KeyboardEvent) => {
+    listen(globalEl, 'keydown', (e: KeyboardEvent) => {
       if (!opt.isEnabled()) return;
-      emit(protoGlobalBus, "key.down", e);
+      emit(protoGlobalBus, 'key.down', e);
 
       // minimal v0 mapping: activate keys => press.commit
-      if (e.key === "Enter" || e.key === " ") {
-        emit(protoRootBus, "press.commit", e);
+      if (e.key === 'Enter' || e.key === ' ') {
+        emit(protoRootBus, 'press.commit', e);
       }
     })
   );
 
   unsubs.push(
-    listen(globalEl, "keyup", (e: KeyboardEvent) => {
+    listen(globalEl, 'keyup', (e: KeyboardEvent) => {
       if (!opt.isEnabled()) return;
-      emit(protoGlobalBus, "key.up", e);
+      emit(protoGlobalBus, 'key.up', e);
     })
   );
 
   // click -> press.commit (root)
   unsubs.push(
-    listen(rootEl, "click", (e) => {
+    listen(rootEl, 'click', (e) => {
       if (!opt.isEnabled()) return;
-      emit(protoRootBus, "press.commit", e);
+      emit(protoRootBus, 'press.commit', e);
     })
   );
 
   // contextmenu -> context.menu
   unsubs.push(
-    listen(rootEl, "contextmenu", (e) => {
+    listen(rootEl, 'contextmenu', (e) => {
       if (!opt.isEnabled()) return;
-      emit(protoRootBus, "context.menu", e);
+      emit(protoRootBus, 'context.menu', e);
     })
   );
 
@@ -164,26 +164,26 @@ function createProxyTarget(args: {
   }
 
   function parseType(type: string) {
-    if (type.startsWith("native:")) {
-      return { kind: "native" as const, inner: type.slice("native:".length) };
+    if (type.startsWith('native:')) {
+      return { kind: 'native' as const, inner: type.slice('native:'.length) };
     }
-    if (type.startsWith("host.")) {
-      return { kind: "host" as const, inner: type.slice("host.".length) };
+    if (type.startsWith('host.')) {
+      return { kind: 'host' as const, inner: type.slice('host.'.length) };
     }
-    return { kind: "proto" as const, inner: type };
+    return { kind: 'proto' as const, inner: type };
   }
 
   const api: any = {
     addEventListener(type: string, cb: any, options?: any) {
       const p = parseType(String(type));
 
-      if (p.kind === "proto") {
+      if (p.kind === 'proto') {
         // proto semantic event: on proto bus
         args.protoBus.addEventListener(p.inner, cb, options);
         return;
       }
 
-      if (p.kind === "native") {
+      if (p.kind === 'native') {
         const wrapped = wrapWithGate(cb);
         nativeListeners.push({ type: p.inner, cb, options, wrapped } as any);
         args.nativeTarget.addEventListener(p.inner, wrapped as any, options);
@@ -199,13 +199,13 @@ function createProxyTarget(args: {
     removeEventListener(type: string, cb: any, options?: any) {
       const p = parseType(String(type));
 
-      if (p.kind === "proto") {
+      if (p.kind === 'proto') {
         args.protoBus.removeEventListener(p.inner, cb, options);
         return;
       }
 
-      const list = p.kind === "native" ? nativeListeners : hostListeners;
-      const target = p.kind === "native" ? args.nativeTarget : args.hostTarget;
+      const list = p.kind === 'native' ? nativeListeners : hostListeners;
+      const target = p.kind === 'native' ? args.nativeTarget : args.hostTarget;
 
       // latest-first removal aligns with your v0 matching习惯
       for (let i = list.length - 1; i >= 0; i--) {

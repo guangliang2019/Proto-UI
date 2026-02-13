@@ -2,8 +2,7 @@
 
 > Status: Normative — implementation-aligned (v0)
 >
-> This document specifies the **component-visible lifecycle guarantees**
-> of Proto UI v0.
+> This document specifies the **component-visible lifecycle guarantees** of Proto UI v0.
 >
 > It defines:
 >
@@ -51,8 +50,7 @@ This document does **NOT** specify:
 
 Proto UI defines **one canonical lifecycle timeline** per component instance.
 
-All hosts and adapters MUST map their behavior into this timeline
-without reordering checkpoints.
+All hosts and adapters MUST map their behavior into this timeline without reordering checkpoints.
 
 ### 1.1 Timeline overview
 
@@ -84,8 +82,7 @@ without reordering checkpoints.
 
 ```
 
-After `mounted`, the instance may undergo zero or more **update cycles**,
-and eventually:
+After `mounted`, the instance may undergo zero or more **update cycles**, and eventually:
 
 ```
 
@@ -101,8 +98,7 @@ and eventually:
 
 ### 2.1 Definition
 
-`setup(def)` is executed exactly once per component instance,
-before any runtime behavior exists.
+`setup(def)` is executed exactly once per component instance, before any runtime behavior exists.
 
 ### 2.2 Guarantees
 
@@ -174,8 +170,7 @@ This is a hard guarantee in v0.
 
 ### 4.1 Definition
 
-The render function returned from `setup` is executed to produce
-a **rendered description** (children / template result).
+The render function returned from `setup` is executed to produce a **rendered description** (children / template result).
 
 ### 4.2 Ordering guarantee
 

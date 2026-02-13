@@ -62,7 +62,6 @@ export class StarlightTOC extends HTMLElement {
   private _highlightEl?: HTMLDivElement;
   private _rafToken = 0;
 
-
   /** 对外只读：当前“可见小节”列表（顺序按文档流） */
   public get visibleSections(): ReadonlyArray<VisibleSection> {
     return this._visible;
@@ -101,12 +100,15 @@ export class StarlightTOC extends HTMLElement {
       el.setAttribute('aria-hidden', 'true');
       el.className = [
         // 视觉
-        'bg-primary/5',        // 10% 透明度
+        'bg-primary/5', // 10% 透明度
         'rounded-sm',
         // 布局
-        'absolute', 'pointer-events-none',
+        'absolute',
+        'pointer-events-none',
         // 动画
-        'transition-all', 'duration-300', 'ease-out',
+        'transition-all',
+        'duration-300',
+        'ease-out',
         // 初始状态
         'opacity-0',
       ].join(' ');
@@ -165,49 +167,49 @@ export class StarlightTOC extends HTMLElement {
     return docTop + rect.top;
   }
 
-    // 根据 _visible[0] 到 _visible[last] 更新高亮矩形
-    private updateHighlight() {
-      const bg = this._highlightEl!;
-      // 没有任何可见 link -> 隐藏
-      if (!this._visible.length) {
-        bg.style.opacity = '0';
-        // 也可以把尺寸收起，避免残留
-        bg.style.width = '0px';
-        bg.style.height = '0px';
-        return;
-      }
-      const horizontalPadding = 16;
-      const verticalPadding = 4;
-  
-      // 取第一个与最后一个 link
-      const first = this._visible[0].link;
-      const last = this._visible[this._visible.length - 1].link;
-  
-      // 计算相对当前 TOC 容器的矩形
-      const containerRect = this.getBoundingClientRect();
-      const firstRect = first.getBoundingClientRect();
-      const lastRect = last.getBoundingClientRect();
-  
-      // 左上对齐第一个；右下对齐最后一个
-      const left = firstRect.left - containerRect.left + this.scrollLeft - horizontalPadding;
-      const top = firstRect.top - containerRect.top + this.scrollTop - verticalPadding;
-      const right = (lastRect.right - containerRect.left) + this.scrollLeft + horizontalPadding;
-      const bottom = (lastRect.bottom - containerRect.top) + this.scrollTop + verticalPadding;
-  
-      const width = Math.max(0, right - left);
-      const height = Math.max(0, bottom - top);
-  
-      // rAF 合帧，避免抖动
-      cancelAnimationFrame(this._rafToken);
-      this._rafToken = requestAnimationFrame(() => {
-        // 只用定位 + 尺寸，过渡交给 Tailwind 的 transition-all
-        bg.style.left = `${left}px`;
-        bg.style.top = `${top}px`;
-        bg.style.width = `${width}px`;
-        bg.style.height = `${height}px`;
-        bg.style.opacity = '1';
-      });
+  // 根据 _visible[0] 到 _visible[last] 更新高亮矩形
+  private updateHighlight() {
+    const bg = this._highlightEl!;
+    // 没有任何可见 link -> 隐藏
+    if (!this._visible.length) {
+      bg.style.opacity = '0';
+      // 也可以把尺寸收起，避免残留
+      bg.style.width = '0px';
+      bg.style.height = '0px';
+      return;
     }
+    const horizontalPadding = 16;
+    const verticalPadding = 4;
+
+    // 取第一个与最后一个 link
+    const first = this._visible[0].link;
+    const last = this._visible[this._visible.length - 1].link;
+
+    // 计算相对当前 TOC 容器的矩形
+    const containerRect = this.getBoundingClientRect();
+    const firstRect = first.getBoundingClientRect();
+    const lastRect = last.getBoundingClientRect();
+
+    // 左上对齐第一个；右下对齐最后一个
+    const left = firstRect.left - containerRect.left + this.scrollLeft - horizontalPadding;
+    const top = firstRect.top - containerRect.top + this.scrollTop - verticalPadding;
+    const right = lastRect.right - containerRect.left + this.scrollLeft + horizontalPadding;
+    const bottom = lastRect.bottom - containerRect.top + this.scrollTop + verticalPadding;
+
+    const width = Math.max(0, right - left);
+    const height = Math.max(0, bottom - top);
+
+    // rAF 合帧，避免抖动
+    cancelAnimationFrame(this._rafToken);
+    this._rafToken = requestAnimationFrame(() => {
+      // 只用定位 + 尺寸，过渡交给 Tailwind 的 transition-all
+      bg.style.left = `${left}px`;
+      bg.style.top = `${top}px`;
+      bg.style.width = `${width}px`;
+      bg.style.height = `${height}px`;
+      bg.style.opacity = '1';
+    });
+  }
 
   // 替换：用 [headingTop, nextHeadingTop) 区间判断“可见小节”
   private updateVisibleNow() {

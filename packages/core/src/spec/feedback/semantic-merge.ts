@@ -2,43 +2,43 @@
 
 const PREFIXES_V0 = [
   // Color
-  "bg-",
-  "text-",
+  'bg-',
+  'text-',
 
   // Spacing
-  "p-",
-  "px-",
-  "py-",
-  "pt-",
-  "pr-",
-  "pb-",
-  "pl-",
-  "m-",
-  "mx-",
-  "my-",
-  "mt-",
-  "mr-",
-  "mb-",
-  "ml-",
+  'p-',
+  'px-',
+  'py-',
+  'pt-',
+  'pr-',
+  'pb-',
+  'pl-',
+  'm-',
+  'mx-',
+  'my-',
+  'mt-',
+  'mr-',
+  'mb-',
+  'ml-',
 
   // Sizing
-  "w-",
-  "h-",
-  "min-w-",
-  "min-h-",
-  "max-w-",
-  "max-h-",
+  'w-',
+  'h-',
+  'min-w-',
+  'min-h-',
+  'max-w-',
+  'max-h-',
 
   // Layout / Flex
-  "flex",
-  "justify-",
-  "items-",
-  "content-",
+  'flex',
+  'justify-',
+  'items-',
+  'content-',
 
   // Effects
-  "opacity-",
-  "shadow-",
-  "rounded",
+  'opacity-',
+  'shadow-',
+  'rounded',
 ] as const;
 
 export function getSemanticGroupKeyV0(token: string): string {

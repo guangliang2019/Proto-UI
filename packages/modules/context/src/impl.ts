@@ -1,24 +1,24 @@
 // packages/modules/context/src/impl.ts
-import type { CapsVaultView, ProtoPhase } from "@proto-ui/core";
-import { ModuleBase } from "@proto-ui/modules.base";
-import type { ContextKey, JsonObject } from "@proto-ui/types";
+import type { CapsVaultView, ProtoPhase } from '@proto-ui/core';
+import { ModuleBase } from '@proto-ui/modules.base';
+import type { ContextKey, JsonObject } from '@proto-ui/types';
 
 import {
   CONTEXT_INSTANCE_TOKEN_CAP,
   CONTEXT_PARENT_CAP,
   type ContextInstanceToken,
   type ContextParentGetter,
-} from "./caps";
-import type { ContextChangeCb, ContextChangeCbOptional } from "./types";
-import { CONTEXT_CENTER, type SubscriptionMode } from "./center";
+} from './caps';
+import type { ContextChangeCb, ContextChangeCbOptional } from './types';
+import { CONTEXT_CENTER, type SubscriptionMode } from './center';
 
 const ERR = {
-  PHASE: "CONTEXT_PHASE_VIOLATION",
-  PROVIDER_MISSING: "CONTEXT_PROVIDER_MISSING",
-  SUB_REQUIRED: "CONTEXT_SUBSCRIPTION_REQUIRED",
-  DUP_PROVIDE: "CONTEXT_DUPLICATE_PROVIDE",
-  DISCONNECTED: "CONTEXT_DISCONNECTED",
-  VALUE_INVALID: "CONTEXT_VALUE_INVALID",
+  PHASE: 'CONTEXT_PHASE_VIOLATION',
+  PROVIDER_MISSING: 'CONTEXT_PROVIDER_MISSING',
+  SUB_REQUIRED: 'CONTEXT_SUBSCRIPTION_REQUIRED',
+  DUP_PROVIDE: 'CONTEXT_DUPLICATE_PROVIDE',
+  DISCONNECTED: 'CONTEXT_DISCONNECTED',
+  VALUE_INVALID: 'CONTEXT_VALUE_INVALID',
 };
 
 type ContextErrorCode = (typeof ERR)[keyof typeof ERR];
@@ -30,15 +30,15 @@ function contextError(code: ContextErrorCode, message: string): Error {
 }
 
 function isPlainObject(v: any): v is Record<string, any> {
-  if (!v || typeof v !== "object") return false;
+  if (!v || typeof v !== 'object') return false;
   return Object.getPrototypeOf(v) === Object.prototype;
 }
 
 function validateJsonValue(value: any, seen: WeakSet<object>): void {
   if (value === null) return;
   const t = typeof value;
-  if (t === "string" || t === "number" || t === "boolean") return;
-  if (t === "undefined" || t === "function" || t === "symbol" || t === "bigint") {
+  if (t === 'string' || t === 'number' || t === 'boolean') return;
+  if (t === 'undefined' || t === 'function' || t === 'symbol' || t === 'bigint') {
     throw contextError(ERR.VALUE_INVALID, `[Context] illegal value type: ${t}`);
   }
 
@@ -69,17 +69,11 @@ function validateJsonValue(value: any, seen: WeakSet<object>): void {
 
 function assertJsonObject(value: any, op: string): asserts value is JsonObject {
   if (value === null) {
-    throw contextError(
-      ERR.VALUE_INVALID,
-      `[Context] ${op} does not allow null as context value`
-    );
+    throw contextError(ERR.VALUE_INVALID, `[Context] ${op} does not allow null as context value`);
   }
 
   if (!isPlainObject(value)) {
-    throw contextError(
-      ERR.VALUE_INVALID,
-      `[Context] ${op} requires a plain JSON object`
-    );
+    throw contextError(ERR.VALUE_INVALID, `[Context] ${op} requires a plain JSON object`);
   }
 
   validateJsonValue(value, new WeakSet());
@@ -101,45 +95,42 @@ export class ContextModuleImpl extends ModuleBase {
     key: ContextKey<T>,
     defaultValue: T
   ): (next: T | ((prev: T) => T)) => void {
-    this.guardSetupOnly("def.context.provide");
+    this.guardSetupOnly('def.context.provide');
 
     const self = this.getSelfToken();
-    assertJsonObject(defaultValue, "provide");
+    assertJsonObject(defaultValue, 'provide');
 
     try {
       CONTEXT_CENTER.provide(self, key, defaultValue);
     } catch {
       throw contextError(
         ERR.DUP_PROVIDE,
-        `[Context] duplicate provide for key: ${key?.debugName ?? "(unknown)"}`
+        `[Context] duplicate provide for key: ${key?.debugName ?? '(unknown)'}`
       );
     }
 
     return (next) => {
-      this.guardCallbackOnly("run.context.update (provider)");
+      this.guardCallbackOnly('run.context.update (provider)');
 
       const getParent = this.getParentGetter();
       const prev = CONTEXT_CENTER.getProviderValue(self, key);
       if (!prev) {
         throw contextError(
           ERR.DISCONNECTED,
-          `[Context] provider disconnected for key: ${key?.debugName ?? "(unknown)"}`
+          `[Context] provider disconnected for key: ${key?.debugName ?? '(unknown)'}`
         );
       }
 
-      const resolved = typeof next === "function" ? (next as any)(prev) : next;
-      assertJsonObject(resolved, "update");
+      const resolved = typeof next === 'function' ? (next as any)(prev) : next;
+      assertJsonObject(resolved, 'update');
 
       const ctx = this.sys.getCallbackCtx();
       CONTEXT_CENTER.updateFromProvider(self, key, resolved, ctx, getParent);
     };
   }
 
-  subscribe<T extends JsonObject>(
-    key: ContextKey<T>,
-    onChange?: ContextChangeCb<T>
-  ): void {
-    this.guardSetupOnly("def.context.subscribe");
+  subscribe<T extends JsonObject>(key: ContextKey<T>, onChange?: ContextChangeCb<T>): void {
+    this.guardSetupOnly('def.context.subscribe');
 
     const self = this.getSelfToken();
     const getParent = this.getParentGetter();
@@ -148,21 +139,21 @@ export class ContextModuleImpl extends ModuleBase {
     if (!provider) {
       throw contextError(
         ERR.PROVIDER_MISSING,
-        `[Context] provider missing for key: ${key?.debugName ?? "(unknown)"}`
+        `[Context] provider missing for key: ${key?.debugName ?? '(unknown)'}`
       );
     }
 
-    CONTEXT_CENTER.subscribe(self, key, "required", onChange as any);
+    CONTEXT_CENTER.subscribe(self, key, 'required', onChange as any);
   }
 
   trySubscribe<T extends JsonObject>(
     key: ContextKey<T>,
     onChange?: ContextChangeCbOptional<T>
   ): void {
-    this.guardSetupOnly("def.context.trySubscribe");
+    this.guardSetupOnly('def.context.trySubscribe');
 
     const self = this.getSelfToken();
-    CONTEXT_CENTER.subscribe(self, key, "optional", onChange as any);
+    CONTEXT_CENTER.subscribe(self, key, 'optional', onChange as any);
   }
 
   // -------------------------
@@ -170,17 +161,17 @@ export class ContextModuleImpl extends ModuleBase {
   // -------------------------
 
   read<T extends JsonObject>(key: ContextKey<T>): T {
-    this.guardCallbackOnly("run.context.read");
+    this.guardCallbackOnly('run.context.read');
 
     const self = this.getSelfToken();
-    this.ensureSubscribed(self, key, "required", "read");
+    this.ensureSubscribed(self, key, 'required', 'read');
 
     const getParent = this.getParentGetter();
     const provider = CONTEXT_CENTER.resolveProvider(self, key, getParent);
     if (!provider) {
       throw contextError(
         ERR.DISCONNECTED,
-        `[Context] provider missing for key: ${key?.debugName ?? "(unknown)"}`
+        `[Context] provider missing for key: ${key?.debugName ?? '(unknown)'}`
       );
     }
 
@@ -188,7 +179,7 @@ export class ContextModuleImpl extends ModuleBase {
     if (!value) {
       throw contextError(
         ERR.DISCONNECTED,
-        `[Context] provider missing for key: ${key?.debugName ?? "(unknown)"}`
+        `[Context] provider missing for key: ${key?.debugName ?? '(unknown)'}`
       );
     }
 
@@ -196,10 +187,10 @@ export class ContextModuleImpl extends ModuleBase {
   }
 
   tryRead<T extends JsonObject>(key: ContextKey<T>): T | null {
-    this.guardCallbackOnly("run.context.tryRead");
+    this.guardCallbackOnly('run.context.tryRead');
 
     const self = this.getSelfToken();
-    this.ensureSubscribed(self, key, "optional", "tryRead");
+    this.ensureSubscribed(self, key, 'optional', 'tryRead');
 
     const getParent = this.getParentGetter();
     const provider = CONTEXT_CENTER.resolveProvider(self, key, getParent);
@@ -208,21 +199,18 @@ export class ContextModuleImpl extends ModuleBase {
     return (CONTEXT_CENTER.getProviderValue(provider, key) as T) ?? null;
   }
 
-  update<T extends JsonObject>(
-    key: ContextKey<T>,
-    next: T | ((prev: T) => T)
-  ): void {
-    this.guardCallbackOnly("run.context.update");
+  update<T extends JsonObject>(key: ContextKey<T>, next: T | ((prev: T) => T)): void {
+    this.guardCallbackOnly('run.context.update');
 
     const self = this.getSelfToken();
-    this.ensureSubscribedAny(self, key, "update");
+    this.ensureSubscribedAny(self, key, 'update');
 
     const getParent = this.getParentGetter();
     const provider = CONTEXT_CENTER.resolveProvider(self, key, getParent);
     if (!provider) {
       throw contextError(
         ERR.DISCONNECTED,
-        `[Context] provider missing for key: ${key?.debugName ?? "(unknown)"}`
+        `[Context] provider missing for key: ${key?.debugName ?? '(unknown)'}`
       );
     }
 
@@ -230,25 +218,22 @@ export class ContextModuleImpl extends ModuleBase {
     if (!prev) {
       throw contextError(
         ERR.DISCONNECTED,
-        `[Context] provider missing for key: ${key?.debugName ?? "(unknown)"}`
+        `[Context] provider missing for key: ${key?.debugName ?? '(unknown)'}`
       );
     }
 
-    const resolved = typeof next === "function" ? (next as any)(prev) : next;
-    assertJsonObject(resolved, "update");
+    const resolved = typeof next === 'function' ? (next as any)(prev) : next;
+    assertJsonObject(resolved, 'update');
 
     const ctx = this.sys.getCallbackCtx();
     CONTEXT_CENTER.updateFromProvider(provider, key, resolved, ctx, getParent);
   }
 
-  tryUpdate<T extends JsonObject>(
-    key: ContextKey<T>,
-    next: T | ((prev: T) => T)
-  ): boolean {
-    this.guardCallbackOnly("run.context.tryUpdate");
+  tryUpdate<T extends JsonObject>(key: ContextKey<T>, next: T | ((prev: T) => T)): boolean {
+    this.guardCallbackOnly('run.context.tryUpdate');
 
     const self = this.getSelfToken();
-    this.ensureSubscribed(self, key, "optional", "tryUpdate");
+    this.ensureSubscribed(self, key, 'optional', 'tryUpdate');
 
     const getParent = this.getParentGetter();
     const provider = CONTEXT_CENTER.resolveProvider(self, key, getParent);
@@ -257,8 +242,8 @@ export class ContextModuleImpl extends ModuleBase {
     const prev = CONTEXT_CENTER.getProviderValue(provider, key);
     if (!prev) return false;
 
-    const resolved = typeof next === "function" ? (next as any)(prev) : next;
-    assertJsonObject(resolved, "update");
+    const resolved = typeof next === 'function' ? (next as any)(prev) : next;
+    assertJsonObject(resolved, 'update');
 
     const ctx = this.sys.getCallbackCtx();
     CONTEXT_CENTER.updateFromProvider(provider, key, resolved, ctx, getParent);
@@ -271,7 +256,7 @@ export class ContextModuleImpl extends ModuleBase {
 
   override onProtoPhase(phase: ProtoPhase): void {
     super.onProtoPhase(phase);
-    if (phase === "unmounted") {
+    if (phase === 'unmounted') {
       this.dispose();
     }
   }
@@ -304,20 +289,14 @@ export class ContextModuleImpl extends ModuleBase {
   // -------------------------
 
   private guardSetupOnly(op: string) {
-    if (this.sys.execPhase() !== "setup") {
-      throw contextError(
-        ERR.PHASE,
-        `[Context] illegal phase for ${op}: ${this.sys.execPhase()}`
-      );
+    if (this.sys.execPhase() !== 'setup') {
+      throw contextError(ERR.PHASE, `[Context] illegal phase for ${op}: ${this.sys.execPhase()}`);
     }
   }
 
   private guardCallbackOnly(op: string) {
-    if (this.sys.execPhase() !== "callback") {
-      throw contextError(
-        ERR.PHASE,
-        `[Context] illegal phase for ${op}: ${this.sys.execPhase()}`
-      );
+    if (this.sys.execPhase() !== 'callback') {
+      throw contextError(ERR.PHASE, `[Context] illegal phase for ${op}: ${this.sys.execPhase()}`);
     }
   }
 
@@ -330,20 +309,16 @@ export class ContextModuleImpl extends ModuleBase {
     if (!CONTEXT_CENTER.hasSubscription(instance, key, mode)) {
       throw contextError(
         ERR.SUB_REQUIRED,
-        `[Context] ${op} requires ${mode} subscription: ${key?.debugName ?? "(unknown)"}`
+        `[Context] ${op} requires ${mode} subscription: ${key?.debugName ?? '(unknown)'}`
       );
     }
   }
 
-  private ensureSubscribedAny(
-    instance: ContextInstanceToken,
-    key: ContextKey<any>,
-    op: string
-  ) {
+  private ensureSubscribedAny(instance: ContextInstanceToken, key: ContextKey<any>, op: string) {
     if (!CONTEXT_CENTER.hasSubscription(instance, key)) {
       throw contextError(
         ERR.SUB_REQUIRED,
-        `[Context] ${op} requires prior subscription: ${key?.debugName ?? "(unknown)"}`
+        `[Context] ${op} requires prior subscription: ${key?.debugName ?? '(unknown)'}`
       );
     }
   }
@@ -357,7 +332,7 @@ export class ContextModuleImpl extends ModuleBase {
     }
 
     const fn = this.caps.get(CONTEXT_PARENT_CAP) as ContextParentGetter;
-    if (typeof fn !== "function") {
+    if (typeof fn !== 'function') {
       throw contextError(
         ERR.PROVIDER_MISSING,
         `[Context] host caps invalid: parent getter (${this.prototypeName})`

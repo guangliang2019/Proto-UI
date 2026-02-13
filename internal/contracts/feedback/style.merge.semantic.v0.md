@@ -2,11 +2,9 @@
 
 ## 1. Purpose
 
-This contract defines how multiple style intent tokens recorded via
-`def.feedback.style.use` are **merged into a single semantic result**.
+This contract defines how multiple style intent tokens recorded via `def.feedback.style.use` are **merged into a single semantic result**.
 
-The merge process defines the _meaning_ of style intent in Proto-UI
-and MUST be consistent across all adapters and optimization paths.
+The merge process defines the _meaning_ of style intent in Proto-UI and MUST be consistent across all adapters and optimization paths.
 
 ---
 
@@ -29,8 +27,7 @@ This order MUST be preserved.
 
 Semantic merge is performed by grouping tokens into **semantic groups**.
 
-A semantic group represents a dimension of visual intent where
-multiple tokens are considered mutually exclusive.
+A semantic group represents a dimension of visual intent where multiple tokens are considered mutually exclusive.
 
 Examples include (non-exhaustive):
 
@@ -40,8 +37,7 @@ Examples include (non-exhaustive):
 - sizing
 - layout role
 
-Tokens in the same group conflict by intent.
-Tokens in different groups are independent.
+Tokens in the same group conflict by intent. Tokens in different groups are independent.
 
 ---
 
@@ -84,8 +80,7 @@ The following prefixes define semantic groups:
 
 This list is intentionally conservative.
 
-Expanding or redefining semantic groups is a **breaking change**
-and requires a new contract version.
+Expanding or redefining semantic groups is a **breaking change** and requires a new contract version.
 
 ---
 
@@ -118,8 +113,7 @@ The merged token list MUST be ordered deterministically.
 
 Ordering rule:
 
-1. Semantic groups are ordered by the **first occurrence** of any token
-   belonging to that group in the input sequence.
+1. Semantic groups are ordered by the **first occurrence** of any token belonging to that group in the input sequence.
 2. For each group, only the final selected token is emitted.
 
 This guarantees stable output ordering.
@@ -152,8 +146,7 @@ Semantic merge MUST be:
 - independent of host behavior
 - independent of scheduling or timing
 
-Given identical input tokens in the same order,
-the merged result MUST be identical.
+Given identical input tokens in the same order, the merged result MUST be identical.
 
 ---
 

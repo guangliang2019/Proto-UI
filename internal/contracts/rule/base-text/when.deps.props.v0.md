@@ -2,8 +2,7 @@
 
 > 状态：Draft – v0（实现对齐）
 >
-> 本契约规定 **when 可以观察的 props 依赖**。
-> props 在 rule 中只作为只读、可序列化的输入。
+> 本契约规定 **when 可以观察的 props 依赖**。props 在 rule 中只作为只读、可序列化的输入。
 
 ---
 
@@ -55,4 +54,3 @@ w.prop(key) -> { kind: "prop", key }
 - props 是 rule 的合法输入通道
 - when 仅观察，不具备写入能力
 - 依赖变化必须触发重评估
-

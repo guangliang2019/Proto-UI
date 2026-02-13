@@ -3,9 +3,7 @@
 > **状态**：Draft – implementation-ready（contract-first）  
 > **版本**：v0
 >
-> 本文档定义 **Proto UI 的 Event 信息通路契约**：
-> 包括 setup 期注册语义、runtime 回调保证、绑定时机、
-> 生命周期清理规则，以及通过 `def.event` 对组件作者暴露的可观察行为。
+> 本文档定义 **Proto UI 的 Event 信息通路契约**：包括 setup 期注册语义、runtime 回调保证、绑定时机、生命周期清理规则，以及通过 `def.event` 对组件作者暴露的可观察行为。
 >
 > 本文档是 **规范性（normative）** 文档。
 
@@ -128,8 +126,7 @@ cb(run, ev) => void
 - `def.event.onGlobal(...)` 注册的监听器绑定到 Global Target
 - event facade **不得暴露具体的 global target 实体**
 
-> 说明（非规范性）：
-> Web adapter 通常选择 `window` 作为 global target。
+> 说明（非规范性）：Web adapter 通常选择 `window` 作为 global target。
 
 ---
 
@@ -148,8 +145,7 @@ cb(run, ev) => void
 - 仅当存在 root 注册时，才要求 root target 可用
 - 仅当存在 global 注册时，才要求 global target 可用
 
-> 说明（信息性）：
-> runtime 可以无条件执行 bind 流程，但“无注册”的组件不得因此承担任何代价或风险。
+> 说明（信息性）：runtime 可以无条件执行 bind 流程，但“无注册”的组件不得因此承担任何代价或风险。
 
 ---
 
@@ -183,9 +179,7 @@ Token 可以包含额外字段，但不得影响运行期语义。
 - 传入未知或已移除的 token **必须是 no-op**
 - 非法 token 形态 **必须抛出 EVENT_INVALID_ARGUMENT 错误**
 
-> v0 明确规定：
-> **不存在基于 `(type, cb, options)` 的注销 API**。
-> 所有注销行为必须通过 token 完成。
+> v0 明确规定： **不存在基于 `(type, cb, options)` 的注销 API**。所有注销行为必须通过 token 完成。
 
 ---
 
@@ -202,7 +196,6 @@ token.desc(text) => EventListenerToken
 1. `desc()` **仅允许在 setup 阶段调用**
 2. setup 之后调用必须抛出阶段违规错误
 3. 在生产环境中，`desc()` 可以是 no-op，但：
-
    - 必须可调用
    - 必须返回同一个 token 实例
 
@@ -211,7 +204,6 @@ token.desc(text) => EventListenerToken
 ## 5. 生命周期与自动清理
 
 - 所有通过 `def.event` 注册的监听器：
-
   - **必须在组件卸载时被自动移除**
 
 - 手动调用 `off(token)` 可以提前移除监听器，但并非正确性的必要条件
@@ -234,8 +226,7 @@ Event 使用 `EventTypeV0` 作为事件类型集合。
 
 ## 7. Target 变更与交互代理（系统级能力）
 
-> 本节描述 **event 系统的基础设施能力**，
-> **不对 Component Author 暴露任何 API**。
+> 本节描述 **event 系统的基础设施能力**， **不对 Component Author 暴露任何 API**。
 
 ### 7.1 设计目标
 
@@ -248,7 +239,6 @@ event 系统必须能够正确应对以下情况：
 ### 7.2 规范性要求（v0）
 
 1. 若事件系统处于已绑定状态，而 target 发生变化：
-
    - 后续事件绑定 **必须指向新的 target**
 
 2. 上述行为必须对组件作者 **完全透明**

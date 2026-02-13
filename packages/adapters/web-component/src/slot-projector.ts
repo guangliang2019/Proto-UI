@@ -83,7 +83,7 @@ export class SlotProjector {
     // 1) 把 direct children 上新加的“非 owned”节点投影进去
     const toMove: Node[] = [];
     for (const m of muts) {
-      if (m.type !== "childList") continue;
+      if (m.type !== 'childList') continue;
       if (m.target !== this.el) continue; // 只处理 direct children 的新增
       for (const n of Array.from(m.addedNodes)) {
         if (this.owned.has(n)) continue;

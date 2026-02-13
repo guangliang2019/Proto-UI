@@ -1,6 +1,6 @@
 // @vitest-environment happy-dom
-import { describe, it, expect } from "vitest";
-import { createWebProtoEventRouter } from "@proto-ui/adapters.base";
+import { describe, it, expect } from 'vitest';
+import { createWebProtoEventRouter } from '@proto-ui/adapters.base';
 
 function once(target: EventTarget, type: string) {
   return new Promise<any>((resolve) => {
@@ -8,9 +8,9 @@ function once(target: EventTarget, type: string) {
   });
 }
 
-describe("WC router: createWebProtoEventRouter", () => {
-  it("gate disabled => no proto events emitted", async () => {
-    const rootEl = document.createElement("div");
+describe('WC router: createWebProtoEventRouter', () => {
+  it('gate disabled => no proto events emitted', async () => {
+    const rootEl = document.createElement('div');
 
     let enabled = false;
     const router = createWebProtoEventRouter({
@@ -20,20 +20,20 @@ describe("WC router: createWebProtoEventRouter", () => {
     });
 
     const p = Promise.race([
-      once(router.rootTarget, "press.commit").then(() => "fired"),
-      new Promise((r) => setTimeout(() => r("timeout"), 0)),
+      once(router.rootTarget, 'press.commit').then(() => 'fired'),
+      new Promise((r) => setTimeout(() => r('timeout'), 0)),
     ]);
 
-    rootEl.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    rootEl.dispatchEvent(new MouseEvent('click', { bubbles: true }));
 
     const res = await p;
-    expect(res).toBe("timeout");
+    expect(res).toBe('timeout');
 
     router.dispose();
   });
 
-  it("click => root press.commit (payload is in CustomEvent.detail)", async () => {
-    const rootEl = document.createElement("div");
+  it('click => root press.commit (payload is in CustomEvent.detail)', async () => {
+    const rootEl = document.createElement('div');
 
     const router = createWebProtoEventRouter({
       rootEl,
@@ -41,8 +41,8 @@ describe("WC router: createWebProtoEventRouter", () => {
       isEnabled: () => true,
     });
 
-    const fired = once(router.rootTarget, "press.commit");
-    const native = new MouseEvent("click", { bubbles: true });
+    const fired = once(router.rootTarget, 'press.commit');
+    const native = new MouseEvent('click', { bubbles: true });
     rootEl.dispatchEvent(native);
 
     const ev = await fired;
@@ -52,8 +52,8 @@ describe("WC router: createWebProtoEventRouter", () => {
     router.dispose();
   });
 
-  it("keydown Enter => global key.down AND root press.commit", async () => {
-    const rootEl = document.createElement("div");
+  it('keydown Enter => global key.down AND root press.commit', async () => {
+    const rootEl = document.createElement('div');
 
     const router = createWebProtoEventRouter({
       rootEl,
@@ -61,11 +61,11 @@ describe("WC router: createWebProtoEventRouter", () => {
       isEnabled: () => true,
     });
 
-    const keyDownP = once(router.globalTarget, "key.down");
-    const pressCommitP = once(router.rootTarget, "press.commit");
+    const keyDownP = once(router.globalTarget, 'key.down');
+    const pressCommitP = once(router.rootTarget, 'press.commit');
 
-    const native = new KeyboardEvent("keydown", {
-      key: "Enter",
+    const native = new KeyboardEvent('keydown', {
+      key: 'Enter',
       bubbles: true,
     });
     window.dispatchEvent(native);
@@ -79,8 +79,8 @@ describe("WC router: createWebProtoEventRouter", () => {
     router.dispose();
   });
 
-  it("keyup => global key.up only (no press.commit)", async () => {
-    const rootEl = document.createElement("div");
+  it('keyup => global key.up only (no press.commit)', async () => {
+    const rootEl = document.createElement('div');
 
     const router = createWebProtoEventRouter({
       rootEl,
@@ -88,22 +88,22 @@ describe("WC router: createWebProtoEventRouter", () => {
       isEnabled: () => true,
     });
 
-    const keyUpP = once(router.globalTarget, "key.up");
+    const keyUpP = once(router.globalTarget, 'key.up');
 
     // press.commit should not fire on keyup in current policy
     const pressRace = Promise.race([
-      once(router.rootTarget, "press.commit").then(() => "fired"),
-      new Promise((r) => setTimeout(() => r("timeout"), 0)),
+      once(router.rootTarget, 'press.commit').then(() => 'fired'),
+      new Promise((r) => setTimeout(() => r('timeout'), 0)),
     ]);
 
-    const native = new KeyboardEvent("keyup", { key: "Enter", bubbles: true });
+    const native = new KeyboardEvent('keyup', { key: 'Enter', bubbles: true });
     window.dispatchEvent(native);
 
     const keyUpEv = await keyUpP;
     expect((keyUpEv as CustomEvent).detail).toBe(native);
 
     const pressRes = await pressRace;
-    expect(pressRes).toBe("timeout");
+    expect(pressRes).toBe('timeout');
 
     router.dispose();
   });

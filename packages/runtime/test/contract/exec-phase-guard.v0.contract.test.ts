@@ -1,7 +1,7 @@
 // packages/runtime/test/contract/exec-phase-guard.v0.contract.test.ts
-import { describe, it, expect } from "vitest";
-import type { Prototype, OwnedStateHandle } from "@proto-ui/core";
-import { executeWithHost, RuntimeHost } from "../../src";
+import { describe, it, expect } from 'vitest';
+import type { Prototype, OwnedStateHandle } from '@proto-ui/core';
+import { executeWithHost, RuntimeHost } from '../../src';
 
 /**
  * Runtime Contract (v0): exec phase guard
@@ -14,12 +14,12 @@ import { executeWithHost, RuntimeHost } from "../../src";
  * NOTE:
  * We use state module as a "probe" for __sys guards, instead of exposing __sys directly.
  */
-describe("runtime contract: exec phase guard (v0)", () => {
-  it("setup domain: runtime-only ops must throw; runtime domain begins before created/render", () => {
+describe('runtime contract: exec phase guard (v0)', () => {
+  it('setup domain: runtime-only ops must throw; runtime domain begins before created/render', () => {
     const logs: string[] = [];
 
     const host: RuntimeHost<any> = {
-      prototypeName: "x-runtime-exec-phase-guard",
+      prototypeName: 'x-runtime-exec-phase-guard',
       getRawProps() {
         return {};
       },
@@ -34,44 +34,38 @@ describe("runtime contract: exec phase guard (v0)", () => {
     let s!: OwnedStateHandle<boolean>;
 
     const P: Prototype = {
-      name: "x-runtime-exec-phase-guard",
+      name: 'x-runtime-exec-phase-guard',
       setup(def) {
-        s = def.state.bool("open", false);
+        s = def.state.bool('open', false);
 
         // setup domain: runtime-only op must throw
         expect(() => s.set(true)).toThrowError(/exec-phase violation/i);
 
         def.lifecycle.onCreated(() => {
-          logs.push("created");
+          logs.push('created');
 
           // runtime domain (callback): setup-only op must throw
-          expect(() => s.setDefault(true)).toThrowError(
-            /exec-phase violation/i
-          );
+          expect(() => s.setDefault(true)).toThrowError(/exec-phase violation/i);
 
           // runtime domain: runtime-only op should be allowed here
           expect(() => s.set(true)).not.toThrow();
         });
 
         def.lifecycle.onMounted(() => {
-          logs.push("mounted");
+          logs.push('mounted');
 
           // still runtime domain
-          expect(() => s.setDefault(false)).toThrowError(
-            /exec-phase violation/i
-          );
+          expect(() => s.setDefault(false)).toThrowError(/exec-phase violation/i);
           expect(() => s.set(false)).not.toThrow();
         });
 
         return (r) => {
-          logs.push("render");
+          logs.push('render');
 
           // render is runtime domain as well
-          expect(() => s.setDefault(true)).toThrowError(
-            /exec-phase violation/i
-          );
+          expect(() => s.setDefault(true)).toThrowError(/exec-phase violation/i);
 
-          return [r.el("div", "ok")];
+          return [r.el('div', 'ok')];
         };
       },
     };
@@ -79,12 +73,12 @@ describe("runtime contract: exec phase guard (v0)", () => {
     executeWithHost(P, host);
 
     // ordering sanity: created before render before mounted (host.schedule immediate here)
-    expect(logs).toEqual(["created", "render", "mounted"]);
+    expect(logs).toEqual(['created', 'render', 'mounted']);
   });
 
-  it("disposed boundary: handle is usable during unmounted; must throw after dispose", () => {
+  it('disposed boundary: handle is usable during unmounted; must throw after dispose', () => {
     const host: RuntimeHost<any> = {
-      prototypeName: "x-runtime-exec-phase-dispose",
+      prototypeName: 'x-runtime-exec-phase-dispose',
       getRawProps() {
         return {};
       },
@@ -100,9 +94,9 @@ describe("runtime contract: exec phase guard (v0)", () => {
     let s!: OwnedStateHandle<number>;
 
     const P: Prototype = {
-      name: "x-runtime-exec-phase-dispose",
+      name: 'x-runtime-exec-phase-dispose',
       setup(def) {
-        s = def.state.numberDiscrete("count", 0);
+        s = def.state.numberDiscrete('count', 0);
 
         def.lifecycle.onUnmounted(() => {
           // during unmounted callback: NOT disposed yet, must be usable
@@ -111,7 +105,7 @@ describe("runtime contract: exec phase guard (v0)", () => {
           expect(() => s.setDefault(2)).toThrow(); // still runtime domain
         });
 
-        return (r) => [r.el("div", "ok")];
+        return (r) => [r.el('div', 'ok')];
       },
     };
 

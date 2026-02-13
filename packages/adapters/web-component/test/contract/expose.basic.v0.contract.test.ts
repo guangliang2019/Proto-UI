@@ -1,21 +1,21 @@
-import { describe, it, expect } from "vitest";
-import type { Prototype } from "@proto-ui/core";
-import { AdaptToWebComponent } from "@proto-ui/adapters.web-component";
+import { describe, it, expect } from 'vitest';
+import type { Prototype } from '@proto-ui/core';
+import { AdaptToWebComponent } from '@proto-ui/adapters.web-component';
 
-describe("expose contract (adapter-web-component)", () => {
-  it("getExposes returns a record snapshot", () => {
+describe('expose contract (adapter-web-component)', () => {
+  it('getExposes returns a record snapshot', () => {
     const P: Prototype = {
-      name: "x-expose-basic",
+      name: 'x-expose-basic',
       setup(def) {
-        def.expose("api", { ping: () => "pong" });
-        def.expose("num", 1);
-        return (r) => [r.el("div", "ok")];
+        def.expose('api', { ping: () => 'pong' });
+        def.expose('num', 1);
+        return (r) => [r.el('div', 'ok')];
       },
     };
 
     AdaptToWebComponent(P);
 
-    const el = document.createElement("x-expose-basic") as any;
+    const el = document.createElement('x-expose-basic') as any;
     document.body.appendChild(el);
 
     const snapshot = el.getExposes();
@@ -30,18 +30,18 @@ describe("expose contract (adapter-web-component)", () => {
     expect(again.extra).toBeUndefined();
   });
 
-  it("dispose clears exposes snapshot", () => {
+  it('dispose clears exposes snapshot', () => {
     const P: Prototype = {
-      name: "x-expose-dispose",
+      name: 'x-expose-dispose',
       setup(def) {
-        def.expose("api", { version: 1 });
-        return (r) => [r.el("div", "ok")];
+        def.expose('api', { version: 1 });
+        return (r) => [r.el('div', 'ok')];
       },
     };
 
     AdaptToWebComponent(P);
 
-    const el = document.createElement("x-expose-dispose") as any;
+    const el = document.createElement('x-expose-dispose') as any;
     document.body.appendChild(el);
 
     expect(el.getExposes()).toEqual({ api: { version: 1 } });
@@ -51,41 +51,41 @@ describe("expose contract (adapter-web-component)", () => {
     expect(el.getExposes()).toEqual({});
   });
 
-  it("exposed state is projected to external handle with spec and subscribe", async () => {
+  it('exposed state is projected to external handle with spec and subscribe', async () => {
     const events: any[] = [];
 
     const P: Prototype = {
-      name: "x-expose-state-basic",
+      name: 'x-expose-state-basic',
       setup(def) {
-        const s = def.state.bool("ready", false);
-        def.expose("ready", s);
+        const s = def.state.bool('ready', false);
+        def.expose('ready', s);
         def.lifecycle.onMounted(() => {
           s.set(true);
         });
-        return (r) => [r.el("div", "ok")];
+        return (r) => [r.el('div', 'ok')];
       },
     };
 
     AdaptToWebComponent(P);
 
-    const el = document.createElement("x-expose-state-basic") as any;
+    const el = document.createElement('x-expose-state-basic') as any;
     document.body.appendChild(el);
 
     const exposes = el.getExposes();
     const ready = exposes.ready;
     expect(ready).toBeTruthy();
-    expect(typeof ready.get).toBe("function");
-    expect(typeof ready.subscribe).toBe("function");
-    expect(typeof ready.unsubscribe).toBe("function");
+    expect(typeof ready.get).toBe('function');
+    expect(typeof ready.subscribe).toBe('function');
+    expect(typeof ready.unsubscribe).toBe('function');
     expect(ready.spec).toBeTruthy();
-    expect(ready.spec.kind).toBe("bool");
+    expect(ready.spec.kind).toBe('bool');
     expect((ready as any).set).toBeUndefined();
 
     const off = ready.subscribe((e: any) => events.push(e));
     await Promise.resolve();
 
     expect(events.length).toBeGreaterThan(0);
-    expect(events[0].type).toBe("next");
+    expect(events[0].type).toBe('next');
 
     off();
   });

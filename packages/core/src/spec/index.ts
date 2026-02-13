@@ -1,2 +1,2 @@
-export * from "./feedback";
-export * from "./template";
+export * from './feedback';
+export * from './template';

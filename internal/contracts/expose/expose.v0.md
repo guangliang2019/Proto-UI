@@ -2,12 +2,9 @@
 
 > Status: Draft – v0
 >
-> This contract defines the **expose information channel** in Proto UI v0:
-> a component uses `def.expose` to actively publish output APIs to the App Maker.
-> The direction is **Component → App Maker**, the dual of props (App Maker → Component).
+> This contract defines the **expose information channel** in Proto UI v0: a component uses `def.expose` to actively publish output APIs to the App Maker. The direction is **Component → App Maker**, the dual of props (App Maker → Component).
 >
-> **Positioning (v0):** expose is a registration-based output API binding.
-> It does not provide subscription, dependency tracking, or automatic updates for exposed values.
+> **Positioning (v0):** expose is a registration-based output API binding. It does not provide subscription, dependency tracking, or automatic updates for exposed values.
 
 ---
 
@@ -75,8 +72,7 @@ def.expose<K extends keyof E>(key: K, value: E[K]): void
    - `value` is stored as the expose mapping entry.
    - v0 does not require tracking or synchronizing later changes to `value`.
 
-> Informative note:
-> If the host needs change notifications, expose a state handle or an explicit subscribe API.
+> Informative note: If the host needs change notifications, expose a state handle or an explicit subscribe API.
 
 ---
 

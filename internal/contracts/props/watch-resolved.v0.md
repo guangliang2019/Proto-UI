@@ -1,7 +1,6 @@
 # Watch Resolved Contract (v0)
 
-This document defines the v0 behavioral contract for **resolved-level watchers**
-registered via:
+This document defines the v0 behavioral contract for **resolved-level watchers** registered via:
 
 - `def.props.watch(keys, cb)`
 - `def.props.watchAll(cb)`
@@ -45,8 +44,7 @@ This contract does not cover:
 
 ## PROP-V0-3200 Hydration Rule
 
-Resolved watchers must not fire on the **first** raw application
-performed by the runtime/adapter to hydrate props.
+Resolved watchers must not fire on the **first** raw application performed by the runtime/adapter to hydrate props.
 
 Formally:
 
@@ -138,7 +136,6 @@ Therefore:
 
 ## PROP-V0-3700 No Observers Optimization (Non-Normative)
 
-If there are no observers registered (no resolved watchers and no raw watchers),
-the manager may skip diff computation and callback invocation.
+If there are no observers registered (no resolved watchers and no raw watchers), the manager may skip diff computation and callback invocation.
 
 This is an implementation optimization and does not affect observable behavior.

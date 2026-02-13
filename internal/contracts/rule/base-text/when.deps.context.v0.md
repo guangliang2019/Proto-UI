@@ -2,8 +2,7 @@
 
 > 状态：Draft – v0（实现对齐）
 >
-> 本契约规定 **when 依赖 context 的形式与路径访问规则**。
-> 目标是保持可序列化、可分析与跨平台可移植。
+> 本契约规定 **when 依赖 context 的形式与路径访问规则**。目标是保持可序列化、可分析与跨平台可移植。
 
 ---
 
@@ -109,15 +108,13 @@ v0 事实约束：
 
 ## 4. 等价性与比较
 
-从 context 派生的值参与 when 条件判断，
-遵循规则表达式的正常语义，不提供额外等价保证。
+从 context 派生的值参与 when 条件判断，遵循规则表达式的正常语义，不提供额外等价保证。
 
 ---
 
 ## 5. state handle 禁止
 
-v0 禁止在 context 中传递 state handle。
-若检测到 state handle，应视为非法结构，并以 `null` 处理。
+v0 禁止在 context 中传递 state handle。若检测到 state handle，应视为非法结构，并以 `null` 处理。
 
 ---
 

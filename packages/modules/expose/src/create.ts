@@ -1,16 +1,16 @@
 // packages/modules/expose/src/create.ts
-import { createModule, defineModule } from "@proto-ui/modules.base";
-import type { ModuleFactoryArgs } from "@proto-ui/modules.base";
+import { createModule, defineModule } from '@proto-ui/modules.base';
+import type { ModuleFactoryArgs } from '@proto-ui/modules.base';
 
-import type { ExposeFacade, ExposeModule, ExposePort } from "./types";
-import { ExposeModuleImpl } from "./impl";
+import type { ExposeFacade, ExposeModule, ExposePort } from './types';
+import { ExposeModuleImpl } from './impl';
 
 export function createExposeModule(ctx: ModuleFactoryArgs): ExposeModule {
   const { init, caps, deps } = ctx;
 
-  return createModule<"expose", "instance", ExposeFacade, ExposePort>({
-    name: "expose",
-    scope: "instance",
+  return createModule<'expose', 'instance', ExposeFacade, ExposePort>({
+    name: 'expose',
+    scope: 'instance',
     init,
     caps,
     deps,
@@ -30,7 +30,7 @@ export function createExposeModule(ctx: ModuleFactoryArgs): ExposeModule {
 }
 
 export const ExposeModuleDef = defineModule({
-  name: "expose",
+  name: 'expose',
   deps: [],
   create: createExposeModule,
 });

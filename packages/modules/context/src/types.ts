@@ -1,7 +1,7 @@
 // packages/modules/context/src/types.ts
-import type { ModuleInstance } from "@proto-ui/core";
-import type { ContextKey, JsonObject } from "@proto-ui/types";
-import type { ContextInstanceToken } from "./caps";
+import type { ModuleInstance } from '@proto-ui/core';
+import type { ContextKey, JsonObject } from '@proto-ui/types';
+import type { ContextInstanceToken } from './caps';
 
 export type ContextCallbackCtx = unknown;
 
@@ -24,10 +24,7 @@ export type ContextFacade = {
     defaultValue: T
   ): (next: T | ((prev: T) => T)) => void;
 
-  subscribe<T extends JsonObject>(
-    key: ContextKey<T>,
-    onChange?: ContextChangeCb<T>
-  ): void;
+  subscribe<T extends JsonObject>(key: ContextKey<T>, onChange?: ContextChangeCb<T>): void;
 
   trySubscribe<T extends JsonObject>(
     key: ContextKey<T>,
@@ -38,15 +35,9 @@ export type ContextFacade = {
   read<T extends JsonObject>(key: ContextKey<T>): T;
   tryRead<T extends JsonObject>(key: ContextKey<T>): T | null;
 
-  update<T extends JsonObject>(
-    key: ContextKey<T>,
-    next: T | ((prev: T) => T)
-  ): void;
+  update<T extends JsonObject>(key: ContextKey<T>, next: T | ((prev: T) => T)): void;
 
-  tryUpdate<T extends JsonObject>(
-    key: ContextKey<T>,
-    next: T | ((prev: T) => T)
-  ): boolean;
+  tryUpdate<T extends JsonObject>(key: ContextKey<T>, next: T | ((prev: T) => T)): boolean;
 };
 
 export type ContextProviderEntry = {
@@ -58,7 +49,7 @@ export type ContextProviderEntry = {
 export type ContextSubscriptionEntry = {
   instance: ContextInstanceToken;
   key: ContextKey<any>;
-  mode: "required" | "optional";
+  mode: 'required' | 'optional';
   callbackCount: number;
 };
 
@@ -77,6 +68,6 @@ export type ContextPort = {
 };
 
 export type ContextModule = ModuleInstance<ContextFacade> & {
-  name: "context";
-  scope: "singleton";
+  name: 'context';
+  scope: 'singleton';
 };

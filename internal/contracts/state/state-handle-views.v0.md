@@ -2,12 +2,9 @@
 
 > Status: Draft – v0
 >
-> This contract specifies the **state handle view system** in Proto UI v0:
-> `OwnedStateHandle`, `BorrowedStateHandle`, and `ObservedStateHandle`.
+> This contract specifies the **state handle view system** in Proto UI v0: `OwnedStateHandle`, `BorrowedStateHandle`, and `ObservedStateHandle`.
 >
-> This document does **not** redefine the semantics of state itself.
-> It only describes the **differences in capability sets** exposed by the same state slot
-> when viewed under different usage contexts.
+> This document does **not** redefine the semantics of state itself. It only describes the **differences in capability sets** exposed by the same state slot when viewed under different usage contexts.
 
 ---
 
@@ -21,9 +18,7 @@ State handle views are used to express:
 - **What level of control that user has over the state**
 - **Which operations are allowed or deliberately forbidden**
 
-The purpose of views is not a technical limitation, but a **semantic and stylistic constraint**:
-by shaping the API surface, Proto UI makes explicit which usages are encouraged
-and which usages are intentionally disallowed.
+The purpose of views is not a technical limitation, but a **semantic and stylistic constraint**: by shaping the API surface, Proto UI makes explicit which usages are encouraged and which usages are intentionally disallowed.
 
 ### 0.2 Boundaries (important)
 
@@ -52,11 +47,9 @@ In Proto UI, the same state slot may be used by different roles, such as:
 - Another prototype consuming the state via expose
 - (Further) the App Maker
 
-These users do not share the same **control rights, responsibilities, or expectations**
-with respect to the state.
+These users do not share the same **control rights, responsibilities, or expectations** with respect to the state.
 
-Therefore, Proto UI does not treat a “state handle” as a single uniform shape.
-Instead, it defines multiple **views**, each corresponding to a distinct usage semantic.
+Therefore, Proto UI does not treat a “state handle” as a single uniform shape. Instead, it defines multiple **views**, each corresponding to a distinct usage semantic.
 
 ---
 
@@ -68,8 +61,7 @@ v0 defines three state handle views:
 - **BorrowedStateHandle<V>** — borrowed view
 - **ObservedStateHandle<V>** — observed view
 
-All three views reference the **same state slot**,
-but expose different capability sets.
+All three views reference the **same state slot**, but expose different capability sets.
 
 ---
 
@@ -79,11 +71,9 @@ but expose different capability sets.
 
 `OwnedStateHandle` represents:
 
-> A state that is defined directly by the current prototype,
-> whose full semantics and lifecycle are the responsibility of the current author.
+> A state that is defined directly by the current prototype, whose full semantics and lifecycle are the responsibility of the current author.
 
-This is the **minimal owning view** of a state,
-and the only view returned by `def.state.*` in v0.
+This is the **minimal owning view** of a state, and the only view returned by `def.state.*` in v0.
 
 ### 3.2 Capability set (v0)
 
@@ -107,8 +97,7 @@ The absence of `watch` on the owned view is **intentional**, not a technical lim
 - Authors are encouraged to use direct reads and explicit writes
 - Self-watching one’s own state as a source of side effects is discouraged
 
-> If reacting to state changes is required, it should be done through other views
-> (Borrowed / Observed) or higher-level mechanisms (such as `rule`).
+> If reacting to state changes is required, it should be done through other views (Borrowed / Observed) or higher-level mechanisms (such as `rule`).
 
 ---
 
@@ -118,14 +107,12 @@ The absence of `watch` on the owned view is **intentional**, not a technical lim
 
 `BorrowedStateHandle` represents:
 
-> A state that is not defined by the current prototype,
-> but for which the current prototype is granted **partial control**.
+> A state that is not defined by the current prototype, but for which the current prototype is granted **partial control**.
 
 It is typically used when:
 
 - The state originates outside the current prototype
-- The current prototype is still considered a responsible participant
-  in driving the state’s behavior
+- The current prototype is still considered a responsible participant in driving the state’s behavior
 
 ### 4.2 Capability set (v0)
 
@@ -140,14 +127,12 @@ It is typically used when:
 
 ### 4.3 Design intent (normative)
 
-The borrowed view exposes both `set` and `watch`,
-expressing a **shared semantic responsibility**:
+The borrowed view exposes both `set` and `watch`, expressing a **shared semantic responsibility**:
 
 - The current prototype may drive state changes
 - The current prototype is also expected to react to state changes
 
-This view is commonly used in **composition and reuse scenarios**,
-but the exact mechanisms that produce it are not defined in this document.
+This view is commonly used in **composition and reuse scenarios**, but the exact mechanisms that produce it are not defined in this document.
 
 ---
 
@@ -157,14 +142,12 @@ but the exact mechanisms that produce it are not defined in this document.
 
 `ObservedStateHandle` represents:
 
-> A state that the current prototype is only allowed to **observe**,
-> without any authority to mutate it.
+> A state that the current prototype is only allowed to **observe**, without any authority to mutate it.
 
 It is used when:
 
 - The state’s semantics and control are entirely external
-- The current prototype should only react to the state,
-  not influence its value
+- The current prototype should only react to the state, not influence its value
 
 ### 5.2 Capability set (v0)
 
@@ -198,8 +181,7 @@ The observed view enforces a **read-only semantic boundary**:
 | set               | ✓     | ✓        | ✗        |
 | watch             | ✗     | ✓        | ✓        |
 
-> All capabilities are subject to the execution-phase and lifecycle constraints
-> defined in `state.v0.md`.
+> All capabilities are subject to the execution-phase and lifecycle constraints defined in `state.v0.md`.
 
 ---
 

@@ -1,10 +1,8 @@
 # Adapter Lifecycle Contract (v0)
 
-This document defines the **obligations and constraints for Adapter Authors**
-(Web Components, React, Vue, etc.).
+This document defines the **obligations and constraints for Adapter Authors** (Web Components, React, Vue, etc.).
 
-It specifies how host-specific lifecycles MUST be mapped
-into Proto UI’s canonical lifecycle timeline.
+It specifies how host-specific lifecycles MUST be mapped into Proto UI’s canonical lifecycle timeline.
 
 This document is **normative**.
 
@@ -12,11 +10,9 @@ This document is **normative**.
 
 ## Canonical Timeline
 
-Proto UI defines a single canonical lifecycle timeline,
-refined by **checkpoints (CP)**.
+Proto UI defines a single canonical lifecycle timeline, refined by **checkpoints (CP)**.
 
-Adapters MUST map host behavior into this timeline.
-Adapters MUST NOT introduce parallel or competing lifecycle models.
+Adapters MUST map host behavior into this timeline. Adapters MUST NOT introduce parallel or competing lifecycle models.
 
 ---
 
@@ -107,8 +103,7 @@ Adapters MUST NOT introduce parallel or competing lifecycle models.
 - At CP10:
   - `__sys.isDisposed()` MUST become `true`.
 - After CP10:
-  - Any access to module facades or handles guarded by `__sys`
-    MUST throw.
+  - Any access to module facades or handles guarded by `__sys` MUST throw.
 
 ---
 
@@ -117,10 +112,8 @@ Adapters MUST NOT introduce parallel or competing lifecycle models.
 1. Adapters MUST preserve checkpoint ordering.
 2. Adapters MUST NOT reorder callbacks relative to checkpoints.
 3. Adapters MUST NOT dispose modules before CP10.
-4. Adapters MUST ensure CP9 callbacks (`unmounted`) run
-   before disposal.
-5. Adapters MUST correctly toggle `__sys.domain()` and
-   `__sys.isDisposed()` at CP0 and CP10 respectively.
+4. Adapters MUST ensure CP9 callbacks (`unmounted`) run before disposal.
+5. Adapters MUST correctly toggle `__sys.domain()` and `__sys.isDisposed()` at CP0 and CP10 respectively.
 
 Violations of these rules are considered adapter bugs.
 
@@ -128,8 +121,7 @@ Violations of these rules are considered adapter bugs.
 
 ## Error Handling
 
-Adapters MUST surface lifecycle violations as runtime errors.
-Silent failure or partial execution is forbidden.
+Adapters MUST surface lifecycle violations as runtime errors. Silent failure or partial execution is forbidden.
 
 ---
 

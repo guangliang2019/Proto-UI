@@ -1,5 +1,5 @@
 // packages/core/src/effects/types.ts
-import { StyleHandle } from "../spec";
+import { StyleHandle } from '../spec';
 
 /**
  * EffectsPort (v0)

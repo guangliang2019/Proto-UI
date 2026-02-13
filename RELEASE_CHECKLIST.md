@@ -97,4 +97,3 @@
 - Contracts: `/Users/yangguangliang/Desktop/projects/Proto-UI/internal/contracts`
 - Adapters: `/Users/yangguangliang/Desktop/projects/Proto-UI/packages/adapters`
 - Docs content: `/Users/yangguangliang/Desktop/projects/Proto-UI/apps/www/src/content`
-

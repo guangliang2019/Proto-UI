@@ -2,26 +2,21 @@
 
 > Status: Draft – v0
 >
-> This contract specifies the **watch capability of state** in Proto UI v0,
-> including its positioning, applicable handle views, registration timing,
-> and lifecycle constraints.
+> This contract specifies the **watch capability of state** in Proto UI v0, including its positioning, applicable handle views, registration timing, and lifecycle constraints.
 >
-> This document deliberately defines only a minimal semantic surface for `watch`
-> and does **not** treat it as a reactive system or a render-driving mechanism.
+> This document deliberately defines only a minimal semantic surface for `watch` and does **not** treat it as a reactive system or a render-driving mechanism.
 
 ---
 
 ## 0. Positioning Statement
 
-In Proto UI, `watch` is an **auxiliary observation capability**
-that allows consumers to be notified when a state value changes.
+In Proto UI, `watch` is an **auxiliary observation capability** that allows consumers to be notified when a state value changes.
 
 The design goals of `watch` are:
 
 - To support a small amount of explicit state-coupling logic
 - To enable controlled integration of side effects and module composition
-- **Not** to build an automatic update, dependency-tracking,
-  or reactive rendering system
+- **Not** to build an automatic update, dependency-tracking, or reactive rendering system
 
 Accordingly, v0 keeps the semantic commitments of `watch` intentionally minimal.
 
@@ -42,8 +37,7 @@ In v0, `watch` is **not** a capability available on all state handle views.
 
 - `OwnedStateHandle` **does not** provide `watch`
 
-> This restriction is a **semantic and stylistic constraint**, not a technical one.
-> Authors are discouraged from treating self-defined state as a source of side effects.
+> This restriction is a **semantic and stylistic constraint**, not a technical one. Authors are discouraged from treating self-defined state as a source of side effects.
 
 ---
 
@@ -61,12 +55,10 @@ This constraint ensures that:
 
 ### 2.2 Registration form
 
-The exact registration form of `watch` is not strictly specified in v0,
-but it MUST satisfy the following:
+The exact registration form of `watch` is not strictly specified in v0, but it MUST satisfy the following:
 
 - A callback function `cb` is registered
-- When the state value changes, the system invokes the callback
-  at an appropriate time
+- When the state value changes, the system invokes the callback at an appropriate time
 
 The callback signature and event object shape are **not** defined by this contract.
 
@@ -77,8 +69,7 @@ The callback signature and event object shape are **not** defined by this contra
 v0 specifies only the following minimal trigger conditions:
 
 - When the state value **actually changes**, `watch` **SHOULD** be triggered
-- When the next value is semantically equivalent to the previous value
-  (e.g. `Object.is(prev, next)`), `watch` **MAY NOT** be triggered
+- When the next value is semantically equivalent to the previous value (e.g. `Object.is(prev, next)`), `watch` **MAY NOT** be triggered
 
 Beyond this, this contract does **not** specify:
 
@@ -103,8 +94,7 @@ Watches registered via a state handle:
 After the instance is disposed:
 
 - Watch callbacks **MUST NOT** be invoked
-- Calling `watch` on an invalid (disposed) handle **MUST** throw
-  (see execution-phase rules)
+- Calling `watch` on an invalid (disposed) handle **MUST** throw (see execution-phase rules)
 
 ---
 
@@ -114,16 +104,14 @@ v0 takes an open but conservative stance on behavior inside watch callbacks:
 
 - A watch callback **MAY** read state
 - A watch callback **MAY** trigger updates to other states
-- Implementations **MAY** apply simple re-entrancy protection
-  or event-queue mechanisms
+- Implementations **MAY** apply simple re-entrancy protection or event-queue mechanisms
 
 This contract does **not** guarantee or forbid:
 
 - Calling `set` on the same state from within its own watch callback
 - Any upper bound on nesting depth or execution count
 
-> For stronger determinism or structured reactions,
-> higher-level mechanisms (such as `rule`) should be preferred.
+> For stronger determinism or structured reactions, higher-level mechanisms (such as `rule`) should be preferred.
 
 ---
 
@@ -132,8 +120,7 @@ This contract does **not** guarantee or forbid:
 `watch` has **no direct coupling** with rendering or update scheduling:
 
 - A watch callback **MUST NOT** implicitly trigger render or commit
-- If UI updates are required, `run.update()` (or an equivalent update entry)
-  must be called explicitly
+- If UI updates are required, `run.update()` (or an equivalent update entry) must be called explicitly
 
 `watch` itself is not part of a rendering or scheduling model.
 
@@ -158,8 +145,7 @@ Error diagnostics SHOULD include, when possible:
 
 - Execution-phase and lifecycle rules are inherited from `state.v0.md`
 - Visibility rules for `watch` are inherited from `state-handle-views.v0.md`
-- This document does not define how `watch` is used by rule,
-  interaction, or expose mechanisms
+- This document does not define how `watch` is used by rule, interaction, or expose mechanisms
 
 ---
 
@@ -171,5 +157,4 @@ In v0:
 - It supports limited state coupling rather than reactive systems
 - Proto UI does not encourage building complex state-driven logic around `watch`
 
-Higher-level state reaction and composition should preferentially use
-`rule` or other declarative mechanisms.
+Higher-level state reaction and composition should preferentially use `rule` or other declarative mechanisms.

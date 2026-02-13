@@ -1,18 +1,18 @@
-import { describe, it, expect } from "vitest";
-import type { Prototype, TemplateChildren } from "@proto-ui/core";
-import { executeWithHost, RuntimeHost } from "../../src";
+import { describe, it, expect } from 'vitest';
+import type { Prototype, TemplateChildren } from '@proto-ui/core';
+import { executeWithHost, RuntimeHost } from '../../src';
 
-describe("contract: runtime / update strict order (v0)", () => {
-  it("render happens before commit, and updated callbacks happen after commit", () => {
+describe('contract: runtime / update strict order (v0)', () => {
+  it('render happens before commit, and updated callbacks happen after commit', () => {
     const calls: string[] = [];
 
     const P: Prototype = {
-      name: "x-life-update-order",
+      name: 'x-life-update-order',
       setup(def) {
-        def.lifecycle.onUpdated(() => calls.push("updated"));
+        def.lifecycle.onUpdated(() => calls.push('updated'));
         return (_r) => {
-          calls.push("render");
-          return [{ type: "div", children: ["x"] } as any];
+          calls.push('render');
+          return [{ type: 'div', children: ['x'] } as any];
         };
       },
     };
@@ -21,7 +21,7 @@ describe("contract: runtime / update strict order (v0)", () => {
       prototypeName: P.name,
       getRawProps: () => ({}),
       commit: (_children: TemplateChildren) => {
-        calls.push("commit");
+        calls.push('commit');
       },
       schedule: (_task) => {},
     };
@@ -33,9 +33,9 @@ describe("contract: runtime / update strict order (v0)", () => {
 
     controller.update();
 
-    const iRender = calls.indexOf("render");
-    const iCommit = calls.indexOf("commit");
-    const iUpdated = calls.indexOf("updated");
+    const iRender = calls.indexOf('render');
+    const iCommit = calls.indexOf('commit');
+    const iUpdated = calls.indexOf('updated');
 
     expect(iRender).toBeGreaterThanOrEqual(0);
     expect(iCommit).toBeGreaterThanOrEqual(0);

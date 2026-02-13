@@ -1,16 +1,16 @@
 // packages/modules/rule/src/compile.ts
-import type { RuleIR, RuleSpec, RuleOp } from "./types";
-import { createWhenBuilder } from "./when-builder";
-import { createIntentBuilder } from "./intent-builder";
+import type { RuleIR, RuleSpec, RuleOp } from './types';
+import { createWhenBuilder } from './when-builder';
+import { createIntentBuilder } from './intent-builder';
 
 function attachDefaultReasons(ops: RuleOp[], spec: RuleSpec<any>): RuleOp[] {
   return ops.map((op, idx) => {
-    if (op.kind !== "state.set") return op;
+    if (op.kind !== 'state.set') return op;
     if (op.reason !== undefined) return op;
     return {
       ...op,
       reason: {
-        kind: "rule",
+        kind: 'rule',
         label: spec.label,
         note: spec.note,
         opIndex: idx,
@@ -28,7 +28,7 @@ export function compileRule<Props extends {}>(
   opt?: {
     registerStateHandle?: (id: any, handle: any) => void;
   }
-): Omit<RuleIR<Props>, "id"> {
+): Omit<RuleIR<Props>, 'id'> {
   const { w, getDeps } = createWhenBuilder<Props>({
     onStateHandle: opt?.registerStateHandle,
   });
@@ -45,6 +45,6 @@ export function compileRule<Props extends {}>(
     note: spec.note,
     deps: getDeps(),
     when,
-    intent: { kind: "ops", ops },
+    intent: { kind: 'ops', ops },
   };
 }

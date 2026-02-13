@@ -2,8 +2,7 @@
 
 ## Purpose
 
-Defines how rule runtime evaluates RuleIR and produces a Plan.
-Rule runtime does not touch the host directly.
+Defines how rule runtime evaluates RuleIR and produces a Plan. Rule runtime does not touch the host directly.
 
 ---
 
@@ -46,7 +45,7 @@ Runtime MUST:
 
 ```ts
 type RulePlanV0 = {
-  kind: "style.tokens";
+  kind: 'style.tokens';
   tokens: string[];
 };
 ```
@@ -110,8 +109,7 @@ When all are true:
 - adapter enables `expose-state-web` (CSS variables / DOM attributes)
 - intent is only `feedback.style`
 
-rules may compile into static selector styles and skip runtime execution.
-This is semantically equivalent and recommended in v0.
+rules may compile into static selector styles and skip runtime execution. This is semantically equivalent and recommended in v0.
 
 ---
 
@@ -120,4 +118,3 @@ This is semantically equivalent and recommended in v0.
 - evaluation MUST be deterministic
 - identical inputs MUST produce identical merged results (Plan or equivalent execution)
 - runtime MUST NOT bypass adapter boundary
-

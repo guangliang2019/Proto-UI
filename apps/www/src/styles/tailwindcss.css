@@ -46,7 +46,7 @@
 }
 
 :root.dark,
-:root[data-theme="dark"] {
+:root[data-theme='dark'] {
   --color-background: oklch(14.5% 0 0);
   --color-foreground: oklch(98.5% 0 0);
   --color-card: oklch(20.5% 0 0);

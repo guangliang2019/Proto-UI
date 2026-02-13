@@ -4,5 +4,5 @@ export type {
   ModuleOrchestratorFacadeView,
   ModuleWiring,
   AnyModule,
-} from "./types";
-export { RuntimeModuleOrchestrator } from "./runtime-module-orchestrator";
+} from './types';
+export { RuntimeModuleOrchestrator } from './runtime-module-orchestrator';

@@ -1,10 +1,10 @@
 // packages/modules/base/src/module-base.ts
-import type { ProtoPhase } from "@proto-ui/core";
-import type { CapsVaultView } from "@proto-ui/core";
-import { SYS_CAP } from "./system-caps";
+import type { ProtoPhase } from '@proto-ui/core';
+import type { CapsVaultView } from '@proto-ui/core';
+import { SYS_CAP } from './system-caps';
 
 export abstract class ModuleBase {
-  protected protoPhase: ProtoPhase = "setup";
+  protected protoPhase: ProtoPhase = 'setup';
   protected readonly caps: CapsVaultView;
 
   private pending: Array<() => void> = [];

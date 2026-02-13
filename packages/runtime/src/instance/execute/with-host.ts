@@ -1,14 +1,14 @@
 // packages/runtime/src/instance/execute/with-host.ts
-import { Prototype, RunHandle } from "@proto-ui/core";
-import { PropsBaseType } from "@proto-ui/types";
-import { RuntimeHost } from "../host";
-import { ExecuteWithHostResult, RuntimeController } from "./types";
-import { createTimeline } from "../../kernel/timeline";
-import type { PropsFacade, PropsPort } from "@proto-ui/modules.props";
-import type { RulePort } from "@proto-ui/modules.rule";
-import { EventPort } from "@proto-ui/modules.event";
-import { __RT_EVENT_CALLBACKS } from "../../kernel/event";
-import { createRuntimeInstance } from "../instance";
+import { Prototype, RunHandle } from '@proto-ui/core';
+import { PropsBaseType } from '@proto-ui/types';
+import { RuntimeHost } from '../host';
+import { ExecuteWithHostResult, RuntimeController } from './types';
+import { createTimeline } from '../../kernel/timeline';
+import type { PropsFacade, PropsPort } from '@proto-ui/modules.props';
+import type { RulePort } from '@proto-ui/modules.rule';
+import { EventPort } from '@proto-ui/modules.event';
+import { __RT_EVENT_CALLBACKS } from '../../kernel/event';
+import { createRuntimeInstance } from '../instance';
 
 export function executeWithHost<P extends PropsBaseType>(
   proto: Prototype<P>,
@@ -28,37 +28,37 @@ export function executeWithHost<P extends PropsBaseType>(
   const { lifecycle, run } = kernel;
 
   const facades = moduleHub.getFacades();
-  const propsFacade = facades["props"] as PropsFacade<P>;
-  const rulePort = moduleHub.getPort<RulePort<P>>("rule");
+  const propsFacade = facades['props'] as PropsFacade<P>;
+  const rulePort = moduleHub.getPort<RulePort<P>>('rule');
 
-  const propsPort = moduleHub.getPort<PropsPort<P>>("props");
+  const propsPort = moduleHub.getPort<PropsPort<P>>('props');
   if (!propsPort) {
-    throw new Error("props port not found");
+    throw new Error('props port not found');
   }
 
   // initial props hydration (before any callbacks + before initial render)
   propsPort.applyRaw({ ...(host.getRawProps?.() ?? {}) });
-  timeline.mark("host:ready");
+  timeline.mark('host:ready');
 
-  const doRenderCommit = (kind: "initial" | "update") => {
+  const doRenderCommit = (kind: 'initial' | 'update') => {
     // pull latest raw before rendering
     propsPort.syncFromHost();
 
     const children = inst.renderOnce();
 
-    timeline.mark("commit:begin");
+    timeline.mark('commit:begin');
 
     let commitDone = false;
     const afterCommit = () => {
       if (commitDone) return;
       commitDone = true;
 
-      timeline.mark("commit:done");
+      timeline.mark('commit:done');
 
-      timeline.mark("instance:reachable");
+      timeline.mark('instance:reachable');
 
       // bind event dispatch
-      const eventPort = moduleHub.getPort<EventPort>("event");
+      const eventPort = moduleHub.getPort<EventPort>('event');
       const eventRegistry = (moduleHub as any)[__RT_EVENT_CALLBACKS] as
         | { dispatch: (run: RunHandle<P>, id: string, ev: any) => void }
         | undefined;
@@ -73,10 +73,10 @@ export function executeWithHost<P extends PropsBaseType>(
       }
 
       moduleHub.afterRenderCommit();
-      timeline.mark("afterRenderCommit");
+      timeline.mark('afterRenderCommit');
 
-      if (kind === "update") {
-        moduleHub.setProtoPhase("updated");
+      if (kind === 'update') {
+        moduleHub.setProtoPhase('updated');
         // updated callbacks
         callbackScope.run(run, () => {
           for (const cb of lifecycle.updated) cb(run);
@@ -97,7 +97,7 @@ export function executeWithHost<P extends PropsBaseType>(
     const current = propsFacade.get();
     if (!rulePort) return [];
     const res = rulePort.evaluate({ props: current });
-    if (res.kind === "plan" && res.plan.kind === "style.tokens") {
+    if (res.kind === 'plan' && res.plan.kind === 'style.tokens') {
       const tokens = res.plan.tokens;
       return tokens;
     }
@@ -111,7 +111,7 @@ export function executeWithHost<P extends PropsBaseType>(
       callbackScope.runNoSync(run, () => {});
     },
     update() {
-      doRenderCommit("update");
+      doRenderCommit('update');
     },
     getRuleStyleTokens() {
       return evaluateRuleStyle();
@@ -126,16 +126,16 @@ export function executeWithHost<P extends PropsBaseType>(
   });
 
   // initial commit
-  const children = doRenderCommit("initial");
+  const children = doRenderCommit('initial');
 
-  moduleHub.setProtoPhase("mounted");
-  timeline.mark("proto:mounted");
+  moduleHub.setProtoPhase('mounted');
+  timeline.mark('proto:mounted');
 
   let ended = false;
 
   host.schedule(() => {
     if (ended) return;
-    timeline.mark("mounted:callbacks");
+    timeline.mark('mounted:callbacks');
 
     callbackScope.run(run, () => {
       for (const cb of lifecycle.mounted) cb(run);
@@ -146,10 +146,10 @@ export function executeWithHost<P extends PropsBaseType>(
     if (ended) return;
     ended = true;
 
-    timeline.mark("unmount:begin");
+    timeline.mark('unmount:begin');
     host.onUnmountBegin?.();
 
-    const eventPort = moduleHub.getPort<EventPort>("event");
+    const eventPort = moduleHub.getPort<EventPort>('event');
     eventPort?.unbind?.();
     const eventRegistry = (moduleHub as any)[__RT_EVENT_CALLBACKS] as
       | { clear: () => void }
@@ -159,11 +159,11 @@ export function executeWithHost<P extends PropsBaseType>(
     callbackScope.run(run, () => {
       for (const cb of lifecycle.unmounted) cb(run);
     });
-    timeline.mark("unmounted:callbacks");
+    timeline.mark('unmounted:callbacks');
 
-    moduleHub.setProtoPhase("unmounted");
+    moduleHub.setProtoPhase('unmounted');
     inst.dispose();
-    timeline.mark("dispose:done");
+    timeline.mark('dispose:done');
   };
 
   return { children, controller, invokeUnmounted, caps: moduleHub };

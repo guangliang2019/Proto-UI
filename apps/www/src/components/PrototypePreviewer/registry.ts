@@ -11,12 +11,12 @@ export function registerPrototype(id: string, proto: Prototype<any, any>) {
   if (!id || typeof id !== 'string') {
     throw new Error('registerPrototype: invalid id');
   }
-  
+
   // SSR 环境下静默跳过
   if (!isBrowser || !map) {
     return;
   }
-  
+
   map.set(id, proto);
 }
 
@@ -24,19 +24,18 @@ export function getPrototype(id: string): Prototype<any, any> {
   // SSR 环境下的友好提示
   if (!isBrowser || !map) {
     throw new Error(
-      `[PrototypePreviewer] 尝试在 SSR 环境获取原型 "${id}"。` +
-      `原型注册表仅在客户端可用。`
+      `[PrototypePreviewer] 尝试在 SSR 环境获取原型 "${id}"。` + `原型注册表仅在客户端可用。`
     );
   }
-  
+
   const p = map.get(id);
   if (!p) {
     // 提供更详细的错误信息
     const available = Array.from(map.keys());
     throw new Error(
       `[PrototypePreviewer] 未找到原型 "${id}"。\n` +
-      `已注册的原型: ${available.length > 0 ? available.join(', ') : '(无)'}\n` +
-      `提示: 请确保在客户端调用 registerPrototype() 之后再使用。`
+        `已注册的原型: ${available.length > 0 ? available.join(', ') : '(无)'}\n` +
+        `提示: 请确保在客户端调用 registerPrototype() 之后再使用。`
     );
   }
   return p;

@@ -13,6 +13,4 @@ export function cap<T>(id: string): CapToken<T> {
 }
 
 /** type helper */
-export type CapValue<T extends CapToken<any>> = T extends CapToken<infer V>
-  ? V
-  : never;
+export type CapValue<T extends CapToken<any>> = T extends CapToken<infer V> ? V : never;

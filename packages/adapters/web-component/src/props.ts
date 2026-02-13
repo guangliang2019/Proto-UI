@@ -1,5 +1,5 @@
 // packages/adapters/web-component/src/props.ts
-import type { RuntimeController } from "@proto-ui/runtime";
+import type { RuntimeController } from '@proto-ui/runtime';
 
 const rawMap = new WeakMap<HTMLElement, Record<string, any>>();
 const ctrlMap = new WeakMap<HTMLElement, RuntimeController>();

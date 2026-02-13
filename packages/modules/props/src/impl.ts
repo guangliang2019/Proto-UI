@@ -5,29 +5,20 @@ import type {
   WatchInfo,
   ProtoPhase,
   CapsVaultView,
-} from "@proto-ui/core";
-import { illegalPhase } from "@proto-ui/core";
+} from '@proto-ui/core';
+import { illegalPhase } from '@proto-ui/core';
 
-import { ModuleBase } from "@proto-ui/modules.base";
-import type { PropsBaseType, PropsSpecMap } from "@proto-ui/types";
+import { ModuleBase } from '@proto-ui/modules.base';
+import type { PropsBaseType, PropsSpecMap } from '@proto-ui/types';
 
-import type {
-  RawPropsSource,
-  PropsWatchCb,
-  RawWatchCb,
-  PropsWatchTask,
-} from "./types";
-import { RAW_PROPS_SOURCE_CAP } from "./caps";
-import { PropsKernel, type PropsChangeReport } from "./kernel/kernel";
+import type { RawPropsSource, PropsWatchCb, RawWatchCb, PropsWatchTask } from './types';
+import { RAW_PROPS_SOURCE_CAP } from './caps';
+import { PropsKernel, type PropsChangeReport } from './kernel/kernel';
 function objectIs(a: any, b: any) {
   return Object.is(a, b);
 }
 
-function diffKeys(
-  prev: Record<string, any>,
-  next: Record<string, any>,
-  keys: string[]
-) {
+function diffKeys(prev: Record<string, any>, next: Record<string, any>, keys: string[]) {
   const changed: string[] = [];
   for (const k of keys) {
     if (!objectIs((prev as any)[k], (next as any)[k])) changed.push(k);
@@ -86,7 +77,7 @@ export class PropsModuleImpl<P extends PropsBaseType> extends ModuleBase {
   // -------------------------
 
   define(decl: PropsSpecMap<P>): void {
-    this.guardSetupOnly("def.props.define");
+    this.guardSetupOnly('def.props.define');
     this.kernel.define(decl);
 
     // keep declared keys in impl for watch validation (impl concern)
@@ -94,12 +85,12 @@ export class PropsModuleImpl<P extends PropsBaseType> extends ModuleBase {
   }
 
   setDefaults(partialDefaults: PropsDefaults<P>): void {
-    this.guardSetupOnly("def.props.setDefaults");
+    this.guardSetupOnly('def.props.setDefaults');
     this.kernel.setDefaults(partialDefaults);
   }
 
   watchKeys(keys: (keyof P & string)[], cb: PropsWatchCb<P>): void {
-    this.guardSetupOnly("def.props.watch");
+    this.guardSetupOnly('def.props.watch');
     if (!Array.isArray(keys) || keys.length === 0) {
       throw new Error(
         `[Props] watch(keys) requires non-empty declared keys. Use watchAll() instead.`
@@ -109,16 +100,12 @@ export class PropsModuleImpl<P extends PropsBaseType> extends ModuleBase {
     // If we haven't seen any define() yet, refusing is safer than silently accepting.
     // This keeps the contract strict and avoids delayed runtime surprises.
     if (this.declaredKeys.size === 0) {
-      throw new Error(
-        `[Props] watch(keys) requires props to be declared first (define()).`
-      );
+      throw new Error(`[Props] watch(keys) requires props to be declared first (define()).`);
     }
 
     for (const k of keys as any as string[]) {
       if (!this.declaredKeys.has(k)) {
-        throw new Error(
-          `[Props] watch(keys) only allows declared keys. Undeclared: ${k}`
-        );
+        throw new Error(`[Props] watch(keys) only allows declared keys. Undeclared: ${k}`);
       }
     }
 
@@ -126,7 +113,7 @@ export class PropsModuleImpl<P extends PropsBaseType> extends ModuleBase {
   }
 
   watchAllKeys(cb: PropsWatchCb<P>): void {
-    this.guardSetupOnly("def.props.watchAll");
+    this.guardSetupOnly('def.props.watchAll');
     this.watchAll.push({ cb });
   }
 
@@ -135,17 +122,15 @@ export class PropsModuleImpl<P extends PropsBaseType> extends ModuleBase {
     cb: RawWatchCb<P & PropsBaseType>,
     devWarn = true
   ): void {
-    this.guardSetupOnly("def.props.watchRaw");
+    this.guardSetupOnly('def.props.watchRaw');
     if (!Array.isArray(keys) || keys.length === 0) {
-      throw new Error(
-        `[Props] watchRaw(keys) requires non-empty keys. Use watchRawAll() instead.`
-      );
+      throw new Error(`[Props] watchRaw(keys) requires non-empty keys. Use watchRawAll() instead.`);
     }
     this.watchRaw.push({ keys: [...(keys as any)], cb, devWarn });
   }
 
   watchRawAllKeys(cb: RawWatchCb<P & PropsBaseType>, devWarn = true): void {
-    this.guardSetupOnly("def.props.watchRawAll");
+    this.guardSetupOnly('def.props.watchRawAll');
     this.watchRawAll.push({ cb, devWarn });
   }
 
@@ -174,9 +159,7 @@ export class PropsModuleImpl<P extends PropsBaseType> extends ModuleBase {
 
     if (!this.caps.has(RAW_PROPS_SOURCE_CAP)) return;
 
-    const src = this.caps.get(
-      RAW_PROPS_SOURCE_CAP
-    ) as unknown as RawPropsSource<P>;
+    const src = this.caps.get(RAW_PROPS_SOURCE_CAP) as unknown as RawPropsSource<P>;
     if (!src) return;
 
     if (this.lastSource !== src) this.rawDirty = true;
@@ -210,11 +193,7 @@ export class PropsModuleImpl<P extends PropsBaseType> extends ModuleBase {
 
     // resolved all-changes based on declared keys
     const declKeys = Object.keys(nextResolved as any);
-    const changedAllResolved = diffKeys(
-      prevResolved as any,
-      nextResolved as any,
-      declKeys
-    );
+    const changedAllResolved = diffKeys(prevResolved as any, nextResolved as any, declKeys);
 
     // raw all-changes based on union keys
     const unionKeys = Array.from(
@@ -230,7 +209,7 @@ export class PropsModuleImpl<P extends PropsBaseType> extends ModuleBase {
         changedKeysMatched: changedAllRaw as any,
       };
       tasks.push({
-        kind: "raw",
+        kind: 'raw',
         cb: w.cb as any,
         next: nextRaw as any,
         prev: prevRaw as any,
@@ -247,7 +226,7 @@ export class PropsModuleImpl<P extends PropsBaseType> extends ModuleBase {
         changedKeysMatched: matched as any,
       };
       tasks.push({
-        kind: "raw",
+        kind: 'raw',
         cb: w.cb as any,
         next: nextRaw as any,
         prev: prevRaw as any,
@@ -263,7 +242,7 @@ export class PropsModuleImpl<P extends PropsBaseType> extends ModuleBase {
         changedKeysMatched: changedAllResolved as any,
       };
       tasks.push({
-        kind: "resolved",
+        kind: 'resolved',
         cb: w.cb as any,
         next: nextResolved as any,
         prev: prevResolved as any,
@@ -273,18 +252,14 @@ export class PropsModuleImpl<P extends PropsBaseType> extends ModuleBase {
 
     for (const w of this.watch) {
       if (changedAllResolved.length === 0) continue;
-      const matched = diffKeys(
-        prevResolved as any,
-        nextResolved as any,
-        w.keys
-      );
+      const matched = diffKeys(prevResolved as any, nextResolved as any, w.keys);
       if (matched.length === 0) continue;
       const info: WatchInfo<P> = {
         changedKeysAll: changedAllResolved as any,
         changedKeysMatched: matched as any,
       };
       tasks.push({
-        kind: "resolved",
+        kind: 'resolved',
         cb: w.cb as any,
         next: nextResolved as any,
         prev: prevResolved as any,
@@ -306,7 +281,7 @@ export class PropsModuleImpl<P extends PropsBaseType> extends ModuleBase {
   override onProtoPhase(phase: ProtoPhase): void {
     super.onProtoPhase(phase);
 
-    if (phase === "unmounted") {
+    if (phase === 'unmounted') {
       this.dispose();
     }
   }
@@ -333,7 +308,7 @@ export class PropsModuleImpl<P extends PropsBaseType> extends ModuleBase {
   // -------------------------
 
   private guardSetupOnly(op: string) {
-    if (this.protoPhase !== "setup") {
+    if (this.protoPhase !== 'setup') {
       throw illegalPhase(op, this.protoPhase, {
         prototypeName: this.prototypeName,
         hint: `Use 'run' callbacks (created/mounted/updated) for runtime behavior; do not call def.* after setup.`,
@@ -369,9 +344,7 @@ export class PropsModuleImpl<P extends PropsBaseType> extends ModuleBase {
       return;
     }
 
-    const src = this.caps.get(
-      RAW_PROPS_SOURCE_CAP
-    ) as unknown as RawPropsSource<P>;
+    const src = this.caps.get(RAW_PROPS_SOURCE_CAP) as unknown as RawPropsSource<P>;
     if (!src) {
       if (this.unsubRaw) {
         this.unsubRaw();

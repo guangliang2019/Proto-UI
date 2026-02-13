@@ -1,8 +1,6 @@
 # Adapter Vue Contract (v0)
 
-This document defines the **obligations and constraints for Vue Adapter Authors**.
-It complements the canonical adapter lifecycle contract in
-`internal/contracts/lifecycle/adapter-lifecycle.v0.md`.
+This document defines the **obligations and constraints for Vue Adapter Authors**. It complements the canonical adapter lifecycle contract in `internal/contracts/lifecycle/adapter-lifecycle.v0.md`.
 
 This document is **normative**.
 
@@ -13,8 +11,7 @@ This document is **normative**.
 - The Vue adapter MUST be created via a factory:
   - `createVueAdapter(runtime)`
 - The adapter package MUST NOT statically import `vue`.
-- The injected `runtime` MUST provide the minimal Vue runtime surface used by the adapter
-  (e.g. `defineComponent`, `h`, refs, lifecycle hooks).
+- The injected `runtime` MUST provide the minimal Vue runtime surface used by the adapter (e.g. `defineComponent`, `h`, refs, lifecycle hooks).
 
 Rationale: allow dynamic loading of Vue runtime and avoid bundling costs in host apps.
 
@@ -56,4 +53,3 @@ Rationale: allow dynamic loading of Vue runtime and avoid bundling costs in host
 
 - The adapter MUST follow the canonical lifecycle contract.
 - `unmounted` MUST run before disposal (CP9 before CP10).
-

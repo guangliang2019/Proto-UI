@@ -5,8 +5,8 @@ import type {
   ModuleInstance,
   ModuleScope,
   ProtoPhase,
-} from "@proto-ui/core";
-import type { CapsController } from "../caps";
+} from '@proto-ui/core';
+import type { CapsController } from '../caps';
 
 /**
  * A module instance in runtime.

@@ -1,44 +1,32 @@
 // packages/modules/rule/src/eval.ts
-import type {
-  RuleIR,
-  RulePlanV0,
-  RuleEvalCtx,
-  WhenExpr,
-  WhenValue,
-} from "./types";
-import { mergeTwTokensV0 } from "@proto-ui/core";
+import type { RuleIR, RulePlanV0, RuleEvalCtx, WhenExpr, WhenValue } from './types';
+import { mergeTwTokensV0 } from '@proto-ui/core';
 
-function evalValue<Props extends {}>(
-  v: WhenValue<Props>,
-  ctx: RuleEvalCtx<Props>
-): any {
+function evalValue<Props extends {}>(v: WhenValue<Props>, ctx: RuleEvalCtx<Props>): any {
   switch (v.type) {
-    case "prop":
+    case 'prop':
       return (ctx.props as any)[v.key];
-    case "state":
+    case 'state':
       return ctx.readState ? ctx.readState(v.id) : undefined;
-    case "context":
+    case 'context':
       return ctx.readContext ? ctx.readContext(v.key) : undefined;
   }
 }
 
-function evalExpr<Props extends {}>(
-  e: WhenExpr<Props>,
-  ctx: RuleEvalCtx<Props>
-): boolean {
+function evalExpr<Props extends {}>(e: WhenExpr<Props>, ctx: RuleEvalCtx<Props>): boolean {
   switch (e.type) {
-    case "true":
+    case 'true':
       return true;
-    case "false":
+    case 'false':
       return false;
-    case "eq":
+    case 'eq':
       return evalValue(e.left, ctx) === e.right;
-    case "not":
+    case 'not':
       return !evalExpr(e.expr, ctx);
-    case "all":
+    case 'all':
       for (const it of e.exprs) if (!evalExpr(it, ctx)) return false;
       return true;
-    case "any":
+    case 'any':
       for (const it of e.exprs) if (evalExpr(it, ctx)) return true;
       return false;
   }
@@ -60,11 +48,11 @@ export function evaluateRulesToPlan<Props extends {}>(
 
   const tokens: string[] = [];
   for (const { r } of active) {
-    if (r.intent.kind !== "ops") continue;
+    if (r.intent.kind !== 'ops') continue;
     for (const op of r.intent.ops) {
-      if (op.kind === "feedback.style.use") {
+      if (op.kind === 'feedback.style.use') {
         for (const h of op.handles) {
-          if (!h || h.kind !== "tw") {
+          if (!h || h.kind !== 'tw') {
             throw new Error(`[rule] unsupported style handle in v0`);
           }
           tokens.push(...h.tokens);
@@ -74,5 +62,5 @@ export function evaluateRulesToPlan<Props extends {}>(
   }
 
   const merged = mergeTwTokensV0(tokens);
-  return { kind: "style.tokens", tokens: merged.tokens };
+  return { kind: 'style.tokens', tokens: merged.tokens };
 }

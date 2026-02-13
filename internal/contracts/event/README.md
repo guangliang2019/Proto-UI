@@ -2,8 +2,7 @@
 
 This directory defines **event** contracts for Proto UI.
 
-Event is the minimal bridge from **host input events** to **prototype runtime callbacks**.
-It is responsible for:
+Event is the minimal bridge from **host input events** to **prototype runtime callbacks**. It is responsible for:
 
 - registering/unregistering listeners
 - enforcing phase rules (setup-only registration, runtime-only callbacks)
@@ -21,9 +20,7 @@ Event is **not** responsible for:
 ## Contract Set (v0)
 
 - `event.v0.md`
-
   - v0 normative contract for:
-
     - `def.event.on/off`
     - `def.event.onGlobal/offGlobal`
     - callback signature and phase rules

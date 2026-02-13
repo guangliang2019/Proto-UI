@@ -1,15 +1,15 @@
-import { describe, it, expect } from "vitest";
-import type { Prototype } from "@proto-ui/core";
-import { tw } from "@proto-ui/core";
-import { executeWithHost, RuntimeHost } from "../../src";
+import { describe, it, expect } from 'vitest';
+import type { Prototype } from '@proto-ui/core';
+import { tw } from '@proto-ui/core';
+import { executeWithHost, RuntimeHost } from '../../src';
 
-describe("runtime: feedback.style.setup-only v0", () => {
-  it("throws if calling def.feedback.style.use outside setup", () => {
+describe('runtime: feedback.style.setup-only v0', () => {
+  it('throws if calling def.feedback.style.use outside setup', () => {
     const proto: Prototype = {
-      name: "test-feedback-setup-only-use-v0",
+      name: 'test-feedback-setup-only-use-v0',
       setup(def: any) {
         def.lifecycle.onMounted((run: any) => {
-          def.feedback.style.use(tw("opacity-50"));
+          def.feedback.style.use(tw('opacity-50'));
           void run;
         });
         return (r: any) => [r.r.slot()];
@@ -20,13 +20,13 @@ describe("runtime: feedback.style.setup-only v0", () => {
     expect(() => executeWithHost(proto, host)).toThrow();
   });
 
-  it("throws if calling unUse outside setup", () => {
+  it('throws if calling unUse outside setup', () => {
     let capturedUnUse: null | (() => void) = null;
 
     const proto: Prototype = {
-      name: "test-feedback-setup-only-unuse-v0",
+      name: 'test-feedback-setup-only-unuse-v0',
       setup(def: any) {
-        capturedUnUse = def.feedback.style.use(tw("opacity-50"));
+        capturedUnUse = def.feedback.style.use(tw('opacity-50'));
 
         def.lifecycle.onMounted((run: any) => {
           // illegal: calling unUse in callback phase
@@ -56,7 +56,7 @@ function makeTestHost(prototypeName: string): RuntimeHost<any> {
         },
         context: { read: () => undefined, tryRead: () => undefined },
         state: { read: () => undefined },
-      } as any),
+      }) as any,
     getRunHandle: () =>
       ({
         update: () => {},
@@ -67,7 +67,7 @@ function makeTestHost(prototypeName: string): RuntimeHost<any> {
         },
         context: { read: () => undefined, tryRead: () => undefined },
         state: { read: () => undefined },
-      } as any),
+      }) as any,
     commit: () => {},
     schedule: (task) => task(), // run mounted synchronously for contract
   };

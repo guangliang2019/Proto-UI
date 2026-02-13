@@ -1,5 +1,3 @@
 node_modules
 dist
 *.min.js
-
-src/www/router/index.ts

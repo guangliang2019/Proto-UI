@@ -9,13 +9,11 @@
 Given the global rule “runtime-only callbacks’ first arg is `run`”:
 
 - setup-only context APIs should live under `def.context`
-
   - `def.context.provide(key, value)`
   - `def.context.subscribe(key)`
   - `def.context.trySubscribe(key)`
 
 - runtime-only reads should live under `run.context`
-
   - `run.context.read(key)`
   - `run.context.tryRead(key)`
 
@@ -28,7 +26,6 @@ This makes phase-guarding straightforward.
 Implementation should reject illegal provided values early:
 
 - `provide(key, value)` must reject:
-
   - `value === undefined`
   - `value === null`
 
@@ -75,13 +72,11 @@ Because v0 assumes tree assembly precedes init:
 At runtime:
 
 - `read(key)`:
-
   - checks required intent exists
   - checks currently connected provider exists
   - returns transformed value
 
 - `tryRead(key)`:
-
   - checks optional intent exists
   - returns transformed value if connected
   - else returns null
@@ -93,7 +88,6 @@ No connection-change notifications in v0.
 ## 6) Provide rules
 
 - Track provided keys in a per-instance map:
-
   - `provided: Map<ContextKey<any>, any>`
 
 - Duplicate provide on the same instance should throw immediately.
@@ -107,12 +101,10 @@ Perform transformation at read-time (simplest) or at provide-time (fast reads).
 Practical v0 approach:
 
 - On provide:
-
   - validate value is not undefined/null
   - if plain object/array, validate (or deep-freeze optionally)
 
 - On read:
-
   - return a deep-copied/transformed structure where embedded state handles are replaced by readonly wrappers
 
 Traversal rules:

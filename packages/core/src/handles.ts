@@ -7,7 +7,7 @@ import {
   PropsBaseType,
   PropsSpecMap,
   StateEvent,
-} from "@proto-ui/types";
+} from '@proto-ui/types';
 import {
   UnUse,
   StyleHandle,
@@ -15,8 +15,8 @@ import {
   TemplateProps,
   TemplateChildren,
   TemplateNode,
-} from "./spec";
-import { StateDefAPI } from "./state";
+} from './spec';
+import { StateDefAPI } from './state';
 
 // 统一错误上下文，方便在 runtime 做 phase guard 时给出可诊断信息
 
@@ -34,7 +34,7 @@ export interface GuardInfo {
  * core only defines types; runtime enforces phase rules via guards.
  */
 
-export type Phase = "setup" | "render" | "callback" | "unknown";
+export type Phase = 'setup' | 'render' | 'callback' | 'unknown';
 
 export interface RunHandle<Props extends PropsBaseType> {
   update(): void;
@@ -48,21 +48,12 @@ export interface RunHandle<Props extends PropsBaseType> {
   context: {
     read<T extends JsonObject>(key: ContextKey<T>): T;
     tryRead<T extends JsonObject>(key: ContextKey<T>): T | null;
-    update<T extends JsonObject>(
-      key: ContextKey<T>,
-      next: T | ((prev: T) => T)
-    ): void;
-    tryUpdate<T extends JsonObject>(
-      key: ContextKey<T>,
-      next: T | ((prev: T) => T)
-    ): boolean;
+    update<T extends JsonObject>(key: ContextKey<T>, next: T | ((prev: T) => T)): void;
+    tryUpdate<T extends JsonObject>(key: ContextKey<T>, next: T | ((prev: T) => T)): boolean;
   };
 }
 
-export interface DefHandle<
-  Props extends PropsBaseType,
-  Exposes = Record<string, unknown>
-> {
+export interface DefHandle<Props extends PropsBaseType, Exposes = Record<string, unknown>> {
   lifecycle: {
     onCreated(cb: (run: RunHandle<Props>) => void): void;
     onMounted(cb: (run: RunHandle<Props>) => void): void;
@@ -76,10 +67,7 @@ export interface DefHandle<
     watch(keys: (keyof Props & string)[], cb: PropsWatchCallback<Props>): void;
     watchAll(cb: PropsWatchCallback<Props>): void;
 
-    watchRaw(
-      keys: (keyof Props & string)[],
-      cb: RawWatchCallback<Props & PropsBaseType>
-    ): void;
+    watchRaw(keys: (keyof Props & string)[], cb: RawWatchCallback<Props & PropsBaseType>): void;
     watchRawAll(cb: RawWatchCallback<Props & PropsBaseType>): void;
   };
 
@@ -114,10 +102,7 @@ export interface DefHandle<
       key: ContextKey<T>,
       defaultValue: T
     ): (next: T | ((prev: T) => T)) => void;
-    subscribe<T extends JsonObject>(
-      key: ContextKey<T>,
-      onChange?: ContextOnChange<Props, T>
-    ): void;
+    subscribe<T extends JsonObject>(key: ContextKey<T>, onChange?: ContextOnChange<Props, T>): void;
     trySubscribe<T extends JsonObject>(
       key: ContextKey<T>,
       onChange?: ContextOnChangeOptional<Props, T>
@@ -131,25 +116,22 @@ export type ContextOnChange<P extends PropsBaseType, T extends JsonObject> = (
   prev: T
 ) => void;
 
-export type ContextOnChangeOptional<
-  P extends PropsBaseType,
-  T extends JsonObject
-> = (run: RunHandle<P>, next: T | null, prev: T | null) => void;
+export type ContextOnChangeOptional<P extends PropsBaseType, T extends JsonObject> = (
+  run: RunHandle<P>,
+  next: T | null,
+  prev: T | null
+) => void;
 
 // render-time 句柄：构造模板 + 只读读取视图（read）
 // 注意：这里不叫 run，避免和 callback-time 的 run 混淆
 export interface RenderReadHandle<Props extends PropsBaseType> {
-  props: RunHandle<Props>["props"];
+  props: RunHandle<Props>['props'];
 }
 
 export interface ElementFactory {
   (type: TemplateType): TemplateNode;
   (type: TemplateType, children: TemplateChildren): TemplateNode;
-  (
-    type: TemplateType,
-    props: TemplateProps,
-    children?: TemplateChildren
-  ): TemplateNode;
+  (type: TemplateType, props: TemplateProps, children?: TemplateChildren): TemplateNode;
 }
 
 export interface RendererHandle<Props extends PropsBaseType> {
@@ -194,10 +176,7 @@ export type RawWatchCallback<P extends PropsBaseType> = (
   info: WatchInfo<P & PropsBaseType>
 ) => void;
 
-export type ProtoEventCallback<P extends PropsBaseType> = (
-  run: RunHandle<P>,
-  ev: any
-) => void;
+export type ProtoEventCallback<P extends PropsBaseType> = (run: RunHandle<P>, ev: any) => void;
 
 export type StateWatchCallback<V, P extends PropsBaseType> = (
   run: RunHandle<P>,

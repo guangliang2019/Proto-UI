@@ -1,8 +1,8 @@
 // packages/adapters/vue/src/adapt.ts
-import type { Prototype, EffectsPort, StyleHandle } from "@proto-ui/core";
-import { mergeTwTokensV0 } from "@proto-ui/core";
-import type { CommitSignal, RuntimeController } from "@proto-ui/runtime";
-import { PropsBaseType } from "@proto-ui/types";
+import type { Prototype, EffectsPort, StyleHandle } from '@proto-ui/core';
+import { mergeTwTokensV0 } from '@proto-ui/core';
+import type { CommitSignal, RuntimeController } from '@proto-ui/runtime';
+import { PropsBaseType } from '@proto-ui/types';
 
 import {
   createCapsWiring,
@@ -10,12 +10,12 @@ import {
   createEventGate,
   createAdapterHost,
   createWebProtoEventRouter,
-} from "@proto-ui/adapters.base";
+} from '@proto-ui/adapters.base';
 
-import { renderTemplateToVue, type VueRuntime as VueRenderRuntime } from "./template";
+import { renderTemplateToVue, type VueRuntime as VueRenderRuntime } from './template';
 
-import type { RawPropsSource } from "@proto-ui/modules.props";
-import type { ExposeStateWebMode } from "@proto-ui/modules.expose-state-web";
+import type { RawPropsSource } from '@proto-ui/modules.props';
+import type { ExposeStateWebMode } from '@proto-ui/modules.expose-state-web';
 
 export type VueRuntime = VueRenderRuntime & {
   defineComponent: (opt: any) => any;
@@ -28,9 +28,7 @@ export type VueRuntime = VueRenderRuntime & {
   nextTick: () => Promise<void>;
 };
 
-export const __VUE_PROTO_INSTANCE = Symbol.for(
-  "@proto-ui/adapters.vue/__proto_instance"
-);
+export const __VUE_PROTO_INSTANCE = Symbol.for('@proto-ui/adapters.vue/__proto_instance');
 const PROTO_BY_INSTANCE = new WeakMap<HTMLElement, Prototype<any>>();
 
 function isProtoInstance(node: Node | null): node is HTMLElement {
@@ -41,7 +39,7 @@ function isProtoInstance(node: Node | null): node is HTMLElement {
 function getProtoParent(instance: HTMLElement): HTMLElement | null {
   let cur: Node | null = instance.parentNode;
   while (cur) {
-    if (typeof ShadowRoot !== "undefined" && cur instanceof ShadowRoot) {
+    if (typeof ShadowRoot !== 'undefined' && cur instanceof ShadowRoot) {
       cur = cur.host;
       continue;
     }
@@ -87,7 +85,7 @@ function createVueEffectsPort(setHostTokens: (next: string[]) => void): EffectsP
     try {
       const h = latest;
       if (!h) return;
-      if (h.kind === "tw") {
+      if (h.kind === 'tw') {
         const merged = mergeTwTokensV0(h.tokens).tokens;
         setHostTokens(merged);
       }
@@ -112,9 +110,9 @@ function createVueEffectsPort(setHostTokens: (next: string[]) => void): EffectsP
 function createNameMap(semantic: string) {
   const base = semantic
     .trim()
-    .replace(/\s+/g, "-")
-    .replace(/\./g, "-")
-    .replace(/[^a-zA-Z0-9\-]/g, "-")
+    .replace(/\s+/g, '-')
+    .replace(/\./g, '-')
+    .replace(/[^a-zA-Z0-9\-]/g, '-')
     .toLowerCase();
   return {
     dataAttr: `data-${base}`,
@@ -131,7 +129,7 @@ export function createVueAdapter(runtime: VueRuntime) {
     const getProps = opt.getProps ?? defaultGetProps;
     const exposeStateWebMode = opt.exposeStateWebMode;
     const autoUpdate = opt.autoUpdateOnPropsChange ?? true;
-    const rootTag = opt.rootTag ?? "div";
+    const rootTag = opt.rootTag ?? 'div';
 
     return runtime.defineComponent({
       name: `Proto(${proto.name})`,
@@ -146,9 +144,7 @@ export function createVueAdapter(runtime: VueRuntime) {
 
         const controllerRef = runtime.ref<RuntimeController | null>(null);
         const eventGateRef = runtime.ref<ReturnType<typeof createEventGate> | null>(null);
-        const routerRef = runtime.ref<ReturnType<typeof createWebProtoEventRouter> | null>(
-          null
-        );
+        const routerRef = runtime.ref<ReturnType<typeof createWebProtoEventRouter> | null>(null);
         const wiringRef = runtime.ref<ReturnType<typeof createHostWiring> | null>(null);
 
         const exposesRef = runtime.ref<Record<string, unknown>>({});
@@ -194,23 +190,23 @@ export function createVueAdapter(runtime: VueRuntime) {
             pendingSignal?.done?.();
             pendingSignal = null;
           },
-          { flush: "post" }
+          { flush: 'post' }
         );
 
         runtime.onMounted(() => {
           const rootEl = rootRef.value;
-        if (!rootEl) return;
-        if (controllerRef.value) return;
+          if (!rootEl) return;
+          if (controllerRef.value) return;
 
-        (rootEl as any)[__VUE_PROTO_INSTANCE] = true;
-        PROTO_BY_INSTANCE.set(rootEl, proto as Prototype<any>);
+          (rootEl as any)[__VUE_PROTO_INSTANCE] = true;
+          PROTO_BY_INSTANCE.set(rootEl, proto as Prototype<any>);
 
           const eventGate = createEventGate();
           eventGateRef.value = eventGate;
 
           const router = createWebProtoEventRouter({
             rootEl,
-            globalEl: typeof window === "undefined" ? rootEl : window,
+            globalEl: typeof window === 'undefined' ? rootEl : window,
             isEnabled: () => eventGate.isEnabled?.() ?? true,
           });
           routerRef.value = router;
@@ -234,17 +230,16 @@ export function createVueAdapter(runtime: VueRuntime) {
               nameMap: createNameMap,
               mode: exposeStateWebMode,
             })
-          .useContext({
-            instance: rootEl,
-            parent: (inst) => getProtoParent(inst as HTMLElement),
-          })
-          .useAsTrigger({
-            instance: rootEl,
-            parent: (inst) => getProtoParent(inst as HTMLElement),
-            getPrototype: (inst) =>
-              PROTO_BY_INSTANCE.get(inst as HTMLElement) ?? null,
-          })
-          .build();
+            .useContext({
+              instance: rootEl,
+              parent: (inst) => getProtoParent(inst as HTMLElement),
+            })
+            .useAsTrigger({
+              instance: rootEl,
+              parent: (inst) => getProtoParent(inst as HTMLElement),
+              getPrototype: (inst) => PROTO_BY_INSTANCE.get(inst as HTMLElement) ?? null,
+            })
+            .build();
 
           const wiring = createHostWiring({ prototypeName: proto.name, modules });
           wiringRef.value = wiring;
@@ -252,8 +247,7 @@ export function createVueAdapter(runtime: VueRuntime) {
           hostSession = createAdapterHost(
             proto,
             {
-              getRawProps: () =>
-                rawPropsSource.get() as Readonly<Props & PropsBaseType>,
+              getRawProps: () => rawPropsSource.get() as Readonly<Props & PropsBaseType>,
               schedule,
               commit: (children, signal) => {
                 eventGate.disable();
@@ -294,11 +288,11 @@ export function createVueAdapter(runtime: VueRuntime) {
             slot: slotNodes as any,
           });
 
-          const hostClass = [props.hostClass, hostTokens.value.join(" ")]
-            .map((x: any) => x ?? "")
+          const hostClass = [props.hostClass, hostTokens.value.join(' ')]
+            .map((x: any) => x ?? '')
             .filter((x: any) => {
               if (Array.isArray(x)) return x.length > 0;
-              if (typeof x === "object") return Object.keys(x).length > 0;
+              if (typeof x === 'object') return Object.keys(x).length > 0;
               return String(x).trim().length > 0;
             });
 

@@ -54,4 +54,3 @@ w.prop(key) -> { kind: "prop", key }
 - Props are valid inputs for `when`
 - `when` only observes, never writes
 - Changes must trigger re-evaluation
-

@@ -3,12 +3,9 @@
 > **Status**: Draft – v0 (contract-first)  
 > **Version**: v0
 >
-> This document defines the **Proto UI asHook contract**:
-> definition syntax, invocation/dedup rules, return shape, trace metadata,
-> and the merge strategy with module APIs.
+> This document defines the **Proto UI asHook contract**: definition syntax, invocation/dedup rules, return shape, trace metadata, and the merge strategy with module APIs.
 >
-> **Positioning (v0)**: asHook is a “composable prototype form” for logic reuse.
-> It has no subject-identity; its effects attach to the caller prototype.
+> **Positioning (v0)**: asHook is a “composable prototype form” for logic reuse. It has no subject-identity; its effects attach to the caller prototype.
 
 ---
 
@@ -156,4 +153,3 @@ The asHook setup result must be an object aligned with def-handle style:
 
 - A unified token aggregation layer (for semantic tracing/visualization) is deferred.
 - v0 only requires disposers + handles per module.
-

@@ -1,7 +1,6 @@
 # Runtime Props Integration Contract (v0)
 
-This document defines v0 behavioral contract for props integration at runtime layer
-(i.e., execute engine + controller APIs), beyond module-props internal semantics.
+This document defines v0 behavioral contract for props integration at runtime layer (i.e., execute engine + controller APIs), beyond module-props internal semantics.
 
 ---
 
@@ -43,7 +42,6 @@ In any props watcher callback (resolved or raw), the `run` argument MUST provide
 Behavioral alignment within a single callback:
 
 - In resolved watcher `cb(run, next, prev, info)`:
-
   - run.props.get() is behaviorally equivalent to `next`
 
 - In raw watcher `cb(run, nextRaw, prevRaw, info)`:
@@ -73,7 +71,6 @@ Calling controller.applyRawProps(nextRaw):
 - MAY dispatch watcher callbacks (subject to resolved/raw diff semantics)
 - MUST NOT perform a host commit / render by itself
 
-Rendering is triggered only by explicit update scheduling policies
-(e.g., run.update() or adapter-specific update()).
+Rendering is triggered only by explicit update scheduling policies (e.g., run.update() or adapter-specific update()).
 
 ---

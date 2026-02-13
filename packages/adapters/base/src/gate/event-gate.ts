@@ -24,9 +24,7 @@ export function createEventGate(): EventGate {
     },
     assertEnabled(hint?: string) {
       if (!enabled || disposed) {
-        throw new Error(
-          `[EventGate] event is not effective${hint ? `: ${hint}` : ""}`
-        );
+        throw new Error(`[EventGate] event is not effective${hint ? `: ${hint}` : ''}`);
       }
     },
     dispose() {

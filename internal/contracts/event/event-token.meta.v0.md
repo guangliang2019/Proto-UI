@@ -3,9 +3,7 @@
 > Status: Draft – implementation-aligned  
 > Version: v0
 >
-> This document defines the **minimum readable metadata carried by
-> EventListenerToken**, intended to improve code readability, diagnostics,
-> and traceability.
+> This document defines the **minimum readable metadata carried by EventListenerToken**, intended to improve code readability, diagnostics, and traceability.
 >
 > This document is **normative**.
 
@@ -21,8 +19,7 @@ This contract specifies that:
   - what kind of event registration it represents
   - the event type and its binding scope
 - Metadata **MUST remain stable** for the lifetime of the token.
-- Metadata is **for human understanding and diagnostics only** and MUST NOT
-  participate in event matching or dispatch logic.
+- Metadata is **for human understanding and diagnostics only** and MUST NOT participate in event matching or dispatch logic.
 
 ### 0.2 Non-goals (v0)
 
@@ -40,7 +37,6 @@ The following are explicitly out of scope:
 An `EventListenerToken` **MUST** contain the following fields:
 
 - `id: string`
-
   - an opaque, stable unique identifier
   - used only to precisely identify a single event registration
 
@@ -53,7 +49,7 @@ The `meta` object **MUST** include:
 
 ```ts
 {
-  kind: "root" | "global";
+  kind: 'root' | 'global';
   type: string;
 }
 ```
@@ -61,12 +57,10 @@ The `meta` object **MUST** include:
 Semantic meaning:
 
 - `kind`
-
   - `"root"`: bound to the component instance’s root interaction target
   - `"global"`: bound to an adapter-defined global interaction target
 
 - `type`
-
   - the event type string (e.g. `"press.commit"`, `"pointer.down"`, `"native:click"`)
   - validity is defined by the Event Type contract
   - represented as `string` rather than a concrete union to avoid version coupling
@@ -83,13 +77,11 @@ The `meta` object **MAY** include the following fields:
 ```
 
 - `options`
-
   - original listener options (or a summarized form)
   - for diagnostic display only
   - **MUST NOT** be used for event matching or behavior decisions
 
 - `label`
-
   - a human-readable description
   - set via `token.desc()` (see below)
 
@@ -106,16 +98,13 @@ token.desc(text: string): EventListenerToken
 ### 2.1 Rules (Normative)
 
 - `desc()` **MUST be setup-only**
-
   - calls after setup **MUST throw a phase-violation error**
 
 - `desc()` **MUST return the same token instance**
 - In development builds:
-
   - `desc(text)` **SHOULD** record the text into `token.meta.label`
 
 - In production builds:
-
   - `desc()` **MAY** be a no-op
   - but **MUST be callable** and return the same token
 
@@ -128,12 +117,9 @@ token.desc(text: string): EventListenerToken
 
 ## 3. Consistency Requirements
 
-- `token.meta.kind` and `token.meta.type` **MUST** match the
-  `def.event.on` / `def.event.onGlobal` call that created the token
-- After token creation, all `meta` fields except `label`
-  **MUST NOT be mutated**
-- Internal implementation changes **MUST NOT affect**
-  already-exposed token metadata
+- `token.meta.kind` and `token.meta.type` **MUST** match the `def.event.on` / `def.event.onGlobal` call that created the token
+- After token creation, all `meta` fields except `label` **MUST NOT be mutated**
+- Internal implementation changes **MUST NOT affect** already-exposed token metadata
 
 ---
 
@@ -141,8 +127,7 @@ token.desc(text: string): EventListenerToken
 
 If the event module provides diagnostics (e.g. `getDiagnostics()`):
 
-- the token’s `id`, `kind`, `type`, and `label`
-  **SHOULD** be representable in diagnostic output
+- the token’s `id`, `kind`, `type`, and `label` **SHOULD** be representable in diagnostic output
 - diagnostics **MUST NOT** be a prerequisite for token metadata existence
 
 ---
@@ -151,8 +136,7 @@ If the event module provides diagnostics (e.g. `getDiagnostics()`):
 
 The intent of this contract is:
 
-- to allow Component Authors to understand “what this token represents”
-  directly from the token itself
+- to allow Component Authors to understand “what this token represents” directly from the token itself
 - without requiring knowledge of the event system’s internal structure
 
 An EventListenerToken is:
@@ -161,5 +145,4 @@ An EventListenerToken is:
 - a **semantic label**
 - not a control surface for the event system
 
-Any design that relies on token metadata for behavioral decisions
-is outside the scope of v0.
+Any design that relies on token metadata for behavioral decisions is outside the scope of v0.
