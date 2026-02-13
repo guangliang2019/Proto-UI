@@ -6,10 +6,10 @@ import {
   type TemplateNode,
   type TemplateType,
   type ReservedType,
-} from "@proto-ui/core";
+} from '@proto-ui/core';
 
 export const ERR_TEMPLATE_PROTOTYPE_REF_V0 =
-  "[Template] PrototypeRef is not allowed in Template v0.";
+  '[Template] PrototypeRef is not allowed in Template v0.';
 
 export type ReactRuntime = {
   createElement: (type: any, props: any, ...children: any[]) => any;
@@ -20,7 +20,7 @@ export type RenderTemplateOptions = {
 };
 
 function isTemplateNode(x: any): x is TemplateNode {
-  return x && typeof x === "object" && "type" in x;
+  return x && typeof x === 'object' && 'type' in x;
 }
 
 function toArray(children: TemplateChildren): TemplateChild[] {
@@ -29,18 +29,11 @@ function toArray(children: TemplateChildren): TemplateChild[] {
 }
 
 function isReservedType(t: any): t is ReservedType {
-  return t && typeof t === "object" && t.kind === "slot";
+  return t && typeof t === 'object' && t.kind === 'slot';
 }
 
-function isPrototypeRef(
-  t: any
-): t is { kind: "prototype"; name: string; ref?: any } {
-  return (
-    t &&
-    typeof t === "object" &&
-    t.kind === "prototype" &&
-    typeof t.name === "string"
-  );
+function isPrototypeRef(t: any): t is { kind: 'prototype'; name: string; ref?: any } {
+  return t && typeof t === 'object' && t.kind === 'prototype' && typeof t.name === 'string';
 }
 
 function renderChild(
@@ -51,7 +44,7 @@ function renderChild(
 ): any {
   if (child === null) return null;
 
-  if (typeof child === "string" || typeof child === "number") {
+  if (typeof child === 'string' || typeof child === 'number') {
     return child;
   }
 
@@ -61,18 +54,18 @@ function renderChild(
 
   const t = child.type;
 
-  if (isReservedType(t) && t.kind === "slot") {
+  if (isReservedType(t) && t.kind === 'slot') {
     if ((child as any).children != null) {
-      throw new Error("[React Adapter] slot node must not have children in v0.");
+      throw new Error('[React Adapter] slot node must not have children in v0.');
     }
     if ((child as any).style != null) {
-      throw new Error("[React Adapter] slot node must not have style in v0.");
+      throw new Error('[React Adapter] slot node must not have style in v0.');
     }
     if ((t as any).name) {
-      throw new Error("[React Adapter] named slot is not supported in v0.");
+      throw new Error('[React Adapter] named slot is not supported in v0.');
     }
     if (ctx.slotUsed) {
-      throw new Error("[React Adapter] multiple slot is not supported in v0.");
+      throw new Error('[React Adapter] multiple slot is not supported in v0.');
     }
     ctx.slotUsed = true;
     return opt.slot ?? null;
@@ -82,16 +75,14 @@ function renderChild(
     throw new Error(ERR_TEMPLATE_PROTOTYPE_REF_V0);
   }
 
-  if (typeof t !== "string") return null;
+  if (typeof t !== 'string') return null;
 
-  const kids = toArray(child.children ?? null).map((k) =>
-    renderChild(runtime, k, opt, ctx)
-  );
+  const kids = toArray(child.children ?? null).map((k) => renderChild(runtime, k, opt, ctx));
 
   let className: string | undefined;
-  if (child.style && child.style.kind === "tw") {
+  if (child.style && child.style.kind === 'tw') {
     const merged = mergeTwTokensV0(child.style.tokens).tokens;
-    if (merged.length > 0) className = merged.join(" ");
+    if (merged.length > 0) className = merged.join(' ');
   }
 
   const props: Record<string, any> = {};

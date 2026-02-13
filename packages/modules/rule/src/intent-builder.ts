@@ -1,12 +1,7 @@
 // packages/modules/rule/src/intent-builder.ts
-import type {
-  IntentBuilder,
-  RuleIntent,
-  RuleOp,
-  StateIntentBuilder,
-} from "./types";
-import type { StyleHandle, OwnedStateHandle, BorrowedStateHandle } from "@proto-ui/core";
-import type { PropsBaseType } from "@proto-ui/types";
+import type { IntentBuilder, RuleIntent, RuleOp, StateIntentBuilder } from './types';
+import type { StyleHandle, OwnedStateHandle, BorrowedStateHandle } from '@proto-ui/core';
+import type { PropsBaseType } from '@proto-ui/types';
 
 export function createIntentBuilder() {
   const ops: RuleOp[] = [];
@@ -15,7 +10,7 @@ export function createIntentBuilder() {
     feedback: {
       style: {
         use: (...handles: StyleHandle[]) => {
-          ops.push({ kind: "feedback.style.use", handles });
+          ops.push({ kind: 'feedback.style.use', handles });
         },
       },
     },
@@ -24,7 +19,7 @@ export function createIntentBuilder() {
     ): StateIntentBuilder<T> => ({
       be(value: T) {
         ops.push({
-          kind: "state.set",
+          kind: 'state.set',
           handle: handle as any,
           value,
         });
@@ -32,7 +27,7 @@ export function createIntentBuilder() {
     }),
   };
 
-  const exportIntent = (): RuleIntent => ({ kind: "ops", ops: ops.slice() });
+  const exportIntent = (): RuleIntent => ({ kind: 'ops', ops: ops.slice() });
 
   return { builder, exportIntent };
 }

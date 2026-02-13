@@ -5,12 +5,12 @@ const DemoInline = definePrototype({
   name: 'demo-inline',
   setup(def) {
     // 设置基础样式
-    def.feedback.style.use(tw('bg-gray-200 text-gray-800 p-2'))
+    def.feedback.style.use(tw('bg-gray-200 text-gray-800 p-2'));
     // 设置覆盖样式（部分覆盖）
-    def.feedback.style.use(tw('bg-red-500 text-white'))
+    def.feedback.style.use(tw('bg-red-500 text-white'));
 
     // 设置补充样式
-    def.feedback.style.use(tw('p-4 rounded border'))
+    def.feedback.style.use(tw('p-4 rounded border'));
 
     return (r) => {
       return r.el('div', { style: tw('text-white') }, 'Hello World');

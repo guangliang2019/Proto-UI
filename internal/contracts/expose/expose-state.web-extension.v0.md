@@ -2,12 +2,9 @@
 
 > Status: Draft – v0
 >
-> This document defines the **Web extension for expose-state**:
-> mapping external state handles to DOM `data-*` attributes and CSS variables
-> to support headless component styling and selector-based consumption.
+> This document defines the **Web extension for expose-state**: mapping external state handles to DOM `data-*` attributes and CSS variables to support headless component styling and selector-based consumption.
 >
-> **Positioning (v0):** this is an **optional Web-only extension**.
-> It does not change expose-state semantics; it only provides an additional presentation mapping.
+> **Positioning (v0):** this is an **optional Web-only extension**. It does not change expose-state semantics; it only provides an additional presentation mapping.
 
 ---
 

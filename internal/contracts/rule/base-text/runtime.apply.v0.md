@@ -2,8 +2,7 @@
 
 > 状态：Draft – v0（实现对齐）
 >
-> 本契约规定 rule 运行期如何评估 RuleIR 并产出 Plan。
-> rule 运行期不直接触达宿主。
+> 本契约规定 rule 运行期如何评估 RuleIR 并产出 Plan。rule 运行期不直接触达宿主。
 
 ---
 
@@ -46,7 +45,7 @@
 
 ```ts
 type RulePlanV0 = {
-  kind: "style.tokens";
+  kind: 'style.tokens';
   tokens: string[];
 };
 ```
@@ -88,8 +87,7 @@ Rule 运行期 **不得**：
 - `deps.kind === 'prop'` 必须连接到 resolved props 观察
 - 依赖变化时必须触发 rule 重新评估
 
-state/context 依赖可在 v0 测试中被 stub，
-但 RuleIR 中 **必须**存在这些依赖记录。
+state/context 依赖可在 v0 测试中被 stub，但 RuleIR 中 **必须**存在这些依赖记录。
 
 ---
 
@@ -112,8 +110,7 @@ state/context 依赖可在 v0 测试中被 stub，
 - adapter 启用 `expose-state-web`（映射为 CSS 变量 / DOM Attribute）
 - intent 仅为 `feedback.style`
 
-则 rule 可被编译为静态选择器样式，runtime **无需执行**。
-该优化对语义等价，属于 v0 推荐实践。
+则 rule 可被编译为静态选择器样式，runtime **无需执行**。该优化对语义等价，属于 v0 推荐实践。
 
 ---
 

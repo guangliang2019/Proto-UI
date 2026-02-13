@@ -1,8 +1,6 @@
 # Adapter React Contract (v0)
 
-This document defines the **obligations and constraints for React Adapter Authors**.
-It complements the canonical adapter lifecycle contract in
-`internal/contracts/lifecycle/adapter-lifecycle.v0.md`.
+This document defines the **obligations and constraints for React Adapter Authors**. It complements the canonical adapter lifecycle contract in `internal/contracts/lifecycle/adapter-lifecycle.v0.md`.
 
 This document is **normative**.
 
@@ -13,8 +11,7 @@ This document is **normative**.
 - The React adapter MUST be created via a factory:
   - `createReactAdapter(runtime)`
 - The adapter package MUST NOT statically import `react` or `react-dom`.
-- The injected `runtime` MUST provide the minimal React runtime surface used by the adapter
-  (e.g. `createElement`, hooks, `forwardRef`).
+- The injected `runtime` MUST provide the minimal React runtime surface used by the adapter (e.g. `createElement`, hooks, `forwardRef`).
 
 Rationale: allow dynamic loading of React runtime and avoid bundling costs in host apps.
 
@@ -56,4 +53,3 @@ Rationale: allow dynamic loading of React runtime and avoid bundling costs in ho
 
 - The adapter MUST follow the canonical lifecycle contract.
 - `unmounted` MUST run before disposal (CP9 before CP10).
-

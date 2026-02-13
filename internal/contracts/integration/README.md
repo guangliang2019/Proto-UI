@@ -8,8 +8,7 @@ This directory indexes **composition-level contract tests**, such as:
 - event -> effect
 - etc.
 
-These tests validate that multiple modules compose correctly.
-They are not intended to define new semantics beyond the referenced contracts.
+These tests validate that multiple modules compose correctly. They are not intended to define new semantics beyond the referenced contracts.
 
 ## Naming Convention
 
@@ -24,15 +23,13 @@ Examples:
 
 ## Referenced Contracts
 
-Each integration contract test MUST list the contracts it relies on
-at the top of the file (as comments) and MUST be traceable to at least:
+Each integration contract test MUST list the contracts it relies on at the top of the file (as comments) and MUST be traceable to at least:
 
 - a source contract (e.g. props)
 - an orchestration contract (e.g. rule)
 - a sink/realization contract (e.g. adapter apply-to-host, feedback export)
 
-The integration test MUST NOT introduce new semantic rules that are not
-present in referenced contracts.
+The integration test MUST NOT introduce new semantic rules that are not present in referenced contracts.
 
 ## Current Matrix (v0)
 

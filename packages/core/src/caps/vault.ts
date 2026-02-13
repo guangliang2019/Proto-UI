@@ -1,5 +1,5 @@
 // packages/core/src/caps/vault.ts
-import type { CapToken } from "./token";
+import type { CapToken } from './token';
 
 type Unsubscribe = () => void;
 

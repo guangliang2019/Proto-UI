@@ -58,4 +58,3 @@ When a rule deactivates:
 - Rule-driven state writes **MUST** include a reason
 - Reason is `any`, and may include rule-id or rule-event-id
 - Runtime must distinguish rule vs non-rule changes to maintain baseline
-

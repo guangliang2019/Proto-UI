@@ -3,16 +3,20 @@
   "private": true,
   "type": "module",
   "devDependencies": {
+    "@proto-ui/types": "workspace:*",
+    "happy-dom": "^15.0.0",
+    "husky": "^9.1.7",
+    "prettier": "^3.8.1",
     "tsx": "^4.0.0",
     "typescript": "^5.0.0",
-    "vitest": "^2.0.0",
-    "happy-dom": "^15.0.0",
-    "@proto-ui/types": "workspace:*"
+    "vitest": "^2.0.0"
   },
   "scripts": {
     "docs:dev": "pnpm --filter apps-www dev",
     "docs:build": "pnpm --filter apps-www build",
     "docs:preview": "pnpm --filter apps-www preview",
+    "format": "prettier --write .",
+    "prepare": "husky install",
     "test": "pnpm -s test:types && pnpm -s test:runtime",
     "test:types": "echo \"[types] checking type contracts...\" && tsc -p internal/contracts/types/tsconfig.json && echo \"[types] OK\"",
     "test:runtime": "vitest run"

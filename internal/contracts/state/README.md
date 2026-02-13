@@ -21,21 +21,17 @@ State contracts define:
 ## Contract Set (v0)
 
 - `state-v0.md`
-
   - v0 normative contract for author-defined states (`def.state.*`) and their handles.
 
 - `interaction-derived.v0.md`
-
   - v0 normative contract for **derived readonly interaction states**.
   - These are _state-shaped_ values driven by adapter/event streams (e.g. `pressed`, `focused`).
   - They are readonly (no `set`) and exist to support rule + component logic without imperative bookkeeping.
 
 - `state.v0.impl-notes.md`
-
   - Non-normative implementation notes for v0 state.
 
 - `interaction-derived.v0.impl-notes.md`
-
   - Non-normative implementation notes for derived interaction states.
 
 ---

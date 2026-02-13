@@ -1,18 +1,16 @@
 // packages/modules/context/src/create.ts
-import { createModule, defineModule } from "@proto-ui/modules.base";
-import type { ModuleFactoryArgs } from "@proto-ui/modules.base";
+import { createModule, defineModule } from '@proto-ui/modules.base';
+import type { ModuleFactoryArgs } from '@proto-ui/modules.base';
 
-import type { ContextFacade, ContextModule, ContextPort } from "./types";
-import { ContextModuleImpl } from "./impl";
+import type { ContextFacade, ContextModule, ContextPort } from './types';
+import { ContextModuleImpl } from './impl';
 
-export function createContextModule(
-  ctx: ModuleFactoryArgs
-): ContextModule {
+export function createContextModule(ctx: ModuleFactoryArgs): ContextModule {
   const { init, caps, deps } = ctx;
 
-  return createModule<"context", "singleton", ContextFacade, ContextPort>({
-    name: "context",
-    scope: "singleton",
+  return createModule<'context', 'singleton', ContextFacade, ContextPort>({
+    name: 'context',
+    scope: 'singleton',
     init,
     caps,
     deps,
@@ -45,7 +43,7 @@ export function createContextModule(
 }
 
 export const ContextModuleDef = defineModule({
-  name: "context",
+  name: 'context',
   deps: [],
   create: createContextModule,
 });

@@ -1,5 +1,5 @@
 // packages/modules/test-sys/src/caps.ts
-import { cap } from "@proto-ui/core";
+import { cap } from '@proto-ui/core';
 
 /**
  * Optional host-provided probe capability.
@@ -12,4 +12,4 @@ export type HostProbeCap = {
   now?: () => number;
 };
 
-export const HOST_PROBE_CAP = cap<HostProbeCap>("@proto-ui/test/hostProbe");
+export const HOST_PROBE_CAP = cap<HostProbeCap>('@proto-ui/test/hostProbe');

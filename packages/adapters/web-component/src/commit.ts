@@ -1,16 +1,16 @@
 // packages/adapters/web-component/src/commit.ts
 
-import { applyTemplateStyle } from "./style";
+import { applyTemplateStyle } from './style';
 import type {
   TemplateChildren,
   TemplateChild,
   TemplateNode,
   TemplateType,
   ReservedType,
-} from "@proto-ui/core";
+} from '@proto-ui/core';
 
 export type CommitOptions = {
-  mode?: "light" | "shadow";
+  mode?: 'light' | 'shadow';
   slotPool?: Node[];
   owned?: WeakSet<Node>; // 收集“模板创建的节点”，用于区分外部节点
 };
@@ -22,7 +22,7 @@ export type CommitResult = {
 };
 
 function isTemplateNode(x: any): x is TemplateNode {
-  return x && typeof x === "object" && "type" in x;
+  return x && typeof x === 'object' && 'type' in x;
 }
 
 function toArray(children: TemplateChildren): TemplateChild[] {
@@ -31,24 +31,17 @@ function toArray(children: TemplateChildren): TemplateChild[] {
 }
 
 function isReservedType(t: any): t is ReservedType {
-  return t && typeof t === "object" && t.kind === "slot";
+  return t && typeof t === 'object' && t.kind === 'slot';
 }
 
-function isPrototypeRef(
-  t: any
-): t is { kind: "prototype"; name: string; ref?: any } {
-  return (
-    t &&
-    typeof t === "object" &&
-    t.kind === "prototype" &&
-    typeof t.name === "string"
-  );
+function isPrototypeRef(t: any): t is { kind: 'prototype'; name: string; ref?: any } {
+  return t && typeof t === 'object' && t.kind === 'prototype' && typeof t.name === 'string';
 }
 
 export const ERR_TEMPLATE_PROTOTYPE_REF_V0 = `[Template] PrototypeRef is not allowed in Template v0.`;
 
 function createElementForType(type: TemplateType, doc: Document): Node | null {
-  if (typeof type === "string") return doc.createElement(type);
+  if (typeof type === 'string') return doc.createElement(type);
 
   if (isReservedType(type)) return null; // slot handled elsewhere
 
@@ -69,7 +62,7 @@ function appendCommittedChild(
 ) {
   if (child === null) return;
 
-  if (typeof child === "string" || typeof child === "number") {
+  if (typeof child === 'string' || typeof child === 'number') {
     parent.appendChild(doc.createTextNode(String(child)));
     return;
   }
@@ -81,7 +74,7 @@ function appendCommittedChild(
 
   const t = child.type;
 
-  if (isReservedType(t) && t.kind === "slot") {
+  if (isReservedType(t) && t.kind === 'slot') {
     if ((child as any).children != null) {
       throw new Error(`[WC Adapter] slot node must not have children in v0.`);
     }
@@ -97,16 +90,16 @@ function appendCommittedChild(
     }
     ctx.slotUsed = true;
 
-    if (opt.mode === "shadow") {
-      const el = doc.createElement("slot");
+    if (opt.mode === 'shadow') {
+      const el = doc.createElement('slot');
       opt.owned?.add(el);
       parent.appendChild(el);
       return;
     }
 
     // light mode: 不产生 <slot>，用空 Text 作为锚点
-    const start = doc.createTextNode("");
-    const end = doc.createTextNode("");
+    const start = doc.createTextNode('');
+    const end = doc.createTextNode('');
     opt.owned?.add(start);
     opt.owned?.add(end);
 
@@ -146,7 +139,7 @@ export function commitChildren(
   const container = doc.createDocumentFragment();
 
   const cfg: Required<CommitOptions> = {
-    mode: opt.mode ?? "light",
+    mode: opt.mode ?? 'light',
     slotPool: opt.slotPool ?? [],
     owned: opt.owned ?? new WeakSet<Node>(),
   };

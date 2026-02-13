@@ -57,8 +57,7 @@ When a rule depends on a state handle view:
 
 ### 4.1 Observation is not write permission
 
-Observing a handle view does not imply intent can write it.
-Writability is defined by the **state** contract.
+Observing a handle view does not imply intent can write it. Writability is defined by the **state** contract.
 
 ### 4.2 No imperative logic
 
@@ -94,4 +93,3 @@ This contract does NOT:
 - `when` can observe Owned/Borrowed/Observed
 - Observation does not imply write permission
 - Rule remains declarative and analyzable
-

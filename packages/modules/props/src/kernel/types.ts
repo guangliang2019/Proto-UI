@@ -1,5 +1,5 @@
 // packages/modules/props/src/kernel/types.ts
-import { PropsBaseType } from "@proto-ui/types";
+import { PropsBaseType } from '@proto-ui/types';
 
 export type PropsResolveMeta<P extends PropsBaseType> = {
   /** raw 里出现过的 declared keys（包含 empty/invalid） */

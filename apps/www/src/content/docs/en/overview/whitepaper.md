@@ -3,7 +3,6 @@ title: White Paper Summary
 description: Why? What? How? Why is it worth doing?
 ---
 
-
 ---
 
 ## Why Proto UI Exists

@@ -104,7 +104,9 @@
     /* 如果 SVG 内部使用了 currentColor，这里会生效 */
     color: hsl(var(--foreground));
     /* 确保 SVG 能够响应主题变化 */
-    transition: color 0.3s ease, filter 0.3s ease;
+    transition:
+      color 0.3s ease,
+      filter 0.3s ease;
   }
 
   /* SVG 在暗色模式下的特殊处理 */

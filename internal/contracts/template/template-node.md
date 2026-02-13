@@ -31,8 +31,7 @@ In different host environments, a Template Node may map to different concepts:
 - **Web Component / Vanilla JS**: typically a DOM Node
 - **Flutter**: closer to a `Widget` (or a composable widget subtree)
 
-Proto UI does **not** mandate which concrete host object an adapter must use as the physical carrier of a Template Node.
-The only requirement is that it can stably express structure and be deterministically consumed by later stages.
+Proto UI does **not** mandate which concrete host object an adapter must use as the physical carrier of a Template Node. The only requirement is that it can stably express structure and be deterministically consumed by later stages.
 
 ---
 
@@ -53,8 +52,7 @@ In the adapter-web-component implementation, the Root Node typically corresponds
 - **Light DOM mode**: the custom element itself (e.g. `<component-name>`)
 - **Shadow DOM mode**: the custom element plus its `shadowRoot` as the internal mounting container
 
-> **Key boundary**:
-> The Root Node is part of the final output artifact, but it is **not** part of the node sequence returned by the template syntax.
+> **Key boundary**: The Root Node is part of the final output artifact, but it is **not** part of the node sequence returned by the template syntax.
 
 ---
 
@@ -91,8 +89,7 @@ Semantically:
 
 If a developer needs to introduce **a new component root container** (a new Root Node), the only valid approach is:
 
-> Define a new Prototype, and use that Prototype within the template
-> (the adapter/host will then produce a new Root Node accordingly).
+> Define a new Prototype, and use that Prototype within the template (the adapter/host will then produce a new Root Node accordingly).
 
 ---
 
@@ -103,8 +100,7 @@ When a node is a Template Node (i.e. produced by the template syntax), it should
 - It can participate in tree composition (it may have children)
 - It can carry style-related expressions (in a form accepted by the host)
 
-In v0, Template Nodes are **not required** to directly carry component-level channels.
-Anchors for props/state/event/expose/feedback channels are provided by the Root Node, as defined in their respective contracts.
+In v0, Template Nodes are **not required** to directly carry component-level channels. Anchors for props/state/event/expose/feedback channels are provided by the Root Node, as defined in their respective contracts.
 
 ---
 
@@ -117,9 +113,7 @@ In v0, Proto UI requires support for only a **minimal base node type set**, suff
 - Currently required minimal type: `'div'` (as a base container node identifier)
 - v0 does not require support for additional types
 
-> Note:
-> `'div'` here represents a _base container node identifier_.
-> In a Web host it typically maps to `HTMLDivElement`; in non-Web hosts it may map to an equivalent container concept.
+> Note: `'div'` here represents a _base container node identifier_. In a Web host it typically maps to `HTMLDivElement`; in non-Web hosts it may map to an equivalent container concept.
 
 ---
 
@@ -129,8 +123,7 @@ Some special nodes are not declared via base node types, but are produced throug
 
 - `renderer.slot()` (or equivalent)
 
-The concrete semantics and constraints of slot nodes are defined in separate contracts.
-Within this contract, they are simply treated as a valid form of Template Node output.
+The concrete semantics and constraints of slot nodes are defined in separate contracts. Within this contract, they are simply treated as a valid form of Template Node output.
 
 ---
 
@@ -142,9 +135,9 @@ Example (conceptual):
 
 ```ts
 const P: Prototype = {
-  name: "x-basic",
+  name: 'x-basic',
   setup() {
-    return (r) => [r.el("div", "hello")];
+    return (r) => [r.el('div', 'hello')];
   },
 };
 ```
@@ -167,9 +160,9 @@ Example:
 
 ```ts
 const P: Prototype = {
-  name: "x-array",
+  name: 'x-array',
   setup() {
-    return (r) => [r.el("div", "a"), r.el("div", "b")];
+    return (r) => [r.el('div', 'a'), r.el('div', 'b')];
   },
 };
 ```
@@ -197,10 +190,8 @@ Expected final structure:
 ## 7. Trace Map (Recommended to Keep Updated)
 
 - Reference tests (Web Component adapter):
-
   - `packages/adapters/web-component/test/commit.test.ts` (basic / array expansion / slot)
 
 - Related contracts:
-
   - `internal/contracts/template/normalize.v0.md` (Template Normalize v0)
   - `internal/contracts/adapter-web-component/slot-light-dom.v0.md`

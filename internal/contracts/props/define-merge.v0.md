@@ -1,10 +1,8 @@
 # Define & Merge Contract (v0)
 
-This document defines the **v0 behavioral contract** for how prop declarations
-are registered and merged via `define()` in the Props system.
+This document defines the **v0 behavioral contract** for how prop declarations are registered and merged via `define()` in the Props system.
 
-The contract focuses on **evolution safety and traceability**, not prohibition.
-Changes are allowed where they do not create ambiguous or silent breakage.
+The contract focuses on **evolution safety and traceability**, not prohibition. Changes are allowed where they do not create ambiguous or silent breakage.
 
 ---
 
@@ -146,8 +144,7 @@ Declaration-level `default` values are allowed but discouraged.
 
 ### Rules
 
-- If both base and incoming explicitly define `default`
-  and values are not strictly equal (`!==`) → **warning**
+- If both base and incoming explicitly define `default` and values are not strictly equal (`!==`) → **warning**
 - Otherwise no diagnostic
 
 Merge result prefers incoming fields.
@@ -192,7 +189,6 @@ Props v0 prioritizes **traceability over prohibition**:
 
 - Breaking or ambiguous changes throw immediately
 - Boundary-widening changes are allowed but surfaced via warnings
-- Pure additions (new keys or new constraints on previously unconstrained keys)
-  are allowed without noise
+- Pure additions (new keys or new constraints on previously unconstrained keys) are allowed without noise
 
 This enables gradual evolution while keeping debugging costs low.

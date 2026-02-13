@@ -1,27 +1,25 @@
 {
-    "name": "@proto-ui/adapters.base",
-    "version": "0.0.0",
-    "private": true,
-    "type": "module",
-    "dependencies": {
-      "@proto-ui/core": "workspace:*",
-      "@proto-ui/runtime": "workspace:*",
-      "@proto-ui/types": "workspace:*",
-      "@proto-ui/modules.props": "workspace:*",
-      "@proto-ui/modules.feedback": "workspace:*",
-      "@proto-ui/modules.event": "workspace:*",
-      "@proto-ui/modules.expose": "workspace:*",
-      "@proto-ui/modules.expose-state-web": "workspace:*",
-      "@proto-ui/modules.context": "workspace:*",
-      "@proto-ui/modules.as-trigger": "workspace:*"
-    },
-    "devDependencies": {
-    },
-    "exports": {
-      ".": {
-        "types": "./src/index.ts",
-        "default": "./src/index.ts"
-      }
+  "name": "@proto-ui/adapters.base",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@proto-ui/core": "workspace:*",
+    "@proto-ui/runtime": "workspace:*",
+    "@proto-ui/types": "workspace:*",
+    "@proto-ui/modules.props": "workspace:*",
+    "@proto-ui/modules.feedback": "workspace:*",
+    "@proto-ui/modules.event": "workspace:*",
+    "@proto-ui/modules.expose": "workspace:*",
+    "@proto-ui/modules.expose-state-web": "workspace:*",
+    "@proto-ui/modules.context": "workspace:*",
+    "@proto-ui/modules.as-trigger": "workspace:*"
+  },
+  "devDependencies": {},
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "default": "./src/index.ts"
     }
   }
-  
+}

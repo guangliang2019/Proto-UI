@@ -1,18 +1,12 @@
 // packages/modules/props/src/types.ts
-import type { PropsBaseType, PropsSpecMap } from "@proto-ui/types";
-import type {
-  ModuleInstance,
-  PropsDefaults,
-  PropsSnapshot,
-  WatchInfo,
-} from "@proto-ui/core";
+import type { PropsBaseType, PropsSpecMap } from '@proto-ui/types';
+import type { ModuleInstance, PropsDefaults, PropsSnapshot, WatchInfo } from '@proto-ui/core';
 
 export type RawPropsSource<P extends PropsBaseType> = {
   debugName?: string;
   get(): Record<string, any>;
   subscribe(cb: () => void): () => void;
 };
-
 
 export type PropsCallbackCtx = unknown;
 
@@ -32,21 +26,21 @@ export type RawWatchCb<P extends PropsBaseType> = (
 ) => void;
 
 export type PropsKernelDiag = {
-  level: "warning" | "error";
+  level: 'warning' | 'error';
   message: string;
   key?: string;
 };
 
 export type PropsWatchTask<P extends PropsBaseType> =
   | {
-      kind: "resolved";
+      kind: 'resolved';
       cb: PropsWatchCb<P>;
       next: PropsSnapshot<P>;
       prev: PropsSnapshot<P>;
       info: WatchInfo<P>;
     }
   | {
-      kind: "raw";
+      kind: 'raw';
       cb: RawWatchCb<P>;
       next: Readonly<P & PropsBaseType>;
       prev: Readonly<P & PropsBaseType>;
@@ -61,10 +55,7 @@ export type PropsFacade<P extends PropsBaseType> = {
   // setup-only subscriptions (module-facing callbacks; ctx is unknown)
   watch: (keys: (keyof P & string)[], cb: PropsWatchCb<P>) => void;
   watchAll: (cb: PropsWatchCb<P>) => void;
-  watchRaw: (
-    keys: (keyof P & string)[],
-    cb: RawWatchCb<P & PropsBaseType>
-  ) => void;
+  watchRaw: (keys: (keyof P & string)[], cb: RawWatchCb<P & PropsBaseType>) => void;
   watchRawAll: (cb: RawWatchCb<P & PropsBaseType>) => void;
 
   // runtime read API
@@ -84,9 +75,7 @@ export type PropsPort<P extends PropsBaseType> = {
   getDiagnostics(): readonly PropsKernelDiag[];
 };
 
-export type PropsModule<P extends PropsBaseType> = ModuleInstance<
-  PropsFacade<P>
-> & {
-  name: "props";
-  scope: "instance";
+export type PropsModule<P extends PropsBaseType> = ModuleInstance<PropsFacade<P>> & {
+  name: 'props';
+  scope: 'instance';
 };

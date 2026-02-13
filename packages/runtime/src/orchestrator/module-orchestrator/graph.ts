@@ -1,5 +1,5 @@
 // packages/runtime/src/orchestrator/module-orchestrator/graph.ts
-import type { ModuleDef } from "@proto-ui/modules.base";
+import type { ModuleDef } from '@proto-ui/modules.base';
 
 export type ModuleDepsSpec = {
   hard: Set<string>;
@@ -12,17 +12,12 @@ export type ModuleGraph = {
   depsByName: Map<string, ModuleDepsSpec>;
 };
 
-export function buildModuleGraph(
-  prototypeName: string,
-  modules: ModuleDef[]
-): ModuleGraph {
+export function buildModuleGraph(prototypeName: string, modules: ModuleDef[]): ModuleGraph {
   // unique name check
   const seen = new Set<string>();
   for (const m of modules) {
     if (seen.has(m.name)) {
-      throw new Error(
-        `[Runtime] duplicate module name: ${prototypeName}/${m.name}`
-      );
+      throw new Error(`[Runtime] duplicate module name: ${prototypeName}/${m.name}`);
     }
     seen.add(m.name);
   }
@@ -93,10 +88,8 @@ export function buildModuleGraph(
     const remains = [...indeg.entries()]
       .filter(([, v]) => v > 0)
       .map(([k]) => k)
-      .join(", ");
-    throw new Error(
-      `[Runtime] module dependency cycle: ${prototypeName} remains=[${remains}]`
-    );
+      .join(', ');
+    throw new Error(`[Runtime] module dependency cycle: ${prototypeName} remains=[${remains}]`);
   }
 
   return { order: order.map((n) => byName.get(n)!), byName, depsByName };

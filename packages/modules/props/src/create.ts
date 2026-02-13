@@ -1,19 +1,17 @@
 // packages/modules/props/src/create.ts
-import { createModule, defineModule } from "@proto-ui/modules.base";
-import type { ModuleFactoryArgs } from "@proto-ui/modules.base";
-import type { PropsBaseType } from "@proto-ui/types";
+import { createModule, defineModule } from '@proto-ui/modules.base';
+import type { ModuleFactoryArgs } from '@proto-ui/modules.base';
+import type { PropsBaseType } from '@proto-ui/types';
 
-import type { PropsFacade, PropsModule, PropsPort } from "./types";
-import { PropsModuleImpl } from "./impl";
+import type { PropsFacade, PropsModule, PropsPort } from './types';
+import { PropsModuleImpl } from './impl';
 
-export function createPropsModule<P extends PropsBaseType>(
-  ctx: ModuleFactoryArgs
-): PropsModule<P> {
+export function createPropsModule<P extends PropsBaseType>(ctx: ModuleFactoryArgs): PropsModule<P> {
   const { init, caps, deps } = ctx;
 
-  return createModule<"props", "instance", PropsFacade<P>, PropsPort<P>>({
-    name: "props",
-    scope: "instance",
+  return createModule<'props', 'instance', PropsFacade<P>, PropsPort<P>>({
+    name: 'props',
+    scope: 'instance',
     init,
     caps,
     deps,
@@ -27,8 +25,7 @@ export function createPropsModule<P extends PropsBaseType>(
 
           watch: (keys, cb) => impl.watchKeys(keys as any, cb as any),
           watchAll: (cb) => impl.watchAllKeys(cb as any),
-          watchRaw: (keys, cb) =>
-            impl.watchRawKeys(keys as any, cb as any, true),
+          watchRaw: (keys, cb) => impl.watchRawKeys(keys as any, cb as any, true),
           watchRawAll: (cb) => impl.watchRawAllKeys(cb as any, true),
 
           get: () => impl.get(),
@@ -50,7 +47,7 @@ export function createPropsModule<P extends PropsBaseType>(
 }
 
 export const PropsModuleDef = defineModule({
-  name: "props",
+  name: 'props',
   deps: [],
   create: createPropsModule,
 });

@@ -2,12 +2,9 @@
 
 > Status: Draft – v0
 >
-> 本契约规定 Proto UI v0 中 **interaction signal 向 state 的投影机制**：
-> 即如何将系统级 interaction signal 以 state-shaped 形式引入组件原型，
-> 以及该投影所形成的 state 视图的能力与边界。
+> 本契约规定 Proto UI v0 中 **interaction signal 向 state 的投影机制**：即如何将系统级 interaction signal 以 state-shaped 形式引入组件原型，以及该投影所形成的 state 视图的能力与边界。
 >
-> 该投影机制旨在**提升交互语义的可消费性**，
-> 而不改变 interaction signal 的系统所有权属性。
+> 该投影机制旨在**提升交互语义的可消费性**，而不改变 interaction signal 的系统所有权属性。
 
 ---
 
@@ -73,11 +70,9 @@ def.state.fromInteraction.<name>(semantic?)
 
 - `<name>` 为 interaction signal 的名称（如 `focused`、`pressed`）
 - `semantic` 为可选的人类可读语义名
-
   - 若省略，默认使用 signal 名称
 
-> 注：v0 只规定“存在此类定义入口”，
-> 不强制具体命名或组织形式，允许实现进行等价映射。
+> 注：v0 只规定“存在此类定义入口”，不强制具体命名或组织形式，允许实现进行等价映射。
 
 ---
 
@@ -160,8 +155,7 @@ interaction-state projection：
 - 在非 setup 期声明 projection
 - 在实例已 dispose 后访问投影 state
 
-错误语义继承自 state 的错误模型，
-不引入新的错误类型。
+错误语义继承自 state 的错误模型，不引入新的错误类型。
 
 ---
 

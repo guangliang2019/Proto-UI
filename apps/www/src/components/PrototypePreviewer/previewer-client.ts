@@ -57,7 +57,7 @@ export function initPreviewer(options: PreviewerOptions) {
   let loaderPromise: Promise<void> | null = null;
   async function ensurePrototypeLoaded() {
     if (loaderPromise) return loaderPromise; // 已在加载中
-    
+
     loaderPromise = (async () => {
       try {
         // 方式1：使用自定义 loader（废弃的旧方式，保留兼容）
@@ -67,7 +67,7 @@ export function initPreviewer(options: PreviewerOptions) {
           await import(/* @vite-ignore */ modulePath);
           return;
         }
-        
+
         // 方式2：自动按需加载（推荐）
         await loadPrototype(prototypeId);
       } catch (err) {
@@ -75,7 +75,7 @@ export function initPreviewer(options: PreviewerOptions) {
         throw err;
       }
     })();
-    
+
     return loaderPromise;
   }
 
@@ -107,7 +107,7 @@ export function initPreviewer(options: PreviewerOptions) {
     } catch (err) {
       // 如果是原型未找到的错误，不需要重试（动态加载应该已经处理了）
       // 旧的重试逻辑已被更可靠的动态加载机制取代
-      
+
       // 显示错误信息
       host.innerHTML = '';
       const pre = document.createElement('pre');

@@ -1,19 +1,19 @@
 // packages/modules/expose-state/test/utils/fake-caps.ts
-import { SYS_CAP } from "@proto-ui/modules.base";
-import { EXPOSE_SET_EXPOSES_CAP } from "@proto-ui/modules.expose";
+import { SYS_CAP } from '@proto-ui/modules.base';
+import { EXPOSE_SET_EXPOSES_CAP } from '@proto-ui/modules.expose';
 
-type ExecPhase = "setup" | "render" | "callback" | "unknown";
+type ExecPhase = 'setup' | 'render' | 'callback' | 'unknown';
 
-type ProtoPhase = "setup" | "mounted" | "updated" | "unmounted";
+type ProtoPhase = 'setup' | 'mounted' | 'updated' | 'unmounted';
 
 export function createSysCaps() {
-  let execPhase: ExecPhase = "setup";
-  let protoPhase: ProtoPhase = "setup";
+  let execPhase: ExecPhase = 'setup';
+  let protoPhase: ProtoPhase = 'setup';
   let disposed = false;
 
   const sys = {
     execPhase: () => execPhase,
-    domain: () => (execPhase === "setup" ? "setup" : "runtime"),
+    domain: () => (execPhase === 'setup' ? 'setup' : 'runtime'),
     protoPhase: () => protoPhase,
     isDisposed: () => disposed,
 
@@ -24,38 +24,32 @@ export function createSysCaps() {
     ensureExecPhase(op: string, expected: ExecPhase | ExecPhase[]) {
       const list = Array.isArray(expected) ? expected : [expected];
       if (!list.includes(execPhase)) {
-        const e = new Error(
-          `[Phase] ${op} expected ${list.join("|")} got ${execPhase}`
-        ) as any;
-        e.code = "EXPOSE_STATE_PHASE_VIOLATION";
+        const e = new Error(`[Phase] ${op} expected ${list.join('|')} got ${execPhase}`) as any;
+        e.code = 'EXPOSE_STATE_PHASE_VIOLATION';
         throw e;
       }
     },
 
     ensureSetup(op: string) {
-      if (execPhase !== "setup") {
-        const e = new Error(
-          `[Phase] ${op} setup-only, got ${execPhase}`
-        ) as any;
-        e.code = "EXPOSE_STATE_PHASE_VIOLATION";
+      if (execPhase !== 'setup') {
+        const e = new Error(`[Phase] ${op} setup-only, got ${execPhase}`) as any;
+        e.code = 'EXPOSE_STATE_PHASE_VIOLATION';
         throw e;
       }
     },
 
     ensureRuntime(op: string) {
-      if (execPhase === "setup") {
+      if (execPhase === 'setup') {
         const e = new Error(`[Phase] ${op} runtime-only, got setup`) as any;
-        e.code = "EXPOSE_STATE_PHASE_VIOLATION";
+        e.code = 'EXPOSE_STATE_PHASE_VIOLATION';
         throw e;
       }
     },
 
     ensureCallback(op: string) {
-      if (execPhase !== "callback") {
-        const e = new Error(
-          `[Phase] ${op} callback-only, got ${execPhase}`
-        ) as any;
-        e.code = "EXPOSE_STATE_PHASE_VIOLATION";
+      if (execPhase !== 'callback') {
+        const e = new Error(`[Phase] ${op} callback-only, got ${execPhase}`) as any;
+        e.code = 'EXPOSE_STATE_PHASE_VIOLATION';
         throw e;
       }
     },
@@ -102,7 +96,7 @@ export function makeCaps(args: { sys?: any; setExposes?: any }) {
       return () => subs.delete(cb);
     },
 
-    __set(key: "setExposes", val: any) {
+    __set(key: 'setExposes', val: any) {
       if (val === undefined) store.delete(EXPOSE_SET_EXPOSES_CAP.id);
       else store.set(EXPOSE_SET_EXPOSES_CAP.id, val);
     },

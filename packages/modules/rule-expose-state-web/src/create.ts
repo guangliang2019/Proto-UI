@@ -1,14 +1,11 @@
 // packages/modules/rule-expose-state-web/src/create.ts
-import { createModule, defineModule, ModuleBase } from "@proto-ui/modules.base";
-import type { ModuleFactoryArgs, ModuleDeps } from "@proto-ui/modules.base";
-import type { ProtoPhase, StyleHandle } from "@proto-ui/core";
-import type { WhenExpr, RuleIR, RulePort } from "@proto-ui/modules.rule";
-import type {
-  ExposeStateWebPort,
-  ExposeStateWebBinding,
-} from "@proto-ui/modules.expose-state-web";
-import type { FeedbackPort } from "@proto-ui/modules.feedback";
-import type { RuleExposeStateWebFacade, RuleExposeStateWebModule } from "./types";
+import { createModule, defineModule, ModuleBase } from '@proto-ui/modules.base';
+import type { ModuleFactoryArgs, ModuleDeps } from '@proto-ui/modules.base';
+import type { ProtoPhase, StyleHandle } from '@proto-ui/core';
+import type { WhenExpr, RuleIR, RulePort } from '@proto-ui/modules.rule';
+import type { ExposeStateWebPort, ExposeStateWebBinding } from '@proto-ui/modules.expose-state-web';
+import type { FeedbackPort } from '@proto-ui/modules.feedback';
+import type { RuleExposeStateWebFacade, RuleExposeStateWebModule } from './types';
 
 type Condition = { stateId: any; literal: string | number | boolean | null };
 type Candidate = {
@@ -19,17 +16,15 @@ type Candidate = {
 };
 
 function isStateOnlyDeps<Props>(rule: RuleIR<Props>): boolean {
-  return rule.deps.every((d) => d.kind === "state");
+  return rule.deps.every((d) => d.kind === 'state');
 }
 
-function extractConditions<Props>(
-  expr: WhenExpr<Props>
-): Condition[] | null {
+function extractConditions<Props>(expr: WhenExpr<Props>): Condition[] | null {
   switch (expr.type) {
-    case "eq":
-      if (expr.left.type !== "state") return null;
+    case 'eq':
+      if (expr.left.type !== 'state') return null;
       return [{ stateId: expr.left.id, literal: expr.right }];
-    case "all": {
+    case 'all': {
       const all: Condition[] = [];
       for (const e of expr.exprs) {
         const c = extractConditions(e);
@@ -44,12 +39,12 @@ function extractConditions<Props>(
 }
 
 function stripDataPrefix(attr: string): string {
-  return attr.startsWith("data-") ? attr.slice("data-".length) : attr;
+  return attr.startsWith('data-') ? attr.slice('data-'.length) : attr;
 }
 
 function buildVariant(
   binding: ExposeStateWebBinding,
-  literal: Condition["literal"]
+  literal: Condition['literal']
 ): string | null {
   const attr = binding.attr;
   if (!attr) return null;
@@ -57,16 +52,16 @@ function buildVariant(
   const key = stripDataPrefix(attr);
 
   switch (binding.kind) {
-    case "bool":
+    case 'bool':
       if (literal !== true) return null;
       return `data-[${key}]`;
-    case "enum":
-    case "string":
-    case "number.discrete": {
+    case 'enum':
+    case 'string':
+    case 'number.discrete': {
       if (literal === null) return null;
       return `data-[${key}=${String(literal)}]`;
     }
-    case "number.range":
+    case 'number.range':
     default:
       return null;
   }
@@ -83,21 +78,18 @@ class RuleExposeStateWebImpl extends ModuleBase {
 
   constructor(caps: any, deps: ModuleDeps) {
     super(caps);
-    this.rulePort = deps.requirePort<RulePort<any>>("rule");
-    this.exposeStateWeb = deps.requirePort<ExposeStateWebPort>(
-      "expose-state-web"
-    );
-    this.feedbackPort = deps.requirePort<FeedbackPort>("feedback");
+    this.rulePort = deps.requirePort<RulePort<any>>('rule');
+    this.exposeStateWeb = deps.requirePort<ExposeStateWebPort>('expose-state-web');
+    this.feedbackPort = deps.requirePort<FeedbackPort>('feedback');
 
     this.rulePort.registerExtension({
-      transformRules: (rules) =>
-        rules.filter((r) => !this.optimizedIds.has((r as any).id)),
+      transformRules: (rules) => rules.filter((r) => !this.optimizedIds.has((r as any).id)),
     });
   }
 
   override onProtoPhase(phase: ProtoPhase): void {
     super.onProtoPhase(phase);
-    if (phase === "mounted") this.tryApply();
+    if (phase === 'mounted') this.tryApply();
   }
 
   protected override onCapsEpoch(_epoch: number): void {
@@ -118,16 +110,16 @@ class RuleExposeStateWebImpl extends ModuleBase {
       const conditions = extractConditions(r.when);
       if (!conditions || conditions.length === 0) continue;
 
-      if (r.intent.kind !== "ops") continue;
+      if (r.intent.kind !== 'ops') continue;
       const tokens: string[] = [];
       let ok = true;
       for (const op of r.intent.ops) {
-        if (op.kind !== "feedback.style.use") {
+        if (op.kind !== 'feedback.style.use') {
           ok = false;
           break;
         }
         for (const h of op.handles) {
-          if (!h || h.kind !== "tw") {
+          if (!h || h.kind !== 'tw') {
             ok = false;
             break;
           }
@@ -164,7 +156,7 @@ class RuleExposeStateWebImpl extends ModuleBase {
           ok = false;
           break;
         }
-        if (binding.kind === "number.range") {
+        if (binding.kind === 'number.range') {
           ok = false;
           break;
         }
@@ -178,9 +170,9 @@ class RuleExposeStateWebImpl extends ModuleBase {
 
       if (!ok || variants.length === 0) continue;
 
-      const prefix = variants.join(":");
+      const prefix = variants.join(':');
       const tokens = c.tokens.map((t) => `${prefix}:${t}`);
-      const handle: StyleHandle = { kind: "tw", tokens };
+      const handle: StyleHandle = { kind: 'tw', tokens };
       this.feedbackPort.useStyleUnsafe(handle);
       appliedIds.push(c.id);
     }
@@ -189,18 +181,12 @@ class RuleExposeStateWebImpl extends ModuleBase {
   }
 }
 
-export function createRuleExposeStateWebModule(
-  ctx: ModuleFactoryArgs
-): RuleExposeStateWebModule {
+export function createRuleExposeStateWebModule(ctx: ModuleFactoryArgs): RuleExposeStateWebModule {
   const { init, caps, deps } = ctx;
 
-  return createModule<
-    "rule-expose-state-web",
-    "instance",
-    RuleExposeStateWebFacade
-  >({
-    name: "rule-expose-state-web",
-    scope: "instance",
+  return createModule<'rule-expose-state-web', 'instance', RuleExposeStateWebFacade>({
+    name: 'rule-expose-state-web',
+    scope: 'instance',
     init,
     caps,
     deps,
@@ -218,7 +204,7 @@ export function createRuleExposeStateWebModule(
 }
 
 export const RuleExposeStateWebModuleDef = defineModule({
-  name: "rule-expose-state-web",
-  deps: ["rule", "expose-state-web", "feedback"],
+  name: 'rule-expose-state-web',
+  deps: ['rule', 'expose-state-web', 'feedback'],
   create: createRuleExposeStateWebModule,
 });

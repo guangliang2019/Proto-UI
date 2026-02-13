@@ -2,8 +2,7 @@
 
 > 状态：Draft – v0（实现对齐）
 >
-> 本契约规定 rule 的 intent 结构、Builder 形态与跨通道合并原则。
-> 具体通道语义由各 intent 契约定义。
+> 本契约规定 rule 的 intent 结构、Builder 形态与跨通道合并原则。具体通道语义由各 intent 契约定义。
 
 ---
 
@@ -51,13 +50,18 @@ interface StateIntentBuilder<T> {
 
 ```ts
 type RuleIntent = {
-  kind: "ops";
+  kind: 'ops';
   ops: RuleOp[];
 };
 
 type RuleOp =
-  | { kind: "feedback.style.use"; handles: StyleHandle[] }
-  | { kind: "state.set"; handle: OwnedStateHandle<any> | BorrowedStateHandle<any>; value: any; reason: any };
+  | { kind: 'feedback.style.use'; handles: StyleHandle[] }
+  | {
+      kind: 'state.set';
+      handle: OwnedStateHandle<any> | BorrowedStateHandle<any>;
+      value: any;
+      reason: any;
+    };
 ```
 
 - 一个 rule 可记录多条 op

@@ -1,14 +1,14 @@
-import { createModule, defineModule } from "@proto-ui/modules.base";
-import type { ModuleFactoryArgs } from "@proto-ui/modules.base";
-import type { TestSysModule } from "./types";
-import { TestSysImpl } from "./impl";
+import { createModule, defineModule } from '@proto-ui/modules.base';
+import type { ModuleFactoryArgs } from '@proto-ui/modules.base';
+import type { TestSysModule } from './types';
+import { TestSysImpl } from './impl';
 
 export function createTestSysModule(ctx: ModuleFactoryArgs): TestSysModule {
   const { init, caps, deps } = ctx;
 
   return createModule({
-    name: "test-sys",
-    scope: "instance",
+    name: 'test-sys',
+    scope: 'instance',
     init,
     caps,
     deps,
@@ -25,7 +25,7 @@ export function createTestSysModule(ctx: ModuleFactoryArgs): TestSysModule {
 }
 
 export const TestSysModuleDef = defineModule({
-  name: "test-sys",
+  name: 'test-sys',
   deps: [],
   create: createTestSysModule,
 });

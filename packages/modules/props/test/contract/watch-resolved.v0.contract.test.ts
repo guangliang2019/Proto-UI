@@ -1,6 +1,6 @@
-import { describe, it, expect } from "vitest";
-import { PropsModuleImpl } from "../../src/impl";
-import type { PropsSpecMap } from "@proto-ui/types";
+import { describe, it, expect } from 'vitest';
+import { PropsModuleImpl } from '../../src/impl';
+import type { PropsSpecMap } from '@proto-ui/types';
 
 /**
  * Watch Resolved Contract v0
@@ -27,7 +27,7 @@ function createModule<P extends Record<string, any>>() {
     get: (_k: string) => undefined,
   } as any;
 
-  return new PropsModuleImpl<P>(caps, "test-proto");
+  return new PropsModuleImpl<P>(caps, 'test-proto');
 }
 
 function drain(mod: PropsModuleImpl<any>) {
@@ -38,23 +38,23 @@ function execResolvedTasks(mod: PropsModuleImpl<any>) {
   const tasks = drain(mod);
   const run = {} as any;
   for (const t of tasks) {
-    if (t.kind !== "resolved") continue;
+    if (t.kind !== 'resolved') continue;
     t.cb(run, t.next, t.prev, t.info);
   }
   return tasks;
 }
 
-describe("props: watch(resolved) contract (v0)", () => {
-  it("PROP-V0-3200: hydration (first applyRaw) never schedules resolved watch tasks", () => {
+describe('props: watch(resolved) contract (v0)', () => {
+  it('PROP-V0-3200: hydration (first applyRaw) never schedules resolved watch tasks', () => {
     type P = { a: number };
     const pm = createModule<P>();
-    pm.define({ a: { kind: "number", default: 1 } } satisfies PropsSpecMap<P>);
+    pm.define({ a: { kind: 'number', default: 1 } } satisfies PropsSpecMap<P>);
 
     let calledAll = 0;
     let calledKeyed = 0;
 
     pm.watchAllKeys(() => calledAll++);
-    pm.watchKeys(["a"], () => calledKeyed++);
+    pm.watchKeys(['a'], () => calledKeyed++);
 
     // first applyRaw is hydration => no tasks
     pm.applyRaw({ a: 1 });
@@ -70,10 +70,10 @@ describe("props: watch(resolved) contract (v0)", () => {
     expect(calledKeyed).toBe(1);
   });
 
-  it("PROP-V0-3100: resolved snapshot invariants (declared-only, no undefined, shallow immutable)", () => {
+  it('PROP-V0-3100: resolved snapshot invariants (declared-only, no undefined, shallow immutable)', () => {
     type P = { a: number };
     const pm = createModule<P>();
-    pm.define({ a: { kind: "number", default: 1 } } satisfies PropsSpecMap<P>);
+    pm.define({ a: { kind: 'number', default: 1 } } satisfies PropsSpecMap<P>);
 
     // hydration: snapshot exists & meaningful
     pm.applyRaw({ a: 1, x: 9 } as any);
@@ -92,12 +92,12 @@ describe("props: watch(resolved) contract (v0)", () => {
     }).toThrow();
   });
 
-  it("PROP-V0-3300: watchAll schedules only when at least one declared resolved key changed", () => {
+  it('PROP-V0-3300: watchAll schedules only when at least one declared resolved key changed', () => {
     type P = { a: number; b: number };
     const pm = createModule<P>();
     pm.define({
-      a: { kind: "number", default: 1 },
-      b: { kind: "number", default: 1 },
+      a: { kind: 'number', default: 1 },
+      b: { kind: 'number', default: 1 },
     } satisfies PropsSpecMap<P>);
 
     let called = 0;
@@ -123,8 +123,8 @@ describe("props: watch(resolved) contract (v0)", () => {
     pm.applyRaw({ a: 2, b: 1 });
     execResolvedTasks(pm);
     expect(called).toBe(1);
-    expect(lastAll).toEqual(["a"]);
-    expect(lastMatched).toEqual(["a"]); // watchAll => matched==all
+    expect(lastAll).toEqual(['a']);
+    expect(lastMatched).toEqual(['a']); // watchAll => matched==all
 
     // no resolved change => no schedule
     pm.applyRaw({ a: 2, b: 1 });
@@ -132,20 +132,20 @@ describe("props: watch(resolved) contract (v0)", () => {
     expect(called).toBe(1);
   });
 
-  it("PROP-V0-3400: watch(keys) schedules only when matched keys changed; info contains all-changed and matched-changed", () => {
+  it('PROP-V0-3400: watch(keys) schedules only when matched keys changed; info contains all-changed and matched-changed', () => {
     type P = { a: number; b: number; c: number };
     const pm = createModule<P>();
     pm.define({
-      a: { kind: "number", default: 1 },
-      b: { kind: "number", default: 1 },
-      c: { kind: "number", default: 1 },
+      a: { kind: 'number', default: 1 },
+      b: { kind: 'number', default: 1 },
+      c: { kind: 'number', default: 1 },
     } satisfies PropsSpecMap<P>);
 
     let called = 0;
     let lastAll: string[] = [];
     let lastMatched: string[] = [];
 
-    pm.watchKeys(["a", "b"], (_run, _next, _prev, info) => {
+    pm.watchKeys(['a', 'b'], (_run, _next, _prev, info) => {
       called++;
       lastAll = [...info.changedKeysAll].sort();
       lastMatched = [...info.changedKeysMatched].sort();
@@ -169,29 +169,29 @@ describe("props: watch(resolved) contract (v0)", () => {
     pm.applyRaw({ a: 2, b: 1, c: 2 });
     execResolvedTasks(pm);
     expect(called).toBe(1);
-    expect(lastAll).toEqual(["a", "c"]); // all declared changes
-    expect(lastMatched).toEqual(["a"]); // matched subset
+    expect(lastAll).toEqual(['a', 'c']); // all declared changes
+    expect(lastMatched).toEqual(['a']); // matched subset
 
     // b changed => schedule
     pm.applyRaw({ a: 2, b: 2, c: 2 });
     execResolvedTasks(pm);
     expect(called).toBe(2);
-    expect(lastAll).toEqual(["b"]);
-    expect(lastMatched).toEqual(["b"]);
+    expect(lastAll).toEqual(['b']);
+    expect(lastMatched).toEqual(['b']);
   });
 
-  it("PROP-V0-3500: order: watchAll before keyed watches; registration order preserved within group", () => {
+  it('PROP-V0-3500: order: watchAll before keyed watches; registration order preserved within group', () => {
     type P = { a: number };
     const pm = createModule<P>();
-    pm.define({ a: { kind: "number", default: 1 } } satisfies PropsSpecMap<P>);
+    pm.define({ a: { kind: 'number', default: 1 } } satisfies PropsSpecMap<P>);
 
     const order: string[] = [];
 
-    pm.watchAllKeys(() => order.push("all-1"));
-    pm.watchAllKeys(() => order.push("all-2"));
+    pm.watchAllKeys(() => order.push('all-1'));
+    pm.watchAllKeys(() => order.push('all-2'));
 
-    pm.watchKeys(["a"], () => order.push("key-1"));
-    pm.watchKeys(["a"], () => order.push("key-2"));
+    pm.watchKeys(['a'], () => order.push('key-1'));
+    pm.watchKeys(['a'], () => order.push('key-2'));
 
     // hydration
     pm.applyRaw({ a: 1 });
@@ -201,14 +201,14 @@ describe("props: watch(resolved) contract (v0)", () => {
     pm.applyRaw({ a: 2 });
     execResolvedTasks(pm);
 
-    expect(order).toEqual(["all-1", "all-2", "key-1", "key-2"]);
+    expect(order).toEqual(['all-1', 'all-2', 'key-1', 'key-2']);
   });
 
-  it("PROP-V0-3100/3600: diff uses Object.is (NaN stable); raw invalid may not cause resolved change -> no schedule", () => {
+  it('PROP-V0-3100/3600: diff uses Object.is (NaN stable); raw invalid may not cause resolved change -> no schedule', () => {
     type P = { a: number };
     const pm = createModule<P>();
     pm.define({
-      a: { kind: "number", default: 1, validator: (v: number) => v > 0 },
+      a: { kind: 'number', default: 1, validator: (v: number) => v > 0 },
     } satisfies PropsSpecMap<P>);
 
     let called = 0;
@@ -237,10 +237,10 @@ describe("props: watch(resolved) contract (v0)", () => {
     expect(called).toBe(1);
   });
 
-  it("PROP-V0-3600: resolved watchers are resolved-based; raw-only change does not trigger them", () => {
+  it('PROP-V0-3600: resolved watchers are resolved-based; raw-only change does not trigger them', () => {
     type P = { a: number };
     const pm = createModule<P>();
-    pm.define({ a: { kind: "number", default: 1 } } satisfies PropsSpecMap<P>);
+    pm.define({ a: { kind: 'number', default: 1 } } satisfies PropsSpecMap<P>);
 
     let called = 0;
     pm.watchAllKeys(() => called++);
@@ -255,15 +255,15 @@ describe("props: watch(resolved) contract (v0)", () => {
     expect(called).toBe(0);
   });
 
-  it("PROP-V0-3400: registration constraints (empty keys rejected; undeclared keys rejected; watch(keys) requires define first)", () => {
+  it('PROP-V0-3400: registration constraints (empty keys rejected; undeclared keys rejected; watch(keys) requires define first)', () => {
     type P = { a: number };
     const pm0 = createModule<P>();
-    expect(() => pm0.watchKeys(["a"], () => {})).toThrow(/define/i);
+    expect(() => pm0.watchKeys(['a'], () => {})).toThrow(/define/i);
 
     const pm = createModule<P>();
-    pm.define({ a: { kind: "number", default: 1 } } satisfies PropsSpecMap<P>);
+    pm.define({ a: { kind: 'number', default: 1 } } satisfies PropsSpecMap<P>);
 
     expect(() => pm.watchKeys([] as any, () => {})).toThrow();
-    expect(() => pm.watchKeys(["x"] as any, () => {})).toThrow(/undeclared/i);
+    expect(() => pm.watchKeys(['x'] as any, () => {})).toThrow(/undeclared/i);
   });
 });

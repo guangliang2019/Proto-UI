@@ -1,5 +1,5 @@
 // packages/modules/rule/src/types.ts
-import type { PropsBaseType } from "@proto-ui/types";
+import type { PropsBaseType } from '@proto-ui/types';
 import type {
   ModuleInstance,
   ModuleFacade,
@@ -7,27 +7,27 @@ import type {
   StyleHandle,
   OwnedStateHandle,
   BorrowedStateHandle,
-} from "@proto-ui/core";
+} from '@proto-ui/core';
 
 export type RuleDep<Props> =
-  | { kind: "prop"; key: keyof Props }
-  | { kind: "state"; id: any }
-  | { kind: "context"; key: any };
+  | { kind: 'prop'; key: keyof Props }
+  | { kind: 'state'; id: any }
+  | { kind: 'context'; key: any };
 
 export type WhenLiteral = string | number | boolean | null;
 
 export type WhenValue<Props> =
-  | { type: "prop"; key: keyof Props }
-  | { type: "state"; id: any }
-  | { type: "context"; key: any };
+  | { type: 'prop'; key: keyof Props }
+  | { type: 'state'; id: any }
+  | { type: 'context'; key: any };
 
 export type WhenExpr<Props> =
-  | { type: "true" }
-  | { type: "false" }
-  | { type: "eq"; left: WhenValue<Props>; right: WhenLiteral }
-  | { type: "not"; expr: WhenExpr<Props> }
-  | { type: "all"; exprs: WhenExpr<Props>[] }
-  | { type: "any"; exprs: WhenExpr<Props>[] };
+  | { type: 'true' }
+  | { type: 'false' }
+  | { type: 'eq'; left: WhenValue<Props>; right: WhenLiteral }
+  | { type: 'not'; expr: WhenExpr<Props> }
+  | { type: 'all'; exprs: WhenExpr<Props>[] }
+  | { type: 'any'; exprs: WhenExpr<Props>[] };
 
 export interface WhenSignal<Props, T> {
   eq(lit: WhenLiteral): WhenExpr<Props>;
@@ -47,15 +47,15 @@ export interface WhenBuilder<Props extends {}> {
 }
 
 export type RuleOp =
-  | { kind: "feedback.style.use"; handles: StyleHandle[] }
+  | { kind: 'feedback.style.use'; handles: StyleHandle[] }
   | {
-      kind: "state.set";
+      kind: 'state.set';
       handle: OwnedStateHandle<any> | BorrowedStateHandle<any, any>;
       value: any;
       reason?: any;
     };
 
-export type RuleIntent = { kind: "ops"; ops: RuleOp[] };
+export type RuleIntent = { kind: 'ops'; ops: RuleOp[] };
 
 export type RuleIR<Props extends {}> = {
   id: number;
@@ -90,7 +90,7 @@ export interface IntentBuilder {
 }
 
 export type RulePlanV0 = {
-  kind: "style.tokens";
+  kind: 'style.tokens';
   tokens: string[];
 };
 
@@ -101,17 +101,16 @@ export type RuleEvalCtx<Props extends {}> = {
 };
 
 export type RuleEvalResult =
-  | { kind: "plan"; plan: RulePlanV0 }
-  | { kind: "short-circuit"; executed: boolean };
+  | { kind: 'plan'; plan: RulePlanV0 }
+  | { kind: 'short-circuit'; executed: boolean };
 
 export type RuleExtension<Props extends {}> = {
-  transformRules?: (
-    rules: RuleIR<Props>[],
+  transformRules?: (rules: RuleIR<Props>[], ctx: RuleEvalCtx<Props>) => RuleIR<Props>[];
+  beforePlan?: (
     ctx: RuleEvalCtx<Props>
-  ) => RuleIR<Props>[];
-  beforePlan?: (ctx: RuleEvalCtx<Props>) =>
-    | { kind: "continue" }
-    | { kind: "short-circuit"; execute?: (ctx: RuleEvalCtx<Props>) => void };
+  ) =>
+    | { kind: 'continue' }
+    | { kind: 'short-circuit'; execute?: (ctx: RuleEvalCtx<Props>) => void };
   afterPlan?: (plan: RulePlanV0, ctx: RuleEvalCtx<Props>) => RulePlanV0;
 };
 
@@ -128,7 +127,7 @@ export type RuleFacade<Props extends {}> = ModuleFacade & {
 };
 
 export type RuleModule<Props extends {}> = ModuleInstance<RuleFacade<Props>> & {
-  name: "rule";
+  name: 'rule';
   scope: ModuleScope; // normally "instance"
   port: RulePort<Props>;
 };

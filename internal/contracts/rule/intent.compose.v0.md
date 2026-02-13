@@ -2,8 +2,7 @@
 
 ## Purpose
 
-Defines the intent structure, builder shape, and cross-channel composition principles.
-Channel-specific semantics are defined by their own intent contracts.
+Defines the intent structure, builder shape, and cross-channel composition principles. Channel-specific semantics are defined by their own intent contracts.
 
 ---
 
@@ -51,13 +50,18 @@ Rules:
 
 ```ts
 type RuleIntent = {
-  kind: "ops";
+  kind: 'ops';
   ops: RuleOp[];
 };
 
 type RuleOp =
-  | { kind: "feedback.style.use"; handles: StyleHandle[] }
-  | { kind: "state.set"; handle: OwnedStateHandle<any> | BorrowedStateHandle<any>; value: any; reason: any };
+  | { kind: 'feedback.style.use'; handles: StyleHandle[] }
+  | {
+      kind: 'state.set';
+      handle: OwnedStateHandle<any> | BorrowedStateHandle<any>;
+      value: any;
+      reason: any;
+    };
 ```
 
 - Multiple ops MAY be recorded per rule
@@ -82,4 +86,3 @@ v0 does NOT provide:
 - host-specific execution logic
 
 These belong to adapters or future extensions.
-

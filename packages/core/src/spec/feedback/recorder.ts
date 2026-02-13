@@ -1,8 +1,8 @@
 // packages/core/src/spec/feedback/recorder.ts
 
-import type { StyleHandle } from "./style";
-import { mergeTwTokensV0 } from "./semantic-merge";
-import { assertTwTokenV0 } from "./tokens";
+import type { StyleHandle } from './style';
+import { mergeTwTokensV0 } from './semantic-merge';
+import { assertTwTokenV0 } from './tokens';
 
 export type UnUse = () => void;
 
@@ -23,11 +23,11 @@ export class FeedbackStyleRecorder {
     // flatten & validate
     const flattened: string[] = [];
     for (const h of handles) {
-      if (!h || h.kind !== "tw" || !Array.isArray(h.tokens)) {
+      if (!h || h.kind !== 'tw' || !Array.isArray(h.tokens)) {
         throw new Error(`[feedback] unsupported style handle in v0`);
       }
       for (const t of h.tokens) {
-        assertTwTokenV0(t, "feedback.style.use");
+        assertTwTokenV0(t, 'feedback.style.use');
         flattened.push(t);
       }
     }
@@ -54,11 +54,11 @@ export class FeedbackStyleRecorder {
   useUnsafe(...handles: StyleHandle[]): UnUse {
     const flattened: string[] = [];
     for (const h of handles) {
-      if (!h || h.kind !== "tw" || !Array.isArray(h.tokens)) {
+      if (!h || h.kind !== 'tw' || !Array.isArray(h.tokens)) {
         throw new Error(`[feedback] unsupported style handle in v0`);
       }
       for (const t of h.tokens) {
-        if (typeof t !== "string" || !t) {
+        if (typeof t !== 'string' || !t) {
           throw new Error(`[feedback] invalid tw token (unsafe): empty`);
         }
         flattened.push(t);

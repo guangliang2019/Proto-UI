@@ -35,14 +35,14 @@ Static assets, like favicons, can be placed in the `public/` directory.
 
 All commands are run from the repo root (monorepo), from a terminal:
 
-| Command                      | Action                                           |
-| :--------------------------- | :----------------------------------------------- |
-| `pnpm install`               | Installs dependencies                            |
-| `pnpm --filter apps-www dev` | Starts local dev server at `localhost:4321`      |
-| `pnpm --filter apps-www build` | Build your production site to `./dist/`        |
-| `pnpm --filter apps-www preview` | Preview your build locally, before deploying |
-| `pnpm --filter apps-www astro ...` | Run CLI commands like `astro add`, `astro check` |
-| `pnpm --filter apps-www astro -- --help` | Get help using the Astro CLI          |
+| Command                                  | Action                                           |
+| :--------------------------------------- | :----------------------------------------------- |
+| `pnpm install`                           | Installs dependencies                            |
+| `pnpm --filter apps-www dev`             | Starts local dev server at `localhost:4321`      |
+| `pnpm --filter apps-www build`           | Build your production site to `./dist/`          |
+| `pnpm --filter apps-www preview`         | Preview your build locally, before deploying     |
+| `pnpm --filter apps-www astro ...`       | Run CLI commands like `astro add`, `astro check` |
+| `pnpm --filter apps-www astro -- --help` | Get help using the Astro CLI                     |
 
 ## 👀 Want to learn more?
 

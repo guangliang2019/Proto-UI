@@ -2,8 +2,7 @@
 
 ## Purpose
 
-Defines how context dependencies are validated at evaluation time.
-There is no required stable update cycle in v0.
+Defines how context dependencies are validated at evaluation time. There is no required stable update cycle in v0.
 
 ---
 
@@ -40,8 +39,7 @@ Therefore, context dependencies are **potentially unstable inputs**.
 
 ### 2.1 No implicit polling
 
-v0 does not require a stable runtime update cycle.
-Runtime MUST NOT rely on periodic re-evaluation.
+v0 does not require a stable runtime update cycle. Runtime MUST NOT rely on periodic re-evaluation.
 
 ### 2.2 Resolve on evaluation
 
@@ -103,4 +101,3 @@ This contract does NOT:
 - v0 does not rely on update cycles
 - context is validated only at evaluation time
 - state triggers remain authoritative
-

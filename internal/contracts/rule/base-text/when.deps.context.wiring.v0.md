@@ -2,8 +2,7 @@
 
 > 状态：Draft – v0（实现对齐）
 >
-> 本契约规定 **rule 与 context 的评估绑定**。
-> v0 不要求稳定 update cycle，因此采用“评估时校验”的防护策略。
+> 本契约规定 **rule 与 context 的评估绑定**。v0 不要求稳定 update cycle，因此采用“评估时校验”的防护策略。
 
 ---
 
@@ -40,8 +39,7 @@
 
 ### 2.1 无隐式轮询
 
-v0 **不要求**存在稳定的 runtime update cycle。
-运行期不得依赖“周期性重评估”。
+v0 **不要求**存在稳定的 runtime update cycle。运行期不得依赖“周期性重评估”。
 
 ### 2.2 评估时解析与防护
 
@@ -103,4 +101,3 @@ v0 **不要求**存在稳定的 runtime update cycle。
 - v0 不依赖 update cycle。
 - context 仅在评估时解析与校验。
 - 与 state 触发叠加，不相互替代。
-

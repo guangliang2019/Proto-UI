@@ -1,8 +1,8 @@
 // packages/adapters/web-component/src/adapt.ts
-import type { Prototype, EffectsPort, StyleHandle } from "@proto-ui/core";
-import { PropsBaseType } from "@proto-ui/types";
+import type { Prototype, EffectsPort, StyleHandle } from '@proto-ui/core';
+import { PropsBaseType } from '@proto-ui/types';
 
-import { type RawPropsSource } from "@proto-ui/modules.props";
+import { type RawPropsSource } from '@proto-ui/modules.props';
 
 import {
   createHostWiring,
@@ -10,30 +10,24 @@ import {
   createCapsWiring,
   createAdapterHost,
   createWebProtoEventRouter,
-} from "@proto-ui/adapters.base";
+} from '@proto-ui/adapters.base';
 
-import { commitChildren } from "./commit";
-import { bindController, getElementProps, unbindController } from "./props";
-import { SlotProjector } from "./slot-projector";
-import { createOwnedTwTokenApplier } from "./feedback-style";
-import { __RUN_TEST_SYS, type TestSysPort } from "@proto-ui/modules.test-sys";
+import { commitChildren } from './commit';
+import { bindController, getElementProps, unbindController } from './props';
+import { SlotProjector } from './slot-projector';
+import { createOwnedTwTokenApplier } from './feedback-style';
+import { __RUN_TEST_SYS, type TestSysPort } from '@proto-ui/modules.test-sys';
 
 // Debug hook for contract tests / diagnostics.
 // Intentionally not part of public authoring API.
 // Accessed as: (el as any)[__WC_DEBUG_SYS]
-export const __WC_DEBUG_SYS = Symbol.for(
-  "@proto-ui/adapters.web-component/__debug_sys"
-);
-const __WC_PROTO_INSTANCE = Symbol.for(
-  "@proto-ui/adapters.web-component/__proto_instance"
-);
+export const __WC_DEBUG_SYS = Symbol.for('@proto-ui/adapters.web-component/__debug_sys');
+const __WC_PROTO_INSTANCE = Symbol.for('@proto-ui/adapters.web-component/__proto_instance');
 const PROTO_BY_INSTANCE = new WeakMap<HTMLElement, Prototype<any>>();
 
 function assertKebabCase(tag: string) {
-  if (!tag.includes("-") || tag.toLowerCase() !== tag) {
-    throw new Error(
-      `[WC Adapter] custom element name must be kebab-case and contain '-': ${tag}`
-    );
+  if (!tag.includes('-') || tag.toLowerCase() !== tag) {
+    throw new Error(`[WC Adapter] custom element name must be kebab-case and contain '-': ${tag}`);
   }
 }
 
@@ -45,7 +39,7 @@ function isProtoInstance(node: Node | null): node is HTMLElement {
 function getProtoParent(instance: HTMLElement): HTMLElement | null {
   let cur: Node | null = instance.parentNode;
   while (cur) {
-    if (typeof ShadowRoot !== "undefined" && cur instanceof ShadowRoot) {
+    if (typeof ShadowRoot !== 'undefined' && cur instanceof ShadowRoot) {
       cur = cur.host;
       continue;
     }
@@ -55,9 +49,7 @@ function getProtoParent(instance: HTMLElement): HTMLElement | null {
   return null;
 }
 
-export interface WebComponentAdapterOptions<
-  Props extends PropsBaseType = PropsBaseType
-> {
+export interface WebComponentAdapterOptions<Props extends PropsBaseType = PropsBaseType> {
   shadow?: boolean;
   getProps?: (el: HTMLElement) => Partial<Props> | null | undefined;
   schedule?: (task: () => void) => void;
@@ -74,7 +66,7 @@ export function AdaptToWebComponent<Props extends PropsBaseType>(
   assertKebabCase(proto.name);
 
   const shadow = opt.shadow ?? false;
-  const getProps = opt.getProps ?? (() => ({} as Partial<Props>));
+  const getProps = opt.getProps ?? (() => ({}) as Partial<Props>);
   const schedule = opt.schedule ?? ((task) => queueMicrotask(task));
   const exposeStateWebMode = opt.exposeStateWebMode;
 
@@ -85,15 +77,12 @@ export function AdaptToWebComponent<Props extends PropsBaseType>(
     private _root: Element | ShadowRoot;
     private _slotProjector: SlotProjector | null = null;
 
-    private _applier: ReturnType<typeof createOwnedTwTokenApplier> | null =
-      null;
+    private _applier: ReturnType<typeof createOwnedTwTokenApplier> | null = null;
     private _exposes: Record<string, unknown> = {};
 
     constructor() {
       super();
-      this._root = shadow
-        ? (this.attachShadow({ mode: "open" }) as ShadowRoot)
-        : this;
+      this._root = shadow ? (this.attachShadow({ mode: 'open' }) as ShadowRoot) : this;
       (this as any)[__WC_PROTO_INSTANCE] = true;
       PROTO_BY_INSTANCE.set(this, proto as Prototype<any>);
     }
@@ -125,10 +114,7 @@ export function AdaptToWebComponent<Props extends PropsBaseType>(
 
         get(): Readonly<Props & PropsBaseType> {
           // attrs-first, then opt.getProps
-          const p =
-            getElementProps(thisEl) ??
-            getProps(thisEl) ??
-            ({} as Partial<Props>);
+          const p = getElementProps(thisEl) ?? getProps(thisEl) ?? ({} as Partial<Props>);
 
           // WC 从 DOM 取值，类型安全只能止步于边界；用 unknown 双断言把风险收口在这一处
           return p as unknown as Readonly<Props & PropsBaseType>;
@@ -137,7 +123,7 @@ export function AdaptToWebComponent<Props extends PropsBaseType>(
         subscribe(cb) {
           const mo = new MutationObserver((records) => {
             for (const r of records) {
-              if (r.type === "attributes") {
+              if (r.type === 'attributes') {
                 cb();
                 break;
               }
@@ -165,9 +151,9 @@ export function AdaptToWebComponent<Props extends PropsBaseType>(
           nameMap: (semantic: string) => {
             const base = semantic
               .trim()
-              .replace(/\s+/g, "-")
-              .replace(/\./g, "-")
-              .replace(/[^a-zA-Z0-9\-]/g, "-")
+              .replace(/\s+/g, '-')
+              .replace(/\./g, '-')
+              .replace(/[^a-zA-Z0-9\-]/g, '-')
               .toLowerCase();
             return {
               dataAttr: `data-${base}`,
@@ -183,8 +169,7 @@ export function AdaptToWebComponent<Props extends PropsBaseType>(
         .useAsTrigger({
           instance: thisEl,
           parent: (inst: unknown) => getProtoParent(inst as HTMLElement),
-          getPrototype: (inst: unknown) =>
-            PROTO_BY_INSTANCE.get(inst as HTMLElement) ?? null,
+          getPrototype: (inst: unknown) => PROTO_BY_INSTANCE.get(inst as HTMLElement) ?? null,
         })
         .build();
 
@@ -194,12 +179,11 @@ export function AdaptToWebComponent<Props extends PropsBaseType>(
       const hostSession = createAdapterHost(
         proto,
         {
-          getRawProps: () =>
-            rawPropsSource.get() as Readonly<Props & PropsBaseType>,
+          getRawProps: () => rawPropsSource.get() as Readonly<Props & PropsBaseType>,
           schedule,
           commit: (children, signal) => {
             if (shadow) {
-              commitChildren(thisRoot as any, children, { mode: "shadow" });
+              commitChildren(thisRoot as any, children, { mode: 'shadow' });
               this._slotProjector?.disconnect();
               this._slotProjector = null;
 
@@ -219,15 +203,14 @@ export function AdaptToWebComponent<Props extends PropsBaseType>(
               return;
             }
 
-            if (!this._slotProjector)
-              this._slotProjector = new SlotProjector(thisEl);
+            if (!this._slotProjector) this._slotProjector = new SlotProjector(thisEl);
             const projector = this._slotProjector;
 
             const slotPool = projector.collectSlotPoolBeforeCommit();
             const owned = new WeakSet<Node>();
 
             const res = commitChildren(thisRoot as any, children, {
-              mode: "light",
+              mode: 'light',
               slotPool,
               owned,
             });
@@ -269,9 +252,9 @@ export function AdaptToWebComponent<Props extends PropsBaseType>(
 
           afterUnmount: () => {
             try {
-              const port = (capsHub as any).getPort?.("test-sys");
-              port?.trace?.("after-unmount");
-            } catch { }
+              const port = (capsHub as any).getPort?.('test-sys');
+              port?.trace?.('after-unmount');
+            } catch {}
 
             // 2) adapter-base cleanup (best-effort, after runtime disposal)
             // NOTE: if your createHostWiring.afterUnmount() calls controller.reset(),
@@ -292,7 +275,7 @@ export function AdaptToWebComponent<Props extends PropsBaseType>(
             // clear debug hook
             try {
               delete (this as any)[__WC_DEBUG_SYS];
-            } catch { }
+            } catch {}
           },
         }
       );
@@ -303,28 +286,28 @@ export function AdaptToWebComponent<Props extends PropsBaseType>(
       // Debug: expose test-sys port for contract tests (best-effort).
       // If module not present, leave undefined.
       try {
-        const sysPort = (capsHub as any).getPort?.("test-sys");
+        const sysPort = (capsHub as any).getPort?.('test-sys');
         (thisEl as any)[__WC_DEBUG_SYS] = sysPort;
       } catch {
         // ignore in v0
       }
 
       // expose debug trace getter (non-enumerable)
-      Object.defineProperty(this as any, "__debugTestSysTrace", {
+      Object.defineProperty(this as any, '__debugTestSysTrace', {
         enumerable: false,
         configurable: true,
         get: () => {
-          const port = (capsHub as any).getPort?.("test-sys") as TestSysPort;
+          const port = (capsHub as any).getPort?.('test-sys') as TestSysPort;
           return port?.getTrace?.() ?? [];
         },
       });
 
       // 也可以再给一个 clear：
-      Object.defineProperty(this as any, "__debugClearTestSysTrace", {
+      Object.defineProperty(this as any, '__debugClearTestSysTrace', {
         enumerable: false,
         configurable: true,
         value: () => {
-          const port = (capsHub as any).getPort?.("test-sys") as TestSysPort;
+          const port = (capsHub as any).getPort?.('test-sys') as TestSysPort;
           port?.clearTrace?.();
         },
       });
@@ -357,21 +340,15 @@ export function AdaptToWebComponent<Props extends PropsBaseType>(
 function isSlotOnly(children: any): boolean {
   if (children == null) return false;
 
-  const one = Array.isArray(children)
-    ? children.length === 1
-      ? children[0]
-      : null
-    : children;
+  const one = Array.isArray(children) ? (children.length === 1 ? children[0] : null) : children;
 
-  if (!one || typeof one !== "object") return false;
+  if (!one || typeof one !== 'object') return false;
 
   const t = (one as any).type;
-  return t && typeof t === "object" && t.kind === "slot";
+  return t && typeof t === 'object' && t.kind === 'slot';
 }
 
-function createWebEffectsPort(
-  applier: ReturnType<typeof createOwnedTwTokenApplier>
-): EffectsPort {
+function createWebEffectsPort(applier: ReturnType<typeof createOwnedTwTokenApplier>): EffectsPort {
   let latest: StyleHandle | null = null;
   let flushing = false;
 
@@ -381,7 +358,7 @@ function createWebEffectsPort(
     try {
       const h = latest;
       if (!h) return;
-      if (h.kind === "tw") applier.apply(h.tokens);
+      if (h.kind === 'tw') applier.apply(h.tokens);
     } finally {
       flushing = false;
     }

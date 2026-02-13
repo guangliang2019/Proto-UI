@@ -1,8 +1,7 @@
 // packages/runtime/test/contract/state-phase-guards.v0.contract.test.ts
-import { describe, it, expect } from "vitest";
-import type { Prototype, OwnedStateHandle } from "@proto-ui/core";
-import { executeWithHost, RuntimeHost } from "../../src";
-
+import { describe, it, expect } from 'vitest';
+import type { Prototype, OwnedStateHandle } from '@proto-ui/core';
+import { executeWithHost, RuntimeHost } from '../../src';
 
 /**
  * Runtime Contract (v0): phase guards for OwnedStateHandle APIs
@@ -20,10 +19,10 @@ import { executeWithHost, RuntimeHost } from "../../src";
  * - Phase enforcement is a runtime/module concern (SystemCaps / exec-phase guard / module wrapper).
  * - This contract intentionally does NOT cover watch/borrowed/observed/exposed projections.
  */
-describe("runtime contract: state phase guards (v0)", () => {
-  it("owned handle phase guards: setDefault setup-only; set runtime-only", () => {
+describe('runtime contract: state phase guards (v0)', () => {
+  it('owned handle phase guards: setDefault setup-only; set runtime-only', () => {
     const host: RuntimeHost<any> = {
-      prototypeName: "x-runtime-state-guards",
+      prototypeName: 'x-runtime-state-guards',
       getRawProps() {
         return {};
       },
@@ -38,9 +37,9 @@ describe("runtime contract: state phase guards (v0)", () => {
     let s!: OwnedStateHandle<boolean>;
 
     const P: Prototype = {
-      name: "x-runtime-state-guards",
+      name: 'x-runtime-state-guards',
       setup(def) {
-        s = def.state.bool("open", false);
+        s = def.state.bool('open', false);
 
         // setup: set must throw; setDefault allowed
         expect(() => s.set(true)).toThrow();
@@ -52,7 +51,7 @@ describe("runtime contract: state phase guards (v0)", () => {
           expect(() => s.set(true)).not.toThrow();
         });
 
-        return (r) => [r.el("div", "ok")];
+        return (r) => [r.el('div', 'ok')];
       },
     };
 

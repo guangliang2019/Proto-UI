@@ -1,24 +1,24 @@
 // packages/adapters/base/src/host/adapter-host.ts
-import type { Prototype } from "@proto-ui/core";
-import type { PropsBaseType } from "@proto-ui/types";
-import { executeWithHost, type RuntimeHost, type ExecuteWithHostResult } from "@proto-ui/runtime";
-import { createTeardown } from "../lifecycle/teardown";
+import type { Prototype } from '@proto-ui/core';
+import type { PropsBaseType } from '@proto-ui/types';
+import { executeWithHost, type RuntimeHost, type ExecuteWithHostResult } from '@proto-ui/runtime';
+import { createTeardown } from '../lifecycle/teardown';
 
 export type AdapterHostHooks<P extends PropsBaseType> = {
-  onRuntimeReady?: RuntimeHost<P>["onRuntimeReady"];
-  onUnmountBegin?: RuntimeHost<P>["onUnmountBegin"];
+  onRuntimeReady?: RuntimeHost<P>['onRuntimeReady'];
+  onUnmountBegin?: RuntimeHost<P>['onUnmountBegin'];
   afterUnmount?: () => void;
 };
 
 export type AdapterHostInput<P extends PropsBaseType> = Pick<
   RuntimeHost<P>,
-  "commit" | "schedule" | "getRawProps"
+  'commit' | 'schedule' | 'getRawProps'
 >;
 
 export type AdapterHostSession<P extends PropsBaseType> = {
-  controller: ExecuteWithHostResult["controller"];
+  controller: ExecuteWithHostResult['controller'];
   dispose(): void;
-  caps: ExecuteWithHostResult["caps"];
+  caps: ExecuteWithHostResult['caps'];
 };
 
 export function createAdapterHost<P extends PropsBaseType>(

@@ -1,13 +1,11 @@
 # Watch Raw Contract (v0)
 
-This document defines the v0 behavioral contract for **raw-level watchers**
-registered via:
+This document defines the v0 behavioral contract for **raw-level watchers** registered via:
 
 - `def.props.watchRaw(keys, cb [, options])`
 - `def.props.watchRawAll(cb [, options])`
 
-Raw watchers observe **raw props objects** (the direct external input),
-before resolution/filtering.
+Raw watchers observe **raw props objects** (the direct external input), before resolution/filtering.
 
 Raw watching is an **escape hatch** and is discouraged in official prototypes.
 
@@ -89,7 +87,6 @@ Then:
 `cb(run, nextRaw, prevRaw, info)` where:
 
 - `run` is the runtime RunHandle passed to `applyRaw(nextRaw, run)`
-
   - It MUST satisfy **PROP-V0-2110 (Handle Wiring)**: `run.props.get/getRaw/isProvided` must exist and behave consistently.
 
 - `nextRaw` is the raw snapshot after applying new raw props
@@ -128,7 +125,6 @@ Then:
 `cb(run, nextRaw, prevRaw, info)` with:
 
 - `run` is the runtime RunHandle passed to `applyRaw(nextRaw, run)`
-
   - It MUST satisfy **PROP-V0-2110 (Handle Wiring)**: `run.props.get/getRaw/isProvided` must exist and behave consistently.
 
 - `info.changedKeysAll` computed from unionKeys
@@ -145,11 +141,9 @@ Raw watching is an escape hatch and should be avoided in official prototypes.
 When a raw watcher is evaluated in a watcher-firing `applyRaw(...)` call:
 
 - `watchRawAll` may record a warning diagnostic:
-
   - `[Props] watchRawAll() is an escape hatch; avoid in official prototypes.`
 
 - `watchRaw(keys)` may record a warning diagnostic:
-
   - `[Props] watchRaw() is an escape hatch; avoid in official prototypes.`
 
 This warning emission is controlled by an internal `devWarn` flag.
@@ -158,8 +152,7 @@ Default behavior in v0:
 
 - `devWarn` defaults to `true` for raw watchers registered via DefHandle APIs.
 
-> The warning is recorded when the watcher group is visited on an apply call.
-> It is not required to be de-duplicated in v0.
+> The warning is recorded when the watcher group is visited on an apply call. It is not required to be de-duplicated in v0.
 
 ---
 
@@ -190,8 +183,7 @@ Therefore:
 - A change that does not affect resolved output may still trigger raw watchers.
 - A resolved change always implies some raw change, but raw watchers are not limited to declared keys.
 
-This escape hatch exists to support integration with ecosystems that
-provide complex or opaque props payloads.
+This escape hatch exists to support integration with ecosystems that provide complex or opaque props payloads.
 
 ---
 

@@ -1,21 +1,21 @@
 // packages/modules/expose/src/impl.ts
-import type { ProtoPhase, CapsVaultView } from "@proto-ui/core";
-import { illegalPhase } from "@proto-ui/core";
+import type { ProtoPhase, CapsVaultView } from '@proto-ui/core';
+import { illegalPhase } from '@proto-ui/core';
 
-import { ModuleBase } from "@proto-ui/modules.base";
+import { ModuleBase } from '@proto-ui/modules.base';
 
-import { EXPOSE_SET_EXPOSES_CAP } from "./caps";
-import { ExposeKernel } from "./kernel";
-import type { ExposeDiag, ExposeFacade, ExposePort } from "./types";
+import { EXPOSE_SET_EXPOSES_CAP } from './caps';
+import { ExposeKernel } from './kernel';
+import type { ExposeDiag, ExposeFacade, ExposePort } from './types';
 import {
   exposeDisposed,
   exposeDuplicateKey,
   exposeInvalidKey,
   exposePhaseViolation,
-} from "./error";
+} from './error';
 
 function isValidKey(key: any): key is string {
-  return typeof key === "string" && key.length > 0;
+  return typeof key === 'string' && key.length > 0;
 }
 
 function toDiag(key: string, value: unknown): ExposeDiag {
@@ -23,8 +23,8 @@ function toDiag(key: string, value: unknown): ExposeDiag {
   return {
     key,
     valueType: t,
-    isFunction: t === "function",
-    isObject: value !== null && t === "object",
+    isFunction: t === 'function',
+    isObject: value !== null && t === 'object',
   };
 }
 
@@ -43,8 +43,8 @@ export class ExposeModuleImpl extends ModuleBase {
   // -------------------------
 
   expose(key: string, value: unknown): void {
-    this.ensureSetup("def.expose");
-    this.ensureAlive("def.expose");
+    this.ensureSetup('def.expose');
+    this.ensureAlive('def.expose');
 
     if (!isValidKey(key)) {
       throw exposeInvalidKey(`[Expose] key must be a non-empty string.`, {
@@ -70,27 +70,27 @@ export class ExposeModuleImpl extends ModuleBase {
 
   readonly port: ExposePort = {
     get: (key) => {
-      this.ensureAlive("rt.expose.get");
+      this.ensureAlive('rt.expose.get');
       return this.kernel.get(key);
     },
 
     getAll: () => {
-      this.ensureAlive("rt.expose.getAll");
+      this.ensureAlive('rt.expose.getAll');
       return this.kernel.toRecord();
     },
 
     has: (key) => {
-      this.ensureAlive("rt.expose.has");
+      this.ensureAlive('rt.expose.has');
       return this.kernel.has(key);
     },
 
     keys: () => {
-      this.ensureAlive("rt.expose.keys");
+      this.ensureAlive('rt.expose.keys');
       return this.kernel.keys();
     },
 
     getDiagnostics: () => {
-      this.ensureAlive("rt.expose.getDiagnostics");
+      this.ensureAlive('rt.expose.getDiagnostics');
       const entries = this.kernel.entries();
       return entries.map((e) => toDiag(e.key, e.value));
     },
@@ -103,7 +103,7 @@ export class ExposeModuleImpl extends ModuleBase {
   override onProtoPhase(phase: ProtoPhase): void {
     super.onProtoPhase(phase);
 
-    if (phase === "unmounted") {
+    if (phase === 'unmounted') {
       this.dispose();
     }
   }
@@ -142,7 +142,7 @@ export class ExposeModuleImpl extends ModuleBase {
     }
 
     // Fallback to protoPhase guard (for tests)
-    if (this.protoPhase !== "setup") {
+    if (this.protoPhase !== 'setup') {
       throw illegalPhase(op, this.protoPhase, {
         prototypeName: this.prototypeName,
       });

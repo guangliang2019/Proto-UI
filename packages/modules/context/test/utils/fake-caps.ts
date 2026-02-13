@@ -1,24 +1,24 @@
 // packages/modules/context/test/utils/fake-caps.ts
-import { SYS_CAP } from "@proto-ui/modules.base";
+import { SYS_CAP } from '@proto-ui/modules.base';
 import {
   CONTEXT_INSTANCE_TOKEN_CAP,
   CONTEXT_PARENT_CAP,
   type ContextInstanceToken,
   type ContextParentGetter,
-} from "../../src/caps";
+} from '../../src/caps';
 
-type ExecPhase = "setup" | "render" | "callback" | "unknown";
-type ProtoPhase = "setup" | "mounted" | "updated" | "unmounted";
+type ExecPhase = 'setup' | 'render' | 'callback' | 'unknown';
+type ProtoPhase = 'setup' | 'mounted' | 'updated' | 'unmounted';
 
 export function createSysCaps() {
-  let execPhase: ExecPhase = "setup";
-  let protoPhase: ProtoPhase = "setup";
+  let execPhase: ExecPhase = 'setup';
+  let protoPhase: ProtoPhase = 'setup';
   let disposed = false;
   let callbackCtx: unknown = undefined;
 
   const sys = {
     execPhase: () => execPhase,
-    domain: () => (execPhase === "setup" ? "setup" : "runtime"),
+    domain: () => (execPhase === 'setup' ? 'setup' : 'runtime'),
     protoPhase: () => protoPhase,
     isDisposed: () => disposed,
 
@@ -29,43 +29,37 @@ export function createSysCaps() {
     ensureExecPhase(op: string, expected: ExecPhase | ExecPhase[]) {
       const list = Array.isArray(expected) ? expected : [expected];
       if (!list.includes(execPhase)) {
-        const e = new Error(
-          `[Phase] ${op} expected ${list.join("|")} got ${execPhase}`
-        ) as any;
-        e.code = "CONTEXT_PHASE_VIOLATION";
+        const e = new Error(`[Phase] ${op} expected ${list.join('|')} got ${execPhase}`) as any;
+        e.code = 'CONTEXT_PHASE_VIOLATION';
         throw e;
       }
     },
 
     ensureSetup(op: string) {
-      if (execPhase !== "setup") {
-        const e = new Error(
-          `[Phase] ${op} setup-only, got ${execPhase}`
-        ) as any;
-        e.code = "CONTEXT_PHASE_VIOLATION";
+      if (execPhase !== 'setup') {
+        const e = new Error(`[Phase] ${op} setup-only, got ${execPhase}`) as any;
+        e.code = 'CONTEXT_PHASE_VIOLATION';
         throw e;
       }
     },
 
     ensureRuntime(op: string) {
-      if (execPhase === "setup") {
+      if (execPhase === 'setup') {
         const e = new Error(`[Phase] ${op} runtime-only, got setup`) as any;
-        e.code = "CONTEXT_PHASE_VIOLATION";
+        e.code = 'CONTEXT_PHASE_VIOLATION';
         throw e;
       }
     },
 
     ensureCallback(op: string) {
-      if (execPhase !== "callback") {
-        const e = new Error(
-          `[Phase] ${op} callback-only, got ${execPhase}`
-        ) as any;
-        e.code = "CONTEXT_PHASE_VIOLATION";
+      if (execPhase !== 'callback') {
+        const e = new Error(`[Phase] ${op} callback-only, got ${execPhase}`) as any;
+        e.code = 'CONTEXT_PHASE_VIOLATION';
         throw e;
       }
     },
 
-    getCallbackCtx: () => (execPhase === "callback" ? callbackCtx : undefined),
+    getCallbackCtx: () => (execPhase === 'callback' ? callbackCtx : undefined),
 
     // test controls
     __setExecPhase(p: ExecPhase) {

@@ -1,6 +1,6 @@
-import type { CapsVaultView } from "@proto-ui/core";
-import { SYS_CAP, type SystemCaps } from "@proto-ui/modules.base";
-import type { SysSnapshot, TestSysPort } from "./types";
+import type { CapsVaultView } from '@proto-ui/core';
+import { SYS_CAP, type SystemCaps } from '@proto-ui/modules.base';
+import type { SysSnapshot, TestSysPort } from './types';
 
 export class TestSysImpl {
   private readonly sys: SystemCaps;
@@ -17,7 +17,7 @@ export class TestSysImpl {
     return {
       label,
       t: Date.now(),
-      execPhase: String(this.sys.execPhase?.() ?? "unknown"),
+      execPhase: String(this.sys.execPhase?.() ?? 'unknown'),
       domain: this.sys.domain(),
       protoPhase: String(this.sys.protoPhase()),
       disposed: this.sys.isDisposed(),

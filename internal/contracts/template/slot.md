@@ -2,17 +2,14 @@
 
 This contract defines Proto UI's **slot** semantics at the protocol level.
 
-> Important: the constraints in this document are **intentional protocol design**.
-> They are not a temporary "v0 compromise".
+> Important: the constraints in this document are **intentional protocol design**. They are not a temporary "v0 compromise".
 >
 > Rationale: Proto UI is a cut-line protocol between:
 >
 > - Prototype ecosystem (interaction authoring)
 > - Adapter/Compiler ecosystem (host mapping)
 >
-> We prioritize strict, stable, cross-host semantics over authoring convenience.
-> More expressive slot APIs (named slots, multi slots, props, fallback, etc.)—if desired—belong to
-> **Frameworks built on top of Proto UI**, not core/runtime/contracts.
+> We prioritize strict, stable, cross-host semantics over authoring convenience. More expressive slot APIs (named slots, multi slots, props, fallback, etc.)—if desired—belong to **Frameworks built on top of Proto UI**, not core/runtime/contracts.
 
 ---
 

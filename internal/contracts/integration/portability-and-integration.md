@@ -1,8 +1,6 @@
 # Portability, Integration, and the Role of Functions
 
-This document explains **how Proto UI thinks about integration, portability, and functions**.
-It is not a contract.
-Its purpose is to clarify design intent and to prevent incorrect assumptions when writing prototypes, adapters, or future compilers.
+This document explains **how Proto UI thinks about integration, portability, and functions**. It is not a contract. Its purpose is to clarify design intent and to prevent incorrect assumptions when writing prototypes, adapters, or future compilers.
 
 ---
 
@@ -26,8 +24,7 @@ All semantics must already be defined in:
 
 Integration tests only verify that these pieces work together as specified.
 
-This distinction is intentional:
-**integration validates composition, not meaning**.
+This distinction is intentional: **integration validates composition, not meaning**.
 
 ---
 
@@ -38,14 +35,12 @@ Proto UI deliberately supports two execution routes:
 ### 2.1 Adapter Route (Current, Practical)
 
 - Prototypes are written in the **same language as the adapter**.
-
   - React Adapter → JavaScript / TypeScript prototypes
   - Flutter Adapter → Dart prototypes
 
 - The adapter **does not extract semantics** from functions.
 - Functions are executed as-is, using the host language runtime.
 - This route prioritizes:
-
   - feasibility
   - completeness
   - real-world usability
@@ -59,7 +54,6 @@ Adapters are the proof that Proto UI’s model is executable.
 - Prototypes written in different languages are **parsed into a neutral DSL**.
 - A compiler consumes this DSL instead of language-specific code.
 - Semantic intent is extracted from:
-
   - template structure
   - props/state/context specifications
   - rule expressions
@@ -140,8 +134,7 @@ In practice, functions commonly serve as:
 
 This is acceptable in the Adapter route.
 
-However, relying on functions to express core semantics will make a prototype
-**hard or impossible to compile losslessly**.
+However, relying on functions to express core semantics will make a prototype **hard or impossible to compile losslessly**.
 
 ---
 
@@ -160,8 +153,7 @@ Proto UI does not assume:
 - functions can be transferred across runtimes
 - functions represent portable intent
 
-If a context-provided capability is expected to be portable,
-it should be expressed as:
+If a context-provided capability is expected to be portable, it should be expressed as:
 
 - explicit state
 - explicit rule intent
@@ -202,8 +194,7 @@ Integration tests assume that:
 - composition is deterministic
 - behavior is not hidden in opaque code paths
 
-By keeping functions out of the semantic core,
-Proto UI ensures that integration tests remain:
+By keeping functions out of the semantic core, Proto UI ensures that integration tests remain:
 
 - stable
 - analyzable

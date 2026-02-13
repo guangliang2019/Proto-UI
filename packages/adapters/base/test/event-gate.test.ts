@@ -1,8 +1,8 @@
-import { describe, it, expect } from "vitest";
-import { createEventGate } from "../src/gate/event-gate";
+import { describe, it, expect } from 'vitest';
+import { createEventGate } from '../src/gate/event-gate';
 
-describe("adapter-base: event-gate", () => {
-  it("enable/disable toggles effectiveness; disposed always ineffective", () => {
+describe('adapter-base: event-gate', () => {
+  it('enable/disable toggles effectiveness; disposed always ineffective', () => {
     const g = createEventGate();
 
     expect(g.isEnabled()).toBe(false);
@@ -28,10 +28,8 @@ describe("adapter-base: event-gate", () => {
     expect(g.isEnabled()).toBe(false);
   });
 
-  it("assertEnabled includes hint in error message", () => {
+  it('assertEnabled includes hint in error message', () => {
     const g = createEventGate();
-    expect(() => g.assertEnabled("click")).toThrow(
-      "[EventGate] event is not effective: click"
-    );
+    expect(() => g.assertEnabled('click')).toThrow('[EventGate] event is not effective: click');
   });
 });

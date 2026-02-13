@@ -1,5 +1,3 @@
-
-
 ---
 title: Adapter Libraries
 description: Entry point for adapter libraries supported and planned by Proto UI
@@ -45,8 +43,7 @@ In the context of Proto UI:
 
 ## Contribution Entry
 
-If you want prototypes to be adapted to a platform you need, but Proto UI has not yet implemented the corresponding adapter, you can try to implement it yourself!
-You can refer to the [Contribution Guide](/contributing/adapters), which includes:
+If you want prototypes to be adapted to a platform you need, but Proto UI has not yet implemented the corresponding adapter, you can try to implement it yourself! You can refer to the [Contribution Guide](/contributing/adapters), which includes:
 
 - Adapter initialization process
 - Implementation conventions for Renderer and h functions

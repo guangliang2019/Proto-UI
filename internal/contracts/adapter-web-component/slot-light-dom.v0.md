@@ -25,8 +25,7 @@ If the host element has direct children **before** it is connected, then on firs
 
 ### G2. Relative order around slot
 
-Template siblings around the slot (prefix/suffix) must keep their order.
-Projected nodes appear exactly at the slot position between prefix and suffix.
+Template siblings around the slot (prefix/suffix) must keep their order. Projected nodes appear exactly at the slot position between prefix and suffix.
 
 ### G3. Text nodes are supported
 

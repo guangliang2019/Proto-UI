@@ -5,8 +5,7 @@
 > This contract specifies **state** in Proto UI v0: semantic state slots, handle capabilities, execution-phase rules, lifecycle (dispose) constraints, and the minimal error model.
 >
 > **Positioning statement (v0):**  
-> State is a kind of _semantic mutable state unit_ used to store values inside a component instance and to be accessed via controlled handles.
-> State itself does **not** schedule rendering, does **not** establish dependencies, and does **not** implicitly trigger updates.
+> State is a kind of _semantic mutable state unit_ used to store values inside a component instance and to be accessed via controlled handles. State itself does **not** schedule rendering, does **not** establish dependencies, and does **not** implicitly trigger updates.
 
 ---
 

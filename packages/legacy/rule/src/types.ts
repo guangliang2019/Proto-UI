@@ -1,27 +1,27 @@
 // packages/legacy/rule/src/types.ts
-import type { StyleHandle } from "@proto-ui/core";
+import type { StyleHandle } from '@proto-ui/core';
 
 export type RuleDep<Props> =
-  | { kind: "prop"; key: keyof Props }
-  | { kind: "state"; id: any }
-  | { kind: "context"; key: any }
-  | { kind: "event"; type: string };
+  | { kind: 'prop'; key: keyof Props }
+  | { kind: 'state'; id: any }
+  | { kind: 'context'; key: any }
+  | { kind: 'event'; type: string };
 
 export type WhenLiteral = string | number | boolean | null;
 
 export type WhenValue<Props> =
-  | { type: "prop"; key: keyof Props }
-  | { type: "state"; id: any }
-  | { type: "context"; key: any };
+  | { type: 'prop'; key: keyof Props }
+  | { type: 'state'; id: any }
+  | { type: 'context'; key: any };
 
 export type WhenExpr<Props> =
-  | { type: "true" }
-  | { type: "false" }
-  | { type: "eq"; left: WhenValue<Props>; right: WhenLiteral }
-  | { type: "not"; expr: WhenExpr<Props> }
-  | { type: "all"; exprs: WhenExpr<Props>[] }
-  | { type: "any"; exprs: WhenExpr<Props>[] }
-  | { type: "happens"; eventType: string };
+  | { type: 'true' }
+  | { type: 'false' }
+  | { type: 'eq'; left: WhenValue<Props>; right: WhenLiteral }
+  | { type: 'not'; expr: WhenExpr<Props> }
+  | { type: 'all'; exprs: WhenExpr<Props>[] }
+  | { type: 'any'; exprs: WhenExpr<Props>[] }
+  | { type: 'happens'; eventType: string };
 
 export interface WhenSignal<Props, T> {
   eq(lit: WhenLiteral): WhenExpr<Props>;
@@ -46,9 +46,9 @@ export interface WhenBuilder<Props extends {}> {
   f(): WhenExpr<Props>;
 }
 
-export type RuleOp = { kind: "feedback.style.use"; handles: StyleHandle[] };
+export type RuleOp = { kind: 'feedback.style.use'; handles: StyleHandle[] };
 
-export type RuleIntent = { kind: "ops"; ops: RuleOp[] };
+export type RuleIntent = { kind: 'ops'; ops: RuleOp[] };
 
 export type RuleIR<Props extends {}> = {
   label?: string;
@@ -77,6 +77,6 @@ export interface IntentBuilder {
 }
 
 export type RulePlanV0 = {
-  kind: "style.tokens";
+  kind: 'style.tokens';
   tokens: string[];
 };

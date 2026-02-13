@@ -10,6 +10,6 @@ export function illegalPhase(
     `[ProtoUI] illegal call: ${op}\n` +
     `prototype: ${prototypeName}\n` +
     `phase: ${phase}\n` +
-    (hint ? `hint: ${hint}\n` : "");
+    (hint ? `hint: ${hint}\n` : '');
   throw new Error(msg);
 }

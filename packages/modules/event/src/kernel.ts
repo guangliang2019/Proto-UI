@@ -1,8 +1,8 @@
 // packages/modules/event/src/kernel.ts
-import { EventTypeV0 } from "@proto-ui/types";
-import type { EventDiag, EventDispatch } from "./types";
+import { EventTypeV0 } from '@proto-ui/types';
+import type { EventDiag, EventDispatch } from './types';
 
-type TargetKind = "root" | "global";
+type TargetKind = 'root' | 'global';
 
 type Reg = {
   id: string;
@@ -17,18 +17,14 @@ type Reg = {
 };
 
 function isPlainObject(x: any): x is Record<string, any> {
-  return (
-    !!x &&
-    typeof x === "object" &&
-    (x.constructor === Object || x.constructor == null)
-  );
+  return !!x && typeof x === 'object' && (x.constructor === Object || x.constructor == null);
 }
 
 function sameOptions(a: any, b: any) {
   if (Object.is(a, b)) return true;
   if (a == null || b == null) return false;
 
-  if (typeof a !== "object" || typeof b !== "object") return false;
+  if (typeof a !== 'object' || typeof b !== 'object') return false;
 
   if (isPlainObject(a) && isPlainObject(b)) {
     const ak = Object.keys(a);
@@ -69,11 +65,7 @@ export class EventKernel {
       if (r.id !== id) continue;
 
       if (r.wrapper && r.boundTarget) {
-        r.boundTarget.removeEventListener(
-          r.type as any,
-          r.wrapper as any,
-          r.options as any
-        );
+        r.boundTarget.removeEventListener(r.type as any, r.wrapper as any, r.options as any);
       }
 
       this.regs.splice(i, 1);
@@ -92,11 +84,7 @@ export class EventKernel {
       if (!matchReg(r, kind, type, options)) continue;
 
       if (r.wrapper && r.boundTarget) {
-        r.boundTarget.removeEventListener(
-          r.type as any,
-          r.wrapper as any,
-          r.options as any
-        );
+        r.boundTarget.removeEventListener(r.type as any, r.wrapper as any, r.options as any);
       }
 
       this.regs.splice(i, 1);
@@ -115,10 +103,7 @@ export class EventKernel {
     return false;
   }
 
-  bindAll(
-    dispatch: EventDispatch,
-    getTarget: (kind: TargetKind) => EventTarget
-  ) {
+  bindAll(dispatch: EventDispatch, getTarget: (kind: TargetKind) => EventTarget) {
     for (const r of this.regs) {
       if (r.wrapper && r.boundTarget) continue;
 
@@ -135,11 +120,7 @@ export class EventKernel {
   unbindAll() {
     for (const r of this.regs) {
       if (!r.wrapper || !r.boundTarget) continue;
-      r.boundTarget.removeEventListener(
-        r.type as any,
-        r.wrapper as any,
-        r.options as any
-      );
+      r.boundTarget.removeEventListener(r.type as any, r.wrapper as any, r.options as any);
       r.wrapper = undefined;
       r.boundTarget = undefined;
     }

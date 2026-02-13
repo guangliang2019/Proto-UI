@@ -1,11 +1,11 @@
 // packages/modules/expose-state-web/src/impl.ts
-import type { CapsVaultView, ProtoPhase } from "@proto-ui/core";
-import { ModuleBase } from "@proto-ui/modules.base";
-import type { ModuleDeps } from "@proto-ui/modules.base";
-import type { StateSpec } from "@proto-ui/types";
+import type { CapsVaultView, ProtoPhase } from '@proto-ui/core';
+import { ModuleBase } from '@proto-ui/modules.base';
+import type { ModuleDeps } from '@proto-ui/modules.base';
+import type { StateSpec } from '@proto-ui/types';
 
-import type { ExposeStatePort } from "@proto-ui/modules.expose-state";
-import type { ExposeStateExternalHandle } from "@proto-ui/modules.expose-state";
+import type { ExposeStatePort } from '@proto-ui/modules.expose-state';
+import type { ExposeStateExternalHandle } from '@proto-ui/modules.expose-state';
 
 import {
   EXPOSE_STATE_WEB_MAP_CAP,
@@ -13,23 +13,23 @@ import {
   HOST_ELEMENT_CAP,
   type ExposeStateWebMode,
   type ExposeStateWebNameMap,
-} from "./caps";
+} from './caps';
 
 type Binding = {
   key: string;
   off?: () => void;
   attr?: string;
   cssVar?: string;
-  kind?: StateSpec["kind"];
+  kind?: StateSpec['kind'];
   stateId?: string;
 };
 
 function defaultNameMap(semantic: string) {
   const base = semantic
     .trim()
-    .replace(/\s+/g, "-")
-    .replace(/\./g, "-")
-    .replace(/[^a-zA-Z0-9\-]/g, "-")
+    .replace(/\s+/g, '-')
+    .replace(/\./g, '-')
+    .replace(/[^a-zA-Z0-9\-]/g, '-')
     .toLowerCase();
   return {
     dataAttr: `data-${base}`,
@@ -40,10 +40,10 @@ function defaultNameMap(semantic: string) {
 function isExternalStateHandle(x: any): x is ExposeStateExternalHandle<any> {
   return (
     !!x &&
-    typeof x === "object" &&
-    typeof x.get === "function" &&
-    typeof x.subscribe === "function" &&
-    typeof x.unsubscribe === "function" &&
+    typeof x === 'object' &&
+    typeof x.get === 'function' &&
+    typeof x.subscribe === 'function' &&
+    typeof x.unsubscribe === 'function' &&
     !!x.spec
   );
 }
@@ -54,22 +54,25 @@ export class ExposeStateWebModuleImpl extends ModuleBase {
 
   private bindings: Binding[] = [];
   private active = false;
-  private exposedByStateId = new Map<string, {
-    stateId: string;
-    key: string;
-    kind: StateSpec["kind"];
-    attr?: string;
-    cssVar?: string;
-  }>();
+  private exposedByStateId = new Map<
+    string,
+    {
+      stateId: string;
+      key: string;
+      kind: StateSpec['kind'];
+      attr?: string;
+      cssVar?: string;
+    }
+  >();
 
   constructor(caps: CapsVaultView, deps: ModuleDeps) {
     super(caps);
-    this.exposeState = deps.requirePort<ExposeStatePort>("expose-state");
+    this.exposeState = deps.requirePort<ExposeStatePort>('expose-state');
   }
 
   override onProtoPhase(phase: ProtoPhase): void {
     super.onProtoPhase(phase);
-    if (phase === "unmounted") this.dispose();
+    if (phase === 'unmounted') this.dispose();
   }
 
   override afterRenderCommit(): void {
@@ -124,16 +127,14 @@ export class ExposeStateWebModuleImpl extends ModuleBase {
 
       const spec = value.spec as StateSpec;
       const semantic = (value as any).__stateSemantic || key;
-      const stateId = String((value as any).__stateId ?? "");
+      const stateId = String((value as any).__stateId ?? '');
       const mapping = nameMap(semantic);
 
       const binding: Binding = {
         key,
         stateId,
         kind: spec.kind,
-        attr: this.allowAttrForKind(spec.kind, mode)
-          ? mapping.dataAttr
-          : undefined,
+        attr: this.allowAttrForKind(spec.kind, mode) ? mapping.dataAttr : undefined,
         cssVar: mapping.cssVar,
       };
 
@@ -150,7 +151,7 @@ export class ExposeStateWebModuleImpl extends ModuleBase {
       this.applySnapshot(host, value, binding, mode);
 
       const off = value.subscribe((e) => {
-        if (e.type === "disconnect") return;
+        if (e.type === 'disconnect') return;
         this.applyValue(host, e.next as any, binding, mode);
       });
 
@@ -169,12 +170,7 @@ export class ExposeStateWebModuleImpl extends ModuleBase {
     this.applyValue(host, v, binding, mode);
   }
 
-  private applyValue(
-    host: HTMLElement,
-    v: any,
-    binding: Binding,
-    mode: ExposeStateWebMode
-  ) {
+  private applyValue(host: HTMLElement, v: any, binding: Binding, mode: ExposeStateWebMode) {
     const kind = binding.kind;
     if (!kind) return;
 
@@ -194,27 +190,27 @@ export class ExposeStateWebModuleImpl extends ModuleBase {
     };
 
     switch (kind) {
-      case "bool": {
-        if (v) setAttr("");
+      case 'bool': {
+        if (v) setAttr('');
         else setAttr(null);
         // no css var by default
         break;
       }
-      case "enum":
-      case "string": {
-        const value = v == null ? "" : String(v);
+      case 'enum':
+      case 'string': {
+        const value = v == null ? '' : String(v);
         setAttr(value);
         if (mode.allowStringVar) setVar(value);
         break;
       }
-      case "number.discrete": {
-        const value = v == null ? "" : String(v);
+      case 'number.discrete': {
+        const value = v == null ? '' : String(v);
         setAttr(value);
         setVar(value);
         break;
       }
-      case "number.range": {
-        const value = v == null ? "" : String(v);
+      case 'number.range': {
+        const value = v == null ? '' : String(v);
         if (mode.allowContinuousAttr) setAttr(value);
         setVar(value);
         break;
@@ -237,17 +233,14 @@ export class ExposeStateWebModuleImpl extends ModuleBase {
     this.exposedByStateId.clear();
   }
 
-  private allowAttrForKind(
-    kind: StateSpec["kind"],
-    mode: ExposeStateWebMode
-  ): boolean {
+  private allowAttrForKind(kind: StateSpec['kind'], mode: ExposeStateWebMode): boolean {
     switch (kind) {
-      case "bool":
-      case "enum":
-      case "string":
-      case "number.discrete":
+      case 'bool':
+      case 'enum':
+      case 'string':
+      case 'number.discrete':
         return true;
-      case "number.range":
+      case 'number.range':
         return !!mode.allowContinuousAttr;
       default:
         return false;

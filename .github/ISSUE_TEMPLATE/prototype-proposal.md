@@ -24,4 +24,3 @@ List the initial components to implement.
 ## Dependency changes
 
 List any new dependencies and why they are necessary.
-

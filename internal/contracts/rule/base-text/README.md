@@ -2,8 +2,7 @@
 
 > 状态：Draft – v0（定位与立场）
 >
-> 本文是 `internal/contracts/rule/README.md` 的中文底本，
-> 用于阐述 rule 的定位、收益与对扩展模块的立场。
+> 本文是 `internal/contracts/rule/README.md` 的中文底本，用于阐述 rule 的定位、收益与对扩展模块的立场。
 
 ---
 
@@ -31,8 +30,7 @@ Proto UI 鼓励为 **特定 host / 特定场景** 构建 rule 扩展包：
 - 以 module 形式接入，不改变 rule 的可序列化核心
 - 让社区在 v0 阶段的最佳实践被“保值”并可被复用
 
-这类扩展模块并非 v0 的主线工作，但**属于推荐范畴**。
-Proto UI 自身也会推动这类实践的积累。
+这类扩展模块并非 v0 的主线工作，但**属于推荐范畴**。Proto UI 自身也会推动这类实践的积累。
 
 ---
 
@@ -44,8 +42,7 @@ Proto UI 自身也会推动这类实践的积累。
 - adapter 启用 `expose-state-web`（映射为 CSS 变量 / DOM Attribute）
 - intent 仅为 `feedback.style`
 
-则可以将 rule 编译为**静态选择器样式**，而不必在 runtime 执行。
-这是一种可被直接优化的规则形态，且对语义完全等价。
+则可以将 rule 编译为**静态选择器样式**，而不必在 runtime 执行。这是一种可被直接优化的规则形态，且对语义完全等价。
 
 ---
 
@@ -75,6 +72,7 @@ rule 的执行分为三层：
 ## 6. 契约索引（v0）
 
 When 依赖：
+
 - `when.expr.v0.md`
 - `when.deps.props.v0.md`
 - `when.deps.state.v0.md`
@@ -83,11 +81,13 @@ When 依赖：
 - `when.deps.context.wiring.v0.md`
 
 Intent 能力：
+
 - `intent.compose.v0.md`
 - `intent.feedback.style.v0.md`
 - `intent.state.v0.md`
 
 其他：
+
 - `define.setup-only.v0.md`
 - `runtime.apply.v0.md`
 
@@ -96,15 +96,18 @@ Intent 能力：
 ## 7. 测试矩阵索引（建议）
 
 When 依赖维度：
+
 - props
 - state（Owned / Borrowed / Observed）
 - context
 
 Intent 能力维度：
+
 - feedback.style
 - state.set
 
 组合建议（示例）：
+
 - when.props × intent.feedback.style
 - when.state(Owned/Borrowed/Observed) × intent.state
 - when.context × intent.feedback.style

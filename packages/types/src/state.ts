@@ -8,27 +8,27 @@ export type StateSpec =
   | NumberRangeStateSpec
   | NumberDiscreteStateSpec;
 
-export type BoolStateSpec = { kind: "bool" };
+export type BoolStateSpec = { kind: 'bool' };
 
 export type EnumStateSpec<O extends readonly string[]> = {
-  kind: "enum";
+  kind: 'enum';
   options: O;
 };
 
 export type StringStateSpec = {
-  kind: "string";
+  kind: 'string';
   options?: readonly string[];
 };
 
 export type NumberRangeStateSpec = {
-  kind: "number.range";
+  kind: 'number.range';
   min: number;
   max: number;
   clamp?: boolean;
 };
 
 export type NumberDiscreteStateSpec = {
-  kind: "number.discrete";
+  kind: 'number.discrete';
   options?: readonly number[];
   min?: number;
   max?: number;
@@ -38,25 +38,25 @@ export type NumberDiscreteStateSpec = {
 /** Reason is intentionally unknown (policy/shape is up to app/framework). */
 export type StateSetReason = unknown;
 
-export type DisconnectReason = "unmount";
+export type DisconnectReason = 'unmount';
 
 /** Event shape used by watch/subscribe. */
 export type StateEvent<V> =
-  | { type: "next"; next: V; prev: V; reason?: StateSetReason }
-  | { type: "disconnect"; reason: DisconnectReason };
+  | { type: 'next'; next: V; prev: V; reason?: StateSetReason }
+  | { type: 'disconnect'; reason: DisconnectReason };
 
 /** Value inference helper (mainly for enum literal union). */
-export type StateValueOfSpec<S extends StateSpec> = S["kind"] extends "bool"
+export type StateValueOfSpec<S extends StateSpec> = S['kind'] extends 'bool'
   ? boolean
-  : S["kind"] extends "enum"
-  ? S extends { options: readonly (infer T)[] }
-    ? Extract<T, string>
-    : string
-  : S["kind"] extends "string"
-  ? string
-  : S["kind"] extends "number.range" | "number.discrete"
-  ? number
-  : never;
+  : S['kind'] extends 'enum'
+    ? S extends { options: readonly (infer T)[] }
+      ? Extract<T, string>
+      : string
+    : S['kind'] extends 'string'
+      ? string
+      : S['kind'] extends 'number.range' | 'number.discrete'
+        ? number
+        : never;
 
 export type StateDefineSpec =
   | BoolStateDefineSpec
@@ -91,12 +91,12 @@ export type NumberDiscreteStateDefineSpec = {
 
 // 给 module/kernel 用的 normalize 工具（types 层也可以只给类型，不给函数）
 export type NormalizeStateSpec =
-  | { kind: "bool" }
-  | { kind: "enum"; options: readonly string[] }
-  | { kind: "string"; options?: readonly string[] }
-  | { kind: "number.range"; min: number; max: number; clamp?: boolean }
+  | { kind: 'bool' }
+  | { kind: 'enum'; options: readonly string[] }
+  | { kind: 'string'; options?: readonly string[] }
+  | { kind: 'number.range'; min: number; max: number; clamp?: boolean }
   | {
-      kind: "number.discrete";
+      kind: 'number.discrete';
       options?: readonly number[];
       min?: number;
       max?: number;

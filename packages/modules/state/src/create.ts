@@ -1,16 +1,16 @@
-import { createModule, defineModule } from "@proto-ui/modules.base";
-import type { ModuleFactoryArgs } from "@proto-ui/modules.base";
-import { SYS_CAP } from "@proto-ui/modules.base";
+import { createModule, defineModule } from '@proto-ui/modules.base';
+import type { ModuleFactoryArgs } from '@proto-ui/modules.base';
+import { SYS_CAP } from '@proto-ui/modules.base';
 
-import { StateModuleImpl } from "./impl";
-import type { StateFacade, StateModule, StatePort } from "./types";
+import { StateModuleImpl } from './impl';
+import type { StateFacade, StateModule, StatePort } from './types';
 
 export function createStateModule(ctx: ModuleFactoryArgs): StateModule {
   const { init, caps, deps } = ctx;
 
-  return createModule<"state", "instance", StateFacade, StatePort>({
-    name: "state",
-    scope: "instance",
+  return createModule<'state', 'instance', StateFacade, StatePort>({
+    name: 'state',
+    scope: 'instance',
     init,
     caps,
     deps,
@@ -30,7 +30,7 @@ export function createStateModule(ctx: ModuleFactoryArgs): StateModule {
 }
 
 export const StateModuleDef = defineModule({
-  name: "state",
+  name: 'state',
   deps: [],
   create: createStateModule,
 });

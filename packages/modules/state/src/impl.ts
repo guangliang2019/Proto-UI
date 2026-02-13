@@ -1,13 +1,9 @@
-import type { OwnedStateHandle } from "@proto-ui/core";
-import type { SystemCaps } from "@proto-ui/modules.base";
-import type { StateEvent, StateSetReason } from "@proto-ui/types";
+import type { OwnedStateHandle } from '@proto-ui/core';
+import type { SystemCaps } from '@proto-ui/modules.base';
+import type { StateEvent, StateSetReason } from '@proto-ui/types';
 
-import { StateKernel } from "./kernel";
-import type {
-  InternalStateWatchCallback,
-  StateFacade,
-  StatePort,
-} from "./types";
+import { StateKernel } from './kernel';
+import type { InternalStateWatchCallback, StateFacade, StatePort } from './types';
 
 function opOf(semantic: string, method: string) {
   return `state(${semantic}).${method}`;
@@ -15,8 +11,7 @@ function opOf(semantic: string, method: string) {
 
 function getIdFromHandle(handle: OwnedStateHandle<any>): number {
   const id = (handle as any).__stateId as number | undefined;
-  if (!id)
-    throw new Error(`[StateModule] expects handle created by state-kernel`);
+  if (!id) throw new Error(`[StateModule] expects handle created by state-kernel`);
   return id;
 }
 
@@ -28,10 +23,7 @@ export class StateModuleImpl {
    * watchersById stores internal watchers that need ctx injection.
    * We keep it in module layer to avoid coupling kernel to runtime context.
    */
-  private watchersById = new Map<
-    number,
-    Set<InternalStateWatchCallback<any>>
-  >();
+  private watchersById = new Map<number, Set<InternalStateWatchCallback<any>>>();
 
   /**
    * For each state slot id that has at least one watcher, we keep exactly one kernel subscription
@@ -83,19 +75,14 @@ export class StateModuleImpl {
   }
 
   private currentCtx(): unknown {
-    return this.ctxStack.length
-      ? this.ctxStack[this.ctxStack.length - 1]
-      : undefined;
+    return this.ctxStack.length ? this.ctxStack[this.ctxStack.length - 1] : undefined;
   }
 
   // -----------------------
   // watcher plumbing
   // -----------------------
 
-  private ensureKernelForwarder<V>(
-    id: number,
-    handle: OwnedStateHandle<V>
-  ): void {
+  private ensureKernelForwarder<V>(id: number, handle: OwnedStateHandle<V>): void {
     if (this.kernelOffById.has(id)) return;
 
     const off = this.kernel.subscribe(handle, (e: StateEvent<V>) => {
@@ -149,7 +136,7 @@ export class StateModuleImpl {
     const watchers = this.watchersById.get(id);
     if (!watchers || watchers.size === 0) return;
 
-    const e: StateEvent<any> = { type: "disconnect", reason: "unmount" };
+    const e: StateEvent<any> = { type: 'disconnect', reason: 'unmount' };
     const ctx = this.currentCtx();
     const list = Array.from(watchers);
     for (const cb of list) cb(ctx, e);
@@ -159,27 +146,24 @@ export class StateModuleImpl {
   // handle wrapping
   // -----------------------
 
-  private wrapOwnedHandle<V>(
-    raw: OwnedStateHandle<V>,
-    semantic: string
-  ): OwnedStateHandle<V> {
+  private wrapOwnedHandle<V>(raw: OwnedStateHandle<V>, semantic: string): OwnedStateHandle<V> {
     const wrapped: OwnedStateHandle<V> = {
       get: () => {
-        this.ensureAlive(opOf(semantic, "get"));
+        this.ensureAlive(opOf(semantic, 'get'));
         return raw.get();
       },
 
       setDefault: (v) => {
         // setup-only policy lives in sys
-        this.ensureAlive(opOf(semantic, "setDefault"));
-        this.sys.ensureSetup(opOf(semantic, "setDefault"));
+        this.ensureAlive(opOf(semantic, 'setDefault'));
+        this.sys.ensureSetup(opOf(semantic, 'setDefault'));
         return raw.setDefault(v);
       },
 
       set: (v, reason?: StateSetReason) => {
         // callback-only policy lives in sys
-        this.ensureAlive(opOf(semantic, "set"));
-        this.sys.ensureCallback(opOf(semantic, "set"));
+        this.ensureAlive(opOf(semantic, 'set'));
+        this.sys.ensureCallback(opOf(semantic, 'set'));
 
         const ctx = this.getCallbackCtx();
         return this.withCtx(ctx, () => raw.set(v, reason));
@@ -255,36 +239,28 @@ export class StateModuleImpl {
 
   readonly facade: StateFacade = {
     bool: (semantic, defaultValue) => {
-      const raw = this.kernel.define<boolean>(
-        semantic,
-        { kind: "bool" },
-        defaultValue
-      );
+      const raw = this.kernel.define<boolean>(semantic, { kind: 'bool' }, defaultValue);
       return this.wrapOwnedHandle(raw, semantic);
     },
 
     enum: (semantic, defaultValue, spec) => {
       const raw = this.kernel.define<any>(
         semantic,
-        { kind: "enum", ...spec },
+        { kind: 'enum', ...spec },
         defaultValue as any
       ) as OwnedStateHandle<any>;
       return this.wrapOwnedHandle(raw, semantic) as any;
     },
 
     string: (semantic, defaultValue, spec = {}) => {
-      const raw = this.kernel.define<string>(
-        semantic,
-        { kind: "string", ...spec },
-        defaultValue
-      );
+      const raw = this.kernel.define<string>(semantic, { kind: 'string', ...spec }, defaultValue);
       return this.wrapOwnedHandle(raw, semantic);
     },
 
     numberRange: (semantic, defaultValue, spec) => {
       const raw = this.kernel.define<number>(
         semantic,
-        { kind: "number.range", ...spec },
+        { kind: 'number.range', ...spec },
         defaultValue
       );
       return this.wrapOwnedHandle(raw, semantic);
@@ -293,7 +269,7 @@ export class StateModuleImpl {
     numberDiscrete: (semantic, defaultValue, spec = {}) => {
       const raw = this.kernel.define<number>(
         semantic,
-        { kind: "number.discrete", ...spec },
+        { kind: 'number.discrete', ...spec },
         defaultValue
       );
       return this.wrapOwnedHandle(raw, semantic);
@@ -310,7 +286,7 @@ export class StateModuleImpl {
 
     // Emit disconnect for all watched slots (best-effort).
     for (const [, watchers] of this.watchersById) {
-      const e: StateEvent<any> = { type: "disconnect", reason: "unmount" };
+      const e: StateEvent<any> = { type: 'disconnect', reason: 'unmount' };
       const list = Array.from(watchers);
       for (const cb of list) cb(undefined, e);
     }

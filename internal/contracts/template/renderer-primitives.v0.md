@@ -1,10 +1,8 @@
 # Renderer Primitives Contract (Template Authoring API v0)
 
-This contract defines the **protocol-level semantics** of Proto UI renderer primitives
-used for Template authoring.
+This contract defines the **protocol-level semantics** of Proto UI renderer primitives used for Template authoring.
 
-It specifies how TemplateNodes are constructed, how arguments are interpreted,
-when normalization is applied, and how slot primitives are created and defensively constrained.
+It specifies how TemplateNodes are constructed, how arguments are interpreted, when normalization is applied, and how slot primitives are created and defensively constrained.
 
 ---
 
@@ -33,14 +31,12 @@ This contract does **not** define:
 
 ## 1. Background and Core Principles
 
-Renderer primitives are used to construct Proto UI Templates
-(platform-agnostic render blueprints).
+Renderer primitives are used to construct Proto UI Templates (platform-agnostic render blueprints).
 
 Templates must satisfy the following invariants:
 
 - They must be serializable and debuggable
-- They MUST NOT carry host instance values
-  (e.g. `HTMLElement`, `VNode`, `Fiber`, `Widget` instances)
+- They MUST NOT carry host instance values (e.g. `HTMLElement`, `VNode`, `Fiber`, `Widget` instances)
 - The canonical empty value in authoring syntax is `null`
 
 ---
@@ -55,10 +51,8 @@ Templates must satisfy the following invariants:
   Constructs a reserved slot node
 
 > Note:  
-> This contract defines semantics and constraints, not the exact function names
-> or implementation structure.  
-> Official core/runtime/adapters are expected to remain aligned to support
-> contract-driven tests.
+> This contract defines semantics and constraints, not the exact function names or implementation structure.  
+> Official core/runtime/adapters are expected to remain aligned to support contract-driven tests.
 
 ---
 
@@ -80,15 +74,13 @@ Where:
 - `TemplateChildren = TemplateChild | TemplateChild[] | null`
 
 > Note:  
-> `undefined` is intentionally excluded from Template authoring syntax
-> to preserve cross-host portability.
+> `undefined` is intentionally excluded from Template authoring syntax to preserve cross-host portability.
 
 ---
 
 ### 3.2 TemplateProps (Minimal Allowed Shape)
 
-In v0, the only allowed props object accepted by `el()` is `TemplateProps`,
-with the following key set:
+In v0, the only allowed props object accepted by `el()` is `TemplateProps`, with the following key set:
 
 - `style?: TemplateStyleHandle`
 
@@ -98,8 +90,7 @@ Any other keys are illegal.
 
 ## 4. `el()` Argument Dispatch Rules (Normative)
 
-`el()` MUST support the following call forms
-and interpret arguments according to fixed rules.
+`el()` MUST support the following call forms and interpret arguments according to fixed rules.
 
 ---
 
@@ -108,8 +99,7 @@ and interpret arguments according to fixed rules.
 - `props = undefined`
 - `childrenInput = null`
 
-The resulting `TemplateNode.children` MUST be `null`
-(after normalization).
+The resulting `TemplateNode.children` MUST be `null` (after normalization).
 
 ---
 
@@ -134,8 +124,7 @@ When three arguments are provided:
 - The second argument MUST be a valid `TemplateProps`
 - `childrenInput = children`
 
-If the second argument is not a valid `TemplateProps`,
-an error MUST be thrown.
+If the second argument is not a valid `TemplateProps`, an error MUST be thrown.
 
 ---
 
@@ -160,9 +149,7 @@ If `props.style` is present:
 - Otherwise, an error MUST be thrown
 
 > Note:  
-> The validity of `TemplateStyleHandle` is defined by the feedback/style subsystem.
-> Renderer primitives are only responsible for invoking the checker
-> and rejecting invalid values.
+> The validity of `TemplateStyleHandle` is defined by the feedback/style subsystem. Renderer primitives are only responsible for invoking the checker and rejecting invalid values.
 
 ---
 
@@ -189,8 +176,7 @@ The default normalization policy MUST be:
 - `flatten = "deep"`
 - `keepNull = false`
 
-The exact semantics of normalization are defined by
-**Template Normalize (v0)**.
+The exact semantics of normalization are defined by **Template Normalize (v0)**.
 
 ---
 
@@ -203,16 +189,13 @@ The exact semantics of normalization are defined by
 If any arguments are provided, an error MUST be thrown.
 
 > Note:  
-> Slot protocol-level constraints (anonymous, at most one, no params)
-> are defined by **Template Slot (Protocol Constraint)**.
-> Construction-time rejection is considered an “early failure” defense.
+> Slot protocol-level constraints (anonymous, at most one, no params) are defined by **Template Slot (Protocol Constraint)**. Construction-time rejection is considered an “early failure” defense.
 
 ---
 
 ### 7.2 Output Form
 
-`r.slot()` MUST return a `TemplateNode`
-equivalent to invoking:
+`r.slot()` MUST return a `TemplateNode` equivalent to invoking:
 
 ```
 
@@ -230,24 +213,18 @@ That is, the Template-level representation of a slot MUST be:
 
 ### 8.1 `el()` Does Not Validate `type` Legality
 
-In v0, `el(type, ...)` is **not required** to validate
-whether `type` is a legal `TemplateType`,
-and is **not required** to reject `PrototypeRef`.
+In v0, `el(type, ...)` is **not required** to validate whether `type` is a legal `TemplateType`, and is **not required** to reject `PrototypeRef`.
 
 Rationale:
 
-- Renderer primitives are authoring-time tools,
-  responsible for stable structure construction and normalization
-- Rejection of `PrototypeRef` in Template v0
-  is an adapter/commit-layer responsibility,
-  defined by a separate contract
+- Renderer primitives are authoring-time tools, responsible for stable structure construction and normalization
+- Rejection of `PrototypeRef` in Template v0 is an adapter/commit-layer responsibility, defined by a separate contract
 
 ---
 
 ### 8.2 Adapter-Level Rejection of `PrototypeRef` (Reference)
 
-When an adapter/commit implementation encounters a `TemplateNode`
-whose `type` is `PrototypeRef`:
+When an adapter/commit implementation encounters a `TemplateNode` whose `type` is `PrototypeRef`:
 
 - It MUST throw an error
 - The error message MUST be exactly:
@@ -258,8 +235,7 @@ whose `type` is `PrototypeRef`:
 
 ```
 
-This rule is defined by
-**No Prototype-Level Composition (v0)**.
+This rule is defined by **No Prototype-Level Composition (v0)**.
 
 ---
 

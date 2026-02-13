@@ -23,4 +23,3 @@ What should this doc explain or clarify?
 ## References
 
 Links to related contracts, prototypes, or prior discussions.
-

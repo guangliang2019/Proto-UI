@@ -1,12 +1,7 @@
-import type { OwnedStateHandle } from "@proto-ui/core";
-import type { StateEvent, StateSetReason, StateSpec } from "@proto-ui/types";
+import type { OwnedStateHandle } from '@proto-ui/core';
+import type { StateEvent, StateSetReason, StateSpec } from '@proto-ui/types';
 
-export type StateKind =
-  | "bool"
-  | "enum"
-  | "string"
-  | "number.range"
-  | "number.discrete";
+export type StateKind = 'bool' | 'enum' | 'string' | 'number.range' | 'number.discrete';
 
 export type StateId = number;
 
@@ -29,11 +24,7 @@ export class StateKernel {
   private pending: Array<() => void> = [];
 
   /** Define a state and return an owned handle. */
-  define<V>(
-    semantic: string,
-    spec: StateSpec,
-    defaultValue: V
-  ): OwnedStateHandle<V> {
+  define<V>(semantic: string, spec: StateSpec, defaultValue: V): OwnedStateHandle<V> {
     const id = this.nextId++;
     const rec: StateRecord<V> = {
       id,
@@ -106,7 +97,7 @@ export class StateKernel {
 
     const emit = () => {
       // Align with @proto-ui/types StateEvent<V> union
-      const e: StateEvent<V> = { type: "next", prev, next, reason };
+      const e: StateEvent<V> = { type: 'next', prev, next, reason };
       for (const cb of rec.subscribers) cb(e);
     };
 

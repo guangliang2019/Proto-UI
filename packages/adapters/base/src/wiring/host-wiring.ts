@@ -1,11 +1,8 @@
 // packages/adapters/base/src/wiring/host-wiring.ts
-import type { HostWiring, WiringSpec } from "../types";
-import type { ModuleWiring } from "@proto-ui/runtime";
+import type { HostWiring, WiringSpec } from '../types';
+import type { ModuleWiring } from '@proto-ui/runtime';
 
-export function createHostWiring(args: {
-  prototypeName: string;
-  modules: WiringSpec;
-}): HostWiring {
+export function createHostWiring(args: { prototypeName: string; modules: WiringSpec }): HostWiring {
   const { prototypeName, modules } = args;
 
   const wired = new Set<string>();

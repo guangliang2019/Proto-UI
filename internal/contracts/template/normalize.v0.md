@@ -2,8 +2,7 @@
 
 This contract defines how Proto UI normalizes `TemplateChildren`.
 
-> Scope: core template authoring syntax normalization (`normalizeChildren`).
-> Non-goals: DOM patching, adapter commit behavior, or reserved runtime semantics.
+> Scope: core template authoring syntax normalization (`normalizeChildren`). Non-goals: DOM patching, adapter commit behavior, or reserved runtime semantics.
 
 ---
 
@@ -57,8 +56,7 @@ Rationale: author-visible canonical empty value is `null`.
 
 If a boolean is encountered at any level, normalization throws.
 
-Rationale: booleans frequently appear in JSX-like patterns, but their meaning is host-dependent
-and harms portability. Use `null` for empty, or return/omit the child entirely.
+Rationale: booleans frequently appear in JSX-like patterns, but their meaning is host-dependent and harms portability. Use `null` for empty, or return/omit the child entirely.
 
 ### 4) `undefined` children are illegal
 
@@ -101,8 +99,7 @@ It only enforces authoring-syntax portability rules:
 - `null` filtering (unless `keepNull=true`)
 - throwing on booleans / `undefined`
 
-This means **any non-null object** encountered as a child may be preserved in output, even if it is
-not a valid `TemplateNode` shape.
+This means **any non-null object** encountered as a child may be preserved in output, even if it is not a valid `TemplateNode` shape.
 
 Rationale:
 
@@ -117,8 +114,7 @@ Adapters/compilers MUST treat normalized output as the stable input shape:
 - Do not rely on receiving nested arrays (under default policy).
 - Do not rely on `undefined` ever appearing.
 - Treat `null` as canonical empty children.
-- If a host requires strict `TemplateNode` validation, it should validate at commit/compile time
-  and throw deterministic errors.
+- If a host requires strict `TemplateNode` validation, it should validate at commit/compile time and throw deterministic errors.
 
 ---
 

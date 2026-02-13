@@ -2,11 +2,9 @@
 
 > 状态：Draft – v0（实现对齐）
 >
-> 本契约定义 Proto UI v0 的 **expose-state 组合能力**：
-> 组件通过 `def.expose` 暴露内部 state slot 的“对外投影”，供 App Maker 以 **外部 State 句柄** 读取与订阅。
+> 本契约定义 Proto UI v0 的 **expose-state 组合能力**：组件通过 `def.expose` 暴露内部 state slot 的“对外投影”，供 App Maker 以 **外部 State 句柄** 读取与订阅。
 >
-> **定位声明（v0）**：expose-state 是“同源数据、异构句柄”的输出通路。
-> 外部句柄与内部 state handle **不是同一个对象**，但指向同一 state slot 的数据源。
+> **定位声明（v0）**：expose-state 是“同源数据、异构句柄”的输出通路。外部句柄与内部 state handle **不是同一个对象**，但指向同一 state slot 的数据源。
 
 ---
 
@@ -60,8 +58,7 @@ v0 明确不提供 / 不承诺：
 def.expose<K extends keyof E>(key: K, value: E[K]): void
 ```
 
-> 说明：在 expose-state 场景下，`value` 是内部 handle view，
-> 但 `E[K]` 对外呈现为 External State 类型。类型系统需要通过映射或声明合并来体现这一差异。
+> 说明：在 expose-state 场景下，`value` 是内部 handle view，但 `E[K]` 对外呈现为 External State 类型。类型系统需要通过映射或声明合并来体现这一差异。
 
 ---
 
@@ -132,8 +129,7 @@ type ExternalState<V> = {
 
 ### 5.3 订阅回调事件形状（相对一致）
 
-若系统已确立 `StateEvent<V>` 事件形状（见 `packages/types/src/state.ts`），
-则 External State 的 `subscribe` 回调应与内部 state event **保持相对一致**：
+若系统已确立 `StateEvent<V>` 事件形状（见 `packages/types/src/state.ts`），则 External State 的 `subscribe` 回调应与内部 state event **保持相对一致**：
 
 - **不包含** `run` 句柄作为第一个参数
 - 事件对象的结构与 `StateEvent<V>` 一致（`next/prev/reason`、`disconnect` 等）

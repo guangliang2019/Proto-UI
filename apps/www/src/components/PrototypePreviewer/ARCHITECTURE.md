@@ -48,6 +48,7 @@
 ## 🔄 加载流程详解
 
 ### 阶段 1: SSR 渲染
+
 ```
 Astro SSR
   └─> PrototypePreviewer.astro
@@ -60,6 +61,7 @@ Astro SSR
 ---
 
 ### 阶段 2: 客户端 Hydration
+
 ```
 浏览器加载页面
   └─> 执行 <script> 中的 init()
@@ -70,6 +72,7 @@ Astro SSR
 ---
 
 ### 阶段 3: 原型加载
+
 ```
 initPreviewer()
   └─> switchTo(initialRuntime)
@@ -84,6 +87,7 @@ initPreviewer()
 ---
 
 ### 阶段 4: 运行时挂载
+
 ```
 ensurePrototypeLoaded() 完成
   └─> getPrototype(prototypeId) 从 registry 获取
@@ -96,49 +100,53 @@ ensurePrototypeLoaded() 完成
 
 ### 核心文件
 
-| 文件 | 职责 | 关键 API |
-|------|------|---------|
-| `PrototypePreviewer.astro` | UI 容器和初始化脚本 | Props 定义 |
-| `previewer-client.ts` | 客户端逻辑协调器 | `initPreviewer()`, `switchTo()` |
-| `registry.ts` | 原型注册表（运行时） | `registerPrototype()`, `getPrototype()` |
-| `prototype-modules.ts` | 原型模块映射表（构建时） | `prototypeModules`, `loadPrototype()` |
+| 文件                       | 职责                     | 关键 API                                |
+| -------------------------- | ------------------------ | --------------------------------------- |
+| `PrototypePreviewer.astro` | UI 容器和初始化脚本      | Props 定义                              |
+| `previewer-client.ts`      | 客户端逻辑协调器         | `initPreviewer()`, `switchTo()`         |
+| `registry.ts`              | 原型注册表（运行时）     | `registerPrototype()`, `getPrototype()` |
+| `prototype-modules.ts`     | 原型模块映射表（构建时） | `prototypeModules`, `loadPrototype()`   |
 
 ### 辅助文件
 
-| 文件 | 职责 |
-|------|------|
-| `runtimes/registry.ts` | 运行时加载器注册 |
-| `runtimes/wc-runtime.ts` | Web Components 适配器 |
-| `runtimes/react-runtime.ts` | React 适配器 |
-| `runtimes/vue-runtime.ts` | Vue 适配器 |
+| 文件                        | 职责                  |
+| --------------------------- | --------------------- |
+| `runtimes/registry.ts`      | 运行时加载器注册      |
+| `runtimes/wc-runtime.ts`    | Web Components 适配器 |
+| `runtimes/react-runtime.ts` | React 适配器          |
+| `runtimes/vue-runtime.ts`   | Vue 适配器            |
 
 ### 文档文件
 
-| 文件 | 内容 |
-|------|------|
-| `README.md` | 完整使用指南 |
-| `QUICK_START.md` | 快速参考 |
-| `MIGRATION.md` | 迁移指南 |
-| `ARCHITECTURE.md` | 本文档 |
+| 文件              | 内容         |
+| ----------------- | ------------ |
+| `README.md`       | 完整使用指南 |
+| `QUICK_START.md`  | 快速参考     |
+| `MIGRATION.md`    | 迁移指南     |
+| `ARCHITECTURE.md` | 本文档       |
 
 ## 🎯 设计原则
 
 ### 1. 按需加载优先
+
 - 每个原型是独立的模块
 - Vite 自动进行代码分割
 - 只加载用户访问的页面所需的原型
 
 ### 2. SSR 友好
+
 - 注册表在 SSR 环境静默跳过
 - 原型定义可以安全地在服务端执行
 - 客户端重新加载并注册原型
 
 ### 3. 类型安全
+
 - TypeScript 全覆盖
 - 运行时类型检查
 - 编译时错误检测
 
 ### 4. 扩展性
+
 - 通过 `prototype-modules.ts` 集中管理
 - 支持自定义加载逻辑
 - 运行时适配器可插拔
@@ -156,7 +164,7 @@ export async function loadSvelteRuntime() {
     },
     async unmount(host) {
       // Svelte 卸载逻辑
-    }
+    },
   };
 }
 
@@ -178,14 +186,14 @@ export const prototypeModules = {
     // 加载额外依赖
     const [protoModule, dataModule] = await Promise.all([
       import('./advanced-demo'),
-      import('./demo-data.json')
+      import('./demo-data.json'),
     ]);
-    
+
     // 自定义初始化
     protoModule.initialize(dataModule);
-    
+
     return protoModule;
-  }
+  },
 };
 ```
 
@@ -200,7 +208,7 @@ export const prototypeModules = {
     } else {
       return import('./demo-prod');
     }
-  }
+  },
 };
 ```
 
@@ -219,7 +227,7 @@ loadPrototype() 失败
 ### 错误类型
 
 | 错误 | 原因 | 解决方案 |
-|------|------|---------|
+| --- | --- | --- |
 | "未找到原型" | `prototypeId` 未在 `prototype-modules.ts` 注册 | 添加注册项 |
 | "无法加载原型模块" | 模块路径错误或文件不存在 | 检查导入路径 |
 | "registerPrototype: invalid id" | `prototypeId` 为空或非字符串 | 传递有效 ID |
@@ -228,6 +236,7 @@ loadPrototype() 失败
 ## 📊 性能优化
 
 ### 1. 代码分割
+
 ```
 页面 A: demo1.chunk.js (10KB)
 页面 B: demo2.chunk.js (15KB)
@@ -235,16 +244,14 @@ loadPrototype() 失败
 ```
 
 ### 2. 并行加载
+
 ```javascript
 // 多个原型并行加载
-await Promise.all([
-  loadPrototype('demo1'),
-  loadPrototype('demo2'),
-  loadPrototype('demo3')
-]);
+await Promise.all([loadPrototype('demo1'), loadPrototype('demo2'), loadPrototype('demo3')]);
 ```
 
 ### 3. 缓存机制
+
 - 模块加载：浏览器自动缓存（HTTP 缓存）
 - 注册状态：内存缓存（Map）
 - loaderPromise：防止重复加载
@@ -252,11 +259,13 @@ await Promise.all([
 ### 4. Bundle 分析
 
 **之前（全量加载）：**
+
 ```
 main.js: 200KB (包含所有原型)
 ```
 
 **现在（按需加载）：**
+
 ```
 main.js: 20KB (框架代码)
 demo-inline.chunk.js: 10KB (按需)
@@ -319,7 +328,4 @@ performance.measure('prototype-load', 'prototype-load-start', 'prototype-load-en
 2. 查看 [QUICK_START.md](./QUICK_START.md)
 3. 提交 Issue 或 PR
 
-**维护者**: Proto UI Team
-**最后更新**: 2025-10-23
-
-
+**维护者**: Proto UI Team **最后更新**: 2025-10-23

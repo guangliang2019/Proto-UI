@@ -2,9 +2,7 @@
 
 This directory defines the **v0 behavioral contract** for the Props system in Proto UI.
 
-The contract describes **what must be true at runtime**, not how the system is implemented.
-All guarantees in this directory are considered **frozen for v0** and are covered by
-corresponding contract tests.
+The contract describes **what must be true at runtime**, not how the system is implemented. All guarantees in this directory are considered **frozen for v0** and are covered by corresponding contract tests.
 
 ---
 
@@ -48,8 +46,7 @@ Props v0 does **not** cover:
   The key is present and the value is neither `null` nor `undefined`
 
 - **invalid**  
-  A provided-non-empty value that fails validation
-  (kind / enum / range / validator)
+  A provided-non-empty value that fails validation (kind / enum / range / validator)
 
 ---
 

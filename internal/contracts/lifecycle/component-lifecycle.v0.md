@@ -1,7 +1,6 @@
 # Component Lifecycle Contract (v0)
 
-This document defines the **lifecycle guarantees exposed to Component Authors**
-(Prototype Authors) in Proto UI.
+This document defines the **lifecycle guarantees exposed to Component Authors** (Prototype Authors) in Proto UI.
 
 It specifies:
 
@@ -18,8 +17,7 @@ This document is **normative**.
 
 Proto UI exposes a coarse execution guard domain via `SystemCaps` (`__sys.domain()`).
 
-Guard domains are **not phases**; they are **permission domains** used by modules
-to enforce correct API usage.
+Guard domains are **not phases**; they are **permission domains** used by modules to enforce correct API usage.
 
 ### Domains
 
@@ -37,10 +35,8 @@ to enforce correct API usage.
 ### Contract (v0)
 
 1. During `proto.setup(def)`, `__sys.domain()` MUST be `"setup"`.
-2. Immediately after `setup(def)` returns (before any lifecycle callbacks or render),
-   `__sys.domain()` MUST switch to `"runtime"`.
-3. During all lifecycle callbacks (`created`, `mounted`, `updated`, `unmounted`)
-   and render execution, `__sys.domain()` MUST be `"runtime"`.
+2. Immediately after `setup(def)` returns (before any lifecycle callbacks or render), `__sys.domain()` MUST switch to `"runtime"`.
+3. During all lifecycle callbacks (`created`, `mounted`, `updated`, `unmounted`) and render execution, `__sys.domain()` MUST be `"runtime"`.
 4. During the `unmounted` callback:
    - `__sys.domain()` MUST be `"runtime"`
    - `__sys.isDisposed()` MUST be `false`
@@ -59,8 +55,7 @@ Proto UI exposes the following lifecycle callbacks to Component Authors:
 - `updated`
 - `unmounted`
 
-These callbacks are registered during setup and executed by the runtime
-according to the canonical lifecycle timeline.
+These callbacks are registered during setup and executed by the runtime according to the canonical lifecycle timeline.
 
 ---
 
@@ -118,15 +113,13 @@ This allows teardown logic to safely access state, events, and other modules.
 After disposal completes:
 
 - `__sys.isDisposed()` MUST be `true`
-- Any access to module facades or handles guarded by `__sys`
-  MUST throw an error
+- Any access to module facades or handles guarded by `__sys` MUST throw an error
 
 ---
 
 ## Error Model
 
-Lifecycle violations (ordering, availability, or domain misuse)
-are considered **runtime bugs**.
+Lifecycle violations (ordering, availability, or domain misuse) are considered **runtime bugs**.
 
 Implementations MUST fail fast and MUST NOT silently recover.
 
@@ -136,5 +129,4 @@ Implementations MUST fail fast and MUST NOT silently recover.
 
 - Version: **v0**
 - v0 guarantees ordering, availability, and domain mapping.
-- Future versions may introduce additional callbacks or checkpoints
-  but MUST NOT violate v0 guarantees.
+- Future versions may introduce additional callbacks or checkpoints but MUST NOT violate v0 guarantees.

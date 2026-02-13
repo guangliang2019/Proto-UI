@@ -103,13 +103,13 @@
 
 ## 4.1 host-caps 与 wiring 的必要性
 
-Proto UI 的 module-* 通常无法由 runtime 单独完成构建：
+Proto UI 的 module-\* 通常无法由 runtime 单独完成构建：
 
 - module 会主动索取 **host-caps** 来完善自身能力
 - runtime 无法直接提供这些 caps
 - ModuleOrchestrator 负责收集所需 caps
 - Instance 负责将 wiring 接口对外暴露
-- adapter-* 负责使用 host 原生方式完成接线
+- adapter-\* 负责使用 host 原生方式完成接线
 
 这一链路是将 **组件原型（setup 为主体的语义载体）**  
 翻译为具体 host 原生实现的关键步骤。

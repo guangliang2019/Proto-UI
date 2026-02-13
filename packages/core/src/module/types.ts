@@ -1,7 +1,7 @@
 // packages/core/src/module/types.ts
-export type ModuleScope = "instance" | "host" | "singleton";
+export type ModuleScope = 'instance' | 'host' | 'singleton';
 
-export type ProtoPhase = "setup" | "mounted" | "updated" | "unmounted";
+export type ProtoPhase = 'setup' | 'mounted' | 'updated' | 'unmounted';
 
 export type ModuleInit = {
   prototypeName: string;

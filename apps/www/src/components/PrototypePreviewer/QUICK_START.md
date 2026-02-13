@@ -13,9 +13,13 @@ const MyAwesomeDemo = definePrototype({
   name: 'my-awesome-demo',
   setup(props) {
     return (h) => {
-      return h('div', { 
-        class: 'p-4 bg-blue-500 text-white rounded' 
-      }, 'My Awesome Demo!');
+      return h(
+        'div',
+        {
+          class: 'p-4 bg-blue-500 text-white rounded',
+        },
+        'My Awesome Demo!'
+      );
     };
   },
 });
@@ -29,7 +33,7 @@ registerPrototype('my-awesome-demo', MyAwesomeDemo);
 // src/components/PrototypePreviewer/prototype-modules.ts
 export const prototypeModules = {
   // ... 其他原型 ...
-  
+
   'my-awesome-demo': () => import('../../content/docs/zh-cn/my-awesome-demo'),
 };
 ```
@@ -40,12 +44,10 @@ export const prototypeModules = {
 ---
 title: 我的页面
 ---
+
 import { PrototypePreviewer } from '../../../components/PrototypePreviewer';
 
-<PrototypePreviewer 
-  prototypeId="my-awesome-demo" 
-  initialRuntime="wc"
-/>
+<PrototypePreviewer prototypeId="my-awesome-demo" initialRuntime="wc" />
 ```
 
 完成！🎉
@@ -55,52 +57,46 @@ import { PrototypePreviewer } from '../../../components/PrototypePreviewer';
 ## 🎨 常用配置
 
 ### 基础用法
+
 ```mdx
 <PrototypePreviewer prototypeId="demo-inline" />
 ```
 
 ### 指定初始运行时
+
 ```mdx
-<PrototypePreviewer 
-  prototypeId="demo-inline" 
-  initialRuntime="react"
-/>
+<PrototypePreviewer prototypeId="demo-inline" initialRuntime="react" />
 ```
 
 ### 限制可用运行时
+
 ```mdx
-<PrototypePreviewer 
-  prototypeId="demo-inline" 
-  runtimes={['wc', 'react']}
-/>
+<PrototypePreviewer prototypeId="demo-inline" runtimes={['wc', 'react']} />
 ```
 
 ### 传递 Props
+
 ```mdx
-<PrototypePreviewer 
-  prototypeId="demo-inline" 
-  props={{ 
+<PrototypePreviewer
+  prototypeId="demo-inline"
+  props={{
     title: 'Hello',
     count: 42,
-    onUpdate: (val) => console.log(val)
+    onUpdate: (val) => console.log(val),
   }}
 />
 ```
 
 ### 隐藏工具栏
+
 ```mdx
-<PrototypePreviewer 
-  prototypeId="demo-inline" 
-  toolbar={false}
-/>
+<PrototypePreviewer prototypeId="demo-inline" toolbar={false} />
 ```
 
 ### 自定义样式
+
 ```mdx
-<PrototypePreviewer 
-  prototypeId="demo-inline" 
-  class="my-custom-preview"
-/>
+<PrototypePreviewer prototypeId="demo-inline" class="my-custom-preview" />
 ```
 
 ---
@@ -108,18 +104,21 @@ import { PrototypePreviewer } from '../../../components/PrototypePreviewer';
 ## 🔍 调试命令
 
 ### 查看所有可用原型
+
 ```javascript
 import { getAvailablePrototypes } from '../components/PrototypePreviewer/prototype-modules';
 console.log(getAvailablePrototypes());
 ```
 
 ### 查看已注册的原型
+
 ```javascript
 import { listPrototypes } from '../components/PrototypePreviewer/registry';
 console.log(listPrototypes());
 ```
 
 ### 手动加载原型
+
 ```javascript
 import { loadPrototype } from '../components/PrototypePreviewer/prototype-modules';
 await loadPrototype('demo-inline');
@@ -130,6 +129,7 @@ await loadPrototype('demo-inline');
 ## ⚡️ 性能技巧
 
 ### 预加载多个原型
+
 ```astro
 <script>
   import { loadPrototypes } from '../components/PrototypePreviewer/prototype-modules';
@@ -138,8 +138,10 @@ await loadPrototype('demo-inline');
 ```
 
 ### 延迟加载
+
 ```mdx
 {/* 原型默认就是延迟加载的，无需额外配置 */}
+
 <PrototypePreviewer prototypeId="heavy-demo" />
 ```
 
@@ -148,6 +150,7 @@ await loadPrototype('demo-inline');
 ## 🚨 常见错误
 
 ### ❌ 错误: "未找到原型"
+
 ```
 Error: [PrototypePreviewer] 未找到原型 "my-demo"
 ```
@@ -157,6 +160,7 @@ Error: [PrototypePreviewer] 未找到原型 "my-demo"
 ---
 
 ### ❌ 错误: "无法加载原型模块"
+
 ```
 Error: 加载原型模块 "my-demo" 失败
 ```
@@ -166,6 +170,7 @@ Error: 加载原型模块 "my-demo" 失败
 ---
 
 ### ❌ 错误: "registerPrototype: invalid id"
+
 ```
 Error: registerPrototype: invalid id
 ```
@@ -185,12 +190,14 @@ Error: registerPrototype: invalid id
 ## 💡 最佳实践速查
 
 ✅ **DO**
+
 - 使用 kebab-case 命名原型 ID
 - 在 `prototype-modules.ts` 中集中管理
 - 让系统自动按需加载
 - 为原型添加有意义的注释
 
 ❌ **DON'T**
+
 - 不要在 MDX 中直接 import 原型文件
 - 不要使用 camelCase 或 PascalCase 作为原型 ID
 - 不要在原型定义中包含副作用
@@ -229,11 +236,10 @@ export const prototypeModules = {
 
 ```mdx
 <!-- your-page.mdx -->
+
 import { PrototypePreviewer } from '../../../components/PrototypePreviewer';
 
 <PrototypePreviewer prototypeId="your-demo" />
 ```
 
 现在开始创建吧！🚀
-
-

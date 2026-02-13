@@ -21,7 +21,6 @@
 **实现**
 
 - `packages/core/src/template.ts`
-
   - `normalizeChildren`
   - `DEFAULT_NORMALIZE`
 
@@ -29,7 +28,6 @@
 
 - `packages/core/test/contracts/template.normalize.v0.contract.test.ts`
 - 覆盖用例定义：
-
   - `packages/core/test/cases/normalize.v0.cases.ts`
 
 **验证要点**
@@ -51,24 +49,20 @@
 **实现（Core）**
 
 - `packages/core/src/template.ts`
-
   - `createRendererPrimitives().r.slot()`
 
 **实现（Adapter：Web Component）**
 
 - `packages/adapters/web-component/src/commit.ts`
-
   - slot shadow / light DOM 行为
   - slot 防御性校验（多 slot / 非匿名）
 
 **测试（Contract-level）**
 
 - Core：
-
   - `packages/core/test/contracts/template.slot.v0.contract.test.ts`
 
 - Adapter（Web Component）：
-
   - `packages/adapters/web-component/test/contract/template.slot.protocol.v0.contract.test.ts`
   - `packages/adapters/web-component/test/contract/slot-light-dom.v0.contract.test.ts`
 
@@ -91,7 +85,6 @@
 **实现**
 
 - `packages/core/src/template.ts`
-
   - `createRendererPrimitives`
   - `el(type, props?, children?)`
 
@@ -118,7 +111,6 @@
 **实现（Adapter：Web Component）**
 
 - `packages/adapters/web-component/src/commit.ts`
-
   - `createElementForType`
   - `ERR_TEMPLATE_PROTOTYPE_REF_V0`
 
@@ -137,6 +129,5 @@
 
 - 本 Trace Map **不保证**覆盖 adapter 的 patch / diff / lifecycle 细节（非 Template 契约范围）。
 - Frameworks built on top of Proto UI（如 React/Vue binding）：
-
   - 可以提供更丰富的 authoring 体验
   - 但 **必须可编译为本 Trace Map 所覆盖的 v0 语义子集**

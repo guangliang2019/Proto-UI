@@ -21,12 +21,10 @@ React16、Vue3、Flutter、WebComponent...新的 UI 框架和规范不断出现�
 **从个人到团队，从社区到企业，每一层都有不同的收获。**
 
 - **开发者**
-
   - 避免重复劳动：一次编写 Prototype，多个平台都能使用。
   - 熟悉的体验：你依然在 React、Vue、Flutter、WebComponent 等环境中工作，只是组件换成了由 Proto UI 生成的版本。
 
 - **设计语言 & 组件库作者**
-
   - 例如 **Shadcn Prototypes** 搭配对应 Adapter，就能让 Shadcn 出现在 Flutter、Qt、Vue2、微信小程序等官方和社区鲜少支持的环境里。
   - 原有的设计语言不必重写，只需实现一次 Adapter，就能扩展到更多平台。
 

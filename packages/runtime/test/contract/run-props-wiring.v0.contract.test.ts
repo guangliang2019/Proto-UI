@@ -1,7 +1,7 @@
 // packages/runtime/test/contracts/run-props-wiring.v0.contract.test.ts
-import { describe, it, expect } from "vitest";
-import type { Prototype } from "@proto-ui/core";
-import { executeWithHost, RuntimeHost } from "../../src";
+import { describe, it, expect } from 'vitest';
+import type { Prototype } from '@proto-ui/core';
+import { executeWithHost, RuntimeHost } from '../../src';
 
 /**
  * Runtime Contract (v0): RunHandle.props wiring
@@ -18,13 +18,13 @@ import { executeWithHost, RuntimeHost } from "../../src";
  * We also assert hydration rule:
  * - First hydration apply during executeWithHost MUST NOT trigger watchers.
  */
-describe("runtime contract: run.props wiring (v0)", () => {
-  it("controller.applyRawProps triggers watchers; run.props.* must exist and align with watcher args", () => {
+describe('runtime contract: run.props wiring (v0)', () => {
+  it('controller.applyRawProps triggers watchers; run.props.* must exist and align with watcher args', () => {
     // Mutable raw props for host to return on initial hydration
     let raw: Record<string, any> = { a: 1 };
 
     const host: RuntimeHost<any> = {
-      prototypeName: "x-runtime-run-props-wiring",
+      prototypeName: 'x-runtime-run-props-wiring',
       getRawProps() {
         return raw;
       },
@@ -41,19 +41,19 @@ describe("runtime contract: run.props wiring (v0)", () => {
     const seen: string[] = [];
 
     const P: Prototype = {
-      name: "x-runtime-run-props-wiring",
+      name: 'x-runtime-run-props-wiring',
       setup(def) {
         // Declare one prop so resolved snapshot is well-defined
         def.props.define({
-          a: { kind: "number", default: 1 },
+          a: { kind: 'number', default: 1 },
         } as any);
 
         // resolved watcher: run.props.get() must match `next`
         def.props.watchAll((run, next, _prev, info) => {
           // surface exists
-          expect(typeof run.props.get).toBe("function");
-          expect(typeof run.props.getRaw).toBe("function");
-          expect(typeof run.props.isProvided).toBe("function");
+          expect(typeof run.props.get).toBe('function');
+          expect(typeof run.props.getRaw).toBe('function');
+          expect(typeof run.props.isProvided).toBe('function');
 
           // alignment
           expect(run.props.get()).toEqual(next);
@@ -61,22 +61,22 @@ describe("runtime contract: run.props wiring (v0)", () => {
           // info sanity
           expect(Array.isArray(info.changedKeysAll)).toBe(true);
 
-          seen.push("resolved");
+          seen.push('resolved');
         });
 
         // raw watcher: run.props.getRaw() must match `nextRaw`
         def.props.watchRawAll((run, nextRaw, _prevRaw, info) => {
-          expect(typeof run.props.get).toBe("function");
-          expect(typeof run.props.getRaw).toBe("function");
-          expect(typeof run.props.isProvided).toBe("function");
+          expect(typeof run.props.get).toBe('function');
+          expect(typeof run.props.getRaw).toBe('function');
+          expect(typeof run.props.isProvided).toBe('function');
 
           expect(run.props.getRaw()).toEqual(nextRaw);
           expect(Array.isArray(info.changedKeysAll)).toBe(true);
 
-          seen.push("raw");
+          seen.push('raw');
         });
 
-        return (r) => [r.el("div", "ok")];
+        return (r) => [r.el('div', 'ok')];
       },
     };
 
@@ -90,7 +90,7 @@ describe("runtime contract: run.props wiring (v0)", () => {
     controller.applyRawProps({ a: 2 });
 
     // raw watcher + resolved watcher both should have fired exactly once
-    expect(seen.sort()).toEqual(["raw", "resolved"].sort());
+    expect(seen.sort()).toEqual(['raw', 'resolved'].sort());
 
     // 2) Validate isProvided semantics with undefined:
     // `a` is present as own property even if undefined => isProvided('a') should be true
@@ -101,17 +101,17 @@ describe("runtime contract: run.props wiring (v0)", () => {
 
     // Should still fire watchers (raw changed; resolved may change or not depending on fallback rules,
     // but raw watcher should certainly fire).
-    expect(seen.includes("raw")).toBe(true);
+    expect(seen.includes('raw')).toBe(true);
 
     // To validate isProvided precisely, add a dedicated keyed raw watcher:
     // We can't register watchers after setup, so we validate isProvided in-place by adding one more prototype below.
   });
 
-  it("isProvided follows raw-own-property semantics (including undefined)", () => {
+  it('isProvided follows raw-own-property semantics (including undefined)', () => {
     let raw: Record<string, any> = { a: 1 };
 
     const host: RuntimeHost<any> = {
-      prototypeName: "x-runtime-isProvided",
+      prototypeName: 'x-runtime-isProvided',
       getRawProps() {
         return raw;
       },
@@ -124,24 +124,21 @@ describe("runtime contract: run.props wiring (v0)", () => {
     };
 
     const P: Prototype = {
-      name: "x-runtime-isProvided",
+      name: 'x-runtime-isProvided',
       setup(def) {
         def.props.define({
-          a: { kind: "number", default: 1 },
+          a: { kind: 'number', default: 1 },
         } as any);
 
         def.props.watchRawAll((run, nextRaw) => {
           // own-property semantics:
           // - if key exists on nextRaw as own property => true
           // - otherwise => false
-          const hasOwn = Object.prototype.hasOwnProperty.call(
-            nextRaw as any,
-            "a"
-          );
-          expect(run.props.isProvided("a" as any)).toBe(hasOwn);
+          const hasOwn = Object.prototype.hasOwnProperty.call(nextRaw as any, 'a');
+          expect(run.props.isProvided('a' as any)).toBe(hasOwn);
         });
 
-        return (r) => [r.el("div", "ok")];
+        return (r) => [r.el('div', 'ok')];
       },
     };
 

@@ -4,12 +4,12 @@
 
 v3 引入了按需动态加载机制，带来以下优势：
 
-| 特性 | v2 (PrototypeLoader) | v3 (按需加载) |
-|------|---------------------|--------------|
-| Bundle 大小 | 加载所有原型 | 只加载使用的原型 ✅ |
-| 代码分割 | ❌ | ✅ |
-| 开发体验 | 需要手动管理加载器 | 自动加载 ✅ |
-| 性能 | 一般 | 优秀 ✅ |
+| 特性        | v2 (PrototypeLoader) | v3 (按需加载)       |
+| ----------- | -------------------- | ------------------- |
+| Bundle 大小 | 加载所有原型         | 只加载使用的原型 ✅ |
+| 代码分割    | ❌                   | ✅                  |
+| 开发体验    | 需要手动管理加载器   | 自动加载 ✅         |
+| 性能        | 一般                 | 优秀 ✅             |
 
 ## 📋 迁移步骤
 
@@ -43,7 +43,7 @@ registerPrototype('demo-inline', DemoInline);
 export const prototypeModules: Record<string, PrototypeModuleLoader> = {
   // 从 prototypes.ts 中的每个导入转换为一个条目
   'demo-inline': () => import('../../content/docs/zh-cn/demo-inline'),
-  
+
   // 添加更多...
 };
 ```
@@ -51,27 +51,33 @@ export const prototypeModules: Record<string, PrototypeModuleLoader> = {
 ### 步骤 3: 更新 MDX 文件
 
 **之前（v2）：**
+
 ```mdx
 ---
 title: 你的页面
 ---
+
 import { PrototypePreviewer } from '../../../components/PrototypePreviewer';
 import PrototypeLoader from '../../../components/PrototypeLoader.astro';
 
 {/* 需要手动加载 */}
+
 <PrototypeLoader />
 
 <PrototypePreviewer prototypeId="demo-inline" />
 ```
 
 **现在（v3）：**
+
 ```mdx
 ---
 title: 你的页面
 ---
+
 import { PrototypePreviewer } from '../../../components/PrototypePreviewer';
 
 {/* 自动按需加载，无需 PrototypeLoader */}
+
 <PrototypePreviewer prototypeId="demo-inline" />
 ```
 
@@ -80,6 +86,7 @@ import { PrototypePreviewer } from '../../../components/PrototypePreviewer';
 如果你使用的是集中式的 `prototypes.ts` 文件，现在可以删除它了。所有的导入已经移到 `prototype-modules.ts` 中。
 
 **之前的 `prototypes.ts`：**
+
 ```typescript
 import './demo-inline';
 import './button-demo';
@@ -87,6 +94,7 @@ import './form-demo';
 ```
 
 **现在的 `prototype-modules.ts`：**
+
 ```typescript
 export const prototypeModules = {
   'demo-inline': () => import('../../content/docs/zh-cn/demo-inline'),
@@ -121,7 +129,8 @@ grep -r "PrototypeLoader" src/content --include="*.mdx"
 
 **原因**: 原型未在 `prototype-modules.ts` 中注册
 
-**解决**: 
+**解决**:
+
 ```typescript
 // 检查 prototypeId 是否在 prototypeModules 中
 export const prototypeModules = {
@@ -136,6 +145,7 @@ export const prototypeModules = {
 ### Q: 如何确认迁移成功？
 
 在浏览器控制台中：
+
 ```javascript
 import { getAvailablePrototypes } from './prototype-modules';
 console.log(getAvailablePrototypes()); // 应该包含你的所有原型 ID
@@ -146,10 +156,12 @@ console.log(getAvailablePrototypes()); // 应该包含你的所有原型 ID
 假设你有 20 个原型，每个 10KB：
 
 **v2 (全量加载)**:
+
 - 页面 A 使用 1 个原型，但加载了 20 个 = 200KB ❌
 - 页面 B 使用 2 个原型，但加载了 20 个 = 200KB ❌
 
 **v3 (按需加载)**:
+
 - 页面 A 使用 1 个原型，只加载 1 个 = 10KB ✅
 - 页面 B 使用 2 个原型，只加载 2 个 = 20KB ✅
 
@@ -165,5 +177,3 @@ console.log(getAvailablePrototypes()); // 应该包含你的所有原型 ID
 ---
 
 需要帮助？查看 [README.md](./README.md) 获取完整文档。
-
-

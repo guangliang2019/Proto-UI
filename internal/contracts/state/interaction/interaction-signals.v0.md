@@ -2,12 +2,9 @@
 
 > Status: Draft – v0
 >
-> This contract specifies **interaction signals** in Proto UI v0:
-> their semantic positioning, the defined signal set, lifecycle rules,
-> and observability constraints.
+> This contract specifies **interaction signals** in Proto UI v0: their semantic positioning, the defined signal set, lifecycle rules, and observability constraints.
 >
-> Interaction signals represent **system-level interaction facts**,
-> rather than author-defined state or event callbacks.
+> Interaction signals represent **system-level interaction facts**, rather than author-defined state or event callbacks.
 
 ---
 
@@ -78,8 +75,7 @@ Indicates whether the component is currently in a “focused” state.
 
 - After unmount / dispose, `focused` MUST NOT remain `true`
 
-> Note: v0 does not mandate whether focus semantics are root-focus
-> or focus-within. Adapters are free to choose a consistent policy.
+> Note: v0 does not mandate whether focus semantics are root-focus or focus-within. Adapters are free to choose a consistent policy.
 
 ---
 
@@ -87,8 +83,7 @@ Indicates whether the component is currently in a “focused” state.
 
 #### Semantics
 
-Indicates whether the component is currently in an active
-press / pointer interaction.
+Indicates whether the component is currently in an active press / pointer interaction.
 
 #### Default
 
@@ -129,8 +124,7 @@ Interaction signals are **observable**, but v0 makes only minimal commitments:
 - No guarantees are made regarding synchronous vs asynchronous delivery
 - No guarantees are made regarding ordering among multiple observers
 
-This contract does not define a concrete observation API shape;
-it only requires that signal changes are **system-observable**.
+This contract does not define a concrete observation API shape; it only requires that signal changes are **system-observable**.
 
 ---
 
@@ -141,8 +135,7 @@ Interaction signals and events operate at different semantic levels:
 - Events represent **instantaneous interaction occurrences**
 - Interaction signals represent **persistent interaction facts**
 
-Interaction signals may be driven by events,
-but events themselves are not interaction signals.
+Interaction signals may be driven by events, but events themselves are not interaction signals.
 
 ---
 
@@ -154,11 +147,9 @@ Interaction signals are **not state**:
 - They do not provide Owned / Borrowed author-controlled views
 - They are not writable by component authors
 
-Interaction signals **may be projected into state-shaped views**,
-but such projection does not alter their system ownership.
+Interaction signals **may be projected into state-shaped views**, but such projection does not alter their system ownership.
 
-The projection mechanism is specified by a separate contract
-(see related documents).
+The projection mechanism is specified by a separate contract (see related documents).
 
 ---
 

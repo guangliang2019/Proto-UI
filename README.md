@@ -2,7 +2,7 @@
 
 **Proto UI is a Human–Computer Interaction (HCI) protocol and a component generator for any framework or platform.**
 
-It describes interaction logic as a protocol-level model (a *prototype*), then maps that model to concrete components in different technologies. The goal is to make interaction logic explicit, stable, and reusable across ecosystems.
+It describes interaction logic as a protocol-level model (a _prototype_), then maps that model to concrete components in different technologies. The goal is to make interaction logic explicit, stable, and reusable across ecosystems.
 
 English | [中文](README.zh-CN.md)
 

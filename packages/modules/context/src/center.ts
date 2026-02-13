@@ -1,13 +1,9 @@
 // packages/modules/context/src/center.ts
-import type { ContextKey, JsonObject } from "@proto-ui/types";
-import type {
-  ContextCallbackTask,
-  ContextProviderEntry,
-  ContextSubscriptionEntry,
-} from "./types";
-import type { ContextInstanceToken, ContextParentGetter } from "./caps";
+import type { ContextKey, JsonObject } from '@proto-ui/types';
+import type { ContextCallbackTask, ContextProviderEntry, ContextSubscriptionEntry } from './types';
+import type { ContextInstanceToken, ContextParentGetter } from './caps';
 
-export type SubscriptionMode = "required" | "optional";
+export type SubscriptionMode = 'required' | 'optional';
 
 export type ContextCallback<T extends JsonObject> = (
   ctx: unknown,
@@ -21,10 +17,7 @@ type SubscriptionRecord = {
 };
 
 export class ContextCenter {
-  private readonly providers = new Map<
-    ContextKey<any>,
-    Map<ContextInstanceToken, JsonObject>
-  >();
+  private readonly providers = new Map<ContextKey<any>, Map<ContextInstanceToken, JsonObject>>();
 
   private readonly subscriptions = new Map<
     ContextInstanceToken,
@@ -45,7 +38,7 @@ export class ContextCenter {
     }
 
     if (byKey.has(instance)) {
-      throw new Error(`[Context] duplicate provide for key: ${key?.debugName ?? "(unknown)"}`);
+      throw new Error(`[Context] duplicate provide for key: ${key?.debugName ?? '(unknown)'}`);
     }
 
     byKey.set(instance, value);
@@ -58,10 +51,7 @@ export class ContextCenter {
     if (byKey.size === 0) this.providers.delete(key);
   }
 
-  getProviderValue(
-    instance: ContextInstanceToken,
-    key: ContextKey<any>
-  ): JsonObject | null {
+  getProviderValue(instance: ContextInstanceToken, key: ContextKey<any>): JsonObject | null {
     const byKey = this.providers.get(key);
     if (!byKey) return null;
     return (byKey.get(instance) as JsonObject) ?? null;
@@ -87,7 +77,7 @@ export class ContextCenter {
     if (existing) {
       if (existing.mode !== mode) {
         throw new Error(
-          `[Context] subscription mode mismatch for key: ${key?.debugName ?? "(unknown)"}`
+          `[Context] subscription mode mismatch for key: ${key?.debugName ?? '(unknown)'}`
         );
       }
       if (cb) existing.callbacks.push(cb);
@@ -147,7 +137,7 @@ export class ContextCenter {
     const byKey = this.providers.get(key);
     if (!byKey || !byKey.has(provider)) {
       throw new Error(
-        `[Context] update on missing provider for key: ${key?.debugName ?? "(unknown)"}`
+        `[Context] update on missing provider for key: ${key?.debugName ?? '(unknown)'}`
       );
     }
 

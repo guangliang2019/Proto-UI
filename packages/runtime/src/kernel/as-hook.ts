@@ -5,13 +5,13 @@ import type {
   BorrowedStateHandle,
   DefHandle,
   RunHandle,
-} from "@proto-ui/core";
-import { __AS_HOOK_RUNTIME as AS_HOOK_RT } from "@proto-ui/core";
-import type { PropsBaseType } from "@proto-ui/types";
-import type { StatePort } from "@proto-ui/modules.state";
-import { illegalPhase } from "./guard";
+} from '@proto-ui/core';
+import { __AS_HOOK_RUNTIME as AS_HOOK_RT } from '@proto-ui/core';
+import type { PropsBaseType } from '@proto-ui/types';
+import type { StatePort } from '@proto-ui/modules.state';
+import { illegalPhase } from './guard';
 
-const TRACE_INTERNAL = Symbol.for("@proto-ui/asHook/trace-internal");
+const TRACE_INTERNAL = Symbol.for('@proto-ui/asHook/trace-internal');
 
 type TraceStore = {
   entries: AsHookTraceEntry[];
@@ -19,7 +19,7 @@ type TraceStore = {
 };
 
 type DefRuntimeState = {
-  getPhase(): "setup" | "render" | "callback" | "unknown";
+  getPhase(): 'setup' | 'render' | 'callback' | 'unknown';
   prototypeName: string;
 };
 
@@ -36,7 +36,7 @@ type StateHandleLike = {
 };
 
 function isStateHandleLike(x: any): x is StateHandleLike {
-  return !!x && typeof x === "object" && typeof x.get === "function" && !!x.__stateId;
+  return !!x && typeof x === 'object' && typeof x.get === 'function' && !!x.__stateId;
 }
 
 function getOrCreateTrace(proto: object): TraceStore {
@@ -50,7 +50,7 @@ function getOrCreateTrace(proto: object): TraceStore {
       writable: false,
     });
 
-    Object.defineProperty(anyProto, "__asHooks", {
+    Object.defineProperty(anyProto, '__asHooks', {
       get: () => Object.freeze(store.entries.slice()),
       enumerable: false,
       configurable: false,
@@ -70,8 +70,7 @@ function createBorrowedHandle<P extends PropsBaseType, V>(
     get: () => raw.get() as V,
     setDefault: (v: V) => raw.setDefault(v),
     set: (v: V, reason?: unknown) => raw.set(v, reason),
-    watch: (cb) =>
-      raw.watch((ctx, e) => cb(ctx as RunHandle<P>, e as any)),
+    watch: (cb) => raw.watch((ctx, e) => cb(ctx as RunHandle<P>, e as any)),
   };
 
   (borrowed as any).__stateId = (handle as any).__stateId;
@@ -82,10 +81,7 @@ function createBorrowedHandle<P extends PropsBaseType, V>(
   return borrowed;
 }
 
-function projectStateValue<P extends PropsBaseType>(
-  port: StatePort,
-  value: any
-): any {
+function projectStateValue<P extends PropsBaseType>(port: StatePort, value: any): any {
   if (isStateHandleLike(value)) {
     return createBorrowedHandle<P, any>(port, value);
   }
@@ -98,7 +94,7 @@ function projectStateValue<P extends PropsBaseType>(
     });
     return changed ? mapped : value;
   }
-  if (value && typeof value === "object") {
+  if (value && typeof value === 'object') {
     let changed = false;
     const out: Record<string, unknown> = {};
     for (const [k, v] of Object.entries(value)) {
@@ -131,7 +127,7 @@ export function attachAsHookRuntime<P extends PropsBaseType>(
 
   const ensureSetup = (op: string) => {
     const phase = st.getPhase();
-    if (phase !== "setup") {
+    if (phase !== 'setup') {
       illegalPhase(op, st.prototypeName, phase, `Use 'asHook' in setup only.`);
     }
   };

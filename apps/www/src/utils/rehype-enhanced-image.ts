@@ -13,14 +13,16 @@ export const rehypeEnhancedImage: Plugin<[], Root> = () => {
         const img = node;
         const src = img.properties?.src as string | undefined;
         const alt = (img.properties?.alt as string) || '';
-        
+
         // 检测是否为 SVG
-        const isSvg = src?.endsWith('.svg') || src?.includes('.svg#') || src?.includes('data:image/svg+xml');
-        
+        const isSvg =
+          src?.endsWith('.svg') || src?.includes('.svg#') || src?.includes('data:image/svg+xml');
+
         // 获取现有的 class，如果有的话
         const existingClass = (img.properties?.class as string) || '';
-        const imageClass = `enhanced-image ${isSvg ? 'enhanced-image-svg-element' : ''} ${existingClass}`.trim();
-        
+        const imageClass =
+          `enhanced-image ${isSvg ? 'enhanced-image-svg-element' : ''} ${existingClass}`.trim();
+
         // 创建包装容器
         const wrapper = {
           type: 'element',
@@ -74,4 +76,3 @@ export const rehypeEnhancedImage: Plugin<[], Root> = () => {
     });
   };
 };
-

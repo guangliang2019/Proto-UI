@@ -1,7 +1,7 @@
 // packages/runtime/test/contract/state-basic.v0.contract.test.ts
-import { describe, it, expect } from "vitest";
-import type { Prototype, OwnedStateHandle } from "@proto-ui/core";
-import { executeWithHost, RuntimeHost } from "../../src";
+import { describe, it, expect } from 'vitest';
+import type { Prototype, OwnedStateHandle } from '@proto-ui/core';
+import { executeWithHost, RuntimeHost } from '../../src';
 
 /**
  * Runtime Contract (v0): state basic semantics
@@ -21,12 +21,12 @@ import { executeWithHost, RuntimeHost } from "../../src";
  *   - During `unmounted` callback, the instance is still alive; handle operations are allowed.
  *   - After unmount + dispose, all handle operations MUST throw (guard responsibility).
  */
-describe("runtime contract: state basic (v0)", () => {
-  it("setup: setDefault works; set throws; created sees setup-default; initial render observes it", () => {
+describe('runtime contract: state basic (v0)', () => {
+  it('setup: setDefault works; set throws; created sees setup-default; initial render observes it', () => {
     const logs: string[] = [];
 
     const host: RuntimeHost<any> = {
-      prototypeName: "x-runtime-state-basic",
+      prototypeName: 'x-runtime-state-basic',
       getRawProps() {
         return {};
       },
@@ -41,9 +41,9 @@ describe("runtime contract: state basic (v0)", () => {
     let s!: OwnedStateHandle<boolean>;
 
     const P: Prototype = {
-      name: "x-runtime-state-basic",
+      name: 'x-runtime-state-basic',
       setup(def) {
-        s = def.state.bool("open", false);
+        s = def.state.bool('open', false);
 
         // setup: setDefault ok
         s.setDefault(true);
@@ -57,7 +57,7 @@ describe("runtime contract: state basic (v0)", () => {
 
         return (r) => {
           logs.push(`render:${String(s.get())}`);
-          return [r.el("div", "ok")];
+          return [r.el('div', 'ok')];
         };
       },
     };
@@ -65,15 +65,15 @@ describe("runtime contract: state basic (v0)", () => {
     executeWithHost(P, host);
 
     // created runs before first render; both should observe the setup-default value.
-    expect(logs).toEqual(["created:true", "render:true"]);
+    expect(logs).toEqual(['created:true', 'render:true']);
   });
 
-  it("created set is visible to initial render; mounted set does not re-render until explicit update()", () => {
+  it('created set is visible to initial render; mounted set does not re-render until explicit update()', () => {
     const commits: Array<string> = [];
     const scheduled: Array<() => void> = [];
 
     const host: RuntimeHost<any> = {
-      prototypeName: "x-runtime-state-update",
+      prototypeName: 'x-runtime-state-update',
       getRawProps() {
         return {};
       },
@@ -90,9 +90,9 @@ describe("runtime contract: state basic (v0)", () => {
     let controller!: { update(): void };
 
     const P: Prototype = {
-      name: "x-runtime-state-update",
+      name: 'x-runtime-state-update',
       setup(def) {
-        s = def.state.numberDiscrete("count", 0);
+        s = def.state.numberDiscrete('count', 0);
 
         def.lifecycle.onCreated(() => {
           // created: runtime phase; set is allowed and must be visible to first render
@@ -116,21 +116,21 @@ describe("runtime contract: state basic (v0)", () => {
     controller = ret.controller;
 
     // initial commit must observe created-time set(1)
-    expect(commits).toEqual(["commit:1"]);
+    expect(commits).toEqual(['commit:1']);
 
     // host scheduling flush: mounted has run; state set(2) must NOT auto-commit
     expect(scheduled.length).toBe(1);
     scheduled[0]();
-    expect(commits).toEqual(["commit:1"]);
+    expect(commits).toEqual(['commit:1']);
 
     // explicit update commits new render result
     controller.update();
-    expect(commits).toEqual(["commit:1", "commit:2"]);
+    expect(commits).toEqual(['commit:1', 'commit:2']);
   });
 
-  it("dispose: usable during unmounted callback; after dispose, get/set/setDefault all throw", () => {
+  it('dispose: usable during unmounted callback; after dispose, get/set/setDefault all throw', () => {
     const host: RuntimeHost<any> = {
-      prototypeName: "x-runtime-state-dispose",
+      prototypeName: 'x-runtime-state-dispose',
       getRawProps() {
         return {};
       },
@@ -146,9 +146,9 @@ describe("runtime contract: state basic (v0)", () => {
     let s!: OwnedStateHandle<boolean>;
 
     const P: Prototype = {
-      name: "x-runtime-state-dispose",
+      name: 'x-runtime-state-dispose',
       setup(def) {
-        s = def.state.bool("alive", true);
+        s = def.state.bool('alive', true);
 
         def.lifecycle.onUnmounted(() => {
           // During unmounted callback, instance is still alive; ops are allowed.
@@ -157,7 +157,7 @@ describe("runtime contract: state basic (v0)", () => {
           // setDefault is runtime-forbidden; we intentionally don't assert it here.
         });
 
-        return (r) => [r.el("div", "ok")];
+        return (r) => [r.el('div', 'ok')];
       },
     };
 

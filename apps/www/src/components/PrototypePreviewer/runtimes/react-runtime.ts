@@ -43,7 +43,7 @@ export const runtime: RuntimeAPI = {
       existingRoot.unmount();
       reactRoots.delete(host);
     }
-    
+
     // 确保容器干净
     host.innerHTML = '';
 

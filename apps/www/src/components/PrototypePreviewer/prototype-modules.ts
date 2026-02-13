@@ -11,7 +11,7 @@ export type PrototypeModuleLoader = () => Promise<any>;
 export const prototypeModules: Record<string, PrototypeModuleLoader> = {
   // 示例：'demo-inline' 原型
   'demo-inline': () => import('../../content/docs/zh-cn/demo-inline'),
-  
+
   // 后续添加更多原型时，在这里注册：
   // 'button-demo': () => import('../../content/docs/zh-cn/components/button-demo'),
   // 'form-demo': () => import('../../content/docs/zh-cn/examples/form-demo'),
@@ -24,15 +24,15 @@ export const prototypeModules: Record<string, PrototypeModuleLoader> = {
  */
 export async function loadPrototype(prototypeId: string): Promise<boolean> {
   const loader = prototypeModules[prototypeId];
-  
+
   if (!loader) {
     throw new Error(
       `[PrototypePreviewer] 未找到原型 "${prototypeId}" 的加载器。\n` +
-      `可用的原型: ${Object.keys(prototypeModules).join(', ')}\n` +
-      `请在 prototype-modules.ts 中注册该原型。`
+        `可用的原型: ${Object.keys(prototypeModules).join(', ')}\n` +
+        `请在 prototype-modules.ts 中注册该原型。`
     );
   }
-  
+
   try {
     // 动态导入模块（模块内部会自动调用 registerPrototype）
     await loader();
@@ -49,7 +49,7 @@ export async function loadPrototype(prototypeId: string): Promise<boolean> {
  * @param prototypeIds 原型 ID 列表
  */
 export async function loadPrototypes(prototypeIds: string[]): Promise<void> {
-  await Promise.all(prototypeIds.map(id => loadPrototype(id)));
+  await Promise.all(prototypeIds.map((id) => loadPrototype(id)));
 }
 
 /**
@@ -58,4 +58,3 @@ export async function loadPrototypes(prototypeIds: string[]): Promise<void> {
 export function getAvailablePrototypes(): string[] {
   return Object.keys(prototypeModules);
 }
-

@@ -1,7 +1,7 @@
 // packages/runtime/test/contract/lifecycle-with-host.v0.contract.test.ts
-import { describe, it, expect } from "vitest";
-import type { Prototype, TemplateChildren } from "@proto-ui/core";
-import { executeWithHost, RuntimeHost } from "../../src";
+import { describe, it, expect } from 'vitest';
+import type { Prototype, TemplateChildren } from '@proto-ui/core';
+import { executeWithHost, RuntimeHost } from '../../src';
 
 // If runtime/src/index.ts does NOT re-export core types, then use:
 // import type { Prototype, TemplateChildren } from "@proto-ui/core";
@@ -22,32 +22,32 @@ function createMockHost() {
     },
     context: {
       read: (_k: any) => {
-        throw new Error("[test] context.read not provided");
+        throw new Error('[test] context.read not provided');
       },
       tryRead: (_k: any) => undefined,
     },
     state: {
       read: (_id: any) => {
-        throw new Error("[test] state.read not provided");
+        throw new Error('[test] state.read not provided');
       },
     },
   };
 
   const host: RuntimeHost<any> = {
-    prototypeName: "test-proto",
+    prototypeName: 'test-proto',
 
     getRawProps() {
       return {};
     },
 
     commit(children, signal) {
-      calls.push("commit");
+      calls.push('commit');
       commits.push(children);
       signal?.done();
     },
 
     schedule(task) {
-      calls.push("schedule-mounted");
+      calls.push('schedule-mounted');
       scheduled.push(task);
     },
   };
@@ -55,48 +55,48 @@ function createMockHost() {
   return { host, calls, scheduled, commits, run };
 }
 
-describe("runtime contract: lifecycle-with-host (v0)", () => {
-  it("created happens before first commit; mounted happens after first commit (host-scheduled)", () => {
+describe('runtime contract: lifecycle-with-host (v0)', () => {
+  it('created happens before first commit; mounted happens after first commit (host-scheduled)', () => {
     const { host, calls, scheduled } = createMockHost();
 
     const P: Prototype = {
-      name: "x-runtime-life-1",
+      name: 'x-runtime-life-1',
       setup(def) {
-        def.lifecycle.onCreated(() => calls.push("created"));
-        def.lifecycle.onMounted(() => calls.push("mounted"));
-        return (r) => [r.el("div", "ok")];
+        def.lifecycle.onCreated(() => calls.push('created'));
+        def.lifecycle.onMounted(() => calls.push('mounted'));
+        return (r) => [r.el('div', 'ok')];
       },
     };
 
     executeWithHost(P, host);
 
     // created before initial commit
-    const createdIndex = calls.indexOf("created");
-    const commitIndex = calls.indexOf("commit");
+    const createdIndex = calls.indexOf('created');
+    const commitIndex = calls.indexOf('commit');
     expect(createdIndex).toBeGreaterThanOrEqual(0);
     expect(commitIndex).toBeGreaterThanOrEqual(0);
     expect(createdIndex).toBeLessThan(commitIndex);
 
     // mounted not yet executed; only scheduled
-    expect(calls.includes("mounted")).toBe(false);
+    expect(calls.includes('mounted')).toBe(false);
     expect(scheduled.length).toBe(1);
 
     // flush scheduled mounted
     scheduled[0]();
-    expect(calls.includes("mounted")).toBe(true);
+    expect(calls.includes('mounted')).toBe(true);
 
-    const mountedIndex = calls.indexOf("mounted");
+    const mountedIndex = calls.indexOf('mounted');
     expect(commitIndex).toBeLessThan(mountedIndex);
   });
 
-  it("update() triggers a commit(update) then updated callback (ordering constraint)", () => {
+  it('update() triggers a commit(update) then updated callback (ordering constraint)', () => {
     const { host, calls, scheduled, run } = createMockHost();
     // ensure mounted doesn't interfere in this test unless we flush it
     const P: Prototype = {
-      name: "x-runtime-life-2",
+      name: 'x-runtime-life-2',
       setup(def) {
-        def.lifecycle.onUpdated(() => calls.push("updated"));
-        return (r) => [r.el("div", "v")];
+        def.lifecycle.onUpdated(() => calls.push('updated'));
+        return (r) => [r.el('div', 'v')];
       },
     };
 
@@ -107,8 +107,8 @@ describe("runtime contract: lifecycle-with-host (v0)", () => {
 
     controller.update();
 
-    const commitIndex = calls.indexOf("commit");
-    const updatedIndex = calls.indexOf("updated");
+    const commitIndex = calls.indexOf('commit');
+    const updatedIndex = calls.indexOf('updated');
 
     expect(commitIndex).toBeGreaterThanOrEqual(0);
     expect(updatedIndex).toBeGreaterThanOrEqual(0);
@@ -120,33 +120,33 @@ describe("runtime contract: lifecycle-with-host (v0)", () => {
     void run; // silence unused if your TS config complains
   });
 
-  it("unmounted is invoked when adapter calls invokeUnmounted()", () => {
+  it('unmounted is invoked when adapter calls invokeUnmounted()', () => {
     const { host, calls } = createMockHost();
 
     const P: Prototype = {
-      name: "x-runtime-life-3",
+      name: 'x-runtime-life-3',
       setup(def) {
-        def.lifecycle.onUnmounted(() => calls.push("unmounted"));
-        return (r) => [r.el("div", "ok")];
+        def.lifecycle.onUnmounted(() => calls.push('unmounted'));
+        return (r) => [r.el('div', 'ok')];
       },
     };
 
     const { invokeUnmounted } = executeWithHost(P, host);
 
-    expect(calls.includes("unmounted")).toBe(false);
+    expect(calls.includes('unmounted')).toBe(false);
     invokeUnmounted();
-    expect(calls.includes("unmounted")).toBe(true);
+    expect(calls.includes('unmounted')).toBe(true);
   });
 });
 
-describe("runtime contract: lifecycle-with-host (v0)", () => {
-  it("mounted scheduled task must not run after unmount (no-op / gated)", () => {
+describe('runtime contract: lifecycle-with-host (v0)', () => {
+  it('mounted scheduled task must not run after unmount (no-op / gated)', () => {
     const proto = {
-      name: "test-mounted-after-unmount",
+      name: 'test-mounted-after-unmount',
       setup(def: any) {
         def.lifecycle.onMounted(() => {
           // If this runs after unmount, it is a bug (or should be gated).
-          throw new Error("mounted callback should not run after unmount");
+          throw new Error('mounted callback should not run after unmount');
         });
         def.lifecycle.onUnmounted(() => {});
         return (r: any) => [r.r.slot()];
@@ -168,7 +168,7 @@ describe("runtime contract: lifecycle-with-host (v0)", () => {
     const res = executeWithHost(proto as any, host as any);
 
     // Ensure mounted callback has been scheduled
-    expect(scheduled).toBeTypeOf("function");
+    expect(scheduled).toBeTypeOf('function');
 
     // Unmount first
     expect(() => res.invokeUnmounted()).not.toThrow();

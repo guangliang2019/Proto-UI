@@ -1,7 +1,6 @@
 # Renderer Primitives 契约（Template Authoring API v0）
 
-本契约定义 Proto UI core 提供的 **renderer primitives**（模板编写原语）的协议级语义：
-它们如何构造 TemplateNode、如何解释参数、如何应用 Template Normalize，以及 slot 的构造与防御性约束。
+本契约定义 Proto UI core 提供的 **renderer primitives**（模板编写原语）的协议级语义：它们如何构造 TemplateNode、如何解释参数、如何应用 Template Normalize，以及 slot 的构造与防御性约束。
 
 > 范围（Scope）
 >
@@ -37,8 +36,7 @@ Renderer primitives 用于构造 Proto UI 的 Template（渲染蓝图）：
 - `el(type, [props], [children])`：构造一个 `TemplateNode`
 - `r.slot()`：构造一个 slot 保留节点（reserved node）
 
-> 说明：本契约仅定义上述 API 的语义与约束，不要求固定函数名或具体实现结构；
-> 但官方 core/runtime/adapters 应保持一致以支撑 contract tests。
+> 说明：本契约仅定义上述 API 的语义与约束，不要求固定函数名或具体实现结构；但官方 core/runtime/adapters 应保持一致以支撑 contract tests。
 
 ---
 
@@ -131,8 +129,7 @@ v0 中 `el()` 允许接收的 props 对象称为 `TemplateProps`，其合法键�
 - 必须为合法 `TemplateStyleHandle`
 - 否则必须抛出错误
 
-> 注：`TemplateStyleHandle` 的合法性由 feedback/style 子系统定义；
-> renderer primitives 仅负责调用其判定函数并拒绝非法输入。
+> 注：`TemplateStyleHandle` 的合法性由 feedback/style 子系统定义；renderer primitives 仅负责调用其判定函数并拒绝非法输入。
 
 ---
 
@@ -140,8 +137,7 @@ v0 中 `el()` 允许接收的 props 对象称为 `TemplateProps`，其合法键�
 
 ### 6.1 normalize 的调用点
 
-`el()` 必须对 `childrenInput` 调用 `normalizeChildren(childrenInput, normalizeOptions)`，
-其输出作为 `TemplateNode.children`。
+`el()` 必须对 `childrenInput` 调用 `normalizeChildren(childrenInput, normalizeOptions)`，其输出作为 `TemplateNode.children`。
 
 ---
 
@@ -164,8 +160,7 @@ v0 中 `el()` 允许接收的 props 对象称为 `TemplateProps`，其合法键�
 
 若传入任何参数，必须抛出错误。
 
-> 注：slot 的协议级约束（匿名、最多一个、无参数）由 **Template Slot（Protocol Constraint）** 契约定义。
-> renderer primitives 在构造期做参数防御属于“尽早拒绝”的实践。
+> 注：slot 的协议级约束（匿名、最多一个、无参数）由 **Template Slot（Protocol Constraint）** 契约定义。renderer primitives 在构造期做参数防御属于“尽早拒绝”的实践。
 
 ---
 
@@ -185,8 +180,7 @@ v0 中 `el()` 允许接收的 props 对象称为 `TemplateProps`，其合法键�
 
 ### 8.1 `el()` 不验证 `type` 的合法集合
 
-`el(type, ...)` 在 v0 中 **不要求**验证 `type` 是否为合法 `TemplateType` 的成员，
-也不要求拒绝 `PrototypeRef`。
+`el(type, ...)` 在 v0 中 **不要求**验证 `type` 是否为合法 `TemplateType` 的成员，也不要求拒绝 `PrototypeRef`。
 
 原因：
 

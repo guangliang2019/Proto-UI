@@ -2,8 +2,7 @@
 
 > 状态：Draft（与现有实现对齐）
 >
-> 本契约定义 Proto UI 的 **执行阶段防护机制（Execution Phase Guard）**，
-> 由 `SystemCaps` 提供，是 runtime 与各模块用于区分并强制执行：
+> 本契约定义 Proto UI 的 **执行阶段防护机制（Execution Phase Guard）**，由 `SystemCaps` 提供，是 runtime 与各模块用于区分并强制执行：
 >
 > - setup 阶段
 > - runtime 阶段
@@ -91,7 +90,6 @@ v0 的 ProtoPhase 集合由 `@proto-ui/core` 定义，最小集合为：
 `SystemCaps` 必须提供以下接口：
 
 - 状态读取：
-
   - `domain(): GuardDomain`
   - `protoPhase(): ProtoPhase`
   - `isDisposed(): boolean`
@@ -113,13 +111,10 @@ type WithSystemCaps = { __sys: SystemCaps };
 
 ### 3.1 Domain 语义（v0）
 
-- 当且仅当当前执行位于 `proto.setup(def)` 内部时，
-  `domain()` **必须**返回 `"setup"`
+- 当且仅当当前执行位于 `proto.setup(def)` 内部时， `domain()` **必须**返回 `"setup"`
 - 在所有其他情况下，`domain()` **必须**返回 `"runtime"`
 
-> 实现说明：
-> runtime 内部可以存在更细的阶段划分，但在 v0 中，
-> GuardDomain 被刻意限制为二值，以降低模块心智负担。
+> 实现说明：runtime 内部可以存在更细的阶段划分，但在 v0 中，GuardDomain 被刻意限制为二值，以降低模块心智负担。
 
 ---
 
@@ -136,7 +131,6 @@ type WithSystemCaps = { __sys: SystemCaps };
 
 - 当 runtime 销毁 module hub 后，`isDisposed()` **必须**变为 `true`
 - 一旦进入 disposed 状态：
-
   - 所有依赖 SystemCaps 的操作均视为非法
   - 相关 handle 必须抛出错误
 
@@ -194,8 +188,7 @@ type WithSystemCaps = { __sys: SystemCaps };
 
 ### 6.1 注入时机
 
-- runtime **必须**在模块创建之前，
-  向每个模块的 CapsVault 注入同一个 `__sys` 对象
+- runtime **必须**在模块创建之前，向每个模块的 CapsVault 注入同一个 `__sys` 对象
 - 模块必须能通过 CapsVaultView 访问该对象
 
 ---
@@ -204,10 +197,8 @@ type WithSystemCaps = { __sys: SystemCaps };
 
 - `__sys` 的引用在 module hub 生命周期内必须保持稳定
 - 在 dispose 之后：
-
   - caps 可能被重置或失效
-  - 但 `__sys.isDisposed()` 的行为必须保持一致，
-    以正确防护任何仍被持有的旧 handle
+  - 但 `__sys.isDisposed()` 的行为必须保持一致，以正确防护任何仍被持有的旧 handle
 
 ---
 
@@ -216,16 +207,12 @@ type WithSystemCaps = { __sys: SystemCaps };
 实现至少需要通过以下验证：
 
 1. 执行域防护：
-
    - 在 setup 阶段调用 `ensureRuntime` 必须抛错
    - 在 runtime 阶段调用 `ensureSetup` 必须抛错
 
 2. 销毁防护：
-
-   - dispose 后，`ensureNotDisposed` / `ensureSetup` / `ensureRuntime`
-     均必须抛错
+   - dispose 后，`ensureNotDisposed` / `ensureSetup` / `ensureRuntime` 均必须抛错
 
 3. 诊断信息：
-
    - 抛出的错误中必须包含 `op`
    - 并能识别具体的组件实例（prototypeName 推荐）

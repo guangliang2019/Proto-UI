@@ -1,7 +1,6 @@
 # Template Contracts – Trace Map (v0)
 
-This document provides a **trace map** between Template-related contracts,
-their reference implementations, and executable verification points.
+This document provides a **trace map** between Template-related contracts, their reference implementations, and executable verification points.
 
 Its purpose is to ensure that Template semantics in Proto UI are:
 
@@ -169,8 +168,7 @@ It does **not** cover:
 - New Template-related contracts MUST:
   1. Declare their scope explicitly
   2. Add at least one verification entry to this document
-- Frameworks built on top of Proto UI may expose richer authoring APIs,
-  but MUST compile down to the semantics verified here.
+- Frameworks built on top of Proto UI may expose richer authoring APIs, but MUST compile down to the semantics verified here.
 
 ---
 

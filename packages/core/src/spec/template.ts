@@ -1,10 +1,7 @@
 // packages/core/src/template.ts
-import type { Prototype } from "../prototype";
-import {
-  isTemplateStyleHandle,
-  type TemplateStyleHandle,
-} from "./feedback/style";
-import { ElementFactory, ReservedFactories } from "../handles";
+import type { Prototype } from '../prototype';
+import { isTemplateStyleHandle, type TemplateStyleHandle } from './feedback/style';
+import { ElementFactory, ReservedFactories } from '../handles';
 
 /**
  * Template is the platform-agnostic render blueprint.
@@ -21,7 +18,7 @@ export type TemplateProps = {
   style?: TemplateStyleHandle;
 };
 
-export type ReservedType = { kind: "slot" };
+export type ReservedType = { kind: 'slot' };
 
 export interface TemplateNode {
   type: TemplateType;
@@ -34,7 +31,7 @@ export type TemplateChild = TemplateNode | string | number | null;
 export type TemplateChildren = TemplateChild | TemplateChild[] | null;
 
 export interface NormalizeOptions {
-  flatten?: "none" | "shallow" | "deep";
+  flatten?: 'none' | 'shallow' | 'deep';
   /**
    * If true, keep null in output instead of filtering it out.
    * Default false: null is treated as empty and removed from template output.
@@ -49,7 +46,7 @@ export interface NormalizeOptions {
  * - empty result becomes canonical null
  */
 export const DEFAULT_NORMALIZE: Required<NormalizeOptions> = {
-  flatten: "deep",
+  flatten: 'deep',
   keepNull: false,
 };
 
@@ -65,7 +62,7 @@ export function normalizeChildren(
   const out: TemplateChild[] = [];
 
   const push = (v: unknown) => {
-    if (typeof v === "boolean") {
+    if (typeof v === 'boolean') {
       throw new Error(
         `[Template] boolean child is illegal. Use null for empty, or omit the child.`
       );
@@ -80,7 +77,7 @@ export function normalizeChildren(
       if (cfg.keepNull) out.push(null);
       return; // filtered by default
     }
-    if (typeof v === "string" || typeof v === "number") {
+    if (typeof v === 'string' || typeof v === 'number') {
       out.push(v);
       return;
     }
@@ -94,15 +91,11 @@ export function normalizeChildren(
       return;
     }
 
-    if (cfg.flatten === "none") {
-      throw new Error(
-        `[Template] array children is not allowed when flatten=none.`
-      );
+    if (cfg.flatten === 'none') {
+      throw new Error(`[Template] array children is not allowed when flatten=none.`);
     }
-    if (cfg.flatten === "shallow" && depth >= 1) {
-      throw new Error(
-        `[Template] nested array children is not allowed when flatten=shallow.`
-      );
+    if (cfg.flatten === 'shallow' && depth >= 1) {
+      throw new Error(`[Template] nested array children is not allowed when flatten=shallow.`);
     }
 
     for (const x of v) walk(x, depth + 1);
@@ -116,11 +109,11 @@ export function normalizeChildren(
 }
 
 function isTemplateProps(v: any): v is TemplateProps {
-  if (!v || typeof v !== "object") return false;
+  if (!v || typeof v !== 'object') return false;
   // Only allowed key is "style"
   const keys = Object.keys(v);
   if (keys.length === 0) return true;
-  if (keys.length === 1 && keys[0] === "style") return true;
+  if (keys.length === 1 && keys[0] === 'style') return true;
   return false;
 }
 
@@ -182,12 +175,10 @@ export function createRendererPrimitives(opt: RendererPrimitivesOptions = {}) {
       if (arguments.length > 0) {
         const args = Array.from(arguments);
         throw new Error(
-          `[Template] slot() takes no arguments.\n illegal slot arguments: ${JSON.stringify(
-            args
-          )}`
+          `[Template] slot() takes no arguments.\n illegal slot arguments: ${JSON.stringify(args)}`
         );
       }
-      return el({ kind: "slot" });
+      return el({ kind: 'slot' });
     },
   };
 
@@ -195,7 +186,7 @@ export function createRendererPrimitives(opt: RendererPrimitivesOptions = {}) {
 }
 
 export interface PrototypeRef {
-  kind: "prototype";
+  kind: 'prototype';
   name: string;
   ref?: unknown;
 }
@@ -204,5 +195,5 @@ export interface PrototypeRef {
  * Represent a Prototype as a TemplateType safely (debuggable/serializable).
  */
 export function asPrototypeRef(proto: Prototype): PrototypeRef {
-  return { kind: "prototype", name: proto.name, ref: proto };
+  return { kind: 'prototype', name: proto.name, ref: proto };
 }

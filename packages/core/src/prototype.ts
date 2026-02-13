@@ -1,11 +1,11 @@
 // packages/core/src/prototype.ts
-import type { PropsBaseType } from "@proto-ui/types";
-import type { DefHandle, RendererHandle } from "./handles";
-import type { TemplateChildren } from "./spec";
+import type { PropsBaseType } from '@proto-ui/types';
+import type { DefHandle, RendererHandle } from './handles';
+import type { TemplateChildren } from './spec';
 
 export interface Prototype<
   Props extends PropsBaseType = PropsBaseType,
-  Exposes = Record<string, unknown>
+  Exposes = Record<string, unknown>,
 > {
   name: string;
   setup: (def: DefHandle<Props, Exposes>) => RenderFn | void;
@@ -35,7 +35,7 @@ export interface AsHookPrototype<
   Props extends PropsBaseType = PropsBaseType,
   Exposes = Record<string, unknown>,
   Options = unknown,
-  Result extends AsHookResult = AsHookResult
+  Result extends AsHookResult = AsHookResult,
 > {
   name: string;
   setup: (def: DefHandle<Props, Exposes>, options?: Options) => Result | void;
@@ -43,10 +43,7 @@ export interface AsHookPrototype<
 
 export type AsHookRuntime = {
   ensureSetup(op: string): void;
-  register(
-    name: string,
-    meta: { privileged: boolean }
-  ): { run: boolean; order: number };
+  register(name: string, meta: { privileged: boolean }): { run: boolean; order: number };
   projectState<T>(state: T): T;
   getTrace(): ReadonlyArray<AsHookTraceEntry>;
 };
@@ -55,31 +52,27 @@ export type AsHookCaller<
   Props extends PropsBaseType = PropsBaseType,
   Exposes = Record<string, unknown>,
   Options = unknown,
-  Result extends AsHookResult = AsHookResult
-> = ((
-  options?: Options
-) => Result) & {
-  readonly kind: "asHook";
+  Result extends AsHookResult = AsHookResult,
+> = ((options?: Options) => Result) & {
+  readonly kind: 'asHook';
   readonly definition: AsHookPrototype<Props, Exposes, Options, Result>;
 };
 
-export const __AS_HOOK_RUNTIME = Symbol.for("@proto-ui/asHook/runtime");
-export const __AS_HOOK_CURRENT_DEF = Symbol.for("@proto-ui/asHook/current-def");
-export const __AS_HOOK_PRIV_FACADES = Symbol.for(
-  "@proto-ui/asHook/priv-facades"
-);
+export const __AS_HOOK_RUNTIME = Symbol.for('@proto-ui/asHook/runtime');
+export const __AS_HOOK_CURRENT_DEF = Symbol.for('@proto-ui/asHook/current-def');
+export const __AS_HOOK_PRIV_FACADES = Symbol.for('@proto-ui/asHook/priv-facades');
 
 /** Thin wrapper: stabilize author-facing entry & improve inference */
 export function definePrototype<P extends PropsBaseType, E = Record<string, unknown>>(
   proto: Prototype<P, E>
 ): Prototype<P, E> {
-  if (!proto || typeof proto !== "object") {
+  if (!proto || typeof proto !== 'object') {
     throw new Error(`[Prototype] definePrototype() expects an object.`);
   }
-  if (!proto.name || typeof proto.name !== "string") {
+  if (!proto.name || typeof proto.name !== 'string') {
     throw new Error(`[Prototype] illegal name.`);
   }
-  if (typeof proto.setup !== "function") {
+  if (typeof proto.setup !== 'function') {
     throw new Error(`[Prototype] setup must be a function.`);
   }
   return proto;
@@ -93,15 +86,15 @@ export function defineAsHook<
   P extends PropsBaseType,
   E = Record<string, unknown>,
   O = unknown,
-  R extends AsHookResult = AsHookResult
+  R extends AsHookResult = AsHookResult,
 >(proto: AsHookPrototype<P, E, O, R>): AsHookCaller<P, E, O, R> {
-  if (!proto || typeof proto !== "object") {
+  if (!proto || typeof proto !== 'object') {
     throw new Error(`[AsHook] defineAsHook() expects an object.`);
   }
-  if (!proto.name || typeof proto.name !== "string") {
+  if (!proto.name || typeof proto.name !== 'string') {
     throw new Error(`[AsHook] illegal name.`);
   }
-  if (typeof proto.setup !== "function") {
+  if (typeof proto.setup !== 'function') {
     throw new Error(`[AsHook] setup must be a function.`);
   }
   if (!/^as[A-Z]/.test(proto.name)) {
@@ -111,9 +104,7 @@ export function defineAsHook<
   }
 
   const caller = ((options?: O) => {
-    const def = (globalThis as any)[__AS_HOOK_CURRENT_DEF] as
-      | DefHandle<P, E>
-      | undefined;
+    const def = (globalThis as any)[__AS_HOOK_CURRENT_DEF] as DefHandle<P, E> | undefined;
     if (!def) {
       throw new Error(`[AsHook] no active setup context for ${proto.name}.`);
     }
@@ -128,7 +119,7 @@ export function defineAsHook<
     if (!reg.run) return {} as R;
 
     const result = (proto.setup(def, options) ?? ({} as R)) as R;
-    if (result && typeof result === "object" && "state" in result) {
+    if (result && typeof result === 'object' && 'state' in result) {
       const nextState = rt.projectState((result as any).state);
       if ((result as any).state !== nextState) {
         return { ...(result as any), state: nextState } as R;
@@ -137,13 +128,13 @@ export function defineAsHook<
     return result;
   }) as AsHookCaller<P, E, O, R>;
 
-  Object.defineProperty(caller, "kind", {
-    value: "asHook",
+  Object.defineProperty(caller, 'kind', {
+    value: 'asHook',
     enumerable: false,
     configurable: false,
     writable: false,
   });
-  Object.defineProperty(caller, "definition", {
+  Object.defineProperty(caller, 'definition', {
     value: proto,
     enumerable: false,
     configurable: false,

@@ -1,7 +1,7 @@
 // packages/modules/base/src/caps-vault/vault.ts
-import type { CapEntries, CapToken, CapsVaultView } from "@proto-ui/core";
-import { capUnavailable } from "@proto-ui/core";
-import { Unsubscribe } from "./types";
+import type { CapEntries, CapToken, CapsVaultView } from '@proto-ui/core';
+import { capUnavailable } from '@proto-ui/core';
+import { Unsubscribe } from './types';
 
 /**
  * Mutable caps vault for runtime/host wiring.

@@ -1,7 +1,6 @@
 # internal/contracts/context/base-text/with-tree.v0.md
 
-> 状态：草案（中文底本）
-> 本文是 `internal/contracts/context/with-tree.v0.md` 的中文底本，反映 v0 语义。
+> 状态：草案（中文底本）本文是 `internal/contracts/context/with-tree.v0.md` 的中文底本，反映 v0 语义。
 
 ---
 

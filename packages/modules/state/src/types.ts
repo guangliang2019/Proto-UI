@@ -1,20 +1,13 @@
-import type {
-  ModuleInstance,
-  OwnedStateHandle,
-  Unsubscribe,
-} from "@proto-ui/core";
+import type { ModuleInstance, OwnedStateHandle, Unsubscribe } from '@proto-ui/core';
 import type {
   EnumStateDefineSpec,
   StringStateDefineSpec,
   NumberRangeStateDefineSpec,
   NumberDiscreteStateDefineSpec,
   StateEvent,
-} from "@proto-ui/types";
+} from '@proto-ui/types';
 
-export type InternalStateWatchCallback<V> = (
-  ctx: unknown,
-  e: StateEvent<V>
-) => void;
+export type InternalStateWatchCallback<V> = (ctx: unknown, e: StateEvent<V>) => void;
 
 export type StatePort = {
   /**
@@ -23,10 +16,7 @@ export type StatePort = {
    * - register is expected to be setup-only by runtime policy
    * - invoke happens during runtime set(), and ctx should reflect the current callback context
    */
-  watch<V>(
-    handle: OwnedStateHandle<V>,
-    cb: InternalStateWatchCallback<V>
-  ): Unsubscribe;
+  watch<V>(handle: OwnedStateHandle<V>, cb: InternalStateWatchCallback<V>): Unsubscribe;
 
   /**
    * Emit a disconnect event to all watchers of this state slot.
@@ -85,6 +75,6 @@ export type StateFacade = {
 };
 
 export type StateModule = ModuleInstance<StateFacade> & {
-  name: "state";
-  scope: "instance";
+  name: 'state';
+  scope: 'instance';
 };

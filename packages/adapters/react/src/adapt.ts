@@ -1,8 +1,8 @@
 // packages/adapters/react/src/adapt.ts
-import type { Prototype, EffectsPort, StyleHandle } from "@proto-ui/core";
-import { mergeTwTokensV0 } from "@proto-ui/core";
-import type { CommitSignal, RuntimeController } from "@proto-ui/runtime";
-import { PropsBaseType } from "@proto-ui/types";
+import type { Prototype, EffectsPort, StyleHandle } from '@proto-ui/core';
+import { mergeTwTokensV0 } from '@proto-ui/core';
+import type { CommitSignal, RuntimeController } from '@proto-ui/runtime';
+import { PropsBaseType } from '@proto-ui/types';
 
 import {
   createCapsWiring,
@@ -10,12 +10,12 @@ import {
   createEventGate,
   createAdapterHost,
   createWebProtoEventRouter,
-} from "@proto-ui/adapters.base";
+} from '@proto-ui/adapters.base';
 
-import { renderTemplateToReact, type ReactRuntime as ReactRenderRuntime } from "./template";
+import { renderTemplateToReact, type ReactRuntime as ReactRenderRuntime } from './template';
 
-import type { RawPropsSource } from "@proto-ui/modules.props";
-import type { ExposeStateWebMode } from "@proto-ui/modules.expose-state-web";
+import type { RawPropsSource } from '@proto-ui/modules.props';
+import type { ExposeStateWebMode } from '@proto-ui/modules.expose-state-web';
 
 export type ReactRuntime = ReactRenderRuntime & {
   useState: <T>(init: T) => [T, (next: T) => void];
@@ -27,9 +27,7 @@ export type ReactRuntime = ReactRenderRuntime & {
   createElement: (type: any, props: any, ...children: any[]) => any;
 };
 
-export const __REACT_PROTO_INSTANCE = Symbol.for(
-  "@proto-ui/adapters.react/__proto_instance"
-);
+export const __REACT_PROTO_INSTANCE = Symbol.for('@proto-ui/adapters.react/__proto_instance');
 const PROTO_BY_INSTANCE = new WeakMap<HTMLElement, Prototype<any>>();
 
 function isProtoInstance(node: Node | null): node is HTMLElement {
@@ -40,7 +38,7 @@ function isProtoInstance(node: Node | null): node is HTMLElement {
 function getProtoParent(instance: HTMLElement): HTMLElement | null {
   let cur: Node | null = instance.parentNode;
   while (cur) {
-    if (typeof ShadowRoot !== "undefined" && cur instanceof ShadowRoot) {
+    if (typeof ShadowRoot !== 'undefined' && cur instanceof ShadowRoot) {
       cur = cur.host;
       continue;
     }
@@ -77,9 +75,7 @@ function defaultGetProps<Props extends PropsBaseType>(
   return rest as Partial<Props>;
 }
 
-function createReactEffectsPort(
-  setHostTokens: (next: string[]) => void
-): EffectsPort {
+function createReactEffectsPort(setHostTokens: (next: string[]) => void): EffectsPort {
   let latest: StyleHandle | null = null;
   let flushing = false;
 
@@ -89,7 +85,7 @@ function createReactEffectsPort(
     try {
       const h = latest;
       if (!h) return;
-      if (h.kind === "tw") {
+      if (h.kind === 'tw') {
         const merged = mergeTwTokensV0(h.tokens).tokens;
         setHostTokens(merged);
       }
@@ -114,9 +110,9 @@ function createReactEffectsPort(
 function createNameMap(semantic: string) {
   const base = semantic
     .trim()
-    .replace(/\s+/g, "-")
-    .replace(/\./g, "-")
-    .replace(/[^a-zA-Z0-9\-]/g, "-")
+    .replace(/\s+/g, '-')
+    .replace(/\./g, '-')
+    .replace(/[^a-zA-Z0-9\-]/g, '-')
     .toLowerCase();
   return {
     dataAttr: `data-${base}`,
@@ -133,7 +129,7 @@ export function createReactAdapter(runtime: ReactRuntime) {
     const getProps = opt.getProps ?? defaultGetProps;
     const exposeStateWebMode = opt.exposeStateWebMode;
     const autoUpdate = opt.autoUpdateOnPropsChange ?? true;
-    const rootTag = opt.rootTag ?? "div";
+    const rootTag = opt.rootTag ?? 'div';
 
     const Component = runtime.forwardRef((props: ReactAdapterProps<Props>, ref: any) => {
       const rootRef = runtime.useRef<HTMLElement | null>(null);
@@ -141,12 +137,8 @@ export function createReactAdapter(runtime: ReactRuntime) {
       const [hostTokens, setHostTokens] = runtime.useState<string[]>([]);
 
       const controllerRef = runtime.useRef<RuntimeController | null>(null);
-      const eventGateRef = runtime.useRef<ReturnType<typeof createEventGate> | null>(
-        null
-      );
-      const routerRef = runtime.useRef<ReturnType<typeof createWebProtoEventRouter> | null>(
-        null
-      );
+      const eventGateRef = runtime.useRef<ReturnType<typeof createEventGate> | null>(null);
+      const routerRef = runtime.useRef<ReturnType<typeof createWebProtoEventRouter> | null>(null);
 
       const exposesRef = runtime.useRef<Record<string, unknown>>({});
 
@@ -201,7 +193,7 @@ export function createReactAdapter(runtime: ReactRuntime) {
 
         const router = createWebProtoEventRouter({
           rootEl,
-          globalEl: typeof window === "undefined" ? rootEl : window,
+          globalEl: typeof window === 'undefined' ? rootEl : window,
           isEnabled: () => eventGate.isEnabled?.() ?? true,
         });
         routerRef.current = router;
@@ -231,8 +223,7 @@ export function createReactAdapter(runtime: ReactRuntime) {
           .useAsTrigger({
             instance: rootEl,
             parent: (inst) => getProtoParent(inst as HTMLElement),
-            getPrototype: (inst) =>
-              PROTO_BY_INSTANCE.get(inst as HTMLElement) ?? null,
+            getPrototype: (inst) => PROTO_BY_INSTANCE.get(inst as HTMLElement) ?? null,
           })
           .build();
 
@@ -241,8 +232,7 @@ export function createReactAdapter(runtime: ReactRuntime) {
         const hostSession = createAdapterHost(
           proto,
           {
-            getRawProps: () =>
-              rawPropsSource.get() as Readonly<Props & PropsBaseType>,
+            getRawProps: () => rawPropsSource.get() as Readonly<Props & PropsBaseType>,
             schedule,
             commit: (children, signal) => {
               eventGate.disable();
@@ -285,10 +275,10 @@ export function createReactAdapter(runtime: ReactRuntime) {
         pendingSignalRef.current = null;
       }, [renderChildren]);
 
-      const hostClassName = [props.hostClassName, hostTokens.join(" ")]
-        .map((x) => (x ?? "").trim())
+      const hostClassName = [props.hostClassName, hostTokens.join(' ')]
+        .map((x) => (x ?? '').trim())
         .filter((x) => x.length > 0)
-        .join(" ");
+        .join(' ');
 
       const rendered = renderTemplateToReact(runtime, renderChildren, {
         slot: props.children,

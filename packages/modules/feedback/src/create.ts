@@ -1,20 +1,20 @@
-import type { ProtoPhase, StyleHandle } from "@proto-ui/core";
-import { illegalPhase } from "@proto-ui/core";
-import { FeedbackStyleRecorder } from "@proto-ui/core";
+import type { ProtoPhase, StyleHandle } from '@proto-ui/core';
+import { illegalPhase } from '@proto-ui/core';
+import { FeedbackStyleRecorder } from '@proto-ui/core';
 
-import { createModule, defineModule, ModuleBase } from "@proto-ui/modules.base";
-import type { ModuleFactoryArgs } from "@proto-ui/modules.base";
+import { createModule, defineModule, ModuleBase } from '@proto-ui/modules.base';
+import type { ModuleFactoryArgs } from '@proto-ui/modules.base';
 
-import type { FeedbackFacade, FeedbackModule, FeedbackPort } from "./types";
-import { mergeTwTokensV0 } from "@proto-ui/core";
-import { EFFECTS_CAP } from "./caps";
+import type { FeedbackFacade, FeedbackModule, FeedbackPort } from './types';
+import { mergeTwTokensV0 } from '@proto-ui/core';
+import { EFFECTS_CAP } from './caps';
 
 export function createFeedbackModule(ctx: ModuleFactoryArgs): FeedbackModule {
   const { init, caps, deps } = ctx;
 
-  return createModule<"feedback", "instance", FeedbackFacade>({
-    name: "feedback",
-    scope: "instance",
+  return createModule<'feedback', 'instance', FeedbackFacade>({
+    name: 'feedback',
+    scope: 'instance',
     init,
     caps,
     deps,
@@ -27,9 +27,9 @@ export function createFeedbackModule(ctx: ModuleFactoryArgs): FeedbackModule {
         /** setup-only */
         useStyle(handles: StyleHandle[]): () => void {
           // 用 sys 更精确；没 sys 时 fallback protoPhase
-          const op = "def.feedback.style.use";
+          const op = 'def.feedback.style.use';
           this.sys?.ensureSetup(op);
-          if (!this.sys && this.protoPhase !== "setup") {
+          if (!this.sys && this.protoPhase !== 'setup') {
             throw illegalPhase(op, this.protoPhase, {
               prototypeName: init.prototypeName,
               hint: `Use 'run' inside runtime callbacks, not 'def'.`,
@@ -47,8 +47,8 @@ export function createFeedbackModule(ctx: ModuleFactoryArgs): FeedbackModule {
 
         /** runtime-only */
         useStyleRuntime(handles: StyleHandle[]): () => void {
-          const op = "run.feedback.style.use";
-          if (this.protoPhase === "setup") {
+          const op = 'run.feedback.style.use';
+          if (this.protoPhase === 'setup') {
             throw illegalPhase(op, this.protoPhase, {
               prototypeName: init.prototypeName,
               hint: `Use 'def' only during setup.`,
@@ -82,12 +82,12 @@ export function createFeedbackModule(ctx: ModuleFactoryArgs): FeedbackModule {
         /** pure snapshot */
         exportMerged(): StyleHandle {
           const { tokens } = this.recorder.export();
-          return { kind: "tw", tokens };
+          return { kind: 'tw', tokens };
         }
 
         override onProtoPhase(phase: ProtoPhase): void {
           super.onProtoPhase(phase);
-          if (phase === "mounted") this.flushIfPossible();
+          if (phase === 'mounted') this.flushIfPossible();
         }
 
         protected override onCapsEpoch(_epoch: number): void {
@@ -95,7 +95,7 @@ export function createFeedbackModule(ctx: ModuleFactoryArgs): FeedbackModule {
         }
 
         flushIfPossible(): void {
-          if (this.protoPhase === "setup") return;
+          if (this.protoPhase === 'setup') return;
           if (!this.dirty) return;
 
           if (!this.caps.has(EFFECTS_CAP)) {
@@ -116,7 +116,7 @@ export function createFeedbackModule(ctx: ModuleFactoryArgs): FeedbackModule {
 
         /** runtime: apply merged style directly (rule / adapter) */
         applyMergedStyle(handle: StyleHandle): void {
-          if (this.protoPhase === "setup") return;
+          if (this.protoPhase === 'setup') return;
           if (!this.caps.has(EFFECTS_CAP)) {
             this.defer(() => this.applyMergedStyle(handle));
             return;
@@ -124,11 +124,8 @@ export function createFeedbackModule(ctx: ModuleFactoryArgs): FeedbackModule {
           const effects = this.caps.get(EFFECTS_CAP);
           // merge with existing recorded styles to preserve setup styles
           const base = this.exportMerged();
-          const merged = mergeTwTokensV0([
-            ...base.tokens,
-            ...(handle?.tokens ?? []),
-          ]);
-          effects.queueStyle({ kind: "tw", tokens: merged.tokens });
+          const merged = mergeTwTokensV0([...base.tokens, ...(handle?.tokens ?? [])]);
+          effects.queueStyle({ kind: 'tw', tokens: merged.tokens });
           effects.requestFlush();
           this.flushRequested = true;
         }
@@ -185,7 +182,7 @@ export function createFeedbackModule(ctx: ModuleFactoryArgs): FeedbackModule {
 }
 
 export const FeedbackModuleDef = defineModule({
-  name: "feedback",
+  name: 'feedback',
   deps: [],
   create: createFeedbackModule,
 });

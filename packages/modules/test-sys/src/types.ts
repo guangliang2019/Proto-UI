@@ -1,11 +1,11 @@
-import type { ModuleInstance } from "@proto-ui/core";
+import type { ModuleInstance } from '@proto-ui/core';
 
 export type SysSnapshot = {
   label?: string;
   t: number;
 
   execPhase: string; // "setup" | "render" | "callback" | "unknown" ...
-  domain: "setup" | "runtime";
+  domain: 'setup' | 'runtime';
   protoPhase: string; // "setup" | "created" | "mounted" | "updated" | "unmounted"
   disposed: boolean;
 
@@ -25,6 +25,6 @@ export type TestSysFacade = {
 };
 
 export type TestSysModule = ModuleInstance<TestSysFacade> & {
-  name: "test-sys";
-  scope: "instance";
+  name: 'test-sys';
+  scope: 'instance';
 };

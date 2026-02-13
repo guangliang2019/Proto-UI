@@ -1,25 +1,22 @@
 // packages/modules/event/src/types.ts
-import type { ModuleInstance } from "@proto-ui/core";
-import type { ModulePort } from "@proto-ui/core";
-import { EventListenerToken, EventTypeV0 } from "@proto-ui/types";
+import type { ModuleInstance } from '@proto-ui/core';
+import type { ModulePort } from '@proto-ui/core';
+import { EventListenerToken, EventTypeV0 } from '@proto-ui/types';
 
 export type EventDispatch = (id: string, ev: any) => void;
 
 export type EventFacade = {
   // --- setup-only registration (opaque to module) ---
   on(type: EventTypeV0, options?: EventListenerOptions): EventListenerToken;
-  onGlobal(
-    type: EventTypeV0,
-    options?: EventListenerOptions
-  ): EventListenerToken;
+  onGlobal(type: EventTypeV0, options?: EventListenerOptions): EventListenerToken;
 
   /** precise removal */
   off(token: EventListenerToken): void;
 };
 
 export type EventModule = ModuleInstance<EventFacade> & {
-  name: "event";
-  scope: "instance";
+  name: 'event';
+  scope: 'instance';
 };
 
 export type EventPort = ModulePort & {
@@ -44,7 +41,7 @@ export type EventPort = ModulePort & {
 
 export type EventDiag = {
   id: string;
-  kind: "root" | "global";
+  kind: 'root' | 'global';
   type: string;
   bound: boolean;
   label?: string;

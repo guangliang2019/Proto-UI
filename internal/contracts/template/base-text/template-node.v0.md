@@ -131,9 +131,9 @@ Prototype 通常返回一个 TemplateChildren（可能是单节点、数组或 n
 
 ```ts
 const P: Prototype = {
-  name: "x-basic",
+  name: 'x-basic',
   setup() {
-    return (r) => [r.el("div", "hello")];
+    return (r) => [r.el('div', 'hello')];
   },
 };
 ```
@@ -156,9 +156,9 @@ const P: Prototype = {
 
 ```ts
 const P: Prototype = {
-  name: "x-array",
+  name: 'x-array',
   setup() {
-    return (r) => [r.el("div", "a"), r.el("div", "b")];
+    return (r) => [r.el('div', 'a'), r.el('div', 'b')];
   },
 };
 ```
@@ -186,10 +186,8 @@ const P: Prototype = {
 ## 7. Trace Map（追踪点，建议保持更新）
 
 - 参考测试（Web Component adapter）：
-
   - `packages/adapters/web-component/test/commit.test.ts`（basic / array expansion / slot）
 
 - 相关契约：
-
   - `internal/contracts/template/normalize.v0.md`（Template Normalize v0）
   - `internal/contracts/adapter-web-component/slot-light-dom.v0.md`

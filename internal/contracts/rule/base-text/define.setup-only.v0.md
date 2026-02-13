@@ -2,9 +2,7 @@
 
 > 状态：Draft – v0（实现对齐）
 >
-> 本契约规定 **rule 的 setup-only 声明与编译**：
-> 组件在 setup 期通过 `def.rule` 声明规则，编译为纯数据的 RuleIR。
-> RuleIR 必须可序列化，且不得携带运行时闭包。
+> 本契约规定 **rule 的 setup-only 声明与编译**：组件在 setup 期通过 `def.rule` 声明规则，编译为纯数据的 RuleIR。RuleIR 必须可序列化，且不得携带运行时闭包。
 
 ---
 
