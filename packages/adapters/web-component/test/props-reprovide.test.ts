@@ -10,7 +10,7 @@ it('props re-provide triggers watch but does not render until update()', async (
   AdaptToWebComponent({
     name: 'x-props',
     setup(def) {
-      def.props.define({ value: { kind: 'number', default: 1 } });
+      def.props.define({ value: { type: 'number', default: 1 } });
 
       def.props.watch(['value'], () => {
         watched++;
@@ -49,7 +49,7 @@ it('empty="accept": provided null becomes null, missing still uses default; re-p
     name,
     setup(def) {
       def.props.define({
-        value: { kind: 'number', default: 1, empty: 'accept' },
+        value: { type: 'number', default: 1, empty: 'accept' },
       });
 
       def.props.watch(['value'], () => {

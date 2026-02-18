@@ -1,141 +1,68 @@
 # Watch Resolved Contract (v0)
 
-This document defines the v0 behavioral contract for **resolved-level watchers** registered via:
-
+This document defines the v0 behavior for resolved-level watchers registered via:
 - `def.props.watch(keys, cb)`
 - `def.props.watchAll(cb)`
 
-Resolved watchers observe **resolved props snapshots** (declared keys only).
+---
+
+## 1. Definitions
+
+- **resolved snapshot**: from `props.get()`
+  - declared keys only
+  - no `undefined`
+  - shallowly frozen
+
+- **change detection**: `Object.is(prev[key], next[key])`
 
 ---
 
-## PROP-V0-3000 Scope
+## 2. Hydration Rule
 
-This contract covers:
-
-- watcher registration constraints (setup-only handled elsewhere)
-- when resolved watchers fire
-- how changed keys are computed
-- callback arguments and `WatchInfo` semantics
-- hydration rule (first apply does not fire)
-
-This contract does not cover:
-
-- raw watchers (`watchRaw`, `watchRawAll`) — see watch-raw.v0.md
-- scheduling (sync/async) guarantees beyond being invoked during `applyRaw()`
+During the first `applyRaw(...)` (hydration):
+- resolved watchers do not fire
+- raw watchers do not fire
 
 ---
 
-## PROP-V0-3100 Definitions
+## 3. watchAll(cb)
 
-### Resolved Snapshot
+Trigger:
+- fires only if **at least one declared key changes** in resolved snapshot
 
-- Obtained via `props.get()`
-- Contains **only declared keys**
-- Never contains `undefined`
-- Shallowly immutable
-
-### Change Detection
-
-- Change detection uses `Object.is(prev[key], next[key])`
-- A key is considered changed if `Object.is` returns false
+Callback:
+- `cb(run, next, prev, info)`
+- `info.changedKeysAll`: all changed declared keys
+- `info.changedKeysMatched === info.changedKeysAll`
 
 ---
 
-## PROP-V0-3200 Hydration Rule
+## 4. watch(keys, cb)
 
-Resolved watchers must not fire on the **first** raw application performed by the runtime/adapter to hydrate props.
+Registration constraints:
+- keys must be non-empty
+- keys must be declared
 
-Formally:
+Trigger:
+- fires only if at least one key in `keys` changes in resolved snapshot
 
-- During the first `applyRaw(...)` after manager creation:
-  - resolved watchers do not fire
-  - raw watchers do not fire
-
-Subsequent `applyRaw(...)` calls may trigger watchers.
-
-> This rule ensures that initial mount / first commit is not polluted by watch callbacks.
-
----
-
-## PROP-V0-3300 watchAll(cb)
-
-### Trigger Condition
-
-`watchAll` fires **only if at least one declared key changed** in resolved snapshot.
-
-- If `changedKeysAll.length === 0`, `watchAll` does not run.
-
-### Callback Arguments
-
-`cb(run, next, prev, info)` where:
-
-- `run` is the runtime RunHandle passed to `applyRaw(nextRaw, run)`
-  - It MUST satisfy **PROP-V0-2110 (Handle Wiring)**: `run.props.get/getRaw/isProvided` must exist and behave consistently.
-- `next` is the resolved snapshot after applying the new raw props
-- `prev` is the resolved snapshot before applying the new raw props
-- `info.changedKeysAll` is the list of all changed declared keys
-- `info.changedKeysMatched` equals `info.changedKeysAll`
+Callback:
+- `info.changedKeysAll`: all changed declared keys
+- `info.changedKeysMatched`: subset of keys that changed
 
 ---
 
-## PROP-V0-3400 watch(keys, cb)
+## 5. Invocation Order
 
-### Key Constraints
-
-- `keys` must be a non-empty array
-- each key must be declared in the manager at registration time
-- (setup-only restriction is enforced by runtime def handle)
-
-### Trigger Condition
-
-`watch(keys)` fires **only if at least one key in `keys` changed** in resolved snapshot.
-
-- It does not fire for changes in undeclared keys (those never exist in resolved snapshot).
-- It does not fire if only other declared keys changed but none of `keys` changed.
-
-### Callback Arguments
-
-`cb(run, next, prev, info)` where:
-
-- `info.changedKeysAll` is the list of all changed declared keys
-- `info.changedKeysMatched` is the subset of `keys` that changed
+For a watcher-firing `applyRaw(...)`:
+1. `watchAll` callbacks (registration order)
+2. `watch(keys)` callbacks (registration order)
 
 ---
 
-## PROP-V0-3500 Order of Invocation
+## 6. Relation to Resolution
 
-On a watcher-firing `applyRaw(...)` call:
+Resolved watchers observe **resolved snapshots**:
+- raw changes may not cause resolved changes
+- watchers are triggered by resolved diffs only
 
-1. All `watchAll` callbacks are evaluated and may fire
-2. All keyed `watch(keys)` callbacks are evaluated and may fire
-
-Within each group:
-
-- callbacks fire in registration order
-
-> v0 does not guarantee a stable interleaving order between the two groups beyond the sequence above.
-
----
-
-## PROP-V0-3600 Interaction with Resolution Semantics
-
-Resolved watchers observe resolved snapshots after applying v0 resolution rules:
-
-- only declared keys exist
-- canonical empty is `null`
-- values may come from fallback chain (prevValid/defaults/decl.default/null)
-- invalid or empty raw input may not change resolved values if fallback keeps them stable
-
-Therefore:
-
-- A raw change does not necessarily imply a resolved change.
-- Watchers fire based on **resolved differences**, not raw differences.
-
----
-
-## PROP-V0-3700 No Observers Optimization (Non-Normative)
-
-If there are no observers registered (no resolved watchers and no raw watchers), the manager may skip diff computation and callback invocation.
-
-This is an implementation optimization and does not affect observable behavior.

@@ -12,7 +12,7 @@ describe('rule contract smoke: props -> style (v0)', () => {
     const proto: Prototype<{ active?: boolean }> = {
       name: 'rule-props-style-smoke',
       setup(def) {
-        def.props.define({ active: { type: 'bool', default: false } } as any);
+        def.props.define({ active: { type: 'boolean', default: false } } as any);
         def.rule({
           when: (w) => w.prop('active').eq(true),
           intent: (i) => i.feedback.style.use(tw('text-red-500')),

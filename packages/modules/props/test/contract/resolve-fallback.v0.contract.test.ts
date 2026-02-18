@@ -14,7 +14,7 @@ describe('props: resolve & fallback semantics (v0)', () => {
     const pm = new PropsKernel<P>();
 
     pm.define({
-      a: { kind: 'number', default: 1, empty: 'accept' },
+      a: { type: 'number', default: 1, empty: 'accept' },
     } satisfies PropsSpecMap<P>);
 
     // missing
@@ -37,7 +37,7 @@ describe('props: resolve & fallback semantics (v0)', () => {
     expect(pm.isProvided('a')).toBe(true);
     expect(pm.get().a).toBe(2);
 
-    // invalid non-empty (NaN) — kind:number rejects NaN => fallback (default or prevValid)
+    // invalid non-empty (NaN) — type:number rejects NaN => fallback (default or prevValid)
     pm.applyRaw({ a: NaN } as any);
     expect(pm.get().a).toBe(2); // prevValid should win over default
   });
@@ -48,7 +48,7 @@ describe('props: resolve & fallback semantics (v0)', () => {
 
     pm.define({
       a: {
-        kind: 'number',
+        type: 'number',
         default: 1,
         empty: 'accept',
         validator: (v) => v > 0,
@@ -77,7 +77,7 @@ describe('props: resolve & fallback semantics (v0)', () => {
     const pm = new PropsKernel<P>();
 
     pm.define({
-      a: { kind: 'number', default: 1, empty: 'fallback' },
+      a: { type: 'number', default: 1, empty: 'fallback' },
     } satisfies PropsSpecMap<P>);
 
     // prevValid
@@ -90,7 +90,7 @@ describe('props: resolve & fallback semantics (v0)', () => {
 
     // clear situation: new kernel to test setDefaults > decl.default > null
     const pm2 = new PropsKernel<P>();
-    pm2.define({ a: { kind: 'number', default: 1 } } satisfies PropsSpecMap<P>);
+    pm2.define({ a: { type: 'number', default: 1 } } satisfies PropsSpecMap<P>);
 
     pm2.setDefaults({ a: 9 });
     pm2.applyRaw({} as any);
@@ -98,13 +98,13 @@ describe('props: resolve & fallback semantics (v0)', () => {
 
     // no defaults => decl.default
     const pm3 = new PropsKernel<P>();
-    pm3.define({ a: { kind: 'number', default: 7 } } satisfies PropsSpecMap<P>);
+    pm3.define({ a: { type: 'number', default: 7 } } satisfies PropsSpecMap<P>);
     pm3.applyRaw({} as any);
     expect(pm3.get().a).toBe(7);
 
     // no fallbacks at all => null
     const pm4 = new PropsKernel<P>();
-    pm4.define({ a: { kind: 'number' } } satisfies PropsSpecMap<P>);
+    pm4.define({ a: { type: 'number' } } satisfies PropsSpecMap<P>);
     pm4.applyRaw({} as any);
     expect(pm4.get().a).toBeNull();
   });
@@ -114,7 +114,7 @@ describe('props: resolve & fallback semantics (v0)', () => {
     const pm = new PropsKernel<P>();
 
     pm.define({
-      a: { kind: 'number', empty: 'error' },
+      a: { type: 'number', empty: 'error' },
     } satisfies PropsSpecMap<P>);
 
     // missing => throw (no fallback)
@@ -137,7 +137,7 @@ describe('props: resolve & fallback semantics (v0)', () => {
     const pm = new PropsKernel<P>();
 
     pm.define({
-      a: { kind: 'number', default: 1, empty: 'accept' },
+      a: { type: 'number', default: 1, empty: 'accept' },
     } satisfies PropsSpecMap<P>);
 
     // accept => resolved null (must NOT become prevValid)
@@ -154,8 +154,8 @@ describe('props: resolve & fallback semantics (v0)', () => {
     const pm = new PropsKernel<P>();
 
     pm.define({
-      a: { kind: 'number', default: 1 },
-      b: { kind: 'string', default: 'x' },
+      a: { type: 'number', default: 1 },
+      b: { type: 'string', default: 'x' },
     } satisfies PropsSpecMap<P>);
 
     pm.applyRaw({ a: 2, x: 9 } as any);
@@ -189,8 +189,8 @@ describe('props: resolve & fallback semantics (v0)', () => {
     const pm = new PropsKernel<P>();
 
     pm.define({
-      a: { kind: 'number' },
-      b: { kind: 'string' },
+      a: { type: 'number' },
+      b: { type: 'string' },
     } satisfies PropsSpecMap<P>);
 
     pm.applyRaw({} as any);

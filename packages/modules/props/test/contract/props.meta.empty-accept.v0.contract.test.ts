@@ -9,8 +9,8 @@ type P = {
 };
 
 const specs: PropsSpecMap<P> = {
-  disabled: { kind: 'boolean', empty: 'accept' },
-  count: { kind: 'number' },
+  disabled: { type: 'boolean', empty: 'accept' },
+  count: { type: 'number' },
 };
 
 function keysOf(v: any): string[] {
@@ -79,7 +79,7 @@ describe('props: meta semantics for empty:accept (v0)', () => {
     type P2 = { name: string };
     const pm = new PropsKernel<P2>();
     const specs2: PropsSpecMap<P2> = {
-      name: { kind: 'string', empty: 'error' },
+      name: { type: 'string', empty: 'error' },
     };
     pm.define(specs2);
 
@@ -93,7 +93,7 @@ describe('props: meta semantics for empty:accept (v0)', () => {
     type P3 = { count: number };
     const pm = new PropsKernel<P3>();
     pm.define({
-      count: { kind: 'number', empty: 'error' },
+      count: { type: 'number', empty: 'error' },
     } satisfies PropsSpecMap<P3>);
     expect(() => pm.applyRaw({} as any)).toThrow(/missing.*empty="error"/);
   });

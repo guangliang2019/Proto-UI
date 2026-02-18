@@ -1,194 +1,89 @@
 # Define & Merge Contract (v0)
 
-This document defines the **v0 behavioral contract** for how prop declarations are registered and merged via `define()` in the Props system.
-
-The contract focuses on **evolution safety and traceability**, not prohibition. Changes are allowed where they do not create ambiguous or silent breakage.
-
----
-
-## PROP-V0-1000 Scope & Terms
-
-### Declaration (Decl)
-
-A prop declaration is a `PropDecl` entry inside a `PropsDeclMap`.
-
-### Base vs Incoming
-
-- **Base**: declarations already registered in the PropsManager
-- **Incoming**: declarations passed to a subsequent `define()` call
-
-### Diagnostics
-
-Each merge may produce diagnostics:
-
-- **error**  
-  The merge is invalid. `define()` must throw and **no changes are applied**.
-
-- **warning**  
-  The merge succeeds but records a diagnostic for traceability.
+This document defines the v0 contract for how prop declarations are registered and merged via `define()`.
+It prioritizes **traceability** and **evolution safety**:
+- breaking changes must error immediately
+- widening changes are allowed but should be traceable (warning)
 
 ---
 
-## PROP-V0-1100 Kind Compatibility
+## 1. Scope & Terms
 
-For a key that exists in both base and incoming declarations:
-
-- `kind` **must be identical**
-- Any mismatch produces **error**
-- `define()` must throw
-
-This rule is absolute and has no warnings.
+- **Base**: declarations already registered
+- **Incoming**: declarations passed to the current `define()`
+- **Diagnostic**:
+  - error: `define()` must throw and **no changes apply**
+  - warning: merge succeeds but is recorded
 
 ---
 
-## PROP-V0-1200 EmptyBehavior Merge
+## 2. Minimal Shape Validation (v0)
 
-`empty` controls how empty or invalid input is treated at resolution time.
+For each incoming prop:
+- `type` must be one of `any | boolean | string | number | object`
+- if `empty` is provided, it must be `accept | fallback | error`
+- if `range` is provided, `min/max` must be numbers
 
-### Defaults
+Any violation is an **error**.
 
-- If `empty` is omitted, it is treated as `"fallback"` for merge comparison.
+---
 
-### Change Detection Rule
+## 3. Merge Rules (same key)
 
-- EmptyBehavior comparison is performed **only if incoming explicitly provides the `empty` field**.
-- If incoming omits `empty`, it does **not** affect the base declaration and produces no diagnostic.
+### 3.1 type
+- Base and Incoming `type` must be identical
+- mismatch → **error**
 
-### Strictness Ordering (v0)
+### 3.2 empty
+Strictness order (loose → strict):
 
-From loosest to strictest:
-
-```text
+```
 accept < fallback < error
 ```
 
-### Rules
+- Incoming stricter → **error**
+- Incoming looser → **warning**, but **keep the original stricter behavior**
+- Incoming omit → no change
 
-If incoming explicitly sets `empty`:
+### 3.3 enum
+- Incoming subset of Base → **error**
+- Incoming superset of Base → **warning**
+- equal → ok
+- Base missing + Incoming present → ok
+- Incoming omit → keep Base
 
-- If incoming is **stricter** than base → **error**
-- If incoming is **looser** than base → **warning**
-- If equal → no diagnostic
+> v0 enum comparison uses `String(...)` membership.
 
-Merge result uses the incoming value when equal or looser.
+### 3.4 range
+- Incoming narrower → **error**
+- Incoming wider → **warning**
+- Base missing + Incoming present → ok
+- Incoming omit → keep Base
 
----
+### 3.5 validator
+- Base missing + Incoming added → ok
+- replacement/removal → **error**
 
-## PROP-V0-1300 Enum Merge
-
-`enum` is a schema constraint that restricts allowed values.
-
-### Rules
-
-- If both base and incoming define `enum`:
-  - Incoming **subset** of base → **error**
-  - Incoming **superset** of base → **warning**
-  - Equal → no diagnostic
-- If base has no `enum` and incoming provides one:
-  - Allowed
-  - No diagnostic
-- If incoming omits `enum`:
-  - Base `enum` is preserved
-
-> v0 enum comparison uses stringified membership semantics.
-
-Merge result selects:
-
-```ts
-incoming.enum ?? base.enum;
-```
+### 3.6 default
+- first-time default allowed
+- changing default → **warning**, **keep previous default**
 
 ---
 
-## PROP-V0-1400 Range Merge
+## 4. Merge Result & Atomicity
 
-`range` is a numeric schema constraint.
-
-### Rules
-
-- If both base and incoming define `range`:
-  - Incoming **narrower** than base → **error**
-  - Incoming **wider** than base → **warning**
-  - Equal → no diagnostic
-- If base has no `range` and incoming provides one:
-  - Allowed
-  - No diagnostic
-- If incoming omits `range`:
-  - Base `range` is preserved
-
-Merge result selects:
-
-```ts
-incoming.range ?? base.range;
-```
+- merge is atomic: any error → entire `define()` is rejected
+- on success:
+  - `type` remains Base
+  - `empty/enum/range/validator/default` follow rules above
+  - other fields merged via object spread
 
 ---
 
-## PROP-V0-1500 Validator Merge
+## 5. Inheritance Notes
 
-`validator` is treated as a potentially stricter and non-portable constraint.
+This document inherits the structure of the previous v0 contract, with updates:
+- looser `empty` does not relax behavior
+- validator additions are allowed
+- default changes do not take effect
 
-### Rules
-
-- If either base or incoming defines `validator`:
-  - Incoming validator **must be the same function reference** as base
-  - Any addition, removal, or replacement → **error**
-
-Merge result keeps the original validator reference.
-
----
-
-## PROP-V0-1600 Default Merge
-
-Declaration-level `default` values are allowed but discouraged.
-
-### Rules
-
-- If both base and incoming explicitly define `default` and values are not strictly equal (`!==`) → **warning**
-- Otherwise no diagnostic
-
-Merge result prefers incoming fields.
-
----
-
-## PROP-V0-1700 Deterministic Merge Result
-
-For a key present in both base and incoming, if merge succeeds:
-
-- `kind` remains unchanged (base value)
-- `empty`:
-  - Changes only if incoming explicitly defines it
-  - May become looser (with warning)
-  - Never becomes stricter
-- `enum` / `range`:
-  - May be introduced
-  - May be widened (with warning)
-  - Never narrowed
-- `validator`:
-  - Must be identical
-- All other fields:
-  - Merged via object spread semantics
-
----
-
-## PROP-V0-1800 Failure Atomicity
-
-If **any key** in a `define()` call produces an **error**:
-
-- `define()` must throw
-- No partial merge is applied
-- All previous declarations remain effective
-
-This guarantees deterministic and recoverable behavior.
-
----
-
-## PROP-V0-1900 Traceability Principle (Non-Normative)
-
-Props v0 prioritizes **traceability over prohibition**:
-
-- Breaking or ambiguous changes throw immediately
-- Boundary-widening changes are allowed but surfaced via warnings
-- Pure additions (new keys or new constraints on previously unconstrained keys) are allowed without noise
-
-This enables gradual evolution while keeping debugging costs low.

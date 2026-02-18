@@ -8,7 +8,7 @@ export type PropsResolveMeta<P extends PropsBaseType> = {
   /** raw 里 provided 但值是 null/undefined（不等于 invalid） */
   emptyKeys: Array<keyof P & string>;
 
-  /** raw 里 provided 且 non-empty，但不满足 spec（kind/enum/range/validator） */
+  /** raw 里 provided 且 non-empty，但不满足 spec（type/enum/range/validator） */
   invalidKeys: Array<keyof P & string>;
 
   /** resolved 值来自 defaults stack / spec.default / canonical null，而不是 raw 直通 */

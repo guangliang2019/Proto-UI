@@ -5,8 +5,8 @@ export const asButton = defineAsHook<ButtonProps, ButtonExposes>({
   name: 'as-button',
   setup: (def) => {
     def.props.define({
-      disabled: { kind: 'boolean', empty: 'fallback' },
-      onClick: { kind: 'object', empty: 'fallback' },
+      disabled: { type: 'boolean', empty: 'fallback' },
+      onClick: { type: 'object', empty: 'fallback' },
     });
 
     const disabled = def.state.bool('disabled', false);

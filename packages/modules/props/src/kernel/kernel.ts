@@ -46,8 +46,7 @@ export class PropsKernel<P extends PropsBaseType> {
 
   /**
    * per-key previous NON-EMPTY valid
-   * NOTE: used only for "provided but unusable" (invalid / empty=fallback) cases,
-   * not for "missing" cases (contract expects missing -> defaults).
+   * NOTE: used for fallback when raw is missing/empty/invalid (per contract).
    */
   private prevValid: Partial<Record<keyof P, any>> = {};
 
@@ -140,7 +139,8 @@ export class PropsKernel<P extends PropsBaseType> {
     const prevRaw = this.raw;
     const prevResolved = this.resolved;
 
-    const nextRaw = shallowFreeze(nextRawInput ?? {}) as Readonly<P & PropsBaseType>;
+    const normalized = this.normalizeRawInput(nextRawInput ?? {});
+    const nextRaw = shallowFreeze(normalized) as Readonly<P & PropsBaseType>;
     this.raw = nextRaw;
 
     const { snapshot: nextResolved, meta } = this.resolve(nextRaw, /* strict */ true);
@@ -219,7 +219,7 @@ export class PropsKernel<P extends PropsBaseType> {
       const isProvidedEmpty = provided && (rawVal === null || rawVal === undefined);
       const isMissing = !provided;
 
-      // 1) Missing => defaults ONLY (contract: missing must NOT fall back to prevValid)
+      // 1) Missing => fallback chain (may include prevValid)
       if (isMissing) {
         const requireNonEmpty = strict && eb === 'error';
         const fb = this.pickFallbackMissingOnly(k, decl, requireNonEmpty);
@@ -300,7 +300,7 @@ export class PropsKernel<P extends PropsBaseType> {
   }
 
   private validateNonEmptyValue(v: any, decl: PropSpec): { ok: true; value: any } | { ok: false } {
-    switch ((decl as any).kind) {
+    switch ((decl as any).type) {
       case 'boolean':
         if (typeof v !== 'boolean') return { ok: false };
         break;
@@ -342,10 +342,9 @@ export class PropsKernel<P extends PropsBaseType> {
   }
 
   /**
-   * Missing fallback: defaults only (setDefaults / spec.default / null).
-   * Never uses prevValid.
+   * Missing fallback: prevValid -> defaults -> spec.default -> null.
    *
-   * - if requireNonEmpty=true: must find non-empty valid default; otherwise fail.
+   * - if requireNonEmpty=true: must find non-empty valid fallback; otherwise fail.
    * - else: may return null if nothing provided.
    */
   private pickFallbackMissingOnly(
@@ -366,6 +365,12 @@ export class PropsKernel<P extends PropsBaseType> {
       if (!valid.ok) return { ok: false, usedDefault, isNonEmpty: false };
       return { ok: true, value: valid.value, usedDefault, isNonEmpty: true };
     };
+
+    if (hasOwn(this.prevValid, key)) {
+      const v = (this.prevValid as any)[key];
+      const r = tryTake(v, false);
+      if (r.ok) return r;
+    }
 
     // defaultStack latest-first
     for (const layer of this.defaultStack) {
@@ -442,5 +447,14 @@ export class PropsKernel<P extends PropsBaseType> {
     this.prevValid = {};
     this.raw = Object.freeze({} as Readonly<P & PropsBaseType>);
     this.resolved = Object.freeze({} as PropsSnapshot<P>);
+  }
+
+  private normalizeRawInput(input: Record<string, any>): Record<string, any> {
+    const out: Record<string, any> = {};
+    for (const k of Object.keys(input)) {
+      const v = (input as any)[k];
+      out[k] = v === undefined ? null : v;
+    }
+    return out;
   }
 }

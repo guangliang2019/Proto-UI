@@ -45,7 +45,7 @@ describe('runtime: props integration (v0)', () => {
     type P = { a: number } & PropsBaseType;
 
     const specs = {
-      a: { kind: 'number' },
+      a: { type: 'number' },
     } satisfies PropsSpecMap<P>;
 
     const calls: Array<{ tag: string; next: any; prev: any }> = [];
@@ -146,7 +146,7 @@ describe('runtime: props integration (v0)', () => {
     type P = { a: number } & PropsBaseType;
 
     const specs = {
-      a: { kind: 'number', empty: 'fallback' },
+      a: { type: 'number', empty: 'fallback' },
     } satisfies PropsSpecMap<P>;
 
     const calls: string[] = [];
@@ -193,8 +193,8 @@ describe('runtime: props integration (v0)', () => {
       },
     });
 
-    // initial hydration: provided empty (null) => resolved null
-    const { host, flush } = createMockHost<P>({ a: null });
+    // initial hydration: provided valid number => resolved is 2 (prevValid established)
+    const { host, flush } = createMockHost<P>({ a: 2 });
 
     const { controller } = executeWithHost(Proto as any, host as any);
 
@@ -204,9 +204,9 @@ describe('runtime: props integration (v0)', () => {
     expect(calls).toEqual([]);
     expect(wiring).toEqual([]);
 
-    // Change raw: null -> undefined (still "provided" because key exists)
-    // Resolved should remain null, so only raw watchers fire.
-    controller.applyRawProps({ a: undefined } as any);
+    // Change raw: valid -> invalid (NaN)
+    // Resolved should remain prevValid (2), so only raw watchers fire.
+    controller.applyRawProps({ a: NaN } as any);
 
     expect(calls).toEqual(['raw']);
 
@@ -215,8 +215,8 @@ describe('runtime: props integration (v0)', () => {
     expect(wRaw.runGetRaw).toEqual(wRaw.next);
     expect(wRaw.runProvidedA).toBe(true);
 
-    // optional sanity: resolved snapshot still stable (null)
-    expect(wRaw.runGet).toEqual({ a: null });
+    // optional sanity: resolved snapshot still stable (2)
+    expect(wRaw.runGet).toEqual({ a: 2 });
   });
 });
 
@@ -227,7 +227,7 @@ describe('runtime: props integration (v0)', () => {
     type P = { a: number | null } & PropsBaseType;
 
     const specs = {
-      a: { kind: 'number', empty: 'accept', default: 1 },
+      a: { type: 'number', empty: 'accept', default: 1 },
     } satisfies PropsSpecMap<P>;
 
     const seen: any[] = [];
@@ -302,7 +302,7 @@ describe('runtime: props integration (v0)', () => {
     type P = { a: number } & PropsBaseType;
 
     const specs = {
-      a: { kind: 'number', default: 1 },
+      a: { type: 'number', default: 1 },
     } satisfies PropsSpecMap<P>;
     const order: string[] = [];
 
@@ -350,7 +350,7 @@ describe('runtime: props integration (v0)', () => {
     type P = { a: number } & PropsBaseType;
 
     const specs = {
-      a: { kind: 'number', default: 1 },
+      a: { type: 'number', default: 1 },
     } satisfies PropsSpecMap<P>;
     let watched = 0;
 

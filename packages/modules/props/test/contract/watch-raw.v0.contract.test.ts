@@ -39,7 +39,7 @@ function execAllTasks(mod: PropsModuleImpl<any>, order: string[]) {
   const tasks = drain(mod);
   const run = {} as any;
   for (const t of tasks) {
-    // tag order by kind + (we will push custom tags via callbacks)
+    // tag order by type + (we will push custom tags via callbacks)
     t.cb(run, t.next, t.prev, t.info);
   }
   return tasks;
@@ -49,7 +49,7 @@ describe('props: watch(raw) contract (v0)', () => {
   it('PROP-V0-4200: hydration (first applyRaw) never schedules raw watch tasks', () => {
     type P = { a: number };
     const pm = createModule<P>();
-    pm.define({ a: { kind: 'number', default: 1 } } satisfies PropsSpecMap<P>);
+    pm.define({ a: { type: 'number', default: 1 } } satisfies PropsSpecMap<P>);
 
     let calledAll = 0;
     let calledKeyed = 0;
@@ -77,7 +77,7 @@ describe('props: watch(raw) contract (v0)', () => {
   it('PROP-V0-4300: watchRawAll uses unionKeys(prev,next) and schedules only when at least one raw key changed', () => {
     type P = { a: number };
     const pm = createModule<P>();
-    pm.define({ a: { kind: 'number', default: 1 } } satisfies PropsSpecMap<P>);
+    pm.define({ a: { type: 'number', default: 1 } } satisfies PropsSpecMap<P>);
 
     const seen: Array<{ all: string[]; matched: string[] }> = [];
     pm.watchRawAllKeys((_run, _nextRaw, _prevRaw, info) => {
@@ -118,7 +118,7 @@ describe('props: watch(raw) contract (v0)', () => {
   it('PROP-V0-4400: watchRaw(keys) allows undeclared keys and schedules only when matched keys changed', () => {
     type P = { a: number };
     const pm = createModule<P>();
-    pm.define({ a: { kind: 'number', default: 1 } } satisfies PropsSpecMap<P>);
+    pm.define({ a: { type: 'number', default: 1 } } satisfies PropsSpecMap<P>);
 
     let called = 0;
     let lastAll: string[] = [];
@@ -163,7 +163,7 @@ describe('props: watch(raw) contract (v0)', () => {
   it('PROP-V0-4100: Object.is treats NaN as stable (NaN -> NaN does not trigger)', () => {
     type P = { a: number };
     const pm = createModule<P>();
-    pm.define({ a: { kind: 'number', default: 1 } } satisfies PropsSpecMap<P>);
+    pm.define({ a: { type: 'number', default: 1 } } satisfies PropsSpecMap<P>);
 
     let called = 0;
     pm.watchRawAllKeys(() => called++);
@@ -181,7 +181,7 @@ describe('props: watch(raw) contract (v0)', () => {
   it('PROP-V0-4100: Object.is distinguishes -0 and 0 (-0 -> 0 triggers)', () => {
     type P = { a: number };
     const pm = createModule<P>();
-    pm.define({ a: { kind: 'number', default: 1 } } satisfies PropsSpecMap<P>);
+    pm.define({ a: { type: 'number', default: 1 } } satisfies PropsSpecMap<P>);
 
     let called = 0;
     pm.watchRawAllKeys(() => called++);
@@ -201,7 +201,7 @@ describe('props: watch(raw) contract (v0)', () => {
   it('PROP-V0-4600: order: raw tasks before resolved tasks; within raw: rawAll before raw(keys); registration order preserved', () => {
     type P = { a: number };
     const pm = createModule<P>();
-    pm.define({ a: { kind: 'number', default: 1 } } satisfies PropsSpecMap<P>);
+    pm.define({ a: { type: 'number', default: 1 } } satisfies PropsSpecMap<P>);
 
     const order: string[] = [];
 
@@ -232,7 +232,7 @@ describe('props: watch(raw) contract (v0)', () => {
   it('PROP-V0-4400: watchRaw(keys) rejects empty key list', () => {
     type P = { a: number };
     const pm = createModule<P>();
-    pm.define({ a: { kind: 'number', default: 1 } } satisfies PropsSpecMap<P>);
+    pm.define({ a: { type: 'number', default: 1 } } satisfies PropsSpecMap<P>);
 
     expect(() => pm.watchRawKeys([] as any, () => {})).toThrow();
   });
@@ -242,7 +242,7 @@ describe('props: watch(raw) contract (v0)', () => {
     const pm = createModule<P>();
 
     // declared key a is stable; we will mutate only undeclared x
-    pm.define({ a: { kind: 'number', default: 1 } } satisfies PropsSpecMap<P>);
+    pm.define({ a: { type: 'number', default: 1 } } satisfies PropsSpecMap<P>);
 
     const calls: string[] = [];
     pm.watchRawAllKeys(() => calls.push('rawAll'));
