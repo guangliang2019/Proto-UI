@@ -45,15 +45,18 @@ For each declared key:
 ## 4. EmptyBehavior
 
 ### 4.1 empty=accept
+
 - applies only to provided-empty
 - provided-empty → resolved `null`
 - missing still uses fallback
 - invalid non-empty uses fallback/error
 
 ### 4.2 empty=fallback (default)
+
 - missing / provided-empty / invalid → fallback chain
 
 ### 4.3 empty=error
+
 - missing / provided-empty / invalid → must find a **non-empty valid fallback**, otherwise throw
 
 ---
@@ -93,4 +96,3 @@ For each declared key:
 - props are semantically JSON-like portable data
 - `undefined` is not allowed as a semantic value; runtime `undefined` must be normalized to `null`
 - non JSON-like values may appear but are not guaranteed to be portable across adapters
-

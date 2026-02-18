@@ -1,5 +1,11 @@
 // packages/modules/props/src/kernel/merge.ts
-import type { EmptyBehavior, PropsBaseType, PropSpec, PropsSpecMap, PropType } from '@proto-ui/types';
+import type {
+  EmptyBehavior,
+  PropsBaseType,
+  PropSpec,
+  PropsSpecMap,
+  PropType,
+} from '@proto-ui/types';
 
 export type MergeDiagLevel = 'warning' | 'error';
 
