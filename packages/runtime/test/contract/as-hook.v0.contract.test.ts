@@ -107,7 +107,7 @@ describe('runtime contract: asHook (v0)', () => {
     const asProps = defineAsHook({
       name: 'asProps',
       setup(def) {
-        def.props.define({ a: { kind: 'number' } } as any);
+        def.props.define({ a: { type: 'number' } } as any);
         def.props.watch(['a'], () => {
           calls.push('watch:a');
         });

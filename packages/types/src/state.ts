@@ -93,7 +93,7 @@ export type NumberDiscreteStateDefineSpec = {
 export type NormalizeStateSpec =
   | { kind: 'bool' }
   | { kind: 'enum'; options: readonly string[] }
-  | { kind: 'string'; options?: readonly string[] }
+  | { type: 'string'; options?: readonly string[] }
   | { kind: 'number.range'; min: number; max: number; clamp?: boolean }
   | {
       kind: 'number.discrete';

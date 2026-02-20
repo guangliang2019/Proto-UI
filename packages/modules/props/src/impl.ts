@@ -11,7 +11,13 @@ import { illegalPhase } from '@proto-ui/core';
 import { ModuleBase } from '@proto-ui/modules.base';
 import type { PropsBaseType, PropsSpecMap } from '@proto-ui/types';
 
-import type { RawPropsSource, PropsWatchCb, RawWatchCb, PropsWatchTask } from './types';
+import type {
+  RawPropsSource,
+  PropsWatchCb,
+  RawWatchCb,
+  PropsWatchTask,
+  PropsKernelDiag,
+} from './types';
 import { RAW_PROPS_SOURCE_CAP } from './caps';
 import { PropsKernel, type PropsChangeReport } from './kernel/kernel';
 function objectIs(a: any, b: any) {
@@ -57,6 +63,8 @@ export class PropsModuleImpl<P extends PropsBaseType> extends ModuleBase {
     cb: RawWatchCb<P & PropsBaseType>;
     devWarn?: boolean;
   }> = [];
+
+  private readonly implDiags: PropsKernelDiag[] = [];
 
   // pending change report (last-wins; keep first prev)
   // NOTE: do NOT name it "pending" — ModuleBase has its own pending queue.
@@ -204,6 +212,12 @@ export class PropsModuleImpl<P extends PropsBaseType> extends ModuleBase {
     // raw watchers: rawAll first, then keyed (registration order preserved within group)
     for (const w of this.watchRawAll) {
       if (changedAllRaw.length === 0) continue;
+      if (w.devWarn) {
+        this.implDiags.push({
+          level: 'warning',
+          message: `[Props] watchRawAll() is an escape hatch; avoid in official prototypes.`,
+        });
+      }
       const info: WatchInfo<P & PropsBaseType> = {
         changedKeysAll: changedAllRaw as any,
         changedKeysMatched: changedAllRaw as any,
@@ -219,6 +233,12 @@ export class PropsModuleImpl<P extends PropsBaseType> extends ModuleBase {
 
     for (const w of this.watchRaw) {
       if (changedAllRaw.length === 0) continue;
+      if (w.devWarn) {
+        this.implDiags.push({
+          level: 'warning',
+          message: `[Props] watchRaw() is an escape hatch; avoid in official prototypes.`,
+        });
+      }
       const matched = diffKeys(prevRaw as any, nextRaw as any, w.keys);
       if (matched.length === 0) continue;
       const info: WatchInfo<P & PropsBaseType> = {
@@ -271,7 +291,9 @@ export class PropsModuleImpl<P extends PropsBaseType> extends ModuleBase {
   }
 
   getDiagnostics() {
-    return this.kernel.getDiagnostics?.() ?? [];
+    const base = this.kernel.getDiagnostics?.() ?? [];
+    if (this.implDiags.length === 0) return base;
+    return [...base, ...this.implDiags];
   }
 
   // -------------------------

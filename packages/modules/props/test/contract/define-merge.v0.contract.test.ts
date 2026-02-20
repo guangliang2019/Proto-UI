@@ -17,36 +17,36 @@ describe('props: define merge semantics (v0)', () => {
     const pm = new PropsKernel<any>();
     expect(() =>
       pm.define({
-        a: { kind: 'number', range: { min: 'bad' } },
+        a: { type: 'number', range: { min: 'bad' } },
       } as any)
     ).toThrow();
   });
 
-  it('PROP-V0-1100: merge kind mismatch MUST throw', () => {
+  it('PROP-V0-1100: merge type mismatch MUST throw', () => {
     type P = { a: number };
     const pm = new PropsKernel<P>();
 
-    pm.define({ a: { kind: 'number' } } satisfies PropsSpecMap<P>);
-    expect(() => pm.define({ a: { kind: 'string' } } as any)).toThrow(/define merge error/i);
+    pm.define({ a: { type: 'number' } } satisfies PropsSpecMap<P>);
+    expect(() => pm.define({ a: { type: 'string' } } as any)).toThrow(/define merge error/i);
   });
 
   it('PROP-V0-1200: merge empty behavior: stricter => throw; looser => warn + keep stricter; omit => no-op', () => {
     // stricter: fallback -> error => MUST throw
     const pm = new PropsKernel<any>();
-    pm.define({ x: { kind: 'number' } });
-    expect(() => pm.define({ x: { kind: 'number', empty: 'error' } })).toThrow();
+    pm.define({ x: { type: 'number' } });
+    expect(() => pm.define({ x: { type: 'number', empty: 'error' } })).toThrow();
 
     // looser: error -> accept => warn, but behavior keeps "error"
     // (observable: provided-empty should NOT become null; should fallback to prevValid)
     const pm2 = new PropsKernel<any>();
-    pm2.define({ x: { kind: 'number', empty: 'error' } });
+    pm2.define({ x: { type: 'number', empty: 'error' } });
 
     // establish prevValid=2
     pm2.applyRaw({ x: 2 });
     expect(pm2.get().x).toBe(2);
 
     const warnBefore = warnings(pm2).length;
-    pm2.define({ x: { kind: 'number', empty: 'accept' } } as any);
+    pm2.define({ x: { type: 'number', empty: 'accept' } } as any);
     expect(warnings(pm2).length).toBeGreaterThan(warnBefore);
 
     // if it "kept stricter(error)", provided-empty must fallback to prevValid (2), not become null
@@ -55,13 +55,13 @@ describe('props: define merge semantics (v0)', () => {
 
     // omit empty => should not warn and should not relax behavior
     const pm3 = new PropsKernel<any>();
-    pm3.define({ x: { kind: 'number', empty: 'error' } });
+    pm3.define({ x: { type: 'number', empty: 'error' } });
 
     // establish prevValid
     pm3.applyRaw({ x: 7 });
     const before = warnings(pm3).length;
 
-    pm3.define({ x: { kind: 'number' } } as any); // omit
+    pm3.define({ x: { type: 'number' } } as any); // omit
     expect(warnings(pm3).length).toBe(before);
 
     pm3.applyRaw({ x: null } as any);
@@ -73,21 +73,21 @@ describe('props: define merge semantics (v0)', () => {
     const pm = new PropsKernel<P>();
 
     pm.define({
-      mode: { kind: 'string', enum: ['a', 'b', 'c'] as const, default: 'a' },
+      mode: { type: 'string', enum: ['a', 'b', 'c'] as const, default: 'a' },
     } satisfies PropsSpecMap<P>);
 
     // widening => warn (intersection stays the same, but we can't read spec; just check warning exists)
     pm.define({
-      mode: { kind: 'string', enum: ['a', 'b', 'c', 'd'] as const },
+      mode: { type: 'string', enum: ['a', 'b', 'c', 'd'] as const },
     } satisfies PropsSpecMap<P>);
     expect(warnings(pm).length).toBeGreaterThan(0);
 
     // incompatible => throw (no intersection)
     const pm2 = new PropsKernel<P>();
     pm2.define({
-      mode: { kind: 'string', enum: ['a', 'b'] as const },
+      mode: { type: 'string', enum: ['a', 'b'] as const },
     } satisfies PropsSpecMap<P>);
-    expect(() => pm2.define({ mode: { kind: 'string', enum: ['c'] as const } } as any)).toThrow(
+    expect(() => pm2.define({ mode: { type: 'string', enum: ['c'] as const } } as any)).toThrow(
       /define merge error/i
     );
   });
@@ -97,21 +97,21 @@ describe('props: define merge semantics (v0)', () => {
     const pm = new PropsKernel<P>();
 
     pm.define({
-      a: { kind: 'number', range: { min: 0, max: 10 }, default: 1 },
+      a: { type: 'number', range: { min: 0, max: 10 }, default: 1 },
     } satisfies PropsSpecMap<P>);
 
     // widening => warn
     pm.define({
-      a: { kind: 'number', range: { min: 0, max: 20 } },
+      a: { type: 'number', range: { min: 0, max: 20 } },
     } satisfies PropsSpecMap<P>);
     expect(warnings(pm).length).toBeGreaterThan(0);
 
     // incompatible => throw (empty intersection)
     const pm2 = new PropsKernel<P>();
     pm2.define({
-      a: { kind: 'number', range: { min: 0, max: 1 } },
+      a: { type: 'number', range: { min: 0, max: 1 } },
     } satisfies PropsSpecMap<P>);
-    expect(() => pm2.define({ a: { kind: 'number', range: { min: 5, max: 6 } } } as any)).toThrow(
+    expect(() => pm2.define({ a: { type: 'number', range: { min: 5, max: 6 } } } as any)).toThrow(
       /define merge error/i
     );
   });
@@ -124,22 +124,22 @@ describe('props: define merge semantics (v0)', () => {
     const v2 = (x: number) => x < 100;
 
     // add when prev missing => ok
-    pm.define({ a: { kind: 'number' } } satisfies PropsSpecMap<P>);
+    pm.define({ a: { type: 'number' } } satisfies PropsSpecMap<P>);
     pm.define({
-      a: { kind: 'number', validator: v1 },
+      a: { type: 'number', validator: v1 },
     } satisfies PropsSpecMap<P>);
 
     // replacing => MUST throw
-    expect(() => pm.define({ a: { kind: 'number', validator: v2 } } as any)).toThrow(
+    expect(() => pm.define({ a: { type: 'number', validator: v2 } } as any)).toThrow(
       /define merge error/i
     );
 
     // removing => MUST throw
     const pm2 = new PropsKernel<P>();
     pm2.define({
-      a: { kind: 'number', validator: v1 },
+      a: { type: 'number', validator: v1 },
     } satisfies PropsSpecMap<P>);
-    expect(() => pm2.define({ a: { kind: 'number' } } as any)).toThrow(/define merge error/i);
+    expect(() => pm2.define({ a: { type: 'number' } } as any)).toThrow(/define merge error/i);
   });
 
   it('PROP-V0-1600: merge default: change warns + keeps previous; first-time default allowed', () => {
@@ -147,15 +147,15 @@ describe('props: define merge semantics (v0)', () => {
     const pm = new PropsKernel<P>();
 
     // first-time default is allowed
-    pm.define({ a: { kind: 'number' } } satisfies PropsSpecMap<P>);
-    pm.define({ a: { kind: 'number', default: 1 } } satisfies PropsSpecMap<P>);
+    pm.define({ a: { type: 'number' } } satisfies PropsSpecMap<P>);
+    pm.define({ a: { type: 'number', default: 1 } } satisfies PropsSpecMap<P>);
 
     pm.applyRaw({});
     expect(pm.get().a).toBe(1);
 
     // change default => warn + ignore (observable through get() under missing)
     const beforeWarn = warnings(pm).length;
-    pm.define({ a: { kind: 'number', default: 2 } } satisfies PropsSpecMap<P>);
+    pm.define({ a: { type: 'number', default: 2 } } satisfies PropsSpecMap<P>);
     expect(warnings(pm).length).toBeGreaterThan(beforeWarn);
 
     pm.applyRaw({});
@@ -171,22 +171,22 @@ describe('props: define merge semantics (v0)', () => {
 
     // same content, different define order
     k1.define({
-      a: { kind: 'number', range: { min: 0, max: 10 }, default: 1 },
+      a: { type: 'number', range: { min: 0, max: 10 }, default: 1 },
     } as any);
     k1.define({
-      b: { kind: 'string', enum: ['x', 'y'] as const, default: 'x' },
+      b: { type: 'string', enum: ['x', 'y'] as const, default: 'x' },
     } as any);
 
     k2.define({
-      b: { kind: 'string', enum: ['x', 'y'] as const, default: 'x' },
+      b: { type: 'string', enum: ['x', 'y'] as const, default: 'x' },
     } as any);
     k2.define({
-      a: { kind: 'number', range: { min: 0, max: 10 }, default: 1 },
+      a: { type: 'number', range: { min: 0, max: 10 }, default: 1 },
     } as any);
 
     // trigger warning-producing merge in both
-    k1.define({ a: { kind: 'number', range: { min: 0, max: 20 } } } as any);
-    k2.define({ a: { kind: 'number', range: { min: 0, max: 20 } } } as any);
+    k1.define({ a: { type: 'number', range: { min: 0, max: 20 } } } as any);
+    k2.define({ a: { type: 'number', range: { min: 0, max: 20 } } } as any);
 
     k1.applyRaw({});
     k2.applyRaw({});
@@ -199,7 +199,7 @@ describe('props: define merge semantics (v0)', () => {
     const pm = new PropsKernel<P>();
 
     pm.define({
-      a: { kind: 'number', range: { min: 0, max: 10 }, default: 1 },
+      a: { type: 'number', range: { min: 0, max: 10 }, default: 1 },
     } satisfies PropsSpecMap<P>);
 
     pm.applyRaw({});
@@ -208,7 +208,7 @@ describe('props: define merge semantics (v0)', () => {
 
     // incompatible range => throw
     expect(() =>
-      pm.define({ a: { kind: 'number', range: { min: 100, max: 200 } } } as any)
+      pm.define({ a: { type: 'number', range: { min: 100, max: 200 } } } as any)
     ).toThrow(/define merge error/i);
 
     // behavior unchanged

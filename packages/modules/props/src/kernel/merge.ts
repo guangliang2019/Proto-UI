@@ -1,5 +1,11 @@
 // packages/modules/props/src/kernel/merge.ts
-import type { EmptyBehavior, PropsBaseType, PropSpec, PropsSpecMap } from '@proto-ui/types';
+import type {
+  EmptyBehavior,
+  PropsBaseType,
+  PropSpec,
+  PropsSpecMap,
+  PropType,
+} from '@proto-ui/types';
 
 export type MergeDiagLevel = 'warning' | 'error';
 
@@ -24,6 +30,10 @@ function isNumberOrUndef(x: any) {
 
 function isValidEmptyBehavior(x: any): x is EmptyBehavior {
   return x === 'accept' || x === 'fallback' || x === 'error';
+}
+
+function isValidPropType(x: any): x is PropType {
+  return x === 'any' || x === 'boolean' || x === 'string' || x === 'number' || x === 'object';
 }
 
 function isSupersetEnum(next?: readonly any[], prev?: readonly any[]) {
@@ -56,7 +66,7 @@ function rangeNarrower(
   next?: { min?: number; max?: number },
   prev?: { min?: number; max?: number }
 ) {
-  if (!next) return true; // no next range => not stricter
+  if (!next) return false; // omit => no stricter
   if (!prev) return false;
 
   const prevMin = prev.min ?? -Infinity;
@@ -83,6 +93,15 @@ export function mergeSpecs<A extends PropsBaseType, B extends PropsBaseType>(
     // -----------------------------
     // v0 minimal spec shape checks
     // -----------------------------
+    if (!hasOwn(next as any, 'type') || !isValidPropType((next as any).type)) {
+      diags.push({
+        level: 'error',
+        key,
+        message: `type must be one of \"any\" | \"boolean\" | \"string\" | \"number\" | \"object\"`,
+      });
+      continue;
+    }
+
     if (hasOwn(next as any, 'empty')) {
       const e = (next as any).empty;
       // explicit undefined is treated as invalid shape
@@ -123,15 +142,15 @@ export function mergeSpecs<A extends PropsBaseType, B extends PropsBaseType>(
     }
 
     // -----------------------------
-    // kind conflict
+    // type conflict
     // -----------------------------
-    const prevKind = (prev as any).kind ?? 'any';
-    const nextKind = (next as any).kind ?? 'any';
-    if (prevKind !== nextKind) {
+    const prevType = (prev as any).type ?? 'any';
+    const nextType = (next as any).type ?? 'any';
+    if (prevType !== nextType) {
       diags.push({
         level: 'error',
         key,
-        message: `kind conflict: ${prevKind} vs ${nextKind}`,
+        message: `type conflict: ${prevType} vs ${nextType}`,
       });
       continue;
     }
@@ -296,8 +315,8 @@ export function mergeSpecs<A extends PropsBaseType, B extends PropsBaseType>(
       ...prev,
       ...next,
 
-      // keep kind stable
-      kind: (prev as any).kind,
+      // keep type stable
+      type: (prev as any).type,
 
       // enforced merges
       empty: mergedEmpty,

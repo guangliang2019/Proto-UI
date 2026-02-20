@@ -48,7 +48,7 @@ describe('props: watch(resolved) contract (v0)', () => {
   it('PROP-V0-3200: hydration (first applyRaw) never schedules resolved watch tasks', () => {
     type P = { a: number };
     const pm = createModule<P>();
-    pm.define({ a: { kind: 'number', default: 1 } } satisfies PropsSpecMap<P>);
+    pm.define({ a: { type: 'number', default: 1 } } satisfies PropsSpecMap<P>);
 
     let calledAll = 0;
     let calledKeyed = 0;
@@ -73,7 +73,7 @@ describe('props: watch(resolved) contract (v0)', () => {
   it('PROP-V0-3100: resolved snapshot invariants (declared-only, no undefined, shallow immutable)', () => {
     type P = { a: number };
     const pm = createModule<P>();
-    pm.define({ a: { kind: 'number', default: 1 } } satisfies PropsSpecMap<P>);
+    pm.define({ a: { type: 'number', default: 1 } } satisfies PropsSpecMap<P>);
 
     // hydration: snapshot exists & meaningful
     pm.applyRaw({ a: 1, x: 9 } as any);
@@ -96,8 +96,8 @@ describe('props: watch(resolved) contract (v0)', () => {
     type P = { a: number; b: number };
     const pm = createModule<P>();
     pm.define({
-      a: { kind: 'number', default: 1 },
-      b: { kind: 'number', default: 1 },
+      a: { type: 'number', default: 1 },
+      b: { type: 'number', default: 1 },
     } satisfies PropsSpecMap<P>);
 
     let called = 0;
@@ -136,9 +136,9 @@ describe('props: watch(resolved) contract (v0)', () => {
     type P = { a: number; b: number; c: number };
     const pm = createModule<P>();
     pm.define({
-      a: { kind: 'number', default: 1 },
-      b: { kind: 'number', default: 1 },
-      c: { kind: 'number', default: 1 },
+      a: { type: 'number', default: 1 },
+      b: { type: 'number', default: 1 },
+      c: { type: 'number', default: 1 },
     } satisfies PropsSpecMap<P>);
 
     let called = 0;
@@ -183,7 +183,7 @@ describe('props: watch(resolved) contract (v0)', () => {
   it('PROP-V0-3500: order: watchAll before keyed watches; registration order preserved within group', () => {
     type P = { a: number };
     const pm = createModule<P>();
-    pm.define({ a: { kind: 'number', default: 1 } } satisfies PropsSpecMap<P>);
+    pm.define({ a: { type: 'number', default: 1 } } satisfies PropsSpecMap<P>);
 
     const order: string[] = [];
 
@@ -208,7 +208,7 @@ describe('props: watch(resolved) contract (v0)', () => {
     type P = { a: number };
     const pm = createModule<P>();
     pm.define({
-      a: { kind: 'number', default: 1, validator: (v: number) => v > 0 },
+      a: { type: 'number', default: 1, validator: (v: number) => v > 0 },
     } satisfies PropsSpecMap<P>);
 
     let called = 0;
@@ -224,7 +224,7 @@ describe('props: watch(resolved) contract (v0)', () => {
     expect(drain(pm).length).toBe(0);
     expect(called).toBe(0);
 
-    // NaN rejected by kind:number -> resolved unchanged => no schedule
+    // NaN rejected by type:number -> resolved unchanged => no schedule
     pm.applyRaw({ a: NaN as any });
     expect(pm.get().a).toBe(2);
     expect(drain(pm).length).toBe(0);
@@ -240,7 +240,7 @@ describe('props: watch(resolved) contract (v0)', () => {
   it('PROP-V0-3600: resolved watchers are resolved-based; raw-only change does not trigger them', () => {
     type P = { a: number };
     const pm = createModule<P>();
-    pm.define({ a: { kind: 'number', default: 1 } } satisfies PropsSpecMap<P>);
+    pm.define({ a: { type: 'number', default: 1 } } satisfies PropsSpecMap<P>);
 
     let called = 0;
     pm.watchAllKeys(() => called++);
@@ -261,7 +261,7 @@ describe('props: watch(resolved) contract (v0)', () => {
     expect(() => pm0.watchKeys(['a'], () => {})).toThrow(/define/i);
 
     const pm = createModule<P>();
-    pm.define({ a: { kind: 'number', default: 1 } } satisfies PropsSpecMap<P>);
+    pm.define({ a: { type: 'number', default: 1 } } satisfies PropsSpecMap<P>);
 
     expect(() => pm.watchKeys([] as any, () => {})).toThrow();
     expect(() => pm.watchKeys(['x'] as any, () => {})).toThrow(/undeclared/i);

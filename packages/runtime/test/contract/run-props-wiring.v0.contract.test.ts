@@ -45,7 +45,7 @@ describe('runtime contract: run.props wiring (v0)', () => {
       setup(def) {
         // Declare one prop so resolved snapshot is well-defined
         def.props.define({
-          a: { kind: 'number', default: 1 },
+          a: { type: 'number', default: 1 },
         } as any);
 
         // resolved watcher: run.props.get() must match `next`
@@ -127,7 +127,7 @@ describe('runtime contract: run.props wiring (v0)', () => {
       name: 'x-runtime-isProvided',
       setup(def) {
         def.props.define({
-          a: { kind: 'number', default: 1 },
+          a: { type: 'number', default: 1 },
         } as any);
 
         def.props.watchRawAll((run, nextRaw) => {
