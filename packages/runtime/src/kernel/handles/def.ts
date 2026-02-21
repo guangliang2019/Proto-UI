@@ -188,11 +188,6 @@ export const createDefHandle = <P extends PropsBaseType, E = Record<string, unkn
         }
         eventFacade.off(token);
       },
-
-      emit: (key, payload, options) => {
-        ensureSetup(`def.event.emit`);
-        eventFacade.emit(key, payload, options);
-      },
     },
 
     state: {

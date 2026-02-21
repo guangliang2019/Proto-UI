@@ -42,7 +42,7 @@ type ExposeEventSpec = {
 ### 2.1 Emit API (v0)
 
 ```ts
-def.event.emit(key: string, payload?: any, options?: Record<string, unknown>): void
+run.event.emit(key: string, payload?: any, options?: Record<string, unknown>): void
 ```
 
 - `key` must be a registered expose.event key

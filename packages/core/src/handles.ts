@@ -103,7 +103,6 @@ export interface DefHandle<Props extends PropsBaseType, Exposes = Record<string,
       cb: ProtoEventCallback<Props>,
       options?: EventListenerOptions
     ): EventListenerToken;
-    emit(key: string, payload?: any, options?: Record<string, unknown>): void;
   };
 
   state: StateDefAPI;
