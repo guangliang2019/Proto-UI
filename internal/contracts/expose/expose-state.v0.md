@@ -2,8 +2,7 @@
 
 > Status: Draft – v0
 >
-> Expose-state defines: the component projects an internal state slot as an external read-only state handle via `def.expose.state`.
-> External and internal are same-source but have different capabilities.
+> Expose-state defines: the component projects an internal state slot as an external read-only state handle via `def.expose.state`. External and internal are same-source but have different capabilities.
 
 ---
 
@@ -34,7 +33,7 @@
 ## 2. API Shape
 
 ```ts
-def.expose.state(key, handle)
+def.expose.state(key, handle);
 ```
 
 > Equivalent to `def.expose(key, handle)` with expose-state semantics.
@@ -44,11 +43,13 @@ def.expose.state(key, handle)
 ## 3. Minimum Shape of External State Handle
 
 Must provide:
+
 - `get(): V`
 - `subscribe(cb): Unsubscribe`
 - `unsubscribe(token)` or unsubscribe function returned by `subscribe`
 
 Must NOT provide:
+
 - `set` or any write capability
 
 ### 3.1 Required meta: `spec`
@@ -85,4 +86,3 @@ Event shape should align with `StateEvent<V>` (without `run`).
 
 - expose core: `internal/contracts/expose/expose.v0.md`
 - state core: `internal/contracts/state/state-v0.md`
-

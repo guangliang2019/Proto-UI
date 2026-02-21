@@ -17,7 +17,7 @@
 ## 1. Definition API (setup-only)
 
 ```ts
-def.expose.event(key, spec)
+def.expose.event(key, spec);
 ```
 
 ### 1.1 ExposeEventSpec
@@ -76,6 +76,7 @@ def.event.emit(key: string, payload?: any, options?: Record<string, unknown>): v
 ## 5. Error Model
 
 Must error for:
+
 - `def.expose.event` outside setup
 - non-string key
 - duplicate event key
@@ -83,6 +84,7 @@ Must error for:
 - emit after dispose
 
 Suggested error codes:
+
 - `EXPOSE_EVENT_PHASE_VIOLATION`
 - `EXPOSE_EVENT_INVALID_KEY`
 - `EXPOSE_EVENT_DUPLICATE_KEY`
@@ -95,4 +97,3 @@ Suggested error codes:
 
 - expose core: `internal/contracts/expose/expose.v0.md`
 - event core: `internal/contracts/event/*.v0.md`
-

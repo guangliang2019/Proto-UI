@@ -21,9 +21,14 @@ function createMockHost() {
       task();
     },
     onRuntimeReady(wiring) {
-      wiring.attach('event', [[EVENT_EMIT_CAP, (key, payload, options) => {
-        emitted.push({ key, payload, options });
-      }]]);
+      wiring.attach('event', [
+        [
+          EVENT_EMIT_CAP,
+          (key, payload, options) => {
+            emitted.push({ key, payload, options });
+          },
+        ],
+      ]);
       wiring.attach('expose', [[EXPOSE_SET_EXPOSES_CAP, (r) => exposes.push(r)]]);
     },
   };

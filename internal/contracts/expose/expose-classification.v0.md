@@ -2,8 +2,7 @@
 
 > Status: Draft – v0
 >
-> v0 classifies expose semantics so adapters can map outputs consistently.
-> This does not change expose's registration nature; it adds semantic categories and entry points.
+> v0 classifies expose semantics so adapters can map outputs consistently. This does not change expose's registration nature; it adds semantic categories and entry points.
 
 ---
 
@@ -76,4 +75,3 @@ def.expose.method<K extends string, F extends Function>(key: K, fn: F): void
 
 - all classified APIs inherit `def.expose` errors
 - `event` classification must error if event module binding is unavailable (see expose-event)
-

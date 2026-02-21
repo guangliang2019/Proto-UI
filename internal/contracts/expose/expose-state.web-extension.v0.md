@@ -2,8 +2,7 @@
 
 > Status: Draft – v0
 >
-> Web extension maps expose-state to DOM `data-*` attributes and CSS variables.
-> This is Web-only and does not change expose-state semantics.
+> Web extension maps expose-state to DOM `data-*` attributes and CSS variables. This is Web-only and does not change expose-state semantics.
 
 ---
 
@@ -14,6 +13,7 @@
 - lifecycle synchronization
 
 Not included:
+
 - write capability
 - cross-platform guarantees
 
@@ -38,6 +38,7 @@ Not included:
 ## 2. Overrides (optional)
 
 Via `EXPOSE_STATE_WEB_MODE_CAP`:
+
 - `allowContinuousAttr`
 - `allowStringVar`
 
@@ -54,4 +55,3 @@ Via `EXPOSE_STATE_WEB_MODE_CAP`:
 
 - bool/enum/string/number discrete/continuous mapping
 - semantic name mapping rules
-
