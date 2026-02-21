@@ -2,6 +2,7 @@
 import {
   EventListenerToken,
   EventTypeV0,
+  ExposeEventSpec,
   JsonObject,
   ContextKey,
   PropsBaseType,
@@ -51,6 +52,10 @@ export interface RunHandle<Props extends PropsBaseType> {
     update<T extends JsonObject>(key: ContextKey<T>, next: T | ((prev: T) => T)): void;
     tryUpdate<T extends JsonObject>(key: ContextKey<T>, next: T | ((prev: T) => T)): boolean;
   };
+
+  event: {
+    emit(key: string, payload?: any, options?: Record<string, unknown>): void;
+  };
 }
 
 export interface DefHandle<Props extends PropsBaseType, Exposes = Record<string, unknown>> {
@@ -77,7 +82,12 @@ export interface DefHandle<Props extends PropsBaseType, Exposes = Record<string,
     };
   };
 
-  expose: <K extends keyof Exposes>(key: K, value: Exposes[K]) => void;
+  expose: (<K extends keyof Exposes>(key: K, value: Exposes[K]) => void) & {
+    event: (key: string, spec?: ExposeEventSpec) => void;
+    state: (key: string, handle: any) => void;
+    value: <V>(key: string, value: V) => void;
+    method: <F extends Function>(key: string, fn: F) => void;
+  };
 
   rule: (spec: any) => void;
 
@@ -93,6 +103,7 @@ export interface DefHandle<Props extends PropsBaseType, Exposes = Record<string,
       cb: ProtoEventCallback<Props>,
       options?: EventListenerOptions
     ): EventListenerToken;
+    emit(key: string, payload?: any, options?: Record<string, unknown>): void;
   };
 
   state: StateDefAPI;

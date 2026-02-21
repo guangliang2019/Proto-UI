@@ -8,3 +8,4 @@ Documents:
 - `resolve-fallback.v0.md`
 - `watch-resolved.v0.md`
 - `watch-raw.v0.md`
+- `runtime-integration.v0.md`
