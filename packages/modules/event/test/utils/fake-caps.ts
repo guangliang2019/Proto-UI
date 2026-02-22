@@ -1,6 +1,6 @@
 // packages/modules/event/test/utils/fake-caps.ts
 import { SYS_CAP } from '@proto-ui/modules.base';
-import { EVENT_GLOBAL_TARGET_CAP, EVENT_ROOT_TARGET_CAP } from '../../src/caps';
+import { EVENT_GLOBAL_TARGET_CAP, EVENT_ROOT_TARGET_CAP, EVENT_EMIT_CAP } from '../../src/caps';
 
 type ExecPhase = 'setup' | 'render' | 'callback' | 'unknown';
 type ProtoPhase = 'setup' | 'mounted' | 'updated' | 'unmounted';
@@ -72,6 +72,7 @@ export function makeCaps(args: {
   sys?: any;
   getRootTarget?: (() => EventTarget | null) | undefined;
   getGlobalTarget?: (() => EventTarget | null) | undefined;
+  emit?: ((key: string, payload?: any, options?: Record<string, unknown>) => void) | undefined;
 }) {
   let epoch = 0;
   const subs = new Set<(epoch: number) => void>();
@@ -90,6 +91,9 @@ export function makeCaps(args: {
   if (args.getGlobalTarget !== undefined) {
     store.set(EVENT_GLOBAL_TARGET_CAP.id, args.getGlobalTarget);
   }
+  if (args.emit !== undefined) {
+    store.set(EVENT_EMIT_CAP.id, args.emit);
+  }
 
   const api = {
     has(token: any) {
@@ -106,8 +110,13 @@ export function makeCaps(args: {
     },
 
     // test-only: mutate caps entries
-    __set(key: 'getRootTarget' | 'getGlobalTarget', val: any) {
-      const t = key === 'getRootTarget' ? EVENT_ROOT_TARGET_CAP : EVENT_GLOBAL_TARGET_CAP;
+    __set(key: 'getRootTarget' | 'getGlobalTarget' | 'emit', val: any) {
+      const t =
+        key === 'getRootTarget'
+          ? EVENT_ROOT_TARGET_CAP
+          : key === 'getGlobalTarget'
+            ? EVENT_GLOBAL_TARGET_CAP
+            : EVENT_EMIT_CAP;
 
       if (val === undefined) store.delete(t.id);
       else store.set(t.id, val);

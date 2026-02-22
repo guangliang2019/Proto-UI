@@ -28,6 +28,11 @@ export type EventTypeV0 = CoreEventType | OptionalEventType | ExtensionEventType
 
 export type EventListenerOptions = any;
 
+export type ExposeEventSpec = {
+  payload?: 'void' | 'any' | 'json';
+  options?: Record<string, unknown>;
+};
+
 declare const __eventTokenBrand: unique symbol;
 
 export type EventTokenMeta = {

@@ -6,8 +6,8 @@ import { ModuleBase } from '@proto-ui/modules.base';
 
 import type { EventDispatch } from './types';
 import { EventKernel } from './kernel';
-import { EventListenerToken, EventTypeV0 } from '@proto-ui/types';
-import { EVENT_GLOBAL_TARGET_CAP, EVENT_ROOT_TARGET_CAP } from './caps';
+import { EventListenerToken, EventTypeV0, ExposeEventSpec } from '@proto-ui/types';
+import { EVENT_GLOBAL_TARGET_CAP, EVENT_ROOT_TARGET_CAP, EVENT_EMIT_CAP } from './caps';
 
 function illegalEventTarget(message: string, detail?: any) {
   const err = new Error(message) as any;
@@ -49,6 +49,8 @@ export class EventModuleImpl extends ModuleBase {
 
   private lastDispatch: EventDispatch | null = null;
   private isBound = false;
+
+  private exposedEvents = new Map<string, ExposeEventSpec | undefined>();
 
   constructor(caps: CapsVaultView, prototypeName: string) {
     super(caps);
@@ -146,6 +148,47 @@ export class EventModuleImpl extends ModuleBase {
     this.kernel.offById(id);
   }
 
+  registerExposeEvent(key: string, spec?: ExposeEventSpec) {
+    this.ensureSetup('def.expose.event');
+    if (typeof key !== 'string' || !key) {
+      throw illegalEventArg(`[Event] expose.event requires a non-empty string key.`, {
+        prototypeName: this.prototypeName,
+        key,
+      });
+    }
+    if (this.exposedEvents.has(key)) {
+      throw illegalEventArg(`[Event] duplicate expose.event key: ${key}`, {
+        prototypeName: this.prototypeName,
+        key,
+      });
+    }
+    this.exposedEvents.set(key, spec);
+  }
+
+  emit(key: string, payload?: any, options?: Record<string, unknown>) {
+    this.ensureRuntime('rt.event.emit');
+    if (typeof key !== 'string' || !key) {
+      throw illegalEventArg(`[Event] emit requires a non-empty string key.`, {
+        prototypeName: this.prototypeName,
+        key,
+      });
+    }
+    if (!this.exposedEvents.has(key)) {
+      throw illegalEventArg(`[Event] emit for unregistered expose.event key: ${key}`, {
+        prototypeName: this.prototypeName,
+        key,
+      });
+    }
+    if (!this.caps.has(EVENT_EMIT_CAP)) return;
+    const sink = this.caps.get(EVENT_EMIT_CAP);
+    if (!sink) return;
+    try {
+      sink(key, payload, options);
+    } catch {
+      // v0: ignore host errors to keep module stable
+    }
+  }
+
   // -------------------------
   // runtime port
   // -------------------------
@@ -212,6 +255,7 @@ export class EventModuleImpl extends ModuleBase {
       this.lastDispatch = null;
       this.isBound = false;
       this.overriddenRootTarget = null;
+      this.exposedEvents.clear();
     }
   }
 

@@ -1,76 +1,63 @@
 # Runtime Props Integration Contract (v0)
 
-This document defines v0 behavioral contract for props integration at runtime layer (i.e., execute engine + controller APIs), beyond module-props internal semantics.
+This document defines the v0 runtime-layer contract for props integration (execute engine + controller APIs).
 
 ---
 
-## PROP-RT-0000 Scope
+## 1. Scope
 
 Covers:
 
 - hydration behavior (first raw application does not dispatch watchers)
-- controller.applyRawProps(...) behavior boundary
-- watcher dispatch ordering across raw/resolved groups
-- Handle Wiring requirement in watcher callbacks (PROP-V0-2110)
+- `controller.applyRawProps(...)` boundaries
+- watcher dispatch order across raw/resolved groups
+- RunHandle wiring in watcher callbacks (PROP-V0-2110)
 
 Does not cover:
 
-- adapter-specific raw props production (attr/property mapping, etc.)
-- rendering scheduling policies beyond "no implicit commit on applyRawProps"
+- adapter-specific raw props production
+- render scheduling policies beyond “no implicit commit on applyRawProps”
 
 ---
 
-## PROP-RT-0100 Hydration Does Not Dispatch Watchers
+## 2. Hydration Does Not Dispatch Watchers
 
-During initial hydration (the first raw props application after runtime creation):
+During initial hydration (first raw application after runtime creation):
 
 - resolved watchers do not fire
 - raw watchers do not fire
 
-This applies even if initial raw props differ from defaults.
+---
+
+## 3. RunHandle Wiring in Watcher Callbacks (PROP-V0-2110)
+
+In any props watcher callback, `run` must provide:
+
+- `run.props.get()`
+- `run.props.getRaw()`
+- `run.props.isProvided(key)`
+
+Behavioral alignment:
+
+- resolved watcher: `run.props.get()` is behaviorally equivalent to `next`
+- raw watcher: `run.props.getRaw()` is behaviorally equivalent to `nextRaw`
 
 ---
 
-## PROP-RT-0200 Handle Wiring in Watcher Callbacks (PROP-V0-2110)
+## 4. Watcher Dispatch Order
 
-In any props watcher callback (resolved or raw), the `run` argument MUST provide:
+On a watcher-firing raw application:
 
-- run.props.get()
-- run.props.getRaw()
-- run.props.isProvided(key)
-
-Behavioral alignment within a single callback:
-
-- In resolved watcher `cb(run, next, prev, info)`:
-  - run.props.get() is behaviorally equivalent to `next`
-
-- In raw watcher `cb(run, nextRaw, prevRaw, info)`:
-  - run.props.getRaw() is behaviorally equivalent to `nextRaw`
-
-Implementations may or may not preserve object identity.
+1. raw watchers (rawAll → raw(keys), registration order preserved)
+2. resolved watchers (watchAll → watch(keys), registration order preserved)
 
 ---
 
-## PROP-RT-0300 Watcher Dispatch Order
+## 5. applyRawProps Does Not Implicitly Commit/Render
 
-On a watcher-firing raw application (e.g., controller.applyRawProps):
+Calling `controller.applyRawProps(nextRaw)`:
 
-1. raw watchers are evaluated and may fire
-   - rawAll before raw(keys)
-   - registration order preserved within each group
-2. resolved watchers are evaluated and may fire
-   - watchAll before watch(keys)
-   - registration order preserved within each group
+- may dispatch watcher callbacks
+- must NOT perform host commit/render
 
----
-
-## PROP-RT-0400 applyRawProps Does Not Implicitly Commit/Render
-
-Calling controller.applyRawProps(nextRaw):
-
-- MAY dispatch watcher callbacks (subject to resolved/raw diff semantics)
-- MUST NOT perform a host commit / render by itself
-
-Rendering is triggered only by explicit update scheduling policies (e.g., run.update() or adapter-specific update()).
-
----
+Rendering is triggered only by explicit update mechanisms (e.g. `run.update()` or adapter-specific update).

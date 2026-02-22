@@ -1,10 +1,8 @@
-# expose.v0.md
+# Expose Channel Contract (v0)
 
 > Status: Draft – v0
 >
-> This contract defines the **expose information channel** in Proto UI v0: a component uses `def.expose` to actively publish output APIs to the App Maker. The direction is **Component → App Maker**, the dual of props (App Maker → Component).
->
-> **Positioning (v0):** expose is a registration-based output API binding. It does not provide subscription, dependency tracking, or automatic updates for exposed values.
+> Expose is the **Component → App Maker** output channel, dual to props. In v0, expose is a registration-based output API and does not include subscription, dependency tracking, or automatic updates.
 
 ---
 
@@ -12,121 +10,101 @@
 
 ### 0.1 Scope (v0)
 
-Expose in v0 provides:
+Expose v0 provides:
 
-- setup-time `def.expose(key, value)` registration
-- stable mapping keyed by `key` for App Maker access
-- adapter capability to access single or all exposes
-- strict execution-phase constraint (setup-only)
+- setup-time `def.expose(...)` registration
+- stable mapping by key for App Maker access
+- adapter access by key and full map
+- strict phase constraint (setup-only)
 - lifecycle constraints (invalid after dispose)
 
 ### 0.2 Non-goals (v0)
 
-v0 explicitly does not provide or guarantee:
+v0 does **not** guarantee:
 
-- any automatic update or subscription semantics
-- serializability or portability constraints on exposed values
-- runtime mutation of the expose mapping
-- event, render, or state scheduling driven by expose
-- strong validation of exposed values (only recommended usage)
+- automatic update/subscription semantics
+- serializability or portability constraints
+- runtime mutation of the expose map
+- expose-driven event/render/state scheduling
+- strong validation of exposed values
 
 ---
 
 ## 1. Terminology
 
-- **Expose channel**: the output channel from Component to App Maker.
-- **Expose key**: the string key used to register and look up an expose item.
-- **Expose value**: the value registered via `def.expose` (methods, handles, constants).
-- **Exposes record**: the map returned by the host, shaped as `Record<string, unknown>`.
-- **OutputAPI**: the App Maker-facing output API, represented by `E` in `Prototype<P, E>`.
+- **Expose channel**: output channel from component to App Maker
+- **Expose key**: string key used to register an item
+- **Expose value**: value registered via `def.expose`
+- **Exposes record**: map returned by adapter (`Record<string, unknown>`)
+- **OutputAPI**: `E` in `Prototype<P, E>`
 
 ---
 
-## 2. Type System Convention (Prototype Generics)
+## 2. Type Convention (Prototype Generics)
 
-- A Prototype must include **Props** and **Exposes** generics: `Prototype<P, E>`.
-- `P` models InputAPI (props), `E` models OutputAPI (exposes).
-- This makes the input/output channels explicit in the App Maker type system.
-
-> v0 does not require runtime reflection of `E`, only type-level modeling.
+- `Prototype<P, E>`: `P` is InputAPI (props), `E` is OutputAPI (exposes)
+- v0 only requires type-level modeling, no runtime reflection
 
 ---
 
 ## 3. Definition API: `def.expose` (setup-only)
 
-### 3.1 Signature (v0)
+### 3.1 Signature
 
 ```ts
 def.expose<K extends keyof E>(key: K, value: E[K]): void
 ```
 
-### 3.2 Normative rules
+### 3.2 Rules
 
-1. `def.expose` **MUST** be called in setup only.
-   - Any call outside setup must throw a phase violation error.
-2. `key` **MUST** be a string at runtime.
-   - Non-string keys (e.g. symbol) must throw an invalid-argument error.
-3. Within one component instance, the same `key` **MUST** be exposed only once.
-   - Duplicate keys must throw.
-4. Expose is a **registration-based binding**:
-   - `value` is stored as the expose mapping entry.
-   - v0 does not require tracking or synchronizing later changes to `value`.
+1. Must be called in setup only; otherwise throw
+2. `key` must be a string at runtime; non-string throws
+3. Duplicate key within an instance must throw
+4. Expose is registration-based: the registered value is stored as-is
 
-> Informative note: If the host needs change notifications, expose a state handle or an explicit subscribe API.
+> If change notifications are needed, expose a state handle or explicit subscribe API.
 
 ---
 
 ## 4. App Maker Access (adapter responsibility)
 
-Adapters must provide App Maker access to exposes:
-
-- **By key**: retrieve a single expose value
-- **All exposes**: retrieve a full `Record<string, ...>` map
-
-### 4.1 Shape requirements (v0)
-
-- The full map must be a `Record<string, unknown>`.
-- Keys must match those registered via `def.expose`.
-
-> This contract does not prescribe adapter API names, only behaviors and output shape.
+- allow per-key access
+- allow full-map access (`Record<string, unknown>`)
+- keys must match those registered via `def.expose`
 
 ---
 
-## 5. Lifecycle Rules
+## 5. Lifecycle
 
-- After the component instance is **disposed**, the exposes mapping is invalid.
-- Any read or invocation on exposes of a disposed instance must throw or fail in a distinguishable way.
-
-> During `unmounted` callbacks (before dispose), exposes may still be treated as available.
+- after dispose, exposes are invalid
+- reads/invocations on disposed instances must fail or be distinguishable
 
 ---
 
 ## 6. Recommended Usage (informative)
 
-Expose is recommended for:
+Recommended:
 
-- **Methods** (e.g. `reset()`, `focus()`, `scrollTo()`)
-- **State handles** (official syntax, with host-side subscription support)
-- **Constants / static configuration** (e.g. `version`, `capabilities`)
+- **imperative methods** (e.g. `focus`, `reset`)
+- **state handles** (via expose-state)
+- **constants / static config**
 
 Not recommended:
 
-- Exposing a mutable variable without a subscription mechanism
-
-> Reason: the App Maker cannot reliably observe changes; prefer a state handle or explicit subscribe API.
+- mutable values without subscription
 
 ---
 
 ## 7. Error Model (v0)
 
-Errors must be raised for:
+Must error for:
 
-- `def.expose` called outside setup (phase violation)
-- non-string `key`
-- duplicate `key` in the same instance
+- `def.expose` outside setup
+- non-string key
+- duplicate key
 - access after dispose
 
-### 7.1 Recommended error codes
+Suggested error codes:
 
 - `EXPOSE_PHASE_VIOLATION`
 - `EXPOSE_INVALID_KEY`
@@ -135,22 +113,8 @@ Errors must be raised for:
 
 ---
 
-## 8. v0 Contract Tests (minimum coverage)
+## 8. Related Contracts (non-normative)
 
-Implementations must at least cover:
-
-1. setup-only constraint: calling `def.expose` outside setup throws
-2. key rule: non-string key throws
-3. duplicate key: same key in one instance throws
-4. adapter access:
-   - single key retrieval works
-   - full retrieval returns a `Record<string, ...>`
-5. dispose rule: access after dispose fails
-
----
-
-## 9. Related Contracts (non-normative)
-
-- props input channel: `internal/contracts/props/*.v0.md`
-- state core: `internal/contracts/state/state-v0.md`
-- execution-phase guard: `internal/contracts/lifecycle/exec-phase-guard.v0.md`
+- props: `internal/contracts/props/*.v0.md`
+- expose-state: `internal/contracts/expose/expose-state.v0.md`
+- event: `internal/contracts/event/*.v0.md`

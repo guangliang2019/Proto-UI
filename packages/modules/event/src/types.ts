@@ -1,7 +1,7 @@
 // packages/modules/event/src/types.ts
 import type { ModuleInstance } from '@proto-ui/core';
 import type { ModulePort } from '@proto-ui/core';
-import { EventListenerToken, EventTypeV0 } from '@proto-ui/types';
+import { EventListenerToken, EventTypeV0, ExposeEventSpec } from '@proto-ui/types';
 
 export type EventDispatch = (id: string, ev: any) => void;
 
@@ -12,6 +12,12 @@ export type EventFacade = {
 
   /** precise removal */
   off(token: EventListenerToken): void;
+
+  // expose-event (setup-only)
+  registerExposeEvent(key: string, spec?: ExposeEventSpec): void;
+
+  // emit expose-event (runtime)
+  emit(key: string, payload?: any, options?: Record<string, unknown>): void;
 };
 
 export type EventModule = ModuleInstance<EventFacade> & {

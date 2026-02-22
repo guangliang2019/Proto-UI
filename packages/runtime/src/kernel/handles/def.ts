@@ -2,7 +2,7 @@
 import type { DefHandle, RunHandle, StyleHandle } from '@proto-ui/core';
 import { illegalPhase } from '../guard';
 import type { RuleSpec, RuleFacade } from '@proto-ui/modules.rule';
-import type { PropsBaseType } from '@proto-ui/types';
+import type { ExposeEventSpec, PropsBaseType } from '@proto-ui/types';
 import type { ModuleOrchestratorFacadeView } from '../../orchestrator/module-orchestrator/types';
 import type { FeedbackFacade } from '@proto-ui/modules.feedback';
 import type { PropsFacade } from '@proto-ui/modules.props';
@@ -130,10 +130,35 @@ export const createDefHandle = <P extends PropsBaseType, E = Record<string, unkn
       },
     },
 
-    expose: (key, value) => {
-      ensureSetup('def.expose');
-      expose.expose(key as any, value as any);
-    },
+    expose: (() => {
+      const fn = (key: any, value: any) => {
+        ensureSetup('def.expose');
+        expose.expose(key as any, value as any);
+      };
+
+      fn.event = (key: string, spec?: ExposeEventSpec) => {
+        ensureSetup('def.expose.event');
+        eventFacade.registerExposeEvent(key, spec);
+        expose.expose(key, { __pui_expose: 'event', spec } as any);
+      };
+
+      fn.state = (key: string, handle: any) => {
+        ensureSetup('def.expose.state');
+        expose.expose(key, handle);
+      };
+
+      fn.value = (key: string, value: any) => {
+        ensureSetup('def.expose.value');
+        expose.expose(key, value);
+      };
+
+      fn.method = (key: string, fnValue: any) => {
+        ensureSetup('def.expose.method');
+        expose.expose(key, fnValue);
+      };
+
+      return fn;
+    })(),
 
     rule: (spec: RuleSpec<any>) => {
       ensureSetup('def.rule');

@@ -253,4 +253,28 @@ describe('EventModuleImpl (contract-ish)', () => {
     const diags = impl.getDiagnostics();
     expect(diags[0].label).toBe('asButton: commit');
   });
+
+  it('expose-event: register in setup, emit in runtime, and reject unregistered keys', () => {
+    const sys = createSysCaps();
+    const calls: Array<{ key: string; payload: any; options: any }> = [];
+
+    const caps = makeCaps({
+      sys,
+      emit: (key, payload, options) => calls.push({ key, payload, options }),
+    });
+
+    const impl = new EventModuleImpl(caps, 'p-x');
+
+    sys.__setExecPhase('setup');
+    impl.registerExposeEvent('ready', { payload: 'json' });
+
+    // emit must be runtime-only
+    expect(() => impl.emit('ready', { ok: true })).toThrow();
+
+    sys.__setExecPhase('callback');
+    impl.emit('ready', { ok: true }, { any: 1 });
+    expect(calls).toEqual([{ key: 'ready', payload: { ok: true }, options: { any: 1 } }]);
+
+    expect(() => impl.emit('missing', 1)).toThrow();
+  });
 });
