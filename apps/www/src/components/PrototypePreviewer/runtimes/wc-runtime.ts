@@ -1,4 +1,4 @@
-import { AdaptToWebComponent } from '@proto-ui/adapters.web-component';
+import { AdaptToWebComponent, setElementProps } from '@proto-ui/adapters.web-component';
 import type { RuntimeAPI } from './registry';
 
 export const runtime: RuntimeAPI = {
@@ -24,7 +24,7 @@ export const runtime: RuntimeAPI = {
     const el = document.createElement(wcName);
     // 传递 props
     if (options?.props) {
-      Object.assign(el, options.props);
+      setElementProps(el, options.props);
     }
     host.appendChild(el);
   },

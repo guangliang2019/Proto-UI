@@ -14,11 +14,10 @@ PrototypePreviewer 是一个用于在文档中展示原型组件的预览器，�
 
 ### 1. 创建原型定义文件
 
-在你的内容目录下创建原型定义，例如 `demo-inline.ts`：
+在你的内容目录下创建原型定义，例如 `demo-inline.demo.proto.ts`：
 
 ```typescript
 import { definePrototype } from '@proto-ui/core';
-import { registerPrototype } from '../../../components/PrototypePreviewer/registry';
 
 const DemoInline = definePrototype({
   name: 'demo-inline',
@@ -30,23 +29,10 @@ const DemoInline = definePrototype({
   },
 });
 
-registerPrototype('demo-inline', DemoInline);
+export default DemoInline;
 ```
 
-### 2. 在 `prototype-modules.ts` 中注册加载器
-
-打开 `src/components/PrototypePreviewer/prototype-modules.ts`，添加你的原型：
-
-```typescript
-export const prototypeModules: Record<string, PrototypeModuleLoader> = {
-  'demo-inline': () => import('../../content/docs/zh-cn/demo-inline'),
-
-  // 添加你的新原型
-  'button-demo': () => import('../../content/docs/zh-cn/components/button-demo'),
-};
-```
-
-### 3. 在 MDX 中使用
+### 2. 在 MDX 中使用
 
 ```mdx
 ---
@@ -54,6 +40,7 @@ title: 你的页面
 ---
 
 import { PrototypePreviewer } from '../../../components/PrototypePreviewer';
+// 或使用 DemoPreviewer（PrototypePreviewer 的别名）
 
 {/* 原型会自动按需加载！ */}
 
@@ -61,6 +48,60 @@ import { PrototypePreviewer } from '../../../components/PrototypePreviewer';
 ```
 
 就这么简单！🎉 原型模块会在需要时自动加载。
+
+## 🧩 Demo 组合（多原型）
+
+当一个 demo 需要多个原型组合时，可以使用 `*.demo.ts`：
+
+```typescript
+// src/content/docs/zh-cn/my-combo.demo.ts
+export default {
+  type: 'demo',
+  root: {
+    kind: 'box',
+    className: 'p-4 border rounded',
+    children: [
+      {
+        kind: 'proto',
+        prototypeId: 'demo-inline',
+        className: 'mb-2',
+        props: { title: 'A' },
+      },
+      {
+        kind: 'proto',
+        prototypeId: 'another-demo',
+        className: 'mt-2',
+      },
+    ],
+  },
+};
+```
+
+在 MDX 中使用：
+
+```mdx
+<PrototypePreviewer demoId="my-combo" />
+{/* 或 <DemoPreviewer demoId="my-combo" /> */}
+```
+
+**规则：**
+
+- `demoId` 对应 `*.demo.ts` 文件名
+- `box` 节点只接受 `className`
+- `proto` 节点可带 `props` 和 `children`
+- `children` 只有在原型模板包含 `slot` 时才会显示
+- `text` 节点用于纯文本内容（或直接写字符串作为 child）
+
+### 手动注册（可选）
+
+如果你不想使用 `*.demo.proto.ts` 规则，仍可在 `prototype-modules.ts` 中手动注册：
+
+```typescript
+// src/components/PrototypePreviewer/prototype-modules.ts
+const manualPrototypeModules = {
+  'button-demo': () => import('../../content/docs/zh-cn/components/button-demo'),
+};
+```
 
 ## 🔧 技术细节
 
@@ -71,9 +112,9 @@ MDX 页面
   └─> <PrototypePreviewer prototypeId="demo-inline" />
         └─> previewer-client.ts
               └─> loadPrototype("demo-inline")
-                    └─> prototype-modules.ts 查找加载器
-                          └─> 动态 import('./demo-inline')
-                                └─> registerPrototype() 执行
+                    └─> prototype-modules.ts（自动扫描 *.demo.proto.ts）
+                          └─> 动态 import('.../demo-inline.demo.proto.ts')
+                                └─> default export 注册
                                       └─> getPrototype() 获取原型 ✅
 ```
 
@@ -82,7 +123,7 @@ MDX 页面
 - 📦 **代码分割**：每个原型都是独立的 chunk，按需加载
 - 🚀 **首屏优化**：页面初始 bundle 不包含未使用的原型
 - 🔄 **并行加载**：多个原型可以并行加载
-- 🎯 **精确控制**：通过 `prototype-modules.ts` 集中管理所有原型
+- 🎯 **就近维护**：原型文件可放在文档附近，无需集中注册
 
 ### Registry 环境感知
 
@@ -97,7 +138,7 @@ MDX 页面
 1. `PrototypePreviewer` 初始化
 2. `ensurePrototypeLoaded()` 检查是否需要加载
 3. `loadPrototype(id)` 查找并执行动态导入
-4. 原型模块自动执行 `registerPrototype()`
+4. 原型模块默认导出 `Prototype`，由加载器自动注册
 5. `getPrototype(id)` 获取已注册的原型
 6. 挂载到对应的运行时
 
@@ -122,9 +163,8 @@ A: Astro 会在 SSR 阶段执行顶层 import，此时注册到的是服务端�
 
 A:
 
-1. 创建原型定义文件（如 `my-demo.ts`）
-2. 在 `prototype-modules.ts` 中注册：`'my-demo': () => import('路径')`
-3. 在 MDX 中使用：`<PrototypePreviewer prototypeId="my-demo" />`
+1. 创建原型定义文件（如 `my-demo.demo.proto.ts`）
+2. 在 MDX 中使用：`<PrototypePreviewer prototypeId="my-demo" />`
 
 ### Q: 原型会重复加载吗？
 
@@ -149,12 +189,16 @@ console.log('可用原型:', getAvailablePrototypes());
 
 | Prop             | 类型                       | 默认值            | 说明                     |
 | ---------------- | -------------------------- | ----------------- | ------------------------ |
-| `prototypeId`    | `string`                   | _必填_            | 原型 ID，需要提前注册    |
+| `prototypeId`    | `string`                   | _可选_            | 原型 ID，需要提前注册    |
+| `demoId`         | `string`                   | -                 | demo ID（`*.demo.ts`）   |
 | `initialRuntime` | `'wc' \| 'react' \| 'vue'` | `'wc'`            | 初始运行时               |
 | `props`          | `Record<string, unknown>`  | `{}`              | 传递给原型的 props       |
 | `toolbar`        | `boolean`                  | `true`            | 是否显示运行时切换工具栏 |
 | `runtimes`       | `RuntimeId[]`              | `['wc', 'react']` | 可用的运行时列表         |
 | `class`          | `string`                   | `''`              | 自定义 CSS 类            |
+
+> `props` 仅支持 JSON-like 数据（不允许函数、`undefined`、`symbol`、`bigint`）。
+> `prototypeId` 与 `demoId` 不能同时使用；demo 模式下 `props` 不生效。
 
 ## 🎨 样式定制
 
@@ -170,7 +214,7 @@ console.log('可用原型:', getAvailablePrototypes());
 
 ## 🚀 最佳实践
 
-1. **集中管理**：所有原型在 `prototype-modules.ts` 中统一注册
+1. **就近维护**：使用 `*.demo.proto.ts` 后缀，原型文件放在文档附近
 2. **命名规范**：原型 ID 使用 kebab-case，如 `demo-inline`
 3. **按功能分组**：可以按章节/功能组织原型文件
 4. **懒加载优先**：让系统自动按需加载，避免手动管理
@@ -181,30 +225,13 @@ console.log('可用原型:', getAvailablePrototypes());
 ```
 content/docs/zh-cn/
 ├── components/
-│   ├── button-demo.ts
-│   └── input-demo.ts
+│   ├── button-demo.demo.proto.ts
+│   └── input-demo.demo.proto.ts
 ├── examples/
-│   ├── form-demo.ts
-│   └── dashboard-demo.ts
+│   ├── form-demo.demo.proto.ts
+│   └── dashboard-demo.demo.proto.ts
 └── getting-started/
-    └── hello-world.ts
-```
-
-在 `prototype-modules.ts` 中：
-
-```typescript
-export const prototypeModules = {
-  // 组件示例
-  'button-demo': () => import('../../content/docs/zh-cn/components/button-demo'),
-  'input-demo': () => import('../../content/docs/zh-cn/components/input-demo'),
-
-  // 完整示例
-  'form-demo': () => import('../../content/docs/zh-cn/examples/form-demo'),
-  'dashboard-demo': () => import('../../content/docs/zh-cn/examples/dashboard-demo'),
-
-  // 入门示例
-  'hello-world': () => import('../../content/docs/zh-cn/getting-started/hello-world'),
-};
+    └── hello-world.demo.proto.ts
 ```
 
 ## 📊 性能对比
@@ -257,7 +284,7 @@ const prototypeId = userPrefersDarkMode ? 'dark-theme-demo' : 'light-theme-demo'
 
 ```typescript
 // prototype-modules.ts
-export const prototypeModules = {
+const manualPrototypeModules = {
   'advanced-demo': async () => {
     // 可以添加额外的逻辑
     const [module, config] = await Promise.all([

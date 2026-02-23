@@ -39,9 +39,9 @@
            ▼                      │
 ┌─────────────────────────────────┴───────────────────────────┐
 │                    原型定义文件                              │
-│  demo-inline.ts, button-demo.ts, etc.                      │
+│  demo-inline.demo.proto.ts, button-demo.demo.proto.ts, etc. │
 │  - definePrototype() 定义原型                               │
-│  - registerPrototype() 注册到 registry                      │
+│  - default export Prototype                                │
 └─────────────────────────────────────────────────────────────┘
 ```
 
@@ -78,10 +78,9 @@ initPreviewer()
   └─> switchTo(initialRuntime)
         └─> ensurePrototypeLoaded()
               └─> loadPrototype(prototypeId)
-                    └─> prototype-modules.ts 查找加载器
-                          └─> 动态 import('./demo-inline')
-                                └─> demo-inline.ts 执行
-                                      └─> registerPrototype() 注册
+                    └─> prototype-modules.ts（自动扫描 *.demo.proto.ts）
+                          └─> 动态 import('./demo-inline.demo.proto.ts')
+                                └─> default export 注册
 ```
 
 ---
@@ -147,8 +146,8 @@ ensurePrototypeLoaded() 完成
 
 ### 4. 扩展性
 
-- 通过 `prototype-modules.ts` 集中管理
-- 支持自定义加载逻辑
+- `*.demo.proto.ts` 自动发现与按需加载
+- 支持自定义加载逻辑（手动注册）
 - 运行时适配器可插拔
 
 ## 🔌 扩展点
@@ -181,7 +180,7 @@ export const runtimeLoaders = {
 
 ```typescript
 // prototype-modules.ts
-export const prototypeModules = {
+const manualPrototypeModules = {
   'advanced-demo': async () => {
     // 加载额外依赖
     const [protoModule, dataModule] = await Promise.all([
@@ -201,7 +200,7 @@ export const prototypeModules = {
 
 ```typescript
 // prototype-modules.ts
-export const prototypeModules = {
+const manualPrototypeModules = {
   'conditional-demo': async () => {
     if (process.env.NODE_ENV === 'development') {
       return import('./demo-dev');
@@ -228,7 +227,7 @@ loadPrototype() 失败
 
 | 错误 | 原因 | 解决方案 |
 | --- | --- | --- |
-| "未找到原型" | `prototypeId` 未在 `prototype-modules.ts` 注册 | 添加注册项 |
+| "未找到原型" | 没有对应的 `*.demo.proto.ts` 文件或未手动注册 | 检查文件命名或手动注册 |
 | "无法加载原型模块" | 模块路径错误或文件不存在 | 检查导入路径 |
 | "registerPrototype: invalid id" | `prototypeId` 为空或非字符串 | 传递有效 ID |
 | "尝试在 SSR 环境获取原型" | 在服务端调用 `getPrototype()` | 确保只在客户端调用 |

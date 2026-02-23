@@ -5,7 +5,8 @@ import type { RuntimeId } from './runtimes/registry';
 
 
 interface Props {
-  prototypeId: string;                    // 原型 ID
+  prototypeId?: string;                   // 原型 ID（与 demoId 二选一）
+  demoId?: string;                        // demo ID（*.demo.ts）
   initialRuntime?: RuntimeId;             // 默认 'wc'
   props?: Record<string, unknown>;        // 传给原型适配后组件的 props
   class?: string;
@@ -14,8 +15,44 @@ interface Props {
   loader?: string;                        // 动态导入路径，例如 './demo-inline'
 }
 
+function assertJsonLike(value: unknown, path: string[] = []) {
+  const makePath = () => (path.length === 0 ? '(root)' : path.join('.'));
+  const fail = (detail: string) => {
+    throw new Error(
+      `[PrototypePreviewer] props 必须是 JSON-like 数据。\n` +
+        `非法值位置: ${makePath()}\n` +
+        `问题: ${detail}`
+    );
+  };
+
+  if (value === null) return;
+  const t = typeof value;
+  if (t === 'string' || t === 'number' || t === 'boolean') return;
+  if (t === 'undefined' || t === 'function' || t === 'symbol' || t === 'bigint') {
+    fail(`不支持的类型 "${t}"`);
+  }
+  if (Array.isArray(value)) {
+    for (let i = 0; i < value.length; i++) {
+      assertJsonLike(value[i], [...path, `[${i}]`]);
+    }
+    return;
+  }
+  if (t === 'object') {
+    if (Object.getPrototypeOf(value) !== Object.prototype) {
+      fail('仅支持普通对象');
+    }
+    for (const [k, v] of Object.entries(value as Record<string, unknown>)) {
+      assertJsonLike(v, [...path, k]);
+    }
+    return;
+  }
+
+  fail(`不支持的类型 "${t}"`);
+}
+
 const {
   prototypeId,
+  demoId,
   initialRuntime = 'wc',
   props: protoProps = {},
   class: className = '',
@@ -24,9 +61,15 @@ const {
   loader
 } = Astro.props;
 
-if (!prototypeId) {
-  throw new Error('[PrototypePreviewer] "prototypeId" is required.');
+if (!prototypeId && !demoId) {
+  throw new Error('[PrototypePreviewer] "prototypeId" or "demoId" is required.');
 }
+
+if (prototypeId && demoId) {
+  throw new Error('[PrototypePreviewer] "prototypeId" and "demoId" cannot be used together.');
+}
+
+assertJsonLike(protoProps);
 
 const rid = `pp-${Math.random().toString(36).slice(2)}`;
 ---
@@ -34,7 +77,8 @@ const rid = `pp-${Math.random().toString(36).slice(2)}`;
 <div
   class={`proto-previewer ${className}`}
   data-previewer-id={rid}
-  data-prototype-id={prototypeId}
+  data-prototype-id={prototypeId || ''}
+  data-demo-id={demoId || ''}
   data-initial-runtime={initialRuntime}
   data-props={JSON.stringify(protoProps)}
   data-runtimes={JSON.stringify(runtimes)}
@@ -63,19 +107,21 @@ const rid = `pp-${Math.random().toString(36).slice(2)}`;
     function init() {
       document.querySelectorAll<HTMLElement>('.proto-previewer[data-previewer-id]:not([data-inited])').forEach((root) => {
         const prototypeId = root.dataset.prototypeId || '';
+        const demoId = root.dataset.demoId || '';
         const initialRuntime = (root.dataset.initialRuntime || 'wc') as RuntimeId;
         const demoProps = root.dataset.props ? JSON.parse(root.dataset.props) : {};
         const runtimeList = root.dataset.runtimes ? JSON.parse(root.dataset.runtimes) : ['wc', 'react'];
         const loader = root.dataset.loader || '';
 
-        if (!prototypeId) {
-          console.error('[PrototypePreviewer] missing prototypeId', root);
+        if (!prototypeId && !demoId) {
+          console.error('[PrototypePreviewer] missing prototypeId or demoId', root);
           return;
         }
 
         initPreviewer({
           root,
           prototypeId,
+          demoId,
           initialRuntime,
           demoProps,
           runtimeList,
