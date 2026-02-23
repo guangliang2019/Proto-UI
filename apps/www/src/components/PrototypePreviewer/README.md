@@ -197,8 +197,7 @@ console.log('可用原型:', getAvailablePrototypes());
 | `runtimes`       | `RuntimeId[]`              | `['wc', 'react']` | 可用的运行时列表         |
 | `class`          | `string`                   | `''`              | 自定义 CSS 类            |
 
-> `props` 仅支持 JSON-like 数据（不允许函数、`undefined`、`symbol`、`bigint`）。
-> `prototypeId` 与 `demoId` 不能同时使用；demo 模式下 `props` 不生效。
+> `props` 仅支持 JSON-like 数据（不允许函数、`undefined`、`symbol`、`bigint`）。 `prototypeId` 与 `demoId` 不能同时使用；demo 模式下 `props` 不生效。
 
 ## 🎨 样式定制
 

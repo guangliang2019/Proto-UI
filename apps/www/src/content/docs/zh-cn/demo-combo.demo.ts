@@ -9,9 +9,7 @@ export default {
         prototypeId: 'demo-inline',
         className: 'rounded',
         props: { label: 'First' },
-        children: [
-          'First Button',
-        ],
+        children: ['First Button'],
       },
       {
         kind: 'box',
@@ -22,9 +20,7 @@ export default {
             prototypeId: 'demo-inline',
             className: 'rounded',
             props: { label: 'Second' },
-            children: [
-             'Second Button',
-            ],
+            children: ['Second Button'],
           },
         ],
       },

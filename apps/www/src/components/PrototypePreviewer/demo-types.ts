@@ -90,9 +90,7 @@ export function assertDemoSpec(demo: DemoSpec) {
     }
     if (node.kind === 'text') {
       if (typeof (node as any).text !== 'string') {
-        throw new Error(
-          `[PrototypePreviewer] demo text 必须是字符串：${path.join('.')}`
-        );
+        throw new Error(`[PrototypePreviewer] demo text 必须是字符串：${path.join('.')}`);
       }
       return;
     }
@@ -101,9 +99,7 @@ export function assertDemoSpec(demo: DemoSpec) {
     } else if (node.kind === 'proto') {
       const protoId = (node as any).prototypeId;
       if (!protoId || typeof protoId !== 'string') {
-        throw new Error(
-          `[PrototypePreviewer] demo 节点缺少 prototypeId：${path.join('.')}`
-        );
+        throw new Error(`[PrototypePreviewer] demo 节点缺少 prototypeId：${path.join('.')}`);
       }
       assertClassName((node as any).className, [...path, 'className']);
       if ((node as any).props !== undefined) {

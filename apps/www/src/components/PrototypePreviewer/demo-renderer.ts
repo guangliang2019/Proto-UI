@@ -58,17 +58,13 @@ function renderDemoNodeReact(
   if (typeof node === 'string') return node;
   if (node.kind === 'text') return node.text;
   if (node.kind === 'box') {
-    const kids = (node.children ?? []).map((child) =>
-      renderDemoNodeReact(runtime, adapter, child)
-    );
+    const kids = (node.children ?? []).map((child) => renderDemoNodeReact(runtime, adapter, child));
     return runtime.createElement('div', { className: node.className }, ...kids);
   }
 
   const proto = getPrototype(node.prototypeId);
   const Component = adapter(proto as any);
-  const kids = (node.children ?? []).map((child) =>
-    renderDemoNodeReact(runtime, adapter, child)
-  );
+  const kids = (node.children ?? []).map((child) => renderDemoNodeReact(runtime, adapter, child));
   const props = { ...(node.props ?? {}) } as Record<string, unknown>;
   if (node.className) (props as any).hostClassName = node.className;
   return runtime.createElement(Component, props as any, ...kids);

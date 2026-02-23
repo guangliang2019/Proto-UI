@@ -14,10 +14,9 @@ const DemoInline = definePrototype({
     def.props.define({
       label: { type: 'string', default: 'Hello' },
     });
-    
 
     return (r) => {
-      return r.r.slot()
+      return r.r.slot();
     };
   },
 });
