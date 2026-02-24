@@ -11,6 +11,12 @@ export interface Prototype<
   setup: (def: DefHandle<Props, Exposes>) => RenderFn | void;
 }
 
+export type ExposeOf<T> = T extends Prototype<any, infer E>
+  ? E
+  : T extends AsHookCaller<any, infer E, any, any>
+    ? E
+    : never;
+
 export type RenderFn = <Props extends PropsBaseType>(
   renderer: RendererHandle<Props>
 ) => TemplateChildren;

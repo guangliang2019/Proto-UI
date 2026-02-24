@@ -5,7 +5,7 @@ export type { ButtonProps, ButtonExposes } from './types';
 export { asButton } from './as-button';
 
 const button = definePrototype({
-  name: 'button',
+  name: 'base-button',
   setup: () => {
     asButton();
   },
