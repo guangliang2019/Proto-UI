@@ -9,7 +9,7 @@ export const asButton = defineAsHook<ButtonProps, ButtonExposes>({
     });
     def.props.setDefaults({
       disabled: false,
-    })
+    });
 
     // disabled state
     const disabled = def.state.bool('disabled', false);
