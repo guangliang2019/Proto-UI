@@ -2,52 +2,73 @@
   site-search {
   }
   site-search button {
-    @apply inline-flex items-center gap-2 whitespace-nowrap rounded-md text-sm transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive hover:bg-secondary/80 px-4 py-2 has-[>svg]:px-3 bg-surface text-surface-foreground/60 dark:bg-card relative h-8 w-full justify-start pl-2.5 font-normal shadow-none sm:pr-12 md:w-40 lg:w-56 xl:w-64;
+    @apply inline-flex items-center gap-2 whitespace-nowrap rounded-md text-sm transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive px-4 py-2 has-[>svg]:px-3 bg-surface text-foreground/70 dark:text-muted-foreground dark:bg-card relative h-8 w-full justify-start pl-2.5 font-normal shadow-none sm:pr-12 md:w-40 lg:w-56 xl:w-64 border border-border hover:bg-secondary/80;
   }
   site-search kbd {
     background-color: transparent;
   }
+  site-search button kbd {
+    @apply ml-auto;
+  }
 
   site-search kbd kbd {
-    --color-background: oklch(14.5% 0 0);
-    --color-foreground: oklch(98.5% 0 0);
-    --color-card: oklch(20.5% 0 0);
-    --color-card-foreground: oklch(98.5% 0 0);
-    --color-popover: oklch(26.9% 0 0);
-    --color-popover-foreground: oklch(98.5% 0 0);
-    --color-primary: oklch(92.2% 0 0);
-    --color-primary-foreground: oklch(20.5% 0 0);
-    --color-secondary: oklch(26.9% 0 0);
-    --color-secondary-foreground: oklch(98.5% 0 0);
-    --color-muted: oklch(26.9% 0 0);
-    --color-muted-foreground: oklch(70.8% 0 0);
-    --color-accent: oklch(37.1% 0 0);
-    --color-accent-foreground: oklch(98.5% 0 0);
-    --color-destructive: oklch(70.4% 0.191 22.216);
-    --color-border: oklch(100% 0 0/0.1);
-    --color-input: oklch(100% 0 0/0.15);
-    --color-ring: oklch(55.6% 0 0);
-    --color-chart-1: var(--color-blue-300);
-    --color-chart-2: var(--color-blue-500);
-    --color-chart-3: var(--color-blue-600);
-    --color-chart-4: var(--color-blue-700);
-    --color-chart-5: var(--color-blue-800);
-    --color-sidebar: oklch(20.5% 0 0);
-    --color-sidebar-foreground: oklch(98.5% 0 0);
-    --color-sidebar-primary: oklch(48.8% 0.243 264.376);
-    --sidebar-primary-foreground: oklch(98.5% 0 0);
-    --color-sidebar-accent: oklch(26.9% 0 0);
-    --color-sidebar-accent-foreground: oklch(98.5% 0 0);
-    --color-sidebar-border: oklch(100% 0 0/0.1);
-    --color-sidebar-ring: oklch(43.9% 0 0);
-    --color-surface: oklch(20% 0 0);
-    --color-surface-foreground: oklch(70.8% 0 0);
-    --color-code: var(--color-surface);
-    --color-code-foreground: var(--color-surface-foreground);
-    --color-code-highlight: oklch(27% 0 0);
-    --color-code-number: oklch(72% 0 0);
-    --color-selection: oklch(92.2% 0 0);
-    --color-selection-foreground: oklch(20.5% 0 0);
-    @apply bg-background text-muted-foreground pointer-events-none flex h-5 items-center justify-center gap-1 rounded-sm border border-border px-1 font-sans text-[0.7rem] font-medium select-none [&_svg:not([class*='size-'])]:size-3;
+    @apply bg-white text-muted-foreground pointer-events-none flex h-5 items-center justify-center gap-1 rounded-sm border border-border/70 px-1 font-sans text-[0.7rem] font-medium select-none [&_svg:not([class*='size-'])]:size-3;
+  }
+  [data-theme='dark'] site-search kbd kbd {
+    @apply bg-muted border-border/40;
+  }
+
+  /* Search dialog (Pagefind) flat styles */
+  dialog[aria-label='搜索'] {
+    @apply bg-background text-foreground border border-border rounded-xl;
+  }
+  dialog[aria-label='搜索'] .dialog-frame {
+    @apply w-full max-w-3xl mx-auto p-4 sm:p-6;
+  }
+  dialog[aria-label='搜索'] [data-close-modal] {
+    @apply text-muted-foreground text-sm font-medium;
+  }
+  dialog[aria-label='搜索'] .search-container {
+    @apply w-full;
+  }
+  dialog[aria-label='搜索'] .pagefind-ui__form {
+    @apply flex flex-col gap-3;
+  }
+  dialog[aria-label='搜索'] .pagefind-ui__search-input {
+    @apply w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground;
+    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40;
+  }
+  dialog[aria-label='搜索'] .pagefind-ui__search-clear {
+    @apply text-xs text-muted-foreground hover:text-foreground;
+  }
+  dialog[aria-label='搜索'] .pagefind-ui__drawer {
+    @apply border-t border-border/60 pt-3;
+  }
+  dialog[aria-label='搜索'] .pagefind-ui__message {
+    @apply text-xs text-muted-foreground;
+  }
+  dialog[aria-label='搜索'] .pagefind-ui__results {
+    @apply mt-2 flex flex-col gap-2;
+  }
+  dialog[aria-label='搜索'] .pagefind-ui__result {
+    @apply rounded-md border border-border/60 bg-background p-3;
+  }
+  dialog[aria-label='搜索'] .pagefind-ui__result-title {
+    @apply text-sm font-medium;
+  }
+  dialog[aria-label='搜索'] .pagefind-ui__result-link {
+    @apply text-foreground hover:text-foreground/80;
+  }
+  dialog[aria-label='搜索'] .pagefind-ui__result-excerpt {
+    @apply mt-1 text-xs text-muted-foreground;
+  }
+  dialog[aria-label='搜索'] .pagefind-ui__result-nested {
+    @apply mt-2 border-l border-border/60 pl-3;
+  }
+  dialog[aria-label='搜索'] .pagefind-ui__button {
+    @apply mt-3 w-full rounded-md border border-border bg-secondary text-secondary-foreground text-sm py-2 hover:bg-secondary/80;
+  }
+  dialog[aria-label='搜索'] mark {
+    @apply bg-accent text-accent-foreground rounded-sm px-1;
   }
 }
