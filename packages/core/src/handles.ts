@@ -17,7 +17,7 @@ import {
   TemplateChildren,
   TemplateNode,
 } from './spec';
-import { StateDefAPI } from './state';
+import { State, StateDefAPI } from './state';
 
 // 统一错误上下文，方便在 runtime 做 phase guard 时给出可诊断信息
 
@@ -25,6 +25,28 @@ export interface GuardInfo {
   prototypeName: string;
   phase: Phase;
 }
+
+export type ExposeEvent<Payload = any> = {
+  kind: 'event';
+  payload?: Payload;
+};
+
+export type ExposeMethod<F extends Function = (...args: any[]) => any> = {
+  kind: 'method';
+  fn: F;
+};
+
+export type ExposeValue<V = any> = {
+  kind: 'value';
+  value: V;
+};
+
+export type ExposeState<V = any> = State<V> | { kind: 'state'; state: State<V> };
+
+export type ExposeMap = Record<
+  string,
+  ExposeEvent<any> | ExposeMethod<any> | ExposeValue<any> | ExposeState<any>
+>;
 
 /**
  * Handles are how we strictly separate phases:
@@ -83,10 +105,19 @@ export interface DefHandle<Props extends PropsBaseType, Exposes = Record<string,
   };
 
   expose: (<K extends keyof Exposes>(key: K, value: Exposes[K]) => void) & {
-    event: (key: string, spec?: ExposeEventSpec) => void;
-    state: (key: string, handle: any) => void;
-    value: <V>(key: string, value: V) => void;
-    method: <F extends Function>(key: string, fn: F) => void;
+    event: <K extends keyof Exposes & string>(key: K, spec?: ExposeEventSpec) => void;
+    state: <K extends keyof Exposes & string>(
+      key: K,
+      handle: Exposes[K] extends ExposeState<infer V> ? State<V> : State<any>
+    ) => void;
+    value: <K extends keyof Exposes & string, V>(
+      key: K,
+      value: Exposes[K] extends ExposeValue<infer X> ? X : V
+    ) => void;
+    method: <K extends keyof Exposes & string, F extends Function>(
+      key: K,
+      fn: Exposes[K] extends ExposeMethod<infer X> ? X : F
+    ) => void;
   };
 
   rule: (spec: any) => void;

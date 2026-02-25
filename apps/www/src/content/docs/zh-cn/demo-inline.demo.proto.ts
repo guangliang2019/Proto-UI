@@ -1,5 +1,4 @@
 import { definePrototype, tw } from '@proto-ui/core';
-import { registerPrototype } from '../../../components/PrototypePreviewer/registry';
 
 const DemoInline = definePrototype({
   name: 'demo-inline',
@@ -12,12 +11,14 @@ const DemoInline = definePrototype({
     // 设置补充样式
     def.feedback.style.use(tw('p-4 rounded border'));
 
+    def.props.define({
+      label: { type: 'string', default: 'Hello' },
+    });
+
     return (r) => {
-      return r.el('div', { style: tw('text-white') }, 'Hello World');
-      // return '123';
-      // return 'hello world';
+      return r.r.slot();
     };
   },
 });
 
-registerPrototype('demo-inline', DemoInline);
+export default DemoInline;

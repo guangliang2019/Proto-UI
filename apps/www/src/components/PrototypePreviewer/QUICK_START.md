@@ -1,13 +1,12 @@
 # PrototypePreviewer 快速参考
 
-## 📝 添加新原型（3 步完成）
+## 📝 添加新原型（2 步完成）
 
 ### 1️⃣ 创建原型文件
 
 ```typescript
-// src/content/docs/zh-cn/my-awesome-demo.ts
+// src/content/docs/zh-cn/my-awesome-demo.demo.proto.ts
 import { definePrototype } from '@proto-ui/core';
-import { registerPrototype } from '../../../components/PrototypePreviewer/registry';
 
 const MyAwesomeDemo = definePrototype({
   name: 'my-awesome-demo',
@@ -24,21 +23,10 @@ const MyAwesomeDemo = definePrototype({
   },
 });
 
-registerPrototype('my-awesome-demo', MyAwesomeDemo);
+export default MyAwesomeDemo;
 ```
 
-### 2️⃣ 注册加载器
-
-```typescript
-// src/components/PrototypePreviewer/prototype-modules.ts
-export const prototypeModules = {
-  // ... 其他原型 ...
-
-  'my-awesome-demo': () => import('../../content/docs/zh-cn/my-awesome-demo'),
-};
-```
-
-### 3️⃣ 在 MDX 中使用
+### 2️⃣ 在 MDX 中使用
 
 ```mdx
 ---
@@ -46,6 +34,7 @@ title: 我的页面
 ---
 
 import { PrototypePreviewer } from '../../../components/PrototypePreviewer';
+// 或使用 DemoPreviewer（PrototypePreviewer 的别名）
 
 <PrototypePreviewer prototypeId="my-awesome-demo" initialRuntime="wc" />
 ```
@@ -60,6 +49,37 @@ import { PrototypePreviewer } from '../../../components/PrototypePreviewer';
 
 ```mdx
 <PrototypePreviewer prototypeId="demo-inline" />
+```
+
+### 组合多个原型（demo）
+
+```typescript
+// src/content/docs/zh-cn/my-combo.demo.ts
+export default {
+  type: 'demo',
+  root: {
+    kind: 'box',
+    className: 'p-4 border rounded',
+    children: [{ kind: 'proto', prototypeId: 'demo-inline' }],
+  },
+};
+```
+
+```mdx
+<PrototypePreviewer demoId="my-combo" />
+{/* 或 <DemoPreviewer demoId="my-combo" /> */}
+```
+
+`text` 节点可用于纯文本内容（或直接写字符串）：
+
+```typescript
+export default {
+  type: 'demo',
+  root: {
+    kind: 'box',
+    children: [{ kind: 'text', text: 'Hello' }, 'World'],
+  },
+};
 ```
 
 ### 指定初始运行时
@@ -82,7 +102,7 @@ import { PrototypePreviewer } from '../../../components/PrototypePreviewer';
   props={{
     title: 'Hello',
     count: 42,
-    onUpdate: (val) => console.log(val),
+    enabled: true,
   }}
 />
 ```
@@ -155,7 +175,7 @@ await loadPrototype('demo-inline');
 Error: [PrototypePreviewer] 未找到原型 "my-demo"
 ```
 
-**解决**: 检查 `prototype-modules.ts` 中是否注册了该 ID
+**解决**: 确认存在 `*.demo.proto.ts` 文件且文件名与 `prototypeId` 一致
 
 ---
 
@@ -192,7 +212,7 @@ Error: registerPrototype: invalid id
 ✅ **DO**
 
 - 使用 kebab-case 命名原型 ID
-- 在 `prototype-modules.ts` 中集中管理
+- 使用 `*.demo.proto.ts` 后缀，靠近文档就近维护
 - 让系统自动按需加载
 - 为原型添加有意义的注释
 
@@ -201,7 +221,7 @@ Error: registerPrototype: invalid id
 - 不要在 MDX 中直接 import 原型文件
 - 不要使用 camelCase 或 PascalCase 作为原型 ID
 - 不要在原型定义中包含副作用
-- 不要忘记在 `prototype-modules.ts` 中注册
+- 不要使用非 `*.demo.proto.ts` 后缀的文件当作 demo 原型
 
 ---
 
@@ -210,9 +230,8 @@ Error: registerPrototype: invalid id
 复制粘贴这个模板快速开始：
 
 ```typescript
-// your-demo.ts
+// your-demo.demo.proto.ts
 import { definePrototype } from '@proto-ui/core';
-import { registerPrototype } from '../../../components/PrototypePreviewer/registry';
 
 const YourDemo = definePrototype({
   name: 'your-demo',
@@ -224,14 +243,7 @@ const YourDemo = definePrototype({
   },
 });
 
-registerPrototype('your-demo', YourDemo);
-```
-
-```typescript
-// prototype-modules.ts
-export const prototypeModules = {
-  'your-demo': () => import('../../content/docs/your-path/your-demo'),
-};
+export default YourDemo;
 ```
 
 ```mdx

@@ -1,12 +1,16 @@
 // src/next-www/src/components/PrototypePreviewer/previewer-client.ts
 import { runtimeLoaders } from './runtimes/registry';
 import { getPrototype } from './registry';
-import { loadPrototype } from './prototype-modules';
+import { loadPrototype, loadPrototypes } from './prototype-modules';
+import { loadDemo } from './demo-modules';
+import { renderDemo } from './demo-renderer';
+import { collectPrototypeIds } from './demo-types';
 import type { RuntimeId } from './runtimes/registry';
 
 interface PreviewerOptions {
   root: HTMLElement;
-  prototypeId: string;
+  prototypeId?: string;
+  demoId?: string;
   initialRuntime: RuntimeId;
   demoProps: Record<string, unknown>;
   runtimeList: RuntimeId[];
@@ -14,7 +18,7 @@ interface PreviewerOptions {
 }
 
 export function initPreviewer(options: PreviewerOptions) {
-  const { root, prototypeId, initialRuntime, demoProps, runtimeList, loader } = options;
+  const { root, prototypeId, demoId, initialRuntime, demoProps, runtimeList, loader } = options;
 
   // 防重复初始化
   if (root.dataset.inited === '1') {
@@ -27,6 +31,7 @@ export function initPreviewer(options: PreviewerOptions) {
   const select = root.querySelector('select') as HTMLSelectElement | null;
 
   let current: { id: string; api: any } | null = null;
+  let currentDemo: { id: string; destroy: () => Promise<void> | void } | null = null;
   let version = 0;
   let destroyed = false;
 
@@ -85,9 +90,33 @@ export function initPreviewer(options: PreviewerOptions) {
     if (select) select.disabled = true;
 
     try {
-      // 卸载旧 runtime
+      // 卸载旧 runtime / demo
+      if (currentDemo) {
+        await currentDemo.destroy();
+        currentDemo = null;
+      }
       if (current?.api?.unmount) await current.api.unmount(host);
       else host.innerHTML = '';
+
+      if (demoId) {
+        const demo = await loadDemo(demoId);
+        const ids = new Set<string>();
+        collectPrototypeIds(demo.root, ids);
+        await loadPrototypes(Array.from(ids));
+
+        const { destroy } = await renderDemo({
+          runtime: id as RuntimeId,
+          demo,
+          host,
+        });
+        currentDemo = { id, destroy };
+        dispatch('runtime:changed', { id });
+        return;
+      }
+
+      if (!prototypeId) {
+        throw new Error('[PrototypePreviewer] missing prototypeId');
+      }
 
       // 确保原型已加载（如果有 loader）
       await ensurePrototypeLoaded();
@@ -132,18 +161,28 @@ export function initPreviewer(options: PreviewerOptions) {
   // 对外控制（调试/父组件可用）
   (root as any).__previewer__ = {
     switchRuntime: (id: string) => switchTo(id),
-    reload: () => current && switchTo(current.id),
-    getCurrentRuntime: () => current?.id ?? null,
+    reload: () => {
+      if (current) return switchTo(current.id);
+      if (currentDemo) return switchTo(currentDemo.id);
+      return null;
+    },
+    getCurrentRuntime: () => current?.id ?? currentDemo?.id ?? null,
     setProps: (nextProps: Record<string, unknown>) => {
+      if (demoId) {
+        console.warn('[PrototypePreviewer] setProps is not supported in demo mode.');
+        return;
+      }
       Object.assign(demoProps, nextProps || {});
       if (current) switchTo(current.id);
     },
     destroy: async () => {
       destroyed = true;
       version++;
+      if (currentDemo) await currentDemo.destroy();
       if (current?.api?.unmount) await current.api.unmount(host);
       host.innerHTML = '';
       current = null;
+      currentDemo = null;
     },
   };
 

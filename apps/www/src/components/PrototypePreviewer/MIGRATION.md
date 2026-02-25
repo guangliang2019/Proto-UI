@@ -13,14 +13,13 @@ v3 引入了按需动态加载机制，带来以下优势：
 
 ## 📋 迁移步骤
 
-### 步骤 1: 更新原型定义（无需改动）
+### 步骤 1: 调整原型文件命名与导出
 
 原型定义文件保持不变：
 
 ```typescript
-// demo-inline.ts
+// demo-inline.demo.proto.ts
 import { definePrototype } from '@proto-ui/core';
-import { registerPrototype } from '../../../components/PrototypePreviewer/registry';
 
 const DemoInline = definePrototype({
   name: 'demo-inline',
@@ -32,21 +31,12 @@ const DemoInline = definePrototype({
   },
 });
 
-registerPrototype('demo-inline', DemoInline);
+export default DemoInline;
 ```
 
-### 步骤 2: 注册到 `prototype-modules.ts`
+### 步骤 2: 保持 `prototypeId` 与文件名一致
 
-打开 `src/components/PrototypePreviewer/prototype-modules.ts`，添加你的原型：
-
-```typescript
-export const prototypeModules: Record<string, PrototypeModuleLoader> = {
-  // 从 prototypes.ts 中的每个导入转换为一个条目
-  'demo-inline': () => import('../../content/docs/zh-cn/demo-inline'),
-
-  // 添加更多...
-};
-```
+示例：`demo-inline.demo.proto.ts` 对应 `prototypeId="demo-inline"`。
 
 ### 步骤 3: 更新 MDX 文件
 
@@ -83,7 +73,7 @@ import { PrototypePreviewer } from '../../../components/PrototypePreviewer';
 
 ### 步骤 4: 删除 `prototypes.ts`（可选）
 
-如果你使用的是集中式的 `prototypes.ts` 文件，现在可以删除它了。所有的导入已经移到 `prototype-modules.ts` 中。
+如果你使用的是集中式的 `prototypes.ts` 文件，现在可以删除它了。原型会通过 `*.demo.proto.ts` 自动按需加载。
 
 **之前的 `prototypes.ts`：**
 
@@ -93,15 +83,9 @@ import './button-demo';
 import './form-demo';
 ```
 
-**现在的 `prototype-modules.ts`：**
+**现在：**
 
-```typescript
-export const prototypeModules = {
-  'demo-inline': () => import('../../content/docs/zh-cn/demo-inline'),
-  'button-demo': () => import('../../content/docs/zh-cn/button-demo'),
-  'form-demo': () => import('../../content/docs/zh-cn/form-demo'),
-};
-```
+将原型文件命名为 `*.demo.proto.ts`，并在 MDX 中使用对应 `prototypeId`。
 
 ## 🔄 批量迁移脚本
 
@@ -117,7 +101,7 @@ grep -r "PrototypeLoader" src/content --include="*.mdx"
 
 ## ✅ 迁移检查清单
 
-- [ ] 所有原型已在 `prototype-modules.ts` 中注册
+- [ ] 所有原型文件已改为 `*.demo.proto.ts` 命名
 - [ ] MDX 文件中移除了 `import PrototypeLoader`
 - [ ] MDX 文件中移除了 `<PrototypeLoader />` 组件
 - [ ] 测试每个原型是否正常加载
@@ -127,15 +111,13 @@ grep -r "PrototypeLoader" src/content --include="*.mdx"
 
 ### Q: 迁移后出现 "未找到原型" 错误
 
-**原因**: 原型未在 `prototype-modules.ts` 中注册
+**原因**: 没有对应的 `*.demo.proto.ts` 文件，或文件名与 `prototypeId` 不一致
 
 **解决**:
 
-```typescript
-// 检查 prototypeId 是否在 prototypeModules 中
-export const prototypeModules = {
-  'your-prototype-id': () => import('正确的路径'),
-};
+```text
+检查 demo 文件命名是否正确：
+your-prototype-id.demo.proto.ts
 ```
 
 ### Q: 可以保留 PrototypeLoader 吗？
