@@ -35,7 +35,7 @@
     @apply h-7.5 flex items-center font-medium flex justify-between;
   }
   .sidebar-pane a span {
-    @apply px-2 h-full rounded-sm flex items-center border-transparent;
+    @apply px-2 h-full rounded-sm flex items-center border-transparent text-[13px] leading-5;
   }
   .sidebar-pane a:hover span {
     @apply bg-muted border-muted;

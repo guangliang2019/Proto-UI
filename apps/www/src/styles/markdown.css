@@ -3,6 +3,11 @@
     @apply w-full;
   }
 
+  main[data-pagefind-body] {
+    font-size: 15px;
+    line-height: 1.625;
+  }
+
   main[data-pagefind-body] h1 {
     @apply scroll-m-20 text-4xl font-semibold tracking-tight sm:text-3xl xl:text-4xl;
   }
@@ -12,7 +17,7 @@
   }
 
   main[data-pagefind-body] .sl-heading-wrapper {
-    @apply flex items-end mt-8 gap-2;
+    @apply flex items-end mt-16 gap-2;
   }
 
   main[data-pagefind-body] .sl-heading-wrapper a {
@@ -28,21 +33,79 @@
   }
 
   main[data-pagefind-body] p {
-    @apply leading-7 [&:not(:first-child)]:mt-6;
+    @apply leading-[1.625] [&:not(:first-child)]:mt-4;
   }
 
   main[data-pagefind-body] blockquote {
-    @apply mt-6 border-l-2 pl-6 italic;
+    @apply mt-4 border-l-2 pl-6 italic;
   }
 
   main[data-pagefind-body] table {
-    width: 100%;
+    @apply mt-6 w-full text-sm border border-border rounded-lg overflow-hidden bg-background;
+    border-collapse: separate;
+    border-spacing: 0;
   }
   main[data-pagefind-body] table tr {
-    @apply even:bg-muted m-0 border-t p-0;
+    @apply even:bg-muted/40 m-0 border-b border-border p-0 last:border-b-0;
   }
   main[data-pagefind-body] table th {
-    @apply border px-4 py-2 text-left font-bold [&[align=center]]:text-center [&[align=right]]:text-right;
+    @apply px-4 py-1.5 text-left font-semibold bg-muted/60 text-foreground [&[align=center]]:text-center [&[align=right]]:text-right;
+  }
+  main[data-pagefind-body] table td {
+    @apply px-4 py-3 align-top text-foreground;
+  }
+  /* Light mode: subtle inner grid lines for readability */
+  main[data-pagefind-body] table th,
+  main[data-pagefind-body] table td {
+    @apply border-b border-border/60;
+  }
+  main[data-pagefind-body] table tr:last-child td {
+    @apply border-b-0;
+  }
+  main[data-pagefind-body] table td + td,
+  main[data-pagefind-body] table th + th {
+    @apply border-l border-border/60;
+  }
+  [data-theme='dark'] main[data-pagefind-body] table th,
+  [data-theme='dark'] main[data-pagefind-body] table td {
+    @apply border-transparent;
+  }
+
+  /* Starlight pagination links: flatten card style */
+  footer .pagination-links,
+  main[data-pagefind-body] footer .pagination-links {
+    @apply mt-6 flex items-center justify-between gap-2;
+  }
+  footer .pagination-links a,
+  main[data-pagefind-body] footer .pagination-links a {
+    @apply inline-flex items-center justify-center whitespace-nowrap text-sm font-medium transition-colors;
+    @apply bg-secondary text-secondary-foreground hover:bg-secondary/80;
+    @apply h-7 rounded-md gap-1.5 px-3 shadow-none;
+    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40;
+    @apply border border-border;
+    @apply flex-none w-fit;
+    font-size: 0.8125rem;
+  }
+  footer .pagination-links a svg,
+  main[data-pagefind-body] footer .pagination-links a svg {
+    @apply shrink-0 -mx-1;
+    width: 0.95rem;
+    height: 0.95rem;
+  }
+  /* Hide "Previous/Next" label line, keep link title */
+  footer .pagination-links a > span:first-of-type,
+  main[data-pagefind-body] footer .pagination-links a > span:first-of-type {
+    font-size: 0;
+    line-height: 0;
+  }
+  footer .pagination-links a > span:first-of-type .link-title,
+  main[data-pagefind-body] footer .pagination-links a > span:first-of-type .link-title {
+    @apply block;
+    font-size: 0.8125rem;
+    line-height: 1.25rem;
+  }
+  main[data-pagefind-body] .pagination-links a:hover {
+    @apply shadow-none;
   }
 
   main[data-pagefind-body] ul {
@@ -54,7 +117,7 @@
   }
 
   main[data-pagefind-body] hr {
-    @apply mt-4 mb-12;
+    @apply mt-16 mb-4;
   }
 
   main[data-pagefind-body] .sl-heading-wrapper {

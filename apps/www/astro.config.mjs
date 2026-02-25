@@ -112,8 +112,8 @@ export default defineConfig({
             {
               label: '时间线 & 里程碑',
               translations: {
-                en: 'Timeline & Milestones',
-                'zh-CN': '时间线 & 里程碑',
+                en: 'Milestones',
+                'zh-CN': '里程碑',
               },
               slug: 'overview/milestone',
             },
