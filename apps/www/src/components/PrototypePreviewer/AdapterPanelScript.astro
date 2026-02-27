@@ -1,0 +1,31 @@
+---
+import { AdapterIds } from './runtimes/registry';
+import { PREFERRED_KEY, DEFAULT_ADAPTER } from '../override/AdapterSelect.astro';
+---
+
+<script is:inline define:vars={{ PREFERRED_KEY, DEFAULT_ADAPTER, AdapterIds }}>
+  (function () {
+    function showPanel(adapter) {
+      document.querySelectorAll('[data-adapter-panel]').forEach(function (el) {
+        el.style.display = el.getAttribute('data-adapter-panel') === adapter ? '' : 'none';
+      });
+    }
+
+    function getPreferred() {
+      try {
+        let SelectedAdapter = localStorage.getItem(PREFERRED_KEY);
+        return SelectedAdapter && AdapterIds.indexOf(SelectedAdapter) !== -1
+          ? SelectedAdapter
+          : DEFAULT_ADAPTER;
+      } catch (e) {
+        return DEFAULT_ADAPTER;
+      }
+    }
+
+    showPanel(getPreferred());
+
+    document.addEventListener('proto-adapter:change', function (e) {
+      showPanel(e.detail.adapter);
+    });
+  })();
+</script>

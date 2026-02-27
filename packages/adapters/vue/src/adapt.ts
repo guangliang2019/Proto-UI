@@ -28,14 +28,18 @@ export type VueRuntime = VueRenderRuntime & {
   nextTick: () => Promise<void>;
 };
 
+// 创建标记符号，用于标识 Proto UI 实例
 export const __VUE_PROTO_INSTANCE = Symbol.for('@proto-ui/adapters.vue/__proto_instance');
+// 创建一个弱引用映射，用于存储 Proto UI 实例和对应的 prototype
 const PROTO_BY_INSTANCE = new WeakMap<HTMLElement, Prototype<any>>();
 
+// 检查节点是否是 Proto UI 实例
 function isProtoInstance(node: Node | null): node is HTMLElement {
   if (!node || !(node as any)) return false;
   return (node as any)[__VUE_PROTO_INSTANCE] === true;
 }
 
+// 获取 Proto UI 实例的父级实例
 function getProtoParent(instance: HTMLElement): HTMLElement | null {
   let cur: Node | null = instance.parentNode;
   while (cur) {
@@ -49,17 +53,20 @@ function getProtoParent(instance: HTMLElement): HTMLElement | null {
   return null;
 }
 
+// 定义 Vue 适配器句柄类型
 export type VueAdapterHandle = {
   update(): void;
   getExposes(): Record<string, unknown>;
 };
 
+// 在原有 props 的基础上，添加 hostClass 和 hostStyle 属性
 export type VueAdapterProps<Props extends PropsBaseType> = Props &
   PropsBaseType & {
     hostClass?: string | string[] | Record<string, boolean>;
     hostStyle?: Record<string, string> | string | Array<Record<string, string>>;
   };
 
+// 定义 vue 的 options 类型
 export interface VueAdapterOptions<Props extends PropsBaseType> {
   schedule?: (task: () => void) => void;
   getProps?: (props: VueAdapterProps<Props>) => Partial<Props> | null | undefined;
@@ -68,6 +75,7 @@ export interface VueAdapterOptions<Props extends PropsBaseType> {
   rootTag?: string;
 }
 
+// 删除 vue 的默认获取 props 函数
 function defaultGetProps<Props extends PropsBaseType>(
   props: VueAdapterProps<Props>
 ): Partial<Props> {
@@ -75,6 +83,7 @@ function defaultGetProps<Props extends PropsBaseType>(
   return rest as Partial<Props>;
 }
 
+// 用于统一缓存 style 并在 合适的时机去统一注入到宿主的根元素中，也就是说和其他适配器一样在统一的时间段去执行
 function createVueEffectsPort(setHostTokens: (next: string[]) => void): EffectsPort {
   let latest: StyleHandle | null = null;
   let flushing = false;
@@ -125,12 +134,13 @@ export function createVueAdapter(runtime: VueRuntime) {
     proto: Prototype<Props>,
     opt: VueAdapterOptions<Props> = {}
   ) {
+    // TODO: 暂时不知道是什么意思
     const schedule = opt.schedule ?? ((task) => queueMicrotask(task));
     const getProps = opt.getProps ?? defaultGetProps;
     const exposeStateWebMode = opt.exposeStateWebMode;
     const autoUpdate = opt.autoUpdateOnPropsChange ?? true;
     const rootTag = opt.rootTag ?? 'div';
-
+    // TODO: 这个 proto 和 opt 里面有存在那些值？
     return runtime.defineComponent({
       name: `Proto(${proto.name})`,
       props: {
@@ -138,6 +148,7 @@ export function createVueAdapter(runtime: VueRuntime) {
         hostStyle: { type: [String, Array, Object], default: undefined },
       },
       setup(props: any, ctx: any) {
+        console.log('createVueAdapter', props, ctx);
         const rootRef = runtime.ref<HTMLElement | null>(null);
         const renderChildren = runtime.shallowRef<any>(null);
         const hostTokens = runtime.shallowRef<string[]>([]);
@@ -192,7 +203,7 @@ export function createVueAdapter(runtime: VueRuntime) {
           },
           { flush: 'post' }
         );
-
+        // 上面是只是去定义了所需要的对象，真正执行是在 onMounted 中
         runtime.onMounted(() => {
           const rootEl = rootRef.value;
           if (!rootEl) return;
@@ -283,11 +294,12 @@ export function createVueAdapter(runtime: VueRuntime) {
         });
 
         return () => {
+          // TODO: 这里的部分需要去了解一下
           const slotNodes = ctx.slots.default ? ctx.slots.default() : null;
           const rendered = renderTemplateToVue(runtime, renderChildren.value, {
             slot: slotNodes as any,
           });
-
+          // TODO: 这里的部分需要去了解一下
           const hostClass = [props.hostClass, hostTokens.value.join(' ')]
             .map((x: any) => x ?? '')
             .filter((x: any) => {

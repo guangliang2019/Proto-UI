@@ -1,7 +1,9 @@
 import { AdaptToWebComponent, setElementProps } from '@proto-ui/adapters.web-component';
 import { createReactAdapter } from '@proto-ui/adapters.react';
+import { createVueAdapter } from '@proto-ui/adapters.vue';
 import { getPrototype } from './registry';
 import { loadReact } from './runtimes/react-runtime';
+import { loadVue } from './runtimes/vue-runtime';
 import type { DemoChild, DemoNode, DemoRenderOptions, DemoRenderResult } from './demo-types';
 
 const reactRoots = new WeakMap<HTMLElement, { unmount: () => void; render: (el: any) => void }>();
@@ -101,7 +103,64 @@ async function renderDemoReact(opt: DemoRenderOptions): Promise<DemoRenderResult
   };
 }
 
+const vueApps = new WeakMap<HTMLElement, { unmount: () => void }>();
+
+function renderDemoNodeVue(
+  Vue: any,
+  adapter: ReturnType<typeof createVueAdapter>,
+  node: DemoChild
+): any {
+  if (typeof node === 'string') return node;
+  if (node.kind === 'text') return node.text;
+  if (node.kind === 'box') {
+    const kids = (node.children ?? []).map((child) => renderDemoNodeVue(Vue, adapter, child));
+    return Vue.h('div', { class: node.className }, kids);
+  }
+
+  const proto = getPrototype(node.prototypeId);
+  const Component = adapter(proto as any);
+  const kids = (node.children ?? []).map((child) => renderDemoNodeVue(Vue, adapter, child));
+  const props = { ...(node.props ?? {}) } as Record<string, unknown>;
+  if (node.className) (props as any).hostClass = node.className;
+  return Vue.h(Component, props, () => kids);
+}
+
+async function renderDemoVue(opt: DemoRenderOptions): Promise<DemoRenderResult> {
+  const { host, demo } = opt;
+
+  const Vue = await loadVue();
+  const adapter = createVueAdapter(Vue);
+
+  const existingApp = vueApps.get(host);
+  if (existingApp) {
+    existingApp.unmount();
+    vueApps.delete(host);
+  }
+  host.innerHTML = '';
+
+  const app = Vue.createApp({
+    setup() {
+      return () => renderDemoNodeVue(Vue, adapter, demo.root);
+    },
+  });
+
+  app.mount(host);
+  vueApps.set(host, app);
+
+  return {
+    destroy: () => {
+      const a = vueApps.get(host);
+      if (a) {
+        a.unmount();
+        vueApps.delete(host);
+      }
+      host.innerHTML = '';
+    },
+  };
+}
+
 export async function renderDemo(opt: DemoRenderOptions): Promise<DemoRenderResult> {
   if (opt.runtime === 'react') return renderDemoReact(opt);
+  if (opt.runtime === 'vue') return renderDemoVue(opt);
   return renderDemoWc(opt);
 }

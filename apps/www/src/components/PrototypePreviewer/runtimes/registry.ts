@@ -1,6 +1,6 @@
 // src/components/PrototypePreviewer/runtimes/registry.ts
-export type RuntimeId = 'wc' | 'react';
-
+export type RuntimeId = 'wc' | 'react' | 'vue';
+export const AdapterIds = ['wc', 'react', 'vue'];
 export type RuntimeAPI = {
   id: RuntimeId;
   label: string;
@@ -15,4 +15,5 @@ export type RuntimeAPI = {
 export const runtimeLoaders: Record<RuntimeId, () => Promise<RuntimeAPI>> = {
   wc: async () => (await import('./wc-runtime')).runtime,
   react: async () => (await import('./react-runtime')).runtime,
+  vue: async () => (await import('./vue-runtime')).runtime,
 };
