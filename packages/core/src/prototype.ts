@@ -104,11 +104,12 @@ export function defineAsHook<
   if (typeof proto.setup !== 'function') {
     throw new Error(`[AsHook] setup must be a function.`);
   }
-  if (!/^as[A-Z]/.test(proto.name)) {
-    throw new Error(
-      `[AsHook] name must start with "as" followed by Capital letter, got: ${proto.name}`
-    );
-  }
+  // TODO: 寻找更可靠的验证函数名
+  // if (!/^as[A-Z]/.test(proto.name)) {
+  //   throw new Error(
+  //     `[AsHook] name must start with "as" followed by Capital letter, got: ${proto.name}`
+  //   );
+  // }
 
   const caller = ((options?: O) => {
     const def = (globalThis as any)[__AS_HOOK_CURRENT_DEF] as DefHandle<P, E> | undefined;

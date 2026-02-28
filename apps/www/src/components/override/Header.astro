@@ -7,6 +7,7 @@ import SiteTitle from './SiteTitle.astro';
 import SocialIcons from './SocialIcons.astro';
 
 import ThemeToggle from './ThemeToggle.astro';
+import AdapterSelect from './AdapterSelect.astro';
 
 /**
  * Render the `Search` component if Pagefind is enabled or the default search component has been overridden.
@@ -57,8 +58,17 @@ const shouldRenderSearch =
         class="bg-border shrink-0 data-[orientation=horizontal]:h-px data-[orientation=horizontal]:w-full data-[orientation=vertical]:h-full data-[orientation=vertical]:w-px"
       >
       </div>
-      
+
       <LanguageSelect />
+
+      <div
+        data-orientation="vertical"
+        role="none"
+        data-slot="separator"
+        class="bg-border shrink-0 data-[orientation=horizontal]:h-px data-[orientation=horizontal]:w-full data-[orientation=vertical]:h-full data-[orientation=vertical]:w-px"
+      >
+      </div>
+      <AdapterSelect />
     </div>
   </div>
 </div>

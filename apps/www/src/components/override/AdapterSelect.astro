@@ -1,0 +1,80 @@
+---
+export const PREFERRED_KEY = 'preferred-prototypes-adapter';
+import { AdapterIds } from '../PrototypePreviewer/runtimes/registry';
+export const DEFAULT_ADAPTER = 'wc';
+
+// 适配器选项
+const options = [
+  { value: 'wc', label: 'Web Components' },
+  { value: 'react', label: 'React' },
+  { value: 'vue', label: 'Vue' },
+];
+---
+
+<div class="adapter-select-wrapper relative inline-flex items-center">
+  <label class="sr-only" for="adapter-select">选择适配器</label>
+  <select
+    id="adapter-select"
+    class="adapter-select appearance-none inline-flex items-center justify-center whitespace-nowrap text-sm font-medium transition-all outline-none h-8 rounded-md gap-1.5 px-3 pr-8 cursor-pointer bg-transparent text-foreground hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50 focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]"
+    aria-label="选择适配器"
+    autocomplete="off"
+  >
+    {options.map((opt) => <option value={opt.value}>{opt.label}</option>)}
+  </select>
+  <script is:inline define:vars={{ PREFERRED_KEY, DEFAULT_ADAPTER, AdapterIds }}>
+    (function () {
+      var select = document.getElementById('adapter-select');
+      if (!select) return;
+
+      try {
+        let SelectedAdapter = localStorage.getItem(PREFERRED_KEY);
+        if (SelectedAdapter && AdapterIds.indexOf(SelectedAdapter) !== -1)
+          select.value = SelectedAdapter;
+      } catch (e) {}
+
+      select.addEventListener('change', function () {
+        try {
+          localStorage.setItem(PREFERRED_KEY, select.value);
+        } catch (e) {}
+        document.dispatchEvent(
+          new CustomEvent('proto-adapter:change', { detail: { adapter: select.value } })
+        );
+      });
+    })();
+  </script>
+  <svg
+    class="adapter-select-arrow absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none text-foreground opacity-60 transition-opacity w-4 h-4"
+    width="16"
+    height="16"
+    viewBox="0 0 16 16"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    aria-hidden="true"
+  >
+    <path
+      d="M4 6L8 10L12 6"
+      stroke="currentColor"
+      stroke-width="2"
+      stroke-linecap="round"
+      stroke-linejoin="round"></path>
+  </svg>
+</div>
+
+<style>
+  .adapter-select-wrapper:hover .adapter-select-arrow {
+    opacity: 1;
+  }
+  .adapter-select {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    border: 1px solid transparent;
+  }
+  .adapter-select option {
+    background-color: hsl(var(--color-popover));
+    color: hsl(var(--color-popover-foreground));
+    padding: 0.5rem;
+  }
+  .adapter-select:focus-visible {
+    border-color: hsl(var(--color-ring));
+  }
+</style>
