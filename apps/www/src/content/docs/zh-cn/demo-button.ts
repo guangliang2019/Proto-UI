@@ -1,10 +1,8 @@
 import { definePrototype, tw } from '@proto-ui/core';
-
 import { registerPrototype } from '../../../components/PrototypePreviewer/registry';
-import { button } from '@prototype-libs/base';
-import { asButton } from '@prototype-libs/base';
-const DemoInline = definePrototype({
-  name: 'demo-inline',
+
+const DemoButton = definePrototype({
+  name: 'demo-button',
   setup(def) {
     // 设置基础样式
     def.feedback.style.use(tw('bg-gray-200 text-gray-800 p-2'));
@@ -14,15 +12,12 @@ const DemoInline = definePrototype({
     // 设置补充样式
     def.feedback.style.use(tw('p-4 rounded border'));
 
-    def.props.define({
-      label: { type: 'string', default: 'Hello' },
-    });
-    asButton();
-
     return (r) => {
       return r.r.slot();
+      // return 'hello world';
     };
   },
 });
 
-export default DemoInline;
+registerPrototype('demo-button', DemoButton);
+console.log('demo-button');

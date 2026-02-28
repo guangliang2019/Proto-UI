@@ -5,11 +5,21 @@ export default {
     className: 'border rounded flex gap-4',
     children: [
       {
-        kind: 'proto',
-        prototypeId: 'demo-inline',
+        kind: 'box',
         className: 'rounded',
-        props: { label: 'First' },
-        children: ['First Button'],
+        children: [
+          {
+            kind: 'proto',
+            prototypeId: 'demo-inline',
+            className: 'rounded',
+            props: { label: 'Second' },
+            children: ['Vue Button'],
+          },
+          {
+            kind: 'text',
+            text: 'Hello',
+          },
+        ],
       },
       {
         kind: 'box',

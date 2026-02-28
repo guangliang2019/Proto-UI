@@ -1,0 +1,24 @@
+---
+title: Tabs
+description: 标签页组件
+---
+
+import { PrototypePreviewer } from '@/components/PrototypePreviewer';
+import AdapterPanelScript from '@/components/PrototypePreviewer/AdapterPanelScript.astro';
+
+<div data-adapter-panel="wc">
+  这是 wc 的 tabs 组件
+  <PrototypePreviewer demoId="demo-combo" initialRuntime="wc" toolbar={false} runtimes={["wc"]} />
+</div>
+
+<div data-adapter-panel="react" style="display:none;">
+  这是 react 的 tabs 组件
+  <PrototypePreviewer demoId="demo-combo" initialRuntime="react" toolbar={false} runtimes={["react"]} />
+</div>
+
+<div data-adapter-panel="vue" style="display:none;">
+  这是 vue 的 tabs 组件
+  <PrototypePreviewer demoId="demo-combo" initialRuntime="vue" toolbar={false} runtimes={["vue"]} />
+</div>
+
+<AdapterPanelScript />

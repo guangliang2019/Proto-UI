@@ -5,7 +5,6 @@ import starlight from '@astrojs/starlight';
 import tailwindcss from '@tailwindcss/vite';
 import { fileURLToPath } from 'node:url';
 import { rehypeEnhancedImage } from './src/utils/rehype-enhanced-image.js';
-
 // https://astro.build/config
 export default defineConfig({
   integrations: [
@@ -326,6 +325,13 @@ export default defineConfig({
             },
           ],
         },
+        {
+          label: '原型库',
+          translations: { en: 'Prototype Libraries', 'zh-CN': '原型库' },
+          autogenerate: {
+            directory: 'reference/prototypes',
+          },
+        },
       ],
       components: {
         Hero: './src/components/override/Hero.astro',
@@ -346,7 +352,11 @@ export default defineConfig({
     }),
   ],
   vite: {
-    resolve: {},
+    resolve: {
+      alias: {
+        '@': fileURLToPath(new URL('./src', import.meta.url)),
+      },
+    },
     server: {
       // 允许 dev server 读取到仓库根（否则访问 workspace 包会被拦）
       fs: { allow: ['../..'] },
