@@ -1,4 +1,7 @@
 ---
-title: Button
-description: 点击后会能触发指定事件的组件
+title: "按钮"
+desp: "原型：按钮"
+description: "原型：按钮"
 ---
+
+敬请期待。
