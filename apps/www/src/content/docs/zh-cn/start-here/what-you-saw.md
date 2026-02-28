@@ -1,6 +1,6 @@
 ---
-title: "你刚刚看到的是什么？"
-description: "Landing Demo 的快速回顾"
+title: '你刚刚看到的是什么？'
+description: 'Landing Demo 的快速回顾'
 ---
 
 ## 你刚刚看到的是什么？
@@ -11,7 +11,6 @@ description: "Landing Demo 的快速回顾"
 每一次切换，都会重新加载对应框架的运行时环境。
 
 同一份组件逻辑，运行在不同的宿主中。
-
 
 ## Proto UI 是如何做到的？
 
@@ -30,13 +29,13 @@ description: "Landing Demo 的快速回顾"
 ```
 Prototype → Adapter / Compiler → Host Framework
 ```
+
 Prototype 描述“组件做什么”。  
 Adapter 或 Compiler 决定“组件如何在某个技术环境中运行”。
 
 换句话说：
 
 > 你写的不是 React 组件，也不是 Vue 组件，而是一份独立的交互原型。
-
 
 ## 这意味着什么？
 
@@ -46,7 +45,6 @@ Prototype 不必重写。
 组件的交互语义与具体实现解耦，使其可以在不同宿主中运行，而保持一致的行为表现。
 
 这就是你刚刚看到的效果。
-
 
 ## 下一步
 

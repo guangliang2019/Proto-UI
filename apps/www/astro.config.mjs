@@ -86,7 +86,7 @@ export default defineConfig({
             },
           ],
         },
-      
+
         // 2) 结构入口：少而精
         {
           label: 'Overview',
@@ -133,7 +133,7 @@ export default defineConfig({
             },
           ],
         },
-      
+
         // 3) 白皮书：扁平化，不要再往下分三级
         {
           label: 'Whitepaper',
@@ -181,7 +181,7 @@ export default defineConfig({
             },
           ],
         },
-      
+
         // 4) 规范层：把 contracts 从“讲道理”里剥离出来
         {
           label: 'Specifications',
@@ -238,7 +238,7 @@ export default defineConfig({
             },
           ],
         },
-      
+
         // 5) 工程实现：给 maintainer / adapter 作者
         {
           label: 'Engineering',
@@ -275,7 +275,7 @@ export default defineConfig({
             },
           ],
         },
-      
+
         // 6) 原型库：建议作为独立大类，且支持 autogenerate
         {
           label: 'Prototypes',
@@ -298,7 +298,7 @@ export default defineConfig({
             },
           ],
         },
-      
+
         // 7) 贡献：保持少而清晰，避免把协作细则塞满侧边栏
         {
           label: 'Contributing',
