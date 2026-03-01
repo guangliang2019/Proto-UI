@@ -47,11 +47,20 @@ function isAssetPath(pathname: string): boolean {
   return /\.[a-z0-9]+$/i.test(pathname);
 }
 
+function isErrorPath(pathname: string): boolean {
+  return /^\/(?:404|500)(?:\/|\.html)?$/i.test(pathname);
+}
+
 export const onRequest = defineMiddleware(async (context, next) => {
   const { url, request, redirect } = context;
   const pathname = url.pathname;
 
-  if (isAssetPath(pathname)) {
+  // Let the root page handle locale detection on the client.
+  if (pathname === '/') {
+    return next();
+  }
+
+  if (isAssetPath(pathname) || isErrorPath(pathname)) {
     return next();
   }
 
