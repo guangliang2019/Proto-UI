@@ -1,4 +1,4 @@
-import { defineAsHook } from '@proto-ui/core';
+import { defineAsHook, tw } from '@proto-ui/core';
 import { ButtonExposes, ButtonProps } from './types';
 
 export const asButton = defineAsHook<ButtonProps, ButtonExposes>({
@@ -21,10 +21,10 @@ export const asButton = defineAsHook<ButtonProps, ButtonExposes>({
 
     // hover state
     const hovered = def.state.bool('hovered', false);
-    def.event.on('pointer.enter', () => hovered.set(true, 'reason: event.on(pointer.enter)'));
+    def.event.on('pointer.enter', () => hovered.set(true, 'reason: event.on(pointer.enter)')).desc('asButton: pointer enter');
     def.event.on('pointer.leave', () => {
       hovered.set(false, 'reason: event.on(pointer.leave)');
-    });
+    }).desc('asButton: pointer leave');
     def.expose.state('hovered', hovered);
 
     // click event
@@ -32,5 +32,8 @@ export const asButton = defineAsHook<ButtonProps, ButtonExposes>({
     def.event.on('press.commit', (run) => {
       run.event.emit('click');
     });
+
+    def.feedback.style.use(tw('bg-blue-500'));
+    
   },
 });
