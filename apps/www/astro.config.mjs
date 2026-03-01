@@ -54,285 +54,274 @@ export default defineConfig({
       ],
       social: [{ icon: 'github', label: 'GitHub', href: 'https://github.com/withastro/starlight' }],
       sidebar: [
+        // 1) 体验承接：从 Landing Demo 过来的人，先看这里
+        {
+          label: 'Start Here',
+          translations: { en: 'Start Here', 'zh-CN': '从这里开始' },
+          items: [
+            {
+              label: '你刚刚看到的是什么？',
+              translations: { en: 'What You Just Saw', 'zh-CN': '你刚刚看到的是什么？' },
+              slug: 'start-here/what-you-saw',
+            },
+            {
+              label: 'Proto UI 是怎么做到的？',
+              translations: { en: 'How Proto UI Works', 'zh-CN': 'Proto UI 是怎么做到的？' },
+              slug: 'start-here/how-it-works',
+            },
+            {
+              label: '自己动手：第一个原型',
+              translations: { en: 'Build Your First Prototype', 'zh-CN': '自己动手：第一个原型' },
+              slug: 'start-here/first-prototype',
+              badge: {
+                text: { 'zh-CN': '计划中', en: 'Planned' },
+                class: 'text-xs px-1.5 h-4.5 rounded-full bg-zinc-800',
+              },
+            },
+            {
+              label: '跨宿主运行',
+              translations: { en: 'Running Across Hosts', 'zh-CN': '跨宿主运行' },
+              slug: 'start-here/running-across-hosts',
+            },
+          ],
+        },
+
+        // 2) 结构入口：少而精
         {
           label: 'Overview',
-          translations: {
-            en: 'Overview',
-            'zh-CN': 'Overview',
-          },
+          translations: { en: 'Overview', 'zh-CN': '概览' },
           items: [
             {
               label: '项目介绍',
-              translations: {
-                en: 'Project Introduction',
-                'zh-CN': '项目介绍',
-              },
+              translations: { en: 'Project Introduction', 'zh-CN': '项目介绍' },
               slug: 'overview/introduction',
             },
             {
-              label: '白皮书概要',
-              translations: {
-                en: 'Whitepaper Overview',
-                'zh-CN': '白皮书概要',
-              },
-              slug: 'overview/whitepaper',
+              label: '为什么会有 Proto UI',
+              translations: { en: 'Why Proto UI', 'zh-CN': '为什么会有 Proto UI' },
+              slug: 'overview/why',
             },
             {
-              label: '原型库',
-              translations: {
-                en: 'Prototype Library',
-                'zh-CN': '原型库',
-              },
+              label: 'High-Level Model',
+              translations: { en: 'High-Level Model', 'zh-CN': 'High-Level Model' },
+              slug: 'overview/model',
+            },
+            {
+              label: '时间线 & 里程碑',
+              translations: { en: 'Milestones', 'zh-CN': '里程碑' },
+              slug: 'overview/milestones',
+            },
+            {
+              label: '原型库（概览）',
+              translations: { en: 'Prototype Library (Overview)', 'zh-CN': '原型库（概览）' },
               slug: 'overview/prototypes',
             },
             {
-              label: '适配器库',
-              translations: {
-                en: 'Adapter Library',
-                'zh-CN': '适配器库',
-              },
+              label: '适配器库（概览）',
+              translations: { en: 'Adapter Library (Overview)', 'zh-CN': '适配器库（概览）' },
               slug: 'overview/adapters',
             },
             {
               label: '贡献者索引',
-              translations: {
-                en: 'Contributor Index',
-                'zh-CN': '贡献者索引',
-              },
-              slug: 'overview/contribute',
+              translations: { en: 'Contributor Index', 'zh-CN': '贡献者索引' },
+              slug: 'overview/contributing',
               badge: {
-                text: {
-                  'zh-CN': '征集中',
-                  en: 'collecting',
-                },
+                text: { 'zh-CN': '征集中', en: 'Collecting' },
                 class: 'text-xs px-1.5 h-4.5 rounded-full bg-lime-400 text-black',
               },
             },
+          ],
+        },
+
+        // 3) 白皮书：扁平化，不要再往下分三级
+        {
+          label: 'Whitepaper',
+          translations: { en: 'Whitepaper', 'zh-CN': '白皮书' },
+          items: [
             {
-              label: '时间线 & 里程碑',
-              translations: {
-                en: 'Milestones',
-                'zh-CN': '里程碑',
-              },
-              slug: 'overview/milestone',
+              label: '组件作为协议',
+              translations: { en: 'Component as Protocol', 'zh-CN': '组件作为协议' },
+              slug: 'whitepaper/component-as-protocol',
+            },
+            {
+              label: '信息通路模型',
+              translations: { en: 'Information Flow Model', 'zh-CN': '信息通路模型' },
+              slug: 'whitepaper/information-flow-model',
+            },
+            {
+              label: '原型抽象',
+              translations: { en: 'Prototype Abstraction', 'zh-CN': '原型抽象' },
+              slug: 'whitepaper/prototype-abstraction',
+            },
+            {
+              label: '执行语义',
+              translations: { en: 'Execution Semantics', 'zh-CN': '执行语义' },
+              slug: 'whitepaper/execution-semantics',
+            },
+            {
+              label: '翻译层：Adapter / Compiler',
+              translations: { en: 'Translation Layer', 'zh-CN': '翻译层：Adapter / Compiler' },
+              slug: 'whitepaper/translation-layer',
+            },
+            {
+              label: '设计约束',
+              translations: { en: 'Design Constraints', 'zh-CN': '设计约束' },
+              slug: 'whitepaper/design-constraints',
+            },
+            {
+              label: '演进路径',
+              translations: { en: 'Evolution Path', 'zh-CN': '演进路径' },
+              slug: 'whitepaper/evolution-path',
+            },
+            {
+              label: 'FAQ',
+              translations: { en: 'FAQ', 'zh-CN': 'FAQ' },
+              slug: 'whitepaper/faq',
             },
           ],
         },
+
+        // 4) 规范层：把 contracts 从“讲道理”里剥离出来
         {
-          label: 'Usage',
-          translations: {
-            en: 'Usage',
-            'zh-CN': '使用',
-          },
+          label: 'Specifications',
+          translations: { en: 'Specifications', 'zh-CN': '规范（契约）' },
           items: [
             {
-              label: '安装 & 使用',
-              translations: {
-                en: 'Installation & Usage',
-                'zh-CN': '安装 & 使用',
-              },
-              slug: 'usage/installation',
+              label: '规范导读',
+              translations: { en: 'How to Read Specs', 'zh-CN': '规范导读' },
+              slug: 'specs/introduction',
+            },
+            {
+              label: '核心规范',
+              translations: { en: 'Core', 'zh-CN': '核心' },
+              slug: 'specs/core',
+            },
+            {
+              label: 'Props',
+              translations: { en: 'Props', 'zh-CN': 'Props' },
+              slug: 'specs/props',
+            },
+            {
+              label: 'Event',
+              translations: { en: 'Event', 'zh-CN': 'Event' },
+              slug: 'specs/event',
+            },
+            {
+              label: 'Expose',
+              translations: { en: 'Expose', 'zh-CN': 'Expose' },
+              slug: 'specs/expose',
+            },
+            {
+              label: 'State',
+              translations: { en: 'State', 'zh-CN': 'State' },
+              slug: 'specs/state',
+            },
+            {
+              label: 'Context',
+              translations: { en: 'Context', 'zh-CN': 'Context' },
+              slug: 'specs/context',
+            },
+            {
+              label: 'Feedback',
+              translations: { en: 'Feedback', 'zh-CN': 'Feedback' },
+              slug: 'specs/feedback',
+            },
+            {
+              label: 'Rule',
+              translations: { en: 'Rule', 'zh-CN': 'Rule' },
+              slug: 'specs/rule',
               badge: {
-                text: {
-                  'zh-CN': '计划中',
-                  en: 'planned',
-                },
+                text: { en: 'Planned', 'zh-CN': '计划中' },
+                class: 'text-xs px-1.5 h-4.5 rounded-full bg-zinc-800',
+              },
+            },
+          ],
+        },
+
+        // 5) 工程实现：给 maintainer / adapter 作者
+        {
+          label: 'Engineering',
+          translations: { en: 'Engineering', 'zh-CN': '工程实现' },
+          items: [
+            {
+              label: 'Prototype API',
+              translations: { en: 'Prototype API', 'zh-CN': 'Prototype API' },
+              slug: 'engineering/prototype-api',
+            },
+            {
+              label: 'Adapter Guide',
+              translations: { en: 'Adapter Guide', 'zh-CN': 'Adapter 指南' },
+              slug: 'engineering/adapter-guide',
+            },
+            {
+              label: 'Compiler Guide',
+              translations: { en: 'Compiler Guide', 'zh-CN': 'Compiler 指南' },
+              slug: 'engineering/compiler-guide',
+              badge: {
+                text: { en: 'Planned', 'zh-CN': '计划中' },
                 class: 'text-xs px-1.5 h-4.5 rounded-full bg-zinc-800',
               },
             },
             {
-              label: '快速开始',
-              translations: {
-                en: 'Quick Start',
-                'zh-CN': '快速开始',
-              },
-              slug: 'usage/quick-start',
+              label: 'Runtime Architecture',
+              translations: { en: 'Runtime Architecture', 'zh-CN': 'Runtime 架构' },
+              slug: 'engineering/runtime-architecture',
+            },
+            {
+              label: 'Host Caps',
+              translations: { en: 'Host Caps', 'zh-CN': 'Host Caps' },
+              slug: 'engineering/host-caps',
             },
           ],
         },
+
+        // 6) 原型库：建议作为独立大类，且支持 autogenerate
+        {
+          label: 'Prototypes',
+          translations: { en: 'Prototypes', 'zh-CN': '原型库' },
+          items: [
+            {
+              label: 'Base Library',
+              translations: { en: 'Base Library', 'zh-CN': '基础原型库' },
+              slug: 'prototypes/base',
+            },
+            {
+              label: 'Advanced Examples',
+              translations: { en: 'Advanced Examples', 'zh-CN': '高级示例' },
+              slug: 'prototypes/advanced',
+            },
+            {
+              label: '全部条目',
+              translations: { en: 'All Entries', 'zh-CN': '全部条目' },
+              autogenerate: { directory: 'reference/prototypes' },
+            },
+          ],
+        },
+
+        // 7) 贡献：保持少而清晰，避免把协作细则塞满侧边栏
         {
           label: 'Contributing',
-          translations: {
-            en: 'Contributing',
-            'zh-CN': '贡献',
-          },
+          translations: { en: 'Contributing', 'zh-CN': '贡献' },
           items: [
             {
               label: '贡献概览',
-              translations: {
-                en: 'Contributing Overview',
-                'zh-CN': '贡献概览',
-              },
+              translations: { en: 'Contributing Overview', 'zh-CN': '贡献概览' },
               slug: 'contributing',
             },
             {
               label: '编写原型',
-              translations: {
-                en: 'Write a Prototype',
-                'zh-CN': '编写原型',
-              },
+              translations: { en: 'Write a Prototype', 'zh-CN': '编写原型' },
               slug: 'contributing/write-prototype',
             },
             {
               label: '编写适配器',
-              translations: {
-                en: 'Write an Adapter',
-                'zh-CN': '编写适配器',
-              },
+              translations: { en: 'Write an Adapter', 'zh-CN': '编写适配器' },
               slug: 'contributing/write-adapter',
             },
             {
               label: '契约与测试',
-              translations: {
-                en: 'Contracts & Tests',
-                'zh-CN': '契约与测试',
-              },
+              translations: { en: 'Contracts & Tests', 'zh-CN': '契约与测试' },
               slug: 'contributing/contracts',
-            },
-          ],
-        },
-        {
-          label: '白皮书 & 哲学',
-          translations: {
-            en: 'Whitepaper & Philosophy',
-            'zh-CN': '白皮书 & 哲学',
-          },
-          items: [
-            {
-              label: '设计哲学',
-              translations: {
-                en: 'Design Philosophy',
-                'zh-CN': '设计哲学',
-              },
-              slug: 'reference/whitepaper/philosophy',
-            },
-            {
-              label: '与现有方案比较',
-              translations: {
-                en: 'Comparison with Existing Solutions',
-                'zh-CN': '与现有方案比较',
-              },
-              slug: 'reference/whitepaper/comparison',
-            },
-            {
-              label: 'FAQ',
-              translations: {
-                en: 'FAQ',
-                'zh-CN': 'FAQ',
-              },
-              slug: 'reference/whitepaper/faq',
-            },
-          ],
-        },
-        {
-          label: '协议 & 语法',
-          translations: {
-            en: 'Protocol & Syntax',
-            'zh-CN': '协议 & 语法',
-          },
-          items: [
-            {
-              label: '核心概念 & API 总览',
-              translations: {
-                en: 'Core Concepts & API Overview',
-                'zh-CN': '核心概念 & API 总览',
-              },
-              slug: 'reference/protocol/general',
-            },
-            {
-              label: 'asHook: 原型的组合',
-              translations: {
-                en: 'asHook: Prototype Composition',
-                'zh-CN': 'asHook: 原型的组合',
-              },
-              slug: 'reference/protocol/as-hook',
-            },
-            {
-              label: 'Context',
-              translations: {
-                en: 'Context',
-                'zh-CN': 'Context',
-              },
-              slug: 'reference/protocol/context',
-            },
-            {
-              label: 'Debug 语法',
-              translations: {
-                en: 'Debug Syntax',
-                'zh-CN': 'Debug 语法',
-              },
-              slug: 'reference/protocol/debug',
-            },
-            {
-              label: 'Event',
-              translations: {
-                en: 'Event',
-                'zh-CN': 'Event',
-              },
-              slug: 'reference/protocol/event',
-            },
-            {
-              label: 'Expose',
-              translations: {
-                en: 'Expose',
-                'zh-CN': 'Expose',
-              },
-              slug: 'reference/protocol/expose',
-            },
-            {
-              label: 'Lifecycle',
-              translations: {
-                en: 'Lifecycle',
-                'zh-CN': 'Lifecycle',
-              },
-              slug: 'reference/protocol/lifecycle',
-            },
-            {
-              label: 'Props',
-              translations: {
-                en: 'Props',
-                'zh-CN': 'Props',
-              },
-              slug: 'reference/protocol/props',
-            },
-            {
-              label: 'Renderer 语法',
-              translations: {
-                en: 'Renderer Syntax',
-                'zh-CN': 'Renderer 语法',
-              },
-              slug: 'reference/protocol/renderer',
-            },
-            {
-              label: 'State',
-              translations: {
-                en: 'State',
-                'zh-CN': 'State',
-              },
-              slug: 'reference/protocol/state',
-            },
-            {
-              label: 'Style 语法',
-              translations: {
-                en: 'Style Syntax',
-                'zh-CN': 'Style 语法',
-              },
-              slug: 'reference/protocol/style',
-            },
-            {
-              label: 'Variant 语法',
-              translations: {
-                en: 'Variant Syntax',
-                'zh-CN': 'Variant 语法',
-              },
-              slug: 'reference/protocol/variant',
-              badge: {
-                text: {
-                  en: 'Planned',
-                  'zh-CN': '计划中',
-                },
-                class: 'text-xs px-1.5 h-4.5 rounded-full bg-zinc-800',
-              },
             },
           ],
         },

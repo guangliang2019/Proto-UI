@@ -104,6 +104,26 @@ localeOptions.forEach((opt) => {
 
 <script is:inline>
     (function () {
+        const STORAGE_KEY = 'preferred-locale';
+
+        function setPreference(locale) {
+            try {
+                localStorage.setItem(STORAGE_KEY, locale);
+            } catch (e) {
+                // ignore storage errors (e.g. private mode)
+            }
+
+            // Save user's language preference to Cookie (valid for 1 year)
+            const expires = new Date();
+            expires.setFullYear(expires.getFullYear() + 1);
+            document.cookie = `preferred-locale=${locale}; path=/; expires=${expires.toUTCString()}; SameSite=Lax`;
+        }
+
+        function getCookieValue(name) {
+            const match = document.cookie.match(new RegExp(`(?:^|; )${name}=([^;]*)`));
+            return match ? decodeURIComponent(match[1]) : '';
+        }
+
         function initLanguageSelect() {
             const select = document.getElementById('language-select');
             if (!select) return;
@@ -122,14 +142,20 @@ localeOptions.forEach((opt) => {
                 const newPath = localePaths[newLocale];
 
                 if (newPath && newLocale && newLocale !== currentLocale) {
-                    // Save user's language preference to Cookie (valid for 1 year)
-                    const expires = new Date();
-                    expires.setFullYear(expires.getFullYear() + 1);
-                    document.cookie = `preferred-locale=${newLocale}; path=/; expires=${expires.toUTCString()}; SameSite=Lax`;
-
-                    console.log('[Language Switch] Saved locale to cookie:', newLocale);
+                    setPreference(newLocale);
+                    console.log('[Language Switch] Saved locale preference:', newLocale);
                     window.location.pathname = newPath;
                 }
+            }
+
+            // If localStorage has a preferred locale, keep cookie in sync
+            try {
+                const stored = localStorage.getItem(STORAGE_KEY);
+                if (stored && stored !== getCookieValue(STORAGE_KEY)) {
+                    setPreference(stored);
+                }
+            } catch (e) {
+                // ignore storage errors
             }
 
             select.addEventListener('change', handleLanguageChange);
