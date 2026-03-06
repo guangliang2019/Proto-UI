@@ -6,7 +6,9 @@
     "@proto-ui/types": "workspace:*",
     "happy-dom": "^15.0.0",
     "husky": "^9.1.7",
+    "lint-staged": "^16.3.1",
     "prettier": "^3.8.1",
+    "prettier-plugin-astro": "^0.14.1",
     "tsx": "^4.0.0",
     "typescript": "^5.0.0",
     "vitest": "^2.0.0"
@@ -20,5 +22,8 @@
     "test": "pnpm -s test:types && pnpm -s test:runtime",
     "test:types": "echo \"[types] checking type contracts...\" && tsc -p internal/contracts/types/tsconfig.json && echo \"[types] OK\"",
     "test:runtime": "vitest run"
+  },
+  "lint-staged": {
+    "*.{js,mjs,cjs,ts,mts,json,css,md,mdx,astro,yaml,yml}": "prettier --write"
   }
 }

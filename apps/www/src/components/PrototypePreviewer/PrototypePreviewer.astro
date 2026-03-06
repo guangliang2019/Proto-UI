@@ -1,18 +1,18 @@
 ---
-
 import type { RuntimeId } from './runtimes/registry';
+import AdapterSelect from '../override/AdapterSelect.astro';
+import { AdapterIds } from './runtimes/registry';
 // src/components/PrototypePreviewer.astro
 
-
 interface Props {
-  prototypeId?: string;                   // 原型 ID（与 demoId 二选一）
-  demoId?: string;                        // demo ID（*.demo.ts）
-  initialRuntime?: RuntimeId;             // 默认 'wc'
-  props?: Record<string, unknown>;        // 传给原型适配后组件的 props
+  prototypeId?: string; // 原型 ID（与 demoId 二选一）
+  demoId?: string; // demo ID（*.demo.ts）
+  initialRuntime?: RuntimeId; // 默认 'wc'
+  props?: Record<string, unknown>; // 传给原型适配后组件的 props
   class?: string;
-  toolbar?: boolean;                      // 是否渲染运行时切换 UI，默认 true
-  runtimes?: RuntimeId[];                 // 可选的运行时列表，默认 ['wc','react','vue']
-  loader?: string;                        // 动态导入路径，例如 './demo-inline'
+  toolbar?: boolean; // 是否渲染运行时切换 UI，默认 true
+  runtimes?: RuntimeId[]; // 可选的运行时列表，默认 ['wc','react','vue']
+  loader?: string; // 动态导入路径，例如 './demo-inline'
 }
 
 function assertJsonLike(value: unknown, path: string[] = []) {
@@ -57,8 +57,8 @@ const {
   props: protoProps = {},
   class: className = '',
   toolbar = true,
-  runtimes = ['wc', 'react'],
-  loader
+  runtimes = AdapterIds,
+  loader,
 } = Astro.props;
 
 if (!prototypeId && !demoId) {
@@ -84,50 +84,71 @@ const rid = `pp-${Math.random().toString(36).slice(2)}`;
   data-runtimes={JSON.stringify(runtimes)}
   data-loader={loader || ''}
 >
-  {toolbar && (
-    <div class="toolbar">
-      <label class="label">Runtime</label>
-      <select aria-label="Runtime selector"></select>
-    </div>
-  )}
+  {
+    toolbar && (
+      <div class="toolbar">
+        <label class="label">Runtime</label>
+        <AdapterSelect />
+      </div>
+    )
+  }
   <div class="host" role="region" aria-live="polite"></div>
 
   <style>
-    .proto-previewer { border: 1px solid var(--sl-color-gray-5); border-radius: 12px; padding: 12px; }
-    .toolbar { display: flex; gap: 8px; align-items: center; margin-bottom: 10px; }
-    .host { min-height: 84px; display: grid; place-items: center; }
-    select { padding: 6px 8px; border-radius: 8px; }
+    .proto-previewer {
+      border: 1px solid var(--sl-color-gray-5);
+      border-radius: 12px;
+      padding: 12px;
+    }
+    .toolbar {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+    .host {
+      min-height: 84px;
+      display: grid;
+      place-items: center;
+    }
+    select {
+      padding: 6px 8px;
+      border-radius: 8px;
+    }
   </style>
 
   <script>
     import { initPreviewer } from './previewer-client';
     import type { RuntimeId } from './runtimes/registry';
-
+    import { AdapterIds } from './runtimes/registry';
     // 在 DOMContentLoaded 或立即执行（根据加载时机）
     function init() {
-      document.querySelectorAll<HTMLElement>('.proto-previewer[data-previewer-id]:not([data-inited])').forEach((root) => {
-        const prototypeId = root.dataset.prototypeId || '';
-        const demoId = root.dataset.demoId || '';
-        const initialRuntime = (root.dataset.initialRuntime || 'wc') as RuntimeId;
-        const demoProps = root.dataset.props ? JSON.parse(root.dataset.props) : {};
-        const runtimeList = root.dataset.runtimes ? JSON.parse(root.dataset.runtimes) : ['wc', 'react'];
-        const loader = root.dataset.loader || '';
+      document
+        .querySelectorAll<HTMLElement>('.proto-previewer[data-previewer-id]:not([data-inited])')
+        .forEach((root) => {
+          const prototypeId = root.dataset.prototypeId || '';
+          const demoId = root.dataset.demoId || '';
+          const initialRuntime = (root.dataset.initialRuntime || 'wc') as RuntimeId;
+          const demoProps = root.dataset.props ? JSON.parse(root.dataset.props) : {};
+          const runtimeList = root.dataset.runtimes
+            ? JSON.parse(root.dataset.runtimes)
+            : AdapterIds;
+          const loader = root.dataset.loader || '';
 
-        if (!prototypeId && !demoId) {
-          console.error('[PrototypePreviewer] missing prototypeId or demoId', root);
-          return;
-        }
-
-        initPreviewer({
-          root,
-          prototypeId,
-          demoId,
-          initialRuntime,
-          demoProps,
-          runtimeList,
-          loader,
+          if (!prototypeId && !demoId) {
+            console.error('[PrototypePreviewer] missing prototypeId or demoId', root);
+            return;
+          }
+          initPreviewer({
+            root,
+            prototypeId,
+            demoId,
+            initialRuntime,
+            demoProps,
+            runtimeList,
+            loader,
+          });
         });
-      });
     }
 
     // 支持动态插入的组件
