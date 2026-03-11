@@ -51,6 +51,7 @@ The following are **out of scope** for v0:
 ### 2.1 `defineAsHook(prototype)`
 
 - Input: `prototype` with the same shape as `definePrototype` (`name`, `setup`).
+- The `setup` return contract is unchanged from `definePrototype`: `RenderFn | void`.
 - Output: an asHook prototype.
 - Semantics:
   - asHook is still a prototype definition, but its **effects must attach to the caller prototype**.
@@ -69,9 +70,9 @@ The following are **out of scope** for v0:
 
 - asHook is invoked via a **caller** function.
 - Minimum shape:
-  - `asX(options?)`
+  - `asX()`
 - Named sub-callers are allowed:
-  - `asX.mode(options?)`
+  - `asX.mode()`
 
 > Named caller creation is an implementation detail. This document only requires consistent input/output and behavior.
 
@@ -86,14 +87,16 @@ The following are **out of scope** for v0:
 
 ### 4.1 Baseline shape (v0)
 
-The asHook setup result must be an object aligned with def-handle style:
+`AsHookResult` is the return value of the **asHook caller** (not the authored prototype `setup` return).
+
+It must be an object aligned with def-handle style:
 
 - `props`: module result (typically disposers)
 - `state`: BorrowedStateHandle (or collection)
 - `context`: module result (subscription/provide handles or disposers)
 - `event`: module result (disposers)
 - `feedback`: module result (disposers)
-- `render`: optional render fragment
+- `render`: optional render fragment (copied from the authored prototype `setup` return value, if present)
 - **custom fields** are allowed
 
 > Only `state` is required to be a Borrowed view; the projection is done via state module SPI.
@@ -108,7 +111,7 @@ The asHook setup result must be an object aligned with def-handle style:
 
 ### 4.3 Render fragment
 
-- If `render` is returned, callers may compose it into their render.
+- If `render` is present in `AsHookResult`, callers may compose it into their render.
 - asHook must not directly trigger render commits.
 
 ---

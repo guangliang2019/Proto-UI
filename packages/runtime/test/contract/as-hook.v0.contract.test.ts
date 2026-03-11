@@ -46,9 +46,7 @@ describe('runtime contract: asHook (v0)', () => {
   it('AS-HOOK-0100: setup-only: calling asHook outside setup must throw', () => {
     const asOnce = defineAsHook({
       name: 'asOnce',
-      setup() {
-        return {};
-      },
+      setup() {},
     });
 
     const P: Prototype = definePrototype({
@@ -73,7 +71,6 @@ describe('runtime contract: asHook (v0)', () => {
       name: 'asDup',
       setup() {
         a += 1;
-        return {};
       },
     });
 
@@ -81,7 +78,6 @@ describe('runtime contract: asHook (v0)', () => {
       name: 'asDup',
       setup() {
         b += 1;
-        return {};
       },
     });
 
@@ -111,7 +107,6 @@ describe('runtime contract: asHook (v0)', () => {
         def.props.watch(['a'], () => {
           calls.push('watch:a');
         });
-        return {};
       },
     });
 
@@ -140,8 +135,7 @@ describe('runtime contract: asHook (v0)', () => {
     const asState = defineAsHook({
       name: 'asState',
       setup(def) {
-        const s = def.state.bool('open', false);
-        return { state: s };
+        def.state.bool('open', false);
       },
     });
 
@@ -175,7 +169,7 @@ describe('runtime contract: asHook (v0)', () => {
     const asFrag = defineAsHook({
       name: 'asFrag',
       setup() {
-        return { render: () => 'hook' };
+        return () => 'hook';
       },
     });
 
@@ -194,12 +188,30 @@ describe('runtime contract: asHook (v0)', () => {
     expect(first).toEqual(['hook', 'host']);
   });
 
+  it('AS-HOOK-0550: setup return must follow prototype contract (render function or void)', () => {
+    const asBad = defineAsHook({
+      name: 'asBad',
+      setup() {
+        return { illegal: true } as any;
+      },
+    });
+
+    const P: Prototype = definePrototype({
+      name: 'x-as-hook-0550',
+      setup() {
+        expect(() => asBad()).toThrow(/render function or void/i);
+        return (r) => r.el('div', 'ok');
+      },
+    });
+
+    const { host } = createHost(P.name);
+    executeWithHost(P as any, host as any);
+  });
+
   it('AS-HOOK-0600: asHook trace is readable and includes name + order + privileged flag', () => {
     const asTrace = defineAsHook({
       name: 'asTrace',
-      setup() {
-        return {};
-      },
+      setup() {},
     });
 
     const P: Prototype = definePrototype({

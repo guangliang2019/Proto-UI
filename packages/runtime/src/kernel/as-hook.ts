@@ -1,9 +1,11 @@
 // packages/runtime/src/kernel/as-hook.ts
 import type {
   AsHookRuntime,
+  AsHookResult,
   AsHookTraceEntry,
   BorrowedStateHandle,
   DefHandle,
+  RenderFn,
   RunHandle,
 } from '@proto-ui/core';
 import { __AS_HOOK_RUNTIME as AS_HOOK_RT } from '@proto-ui/core';
@@ -24,6 +26,12 @@ type DefRuntimeState = {
 };
 
 type AsHookMeta = { privileged: boolean };
+type EffectKind = 'props' | 'state' | 'context' | 'event' | 'feedback';
+type EffectFrame = {
+  name: string;
+  effects: Record<EffectKind, unknown[]>;
+  parent?: EffectFrame;
+};
 
 type StateHandleLike = {
   get: () => unknown;
@@ -122,8 +130,27 @@ export function attachAsHookRuntime<P extends PropsBaseType>(
 ): void {
   const trace = getOrCreateTrace(proto);
   const used = new Set<string>();
+  const frameStack: EffectFrame[] = [];
   let instanceOrder = 0;
   const projectState = opt?.projectState ?? ((state: any) => state);
+
+  const createFrame = (name: string, parent?: EffectFrame): EffectFrame => ({
+    name,
+    parent,
+    effects: {
+      props: [],
+      state: [],
+      context: [],
+      event: [],
+      feedback: [],
+    },
+  });
+
+  const compact = (values: unknown[]): unknown => {
+    if (values.length === 0) return undefined;
+    if (values.length === 1) return values[0];
+    return values.slice();
+  };
 
   const ensureSetup = (op: string) => {
     const phase = st.getPhase();
@@ -154,6 +181,45 @@ export function attachAsHookRuntime<P extends PropsBaseType>(
       }
 
       return { run: true, order: entryOrder };
+    },
+    beginCapture: (name: string) => {
+      const parent = frameStack.length > 0 ? frameStack[frameStack.length - 1] : undefined;
+      frameStack.push(createFrame(name, parent));
+    },
+    recordCaptured: (kind: EffectKind, entry: unknown) => {
+      if (frameStack.length === 0) return;
+      const frame = frameStack[frameStack.length - 1];
+      frame.effects[kind].push(entry);
+    },
+    endCapture: (render?: RenderFn): AsHookResult => {
+      const frame = frameStack.pop();
+      if (!frame) return render ? { render } : {};
+
+      if (frame.parent) {
+        for (const kind of Object.keys(frame.effects) as EffectKind[]) {
+          frame.parent.effects[kind].push(...frame.effects[kind]);
+        }
+      }
+
+      const result: AsHookResult = {};
+      const props = compact(frame.effects.props);
+      const state = compact(frame.effects.state);
+      const context = compact(frame.effects.context);
+      const event = compact(frame.effects.event);
+      const feedback = compact(frame.effects.feedback);
+
+      if (typeof props !== 'undefined') result.props = props;
+      if (typeof state !== 'undefined') result.state = state;
+      if (typeof context !== 'undefined') result.context = context;
+      if (typeof event !== 'undefined') result.event = event;
+      if (typeof feedback !== 'undefined') result.feedback = feedback;
+      if (typeof render === 'function') result.render = render;
+
+      return result;
+    },
+    abortCapture: () => {
+      if (frameStack.length === 0) return;
+      frameStack.pop();
     },
     projectState: <T>(state: T): T => {
       return projectState(state);
