@@ -53,9 +53,30 @@ export interface WebComponentAdapterOptions<Props extends PropsBaseType = PropsB
   shadow?: boolean;
   getProps?: (el: HTMLElement) => Partial<Props> | null | undefined;
   schedule?: (task: () => void) => void;
+  getMeta?: (key: string) => unknown;
   exposeStateWebMode?: {
     allowContinuousAttr?: boolean;
     allowStringVar?: boolean;
+  };
+}
+
+function createDefaultMetaGetter(): (key: string) => unknown {
+  return (key: string) => {
+    if (key === 'colorScheme') {
+      if (typeof window !== 'undefined' && typeof window.matchMedia === 'function') {
+        return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      }
+      return 'light';
+    }
+    if (key === 'reducedMotion') {
+      if (typeof window !== 'undefined' && typeof window.matchMedia === 'function') {
+        return window.matchMedia('(prefers-reduced-motion: reduce)').matches
+          ? 'reduce'
+          : 'no-preference';
+      }
+      return 'no-preference';
+    }
+    return undefined;
   };
 }
 
@@ -68,6 +89,7 @@ export function AdaptToWebComponent<Props extends PropsBaseType>(
   const shadow = opt.shadow ?? false;
   const getProps = opt.getProps ?? (() => ({}) as Partial<Props>);
   const schedule = opt.schedule ?? ((task) => queueMicrotask(task));
+  const getMeta = opt.getMeta ?? createDefaultMetaGetter();
   const exposeStateWebMode = opt.exposeStateWebMode;
 
   class ProtoElement extends HTMLElement {
@@ -171,6 +193,7 @@ export function AdaptToWebComponent<Props extends PropsBaseType>(
           parent: (inst: unknown) => getProtoParent(inst as HTMLElement),
           getPrototype: (inst: unknown) => PROTO_BY_INSTANCE.get(inst as HTMLElement) ?? null,
         })
+        .useRuleMeta((key: string) => getMeta(key))
         .build();
 
       const wiring = createHostWiring({ prototypeName: proto.name, modules });

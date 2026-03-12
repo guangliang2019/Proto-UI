@@ -12,14 +12,16 @@ import type {
 export type RuleDep<Props> =
   | { kind: 'prop'; key: keyof Props }
   | { kind: 'state'; id: any }
-  | { kind: 'context'; key: any };
+  | { kind: 'context'; key: any }
+  | { kind: 'meta'; key: string };
 
 export type WhenLiteral = string | number | boolean | null;
 
 export type WhenValue<Props> =
   | { type: 'prop'; key: keyof Props }
   | { type: 'state'; id: any }
-  | { type: 'context'; key: any };
+  | { type: 'context'; key: any }
+  | { type: 'meta'; key: string };
 
 export type WhenExpr<Props> =
   | { type: 'true' }
@@ -37,6 +39,7 @@ export interface WhenBuilder<Props extends {}> {
   prop<K extends keyof Props>(key: K): WhenSignal<Props, Props[K]>;
   state(_s: any): WhenSignal<Props, any>;
   ctx<T>(_key: any): WhenSignal<Props, T>;
+  meta(key: string): WhenSignal<Props, unknown>;
 
   all(...exprs: WhenExpr<Props>[]): WhenExpr<Props>;
   any(...exprs: WhenExpr<Props>[]): WhenExpr<Props>;
@@ -98,6 +101,7 @@ export type RuleEvalCtx<Props extends {}> = {
   props: Readonly<Props>;
   readState?: (id: any) => any;
   readContext?: (key: any, path?: string[]) => any;
+  readMeta?: (key: string) => unknown;
 };
 
 export type RuleEvalResult =

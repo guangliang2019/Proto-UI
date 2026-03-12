@@ -16,6 +16,7 @@
     "@proto-ui/adapters.web-component": "workspace:*",
     "@proto-ui/core": "workspace:*",
     "@prototype-libs/base": "workspace:*",
+    "@prototype-libs/shadcn": "workspace:*",
     "@tailwindcss/vite": "^4.1.11",
     "@types/react": "^19.2.0",
     "@types/react-dom": "^19.2.0",

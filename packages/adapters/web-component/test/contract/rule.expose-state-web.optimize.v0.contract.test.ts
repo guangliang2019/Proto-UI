@@ -32,7 +32,7 @@ describe('adapter-web-component: rule expose-state-web optimization (v0)', () =>
     await Promise.resolve();
 
     // selector-style token should be present (setup-time optimization)
-    expect(el.classList.contains('data-[btn-disabled]:opacity-50')).toBe(true);
+    expect(el.classList.contains('data-[btn-disabled]:opacity-50'), el.className).toBe(true);
     // runtime plain token should not be used
     expect(el.classList.contains('opacity-50')).toBe(false);
 
@@ -72,6 +72,39 @@ describe('adapter-web-component: rule expose-state-web optimization (v0)', () =>
     expect(el.classList.contains('opacity-50')).toBe(true);
     // no selector token for continuous number
     expect(el.classList.contains('data-[slider-value=0.5]:opacity-50')).toBe(false);
+
+    document.body.removeChild(el);
+  });
+
+  it('optimizes state+meta(colorScheme=dark) rule into dark:* selector tokens', async () => {
+    const proto: Prototype = {
+      name: 'x-rule-meta-dark-opt',
+      setup(def: any) {
+        const disabled = def.state.bool('btn.disabled', false);
+        def.expose('disabled', disabled);
+
+        def.rule({
+          when: (w: any) => w.all(w.state(disabled).eq(true), w.meta('colorScheme').eq('dark')),
+          intent: (i: any) => i.feedback.style.use(tw('bg-zinc-950')),
+        });
+
+        def.lifecycle.onMounted(() => {
+          disabled.set(true);
+        });
+
+        return (r: any) => [r.el('div', {}, ['ok'])];
+      },
+    } as any;
+
+    const El = AdaptToWebComponent(proto);
+    const el = new El();
+    document.body.appendChild(el);
+
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(el.classList.contains('data-[btn-disabled]:dark:bg-zinc-950'), el.className).toBe(true);
+    expect(el.classList.contains('bg-zinc-950')).toBe(false);
 
     document.body.removeChild(el);
   });

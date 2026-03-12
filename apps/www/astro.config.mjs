@@ -286,6 +286,11 @@ export default defineConfig({
               slug: 'prototypes/base',
             },
             {
+              label: 'Shadcn Library',
+              translations: { en: 'Shadcn Library', 'zh-CN': 'Shadcn 原型库' },
+              slug: 'prototypes/shadcn',
+            },
+            {
               label: 'Advanced Examples',
               translations: { en: 'Advanced Examples', 'zh-CN': '高级示例' },
               slug: 'prototypes/advanced',

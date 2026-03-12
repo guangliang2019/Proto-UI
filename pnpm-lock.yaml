@@ -55,6 +55,9 @@ importers:
       '@prototype-libs/base':
         specifier: workspace:*
         version: link:../../packages/prototype-libs/base
+      '@prototype-libs/shadcn':
+        specifier: workspace:*
+        version: link:../../packages/prototype-libs/shadcn
       '@tailwindcss/vite':
         specifier: ^4.1.11
         version: 4.1.18(vite@6.4.1)
@@ -106,6 +109,9 @@ importers:
       '@proto-ui/modules.props':
         specifier: workspace:*
         version: link:../../modules/props
+      '@proto-ui/modules.rule-meta':
+        specifier: workspace:*
+        version: link:../../modules/rule-meta
       '@proto-ui/runtime':
         specifier: workspace:*
         version: link:../../runtime
@@ -386,6 +392,18 @@ importers:
         specifier: workspace:*
         version: link:../../types
 
+  packages/modules/rule-meta:
+    dependencies:
+      '@proto-ui/core':
+        specifier: workspace:*
+        version: link:../../core
+      '@proto-ui/modules.base':
+        specifier: workspace:*
+        version: link:../base
+      '@proto-ui/modules.rule':
+        specifier: workspace:*
+        version: link:../rule
+
   packages/modules/state:
     dependencies:
       '@proto-ui/core':
@@ -415,6 +433,15 @@ importers:
       '@proto-ui/core':
         specifier: workspace:*
         version: link:../../core
+
+  packages/prototype-libs/shadcn:
+    dependencies:
+      '@proto-ui/core':
+        specifier: workspace:*
+        version: link:../../core
+      '@prototype-libs/base':
+        specifier: workspace:*
+        version: link:../base
 
   packages/runtime:
     dependencies:
@@ -454,6 +481,9 @@ importers:
       '@proto-ui/modules.rule-expose-state-web':
         specifier: workspace:*
         version: link:../modules/rule-expose-state-web
+      '@proto-ui/modules.rule-meta':
+        specifier: workspace:*
+        version: link:../modules/rule-meta
       '@proto-ui/modules.state':
         specifier: workspace:*
         version: link:../modules/state

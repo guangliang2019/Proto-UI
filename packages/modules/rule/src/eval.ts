@@ -10,6 +10,8 @@ function evalValue<Props extends {}>(v: WhenValue<Props>, ctx: RuleEvalCtx<Props
       return ctx.readState ? ctx.readState(v.id) : undefined;
     case 'context':
       return ctx.readContext ? ctx.readContext(v.key) : undefined;
+    case 'meta':
+      return ctx.readMeta ? ctx.readMeta(v.key) : undefined;
   }
 }
 

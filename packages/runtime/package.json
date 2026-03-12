@@ -8,6 +8,7 @@
     "@proto-ui/types": "workspace:*",
     "@proto-ui/modules.base": "workspace:*",
     "@proto-ui/modules.rule": "workspace:*",
+    "@proto-ui/modules.rule-meta": "workspace:*",
     "@proto-ui/modules.feedback": "workspace:*",
     "@proto-ui/modules.props": "workspace:*",
     "@proto-ui/modules.event": "workspace:*",
