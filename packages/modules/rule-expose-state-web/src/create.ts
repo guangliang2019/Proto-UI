@@ -7,7 +7,10 @@ import type { ExposeStateWebPort, ExposeStateWebBinding } from '@proto-ui/module
 import type { FeedbackPort } from '@proto-ui/modules.feedback';
 import type { RuleExposeStateWebFacade, RuleExposeStateWebModule } from './types';
 
-type Condition = { stateId: any; literal: string | number | boolean | null };
+type Condition =
+  | { kind: 'state'; stateId: any; literal: string | number | boolean | null }
+  | { kind: 'meta.dark' };
+
 type Candidate = {
   id: number;
   order: number;
@@ -15,15 +18,29 @@ type Candidate = {
   tokens: string[];
 };
 
-function isStateOnlyDeps<Props>(rule: RuleIR<Props>): boolean {
-  return rule.deps.every((d) => d.kind === 'state');
+function isStateMetaDeps<Props>(rule: RuleIR<Props>): boolean {
+  let hasStateDep = false;
+  for (const dep of rule.deps) {
+    if (dep.kind === 'state') {
+      hasStateDep = true;
+      continue;
+    }
+    if (dep.kind === 'meta') continue;
+    return false;
+  }
+  return hasStateDep;
 }
 
 function extractConditions<Props>(expr: WhenExpr<Props>): Condition[] | null {
   switch (expr.type) {
     case 'eq':
-      if (expr.left.type !== 'state') return null;
-      return [{ stateId: expr.left.id, literal: expr.right }];
+      if (expr.left.type === 'state') {
+        return [{ kind: 'state', stateId: expr.left.id, literal: expr.right }];
+      }
+      if (expr.left.type === 'meta' && expr.left.key === 'colorScheme' && expr.right === 'dark') {
+        return [{ kind: 'meta.dark' }];
+      }
+      return null;
     case 'all': {
       const all: Condition[] = [];
       for (const e of expr.exprs) {
@@ -43,28 +60,32 @@ function stripDataPrefix(attr: string): string {
 }
 
 function buildVariant(
-  binding: ExposeStateWebBinding,
-  literal: Condition['literal']
+  condition: Condition,
+  map: Map<string, ExposeStateWebBinding>
 ): string | null {
+  if (condition.kind === 'meta.dark') {
+    return 'dark';
+  }
+
+  const binding = map.get(String(condition.stateId));
+  if (!binding) return null;
+  if (binding.kind === 'number.range') return null;
+
   const attr = binding.attr;
   if (!attr) return null;
-
   const key = stripDataPrefix(attr);
 
-  switch (binding.kind) {
-    case 'bool':
-      if (literal !== true) return null;
-      return `data-[${key}]`;
-    case 'enum':
-    case 'string':
-    case 'number.discrete': {
-      if (literal === null) return null;
-      return `data-[${key}=${String(literal)}]`;
-    }
-    case 'number.range':
-    default:
-      return null;
+  if (binding.kind === 'bool') {
+    if (condition.literal !== true) return null;
+    return `data-[${key}]`;
   }
+
+  if (condition.literal === null) return null;
+  if (binding.kind === 'enum' || binding.kind === 'string' || binding.kind === 'number.discrete') {
+    return `data-[${key}=${String(condition.literal)}]`;
+  }
+
+  return null;
 }
 
 class RuleExposeStateWebImpl extends ModuleBase {
@@ -106,7 +127,7 @@ class RuleExposeStateWebImpl extends ModuleBase {
     let order = 0;
 
     for (const r of ir) {
-      if (!isStateOnlyDeps(r)) continue;
+      if (!isStateMetaDeps(r)) continue;
       const conditions = extractConditions(r.when);
       if (!conditions || conditions.length === 0) continue;
 
@@ -151,16 +172,7 @@ class RuleExposeStateWebImpl extends ModuleBase {
       const variants: string[] = [];
       let ok = true;
       for (const cond of c.conditions) {
-        const binding = map.get(String(cond.stateId));
-        if (!binding) {
-          ok = false;
-          break;
-        }
-        if (binding.kind === 'number.range') {
-          ok = false;
-          break;
-        }
-        const v = buildVariant(binding, cond.literal);
+        const v = buildVariant(cond, map);
         if (!v) {
           ok = false;
           break;

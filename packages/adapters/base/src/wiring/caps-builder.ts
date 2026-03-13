@@ -31,6 +31,7 @@ import {
   type AsTriggerParentGetter,
   type AsTriggerPrototypeGetter,
 } from '@proto-ui/modules.as-trigger';
+import { RULE_META_GET_CAP, type RuleMetaGetter } from '@proto-ui/modules.rule-meta';
 import type { EffectsPort } from '@proto-ui/core';
 import type { PropsBaseType } from '@proto-ui/types';
 
@@ -54,6 +55,7 @@ export type CapsWiringBuilder = {
     parent: AsTriggerParentGetter;
     getPrototype: AsTriggerPrototypeGetter;
   }): CapsWiringBuilder;
+  useRuleMeta(getMeta: RuleMetaGetter): CapsWiringBuilder;
   build(): WiringSpec;
 };
 
@@ -108,6 +110,10 @@ export function createCapsWiring(): CapsWiringBuilder {
         [AS_TRIGGER_PARENT_CAP, parent],
         [AS_TRIGGER_GET_PROTO_CAP, getPrototype],
       ]);
+    },
+
+    useRuleMeta(getMeta) {
+      return add('rule-meta', () => [[RULE_META_GET_CAP, getMeta]]);
     },
 
     build() {

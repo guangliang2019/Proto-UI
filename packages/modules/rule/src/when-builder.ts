@@ -19,7 +19,9 @@ export function createWhenBuilder<Props extends {}>(opts?: {
         ? `prop:${String(d.key)}`
         : d.kind === 'state'
           ? `state:${stateIdOf(d.id)}`
-          : `context:${String(d.key)}`;
+          : d.kind === 'context'
+            ? `context:${String(d.key)}`
+            : `meta:${String(d.key)}`;
 
     if (depKeySet.has(key)) return;
     depKeySet.add(key);
@@ -46,6 +48,10 @@ export function createWhenBuilder<Props extends {}>(opts?: {
     ctx(key: any) {
       pushDep({ kind: 'context', key });
       return makeSignal({ type: 'context', key });
+    },
+    meta(key: string) {
+      pushDep({ kind: 'meta', key });
+      return makeSignal({ type: 'meta', key });
     },
 
     all(...exprs: WhenExpr<Props>[]): WhenExpr<Props> {

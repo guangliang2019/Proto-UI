@@ -1,7 +1,7 @@
 import { ExposeState, ExposeEvent } from '@proto-ui/core';
 
 export interface ButtonProps {
-  disabled: boolean;
+  disabled?: boolean;
 }
 
 export type ButtonExposes = {

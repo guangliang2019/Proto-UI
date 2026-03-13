@@ -1,7 +1,5 @@
 import { definePrototype, tw } from '@proto-ui/core';
 
-import { registerPrototype } from '../../../components/PrototypePreviewer/registry';
-import { button } from '@prototype-libs/base';
 import { asButton } from '@prototype-libs/base';
 const DemoInline = definePrototype({
   name: 'demo-inline',

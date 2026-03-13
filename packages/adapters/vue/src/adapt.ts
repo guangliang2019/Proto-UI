@@ -70,6 +70,7 @@ export type VueAdapterProps<Props extends PropsBaseType> = Props &
 export interface VueAdapterOptions<Props extends PropsBaseType> {
   schedule?: (task: () => void) => void;
   getProps?: (props: VueAdapterProps<Props>) => Partial<Props> | null | undefined;
+  getMeta?: (key: string) => unknown;
   exposeStateWebMode?: ExposeStateWebMode;
   autoUpdateOnPropsChange?: boolean;
   rootTag?: string;
@@ -129,6 +130,26 @@ function createNameMap(semantic: string) {
   };
 }
 
+function createDefaultMetaGetter(): (key: string) => unknown {
+  return (key: string) => {
+    if (key === 'colorScheme') {
+      if (typeof window !== 'undefined' && typeof window.matchMedia === 'function') {
+        return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      }
+      return 'light';
+    }
+    if (key === 'reducedMotion') {
+      if (typeof window !== 'undefined' && typeof window.matchMedia === 'function') {
+        return window.matchMedia('(prefers-reduced-motion: reduce)').matches
+          ? 'reduce'
+          : 'no-preference';
+      }
+      return 'no-preference';
+    }
+    return undefined;
+  };
+}
+
 export function createVueAdapter(runtime: VueRuntime) {
   return function AdaptToVue<Props extends PropsBaseType>(
     proto: Prototype<Props>,
@@ -137,6 +158,7 @@ export function createVueAdapter(runtime: VueRuntime) {
     // TODO: 暂时不知道是什么意思
     const schedule = opt.schedule ?? ((task) => queueMicrotask(task));
     const getProps = opt.getProps ?? defaultGetProps;
+    const getMeta = opt.getMeta ?? createDefaultMetaGetter();
     const exposeStateWebMode = opt.exposeStateWebMode;
     const autoUpdate = opt.autoUpdateOnPropsChange ?? true;
     const rootTag = opt.rootTag ?? 'div';
@@ -250,6 +272,7 @@ export function createVueAdapter(runtime: VueRuntime) {
               parent: (inst) => getProtoParent(inst as HTMLElement),
               getPrototype: (inst) => PROTO_BY_INSTANCE.get(inst as HTMLElement) ?? null,
             })
+            .useRuleMeta((key: string) => getMeta(key))
             .build();
 
           const wiring = createHostWiring({ prototypeName: proto.name, modules });

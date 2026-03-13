@@ -19,7 +19,14 @@ function getPrototypeIdFromPath(path: string): string | null {
  * value: 动态导入函数
  */
 const manualPrototypeModules: Record<string, PrototypeModuleLoader> = {
-  // 示例：'button-demo': () => import('../../content/docs/zh-cn/components/button-demo.demo.proto'),
+  'base-button': async () => {
+    const mod = await import('@prototype-libs/base');
+    registerPrototype('base-button', mod.button);
+  },
+  'shadcn-button': async () => {
+    const mod = await import('@prototype-libs/shadcn');
+    registerPrototype('shadcn-button', mod.button);
+  },
 };
 
 /**
