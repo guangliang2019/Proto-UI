@@ -65,70 +65,61 @@ export default defineConfig({
               slug: 'start-here/what-you-saw',
             },
             {
-              label: 'Proto UI 是怎么做到的？',
-              translations: { en: 'How Proto UI Works', 'zh-CN': 'Proto UI 是怎么做到的？' },
-              slug: 'start-here/how-it-works',
-            },
-            {
-              label: '自己动手：第一个原型',
-              translations: { en: 'Build Your First Prototype', 'zh-CN': '自己动手：第一个原型' },
-              slug: 'start-here/first-prototype',
-              badge: {
-                text: { 'zh-CN': '计划中', en: 'Planned' },
-                class: 'text-xs px-1.5 h-4.5 rounded-full bg-zinc-800',
+              label: '为什么这不是普通的跨框架封装？',
+              translations: {
+                en: 'Why This Is Not Just Cross-Framework Wrapping',
+                'zh-CN': '为什么这不是普通的跨框架封装？',
               },
+              slug: 'start-here/not-just-cross-framework-wrapping',
             },
             {
-              label: '跨宿主运行',
-              translations: { en: 'Running Across Hosts', 'zh-CN': '跨宿主运行' },
-              slug: 'start-here/running-across-hosts',
+              label: '跨宿主运行意味着什么？',
+              translations: {
+                en: 'What Cross-Host Running Means',
+                'zh-CN': '跨宿主运行意味着什么？',
+              },
+              slug: 'start-here/what-cross-host-running-means',
+            },
+            {
+              label: '如何开始使用 Proto UI？',
+              translations: {
+                en: 'How to Start Using Proto UI',
+                'zh-CN': '如何开始使用 Proto UI？',
+              },
+              slug: 'start-here/how-to-start-using-proto-ui',
+            },
+            {
+              label: '我接下来该从哪里继续读？',
+              translations: { en: 'Where to Go Next', 'zh-CN': '我接下来该从哪里继续读？' },
+              slug: 'start-here/where-to-go-next',
             },
           ],
         },
 
         // 2) 结构入口：少而精
         {
-          label: 'Overview',
-          translations: { en: 'Overview', 'zh-CN': '概览' },
+          label: 'Project',
+          translations: { en: 'Project', 'zh-CN': '项目' },
           items: [
             {
               label: '项目介绍',
               translations: { en: 'Project Introduction', 'zh-CN': '项目介绍' },
-              slug: 'overview/introduction',
+              slug: 'project/introduction',
             },
             {
               label: '为什么会有 Proto UI',
               translations: { en: 'Why Proto UI', 'zh-CN': '为什么会有 Proto UI' },
-              slug: 'overview/why',
+              slug: 'project/why',
             },
             {
-              label: 'High-Level Model',
-              translations: { en: 'High-Level Model', 'zh-CN': 'High-Level Model' },
-              slug: 'overview/model',
+              label: 'Proto UI 不做什么',
+              translations: { en: 'What Proto UI Does Not Do', 'zh-CN': 'Proto UI 不做什么' },
+              slug: 'project/what-proto-ui-does-not-do',
             },
             {
               label: '时间线 & 里程碑',
               translations: { en: 'Milestones', 'zh-CN': '里程碑' },
-              slug: 'overview/milestones',
-            },
-            {
-              label: '原型库（概览）',
-              translations: { en: 'Prototype Library (Overview)', 'zh-CN': '原型库（概览）' },
-              slug: 'overview/prototypes',
-            },
-            {
-              label: '适配器库（概览）',
-              translations: { en: 'Adapter Library (Overview)', 'zh-CN': '适配器库（概览）' },
-              slug: 'overview/adapters',
-            },
-            {
-              label: '贡献者索引',
-              translations: { en: 'Contributor Index', 'zh-CN': '贡献者索引' },
-              slug: 'overview/contributing',
-              badge: {
-                text: { 'zh-CN': '征集中', en: 'Collecting' },
-                class: 'text-xs px-1.5 h-4.5 rounded-full bg-lime-400 text-black',
-              },
+              slug: 'project/milestones',
             },
           ],
         },
@@ -227,6 +218,11 @@ export default defineConfig({
               slug: 'specs/feedback',
             },
             {
+              label: 'asHook',
+              translations: { en: 'asHook', 'zh-CN': 'asHook' },
+              slug: 'specs/as-hook',
+            },
+            {
               label: 'Rule',
               translations: { en: 'Rule', 'zh-CN': 'Rule' },
               slug: 'specs/rule',
@@ -243,6 +239,16 @@ export default defineConfig({
           label: 'Engineering',
           translations: { en: 'Engineering', 'zh-CN': '工程实现' },
           items: [
+            {
+              label: '工程导读',
+              translations: { en: 'Engineering Introduction', 'zh-CN': '工程导读' },
+              slug: 'engineering/introduction',
+            },
+            {
+              label: 'Runtime 架构',
+              translations: { en: 'Runtime Architecture', 'zh-CN': 'Runtime 架构' },
+              slug: 'engineering/runtime-architecture',
+            },
             {
               label: 'Prototype API',
               translations: { en: 'Prototype API', 'zh-CN': 'Prototype API' },
@@ -263,14 +269,14 @@ export default defineConfig({
               },
             },
             {
-              label: 'Runtime Architecture',
-              translations: { en: 'Runtime Architecture', 'zh-CN': 'Runtime 架构' },
-              slug: 'engineering/runtime-architecture',
-            },
-            {
               label: 'Host Caps',
               translations: { en: 'Host Caps', 'zh-CN': 'Host Caps' },
               slug: 'engineering/host-caps',
+            },
+            {
+              label: '模块与扩展架构',
+              translations: { en: 'Module & Extension Architecture', 'zh-CN': '模块与扩展架构' },
+              slug: 'engineering/module-extension-architecture',
             },
           ],
         },
@@ -298,30 +304,45 @@ export default defineConfig({
           ],
         },
 
-        // 7) 贡献：保持少而清晰，避免把协作细则塞满侧边栏
+        // 7) 生态：面向想理解或参与 Proto UI 生态建设的人
         {
-          label: 'Contributing',
-          translations: { en: 'Contributing', 'zh-CN': '贡献' },
+          label: 'Ecosystem',
+          translations: { en: 'Ecosystem', 'zh-CN': '生态建设' },
           items: [
             {
-              label: '贡献概览',
-              translations: { en: 'Contributing Overview', 'zh-CN': '贡献概览' },
-              slug: 'contributing',
+              label: '生态导读',
+              translations: { en: 'Ecosystem Introduction', 'zh-CN': '生态导读' },
+              slug: 'ecosystem',
+            },
+            {
+              label: '原型库（概览）',
+              translations: { en: 'Prototype Library (Overview)', 'zh-CN': '原型库（概览）' },
+              slug: 'ecosystem/prototypes',
+            },
+            {
+              label: '适配器库（概览）',
+              translations: { en: 'Adapter Library (Overview)', 'zh-CN': '适配器库（概览）' },
+              slug: 'ecosystem/adapters',
             },
             {
               label: '编写原型',
               translations: { en: 'Write a Prototype', 'zh-CN': '编写原型' },
-              slug: 'contributing/write-prototype',
+              slug: 'ecosystem/write-prototype',
             },
             {
               label: '编写适配器',
               translations: { en: 'Write an Adapter', 'zh-CN': '编写适配器' },
-              slug: 'contributing/write-adapter',
+              slug: 'ecosystem/write-adapter',
             },
             {
               label: '契约与测试',
               translations: { en: 'Contracts & Tests', 'zh-CN': '契约与测试' },
-              slug: 'contributing/contracts',
+              slug: 'ecosystem/contracts',
+            },
+            {
+              label: '生态建设方向',
+              translations: { en: 'Ecosystem Roadmap', 'zh-CN': '生态建设方向' },
+              slug: 'ecosystem/roadmap',
             },
           ],
         },
