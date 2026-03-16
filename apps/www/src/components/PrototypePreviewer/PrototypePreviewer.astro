@@ -2,8 +2,7 @@
 import type { RuntimeId } from './runtimes/registry';
 import AdapterSelect from '../override/AdapterSelect.astro';
 import { AdapterIds } from './runtimes/registry';
-// src/components/PrototypePreviewer.astro
-
+import CodePanel from './CodePanel.astro';
 interface Props {
   prototypeId?: string; // 原型 ID（与 demoId 二选一）
   demoId?: string; // demo ID（*.demo.ts）
@@ -13,6 +12,9 @@ interface Props {
   toolbar?: boolean; // 是否渲染运行时切换 UI，默认 true
   runtimes?: RuntimeId[]; // 可选的运行时列表，默认 ['wc','react','vue']
   loader?: string; // 动态导入路径，例如 './demo-inline'
+  /** 可选：展示的代码片段，提供后显示 Preview | Code 标签页 */
+  code?: string;
+  hasCode?: boolean;
 }
 
 function assertJsonLike(value: unknown, path: string[] = []) {
@@ -59,6 +61,8 @@ const {
   toolbar = true,
   runtimes = AdapterIds,
   loader,
+  code: codeSnippet,
+  hasCode = false,
 } = Astro.props;
 
 if (!prototypeId && !demoId) {
@@ -75,7 +79,7 @@ const rid = `pp-${Math.random().toString(36).slice(2)}`;
 ---
 
 <div
-  class={`proto-previewer ${className}`}
+  class:list={['proto-previewer', className]}
   data-previewer-id={rid}
   data-prototype-id={prototypeId || ''}
   data-demo-id={demoId || ''}
@@ -86,34 +90,96 @@ const rid = `pp-${Math.random().toString(36).slice(2)}`;
 >
   {
     toolbar && (
-      <div class="toolbar">
-        <label class="label">Runtime</label>
-        <AdapterSelect />
+      <div class="proto-previewer__header">
+        <div class="proto-previewer__toolbar">
+          <label class="proto-previewer__label">Runtime</label>
+          <AdapterSelect />
+        </div>
       </div>
     )
   }
-  <div class="host" role="region" aria-live="polite"></div>
+
+  <!-- Preview 面板 -->
+  <div
+    id={`${rid}-preview`}
+    role="tabpanel"
+    aria-labelledby={hasCode ? `${rid}-preview-tab` : undefined}
+    class="proto-previewer__preview-panel"
+    data-panel="preview"
+  >
+    <div class="proto-previewer__preview" role="region" aria-live="polite">
+      <div class="host"></div>
+    </div>
+  </div>
+
+  <!-- Code 面板：默认收起，点击“View code” 展开 -->
+  {hasCode && <CodePanel code={codeSnippet} />}
 
   <style>
     .proto-previewer {
-      border: 1px solid var(--sl-color-gray-5);
-      border-radius: 12px;
-      padding: 12px;
+      --proto-previewer-radius: 0.75rem;
+      --proto-previewer-border: 1px solid var(--color-border);
+      --proto-previewer-bg: color-mix(in oklch, var(--color-muted) 30%, transparent);
+      --proto-code-fg: var(--color-code-foreground);
+      border: var(--proto-previewer-border);
+      border-radius: var(--proto-previewer-radius);
+      overflow: hidden;
     }
-    .toolbar {
+
+    .proto-previewer__header {
       display: flex;
-      gap: 8px;
       align-items: center;
-      margin-bottom: 10px;
+      gap: 0.75rem;
+      padding: 0.5rem 1rem;
+      border-bottom: var(--proto-previewer-border);
+      background: color-mix(in oklch, var(--color-muted) 12%, transparent);
     }
-    .host {
-      min-height: 84px;
-      display: grid;
-      place-items: center;
+
+    .proto-previewer__toolbar {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
     }
-    select {
-      padding: 6px 8px;
-      border-radius: 8px;
+
+    .proto-previewer__label {
+      font-size: 0.8125rem;
+      color: var(--color-muted-foreground);
+    }
+
+    .proto-previewer__toolbar select {
+      padding: 0.375rem 0.625rem;
+      font-size: 0.8125rem;
+      border: 1px solid var(--color-border);
+      border-radius: 0.375rem;
+      background: var(--color-background);
+      color: var(--color-foreground);
+    }
+
+    .proto-previewer__preview-panel {
+      display: block;
+    }
+
+    .proto-previewer__preview {
+      padding: 1.5rem;
+      min-height: 12rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--proto-previewer-bg);
+    }
+
+    .proto-previewer__preview .host {
+      min-height: 5rem;
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    @media (max-width: 640px) {
+      .proto-previewer__preview {
+        padding: 1.1rem;
+      }
     }
   </style>
 
@@ -121,7 +187,6 @@ const rid = `pp-${Math.random().toString(36).slice(2)}`;
     import { initPreviewer } from './previewer-client';
     import type { RuntimeId } from './runtimes/registry';
     import { AdapterIds } from './runtimes/registry';
-    // 在 DOMContentLoaded 或立即执行（根据加载时机）
     function init() {
       document
         .querySelectorAll<HTMLElement>('.proto-previewer[data-previewer-id]:not([data-inited])')
@@ -151,7 +216,6 @@ const rid = `pp-${Math.random().toString(36).slice(2)}`;
         });
     }
 
-    // 支持动态插入的组件
     if (document.readyState === 'loading') {
       document.addEventListener('DOMContentLoaded', init);
     } else {

@@ -3,6 +3,7 @@
   "type": "module",
   "version": "0.0.1",
   "scripts": {
+    "codegen": "tsx scripts/codegen/cli.ts",
     "dev": "astro dev",
     "start": "astro dev",
     "build": "astro build",
@@ -10,6 +11,7 @@
     "astro": "astro"
   },
   "dependencies": {
+    "shiki": "^3.22.0",
     "@astrojs/starlight": "^0.35.2",
     "@proto-ui/adapters.react": "workspace:*",
     "@proto-ui/adapters.vue": "workspace:*",
@@ -25,5 +27,13 @@
     "tailwindcss": "^4.1.11",
     "unist-util-visit": "^5.0.0",
     "vue": "^3.5.13"
+  },
+  "devDependencies": {
+    "@types/mdast": "^4.0.0",
+    "mdast-util-mdx": "^3.0.0",
+    "remark-mdx": "^3.0.0",
+    "remark-parse": "^11.0.0",
+    "tsx": "^4.0.0",
+    "unified": "^11.0.0"
   }
 }
