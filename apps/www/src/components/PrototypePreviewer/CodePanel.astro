@@ -1,0 +1,141 @@
+---
+import { codeToHtml } from 'shiki';
+
+export type CodeLang = 'tsx' | 'vue' | 'html' | 'javascript';
+
+interface Props {
+  code: string | undefined;
+  lang?: CodeLang;
+}
+const { code, lang = 'tsx' } = Astro.props;
+
+async function highlightWithShiki(raw: string | undefined, langId: CodeLang): Promise<string> {
+  if (!raw) return '';
+  let html = await codeToHtml(raw, {
+    lang: langId,
+    themes: {
+      light: 'github-light',
+      dark: 'github-dark',
+    },
+  });
+  const safeRaw = raw.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
+  html = html.replace(
+    /<pre class="([^"]*)"/,
+    '<pre class="proto-previewer__code m-0 text-[0.8125rem] leading-6 whitespace-pre $1"'
+  );
+  html = html.replace(/<code([^>]*)>/, `<code$1 data-raw-code="${safeRaw}">`);
+  return html;
+}
+
+const highlighted = await highlightWithShiki(code, lang);
+---
+
+<figure class="relative" data-code-shell>
+  <div
+    class="group relative max-h-24 overflow-hidden p-2 border-t border-border bg-muted data-[code-expanded=true]:max-h-none data-[code-expanded=true]:overflow-visible"
+    data-code-inner
+  >
+    <button
+      type="button"
+      class="absolute top-3 right-3 px-2 py-1 text-xs font-medium border-none rounded cursor-pointer opacity-80 transition-colors duration-150 hover:opacity-100 hover:bg-white/15 hidden group-data-[code-expanded=true]:inline-flex"
+      title="Copy code"
+      aria-label="Copy code"
+      data-copy
+      aria-expanded="false"
+    >
+      <span data-copy-text>
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="24"
+          height="24"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          class="size-4.5 light"
+        >
+          <path
+            fill-rule="evenodd"
+            clip-rule="evenodd"
+            d="M7 7m0 2.667a2.667 2.667 0 0 1 2.667 -2.667h8.666a2.667 2.667 0 0 1 2.667 2.667v8.666a2.667 2.667 0 0 1 -2.667 2.667h-8.666a2.667 2.667 0 0 1 -2.667 -2.667z"
+          ></path>
+          <path
+            d="M4.012 16.737a2.005 2.005 0 0 1 -1.012 -1.737v-10c0 -1.1 .9 -2 2 -2h10c.75 0 1.158 .385 1.5 1"
+          ></path>
+        </svg>
+      </span>
+    </button>
+
+    <div
+      class="[&_.shiki]:!bg-muted dark:[&_.shiki_span]:![color:var(--shiki-dark)] max-h-36 group-data-[code-expanded=false]:select-none group-data-[code-expanded=true]:overflow-y-auto no-scrollbar"
+      data-code-content
+      set:html={highlighted}
+    />
+    <!-- 底部帘幕渐变，未展开时可见 -->
+    <div
+      class="absolute inset-x-0 bottom-0 h-16 z-9 pointer-events-none bg-gradient-to-b from-transparent to-muted group-data-[code-expanded=true]:hidden"
+      data-code-fade
+      aria-hidden="true"
+    >
+    </div>
+
+    <button
+      type="button"
+      class="absolute left-1/2 bottom-1/2 -translate-x-1/2 translate-y-1/2 z-10 py-1.5 px-4 text-[0.8125rem] font-medium rounded-lg border border-border bg-background text-foreground cursor-pointer inline-flex items-center gap-1.5 shadow-sm transition-colors duration-150 hover:bg-muted group-data-[code-expanded=true]:hidden"
+      data-code-toggle
+      aria-expanded="false"
+      aria-label="展开代码"
+    >
+      View code
+    </button>
+  </div>
+</figure>
+
+<script>
+  (function () {
+    document.querySelectorAll<HTMLElement>('[data-code-shell]').forEach((shell) => {
+      const panel = shell.querySelector('[data-code-inner]') as HTMLElement | null;
+      const toggle = shell.querySelector('[data-code-toggle]') as HTMLButtonElement | null;
+      const copyBtn = shell.querySelector('[data-copy]') as HTMLButtonElement | null;
+      const copyText = shell.querySelector('[data-copy-text]') as HTMLElement | null;
+      const codeEl = shell.querySelector('.proto-previewer__code code') as HTMLElement | null;
+
+      function setExpanded(expanded: boolean) {
+        if (shell) shell.dataset.codeExpanded = expanded ? 'true' : 'false';
+        if (panel) panel.dataset.codeExpanded = expanded ? 'true' : 'false';
+        if (toggle) {
+          toggle.setAttribute('aria-expanded', String(expanded));
+        }
+      }
+      setExpanded(false);
+      if (toggle) {
+        toggle.addEventListener('click', () => {
+          const expanded = shell.dataset.codeExpanded === 'true';
+          setExpanded(!expanded);
+        });
+      }
+
+      if (copyBtn && codeEl && copyText) {
+        const copyIconHtml = copyText.innerHTML;
+        const checkIconHtml = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4.5"><path d="M20 6 9 17l-5-5"/></svg>`;
+
+        copyBtn.addEventListener('click', async () => {
+          const text = codeEl.dataset.rawCode ?? codeEl.textContent ?? '';
+          try {
+            await navigator.clipboard.writeText(text);
+            copyText.innerHTML = checkIconHtml;
+            setTimeout(() => {
+              copyText.innerHTML = copyIconHtml;
+            }, 1500);
+          } catch {
+            copyText.innerHTML = copyIconHtml;
+          }
+        });
+      }
+    });
+  })();
+</script>
+
+<template id="proto-previewer-theme-icons"> </template>

@@ -70,3 +70,23 @@
 .no-scrollbar {
   scrollbar-width: none;
 }
+
+.proto-previewer__code {
+  counter-reset: code-line;
+}
+
+.proto-previewer__code .line {
+  position: relative;
+}
+
+.proto-previewer__code .line::before {
+  counter-increment: code-line;
+  content: counter(code-line);
+  color: var(--color-muted-foreground, #9ca3af);
+  width: calc(var(--spacing) * 16);
+  padding-right: calc(var(--spacing) * 6);
+  text-align: right;
+  display: inline-block;
+  position: sticky;
+  left: 0;
+}
