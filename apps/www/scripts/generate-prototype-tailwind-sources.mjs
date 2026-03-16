@@ -1,17 +1,13 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import ts from 'typescript';
 
-const ROOT = process.cwd();
-const PROTOTYPE_LIBS_DIR = path.join(ROOT, 'packages', 'prototype-libs');
-const OUTPUT_FILE = path.join(
-  ROOT,
-  'apps',
-  'www',
-  'src',
-  'styles',
-  'prototype-tokens.generated.css'
-);
+const SCRIPT_DIR = path.dirname(fileURLToPath(import.meta.url));
+const APP_ROOT = path.resolve(SCRIPT_DIR, '..');
+const REPO_ROOT = path.resolve(SCRIPT_DIR, '..', '..', '..');
+const PROTOTYPE_LIBS_DIR = path.join(REPO_ROOT, 'packages', 'prototype-libs');
+const OUTPUT_FILE = path.join(APP_ROOT, 'src', 'styles', 'prototype-tokens.generated.css');
 
 async function main() {
   const files = await collectTsFiles(PROTOTYPE_LIBS_DIR);
@@ -34,7 +30,7 @@ async function main() {
   await fs.mkdir(path.dirname(OUTPUT_FILE), { recursive: true });
   await fs.writeFile(OUTPUT_FILE, css, 'utf8');
   console.log(
-    `[prototype-tailwind] wrote ${tokens.size} tokens to ${path.relative(ROOT, OUTPUT_FILE)}`
+    `[prototype-tailwind] wrote ${tokens.size} tokens to ${path.relative(APP_ROOT, OUTPUT_FILE)}`
   );
 }
 
