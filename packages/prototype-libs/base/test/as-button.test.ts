@@ -50,6 +50,7 @@ function createHost(initialRaw: Record<string, unknown> = {}) {
   return {
     host,
     rootTarget,
+    globalTarget,
     emitted,
     getExposes() {
       return exposes;
@@ -76,11 +77,14 @@ describe('prototype-libs/base: asButton', () => {
     ctx.rootTarget.dispatchEvent(new CustomEvent('pointer.enter'));
     expect(exposes.hovered.get()).toBe(true);
 
+    ctx.globalTarget?.dispatchEvent?.(new CustomEvent('key.down'));
     ctx.rootTarget.dispatchEvent(new CustomEvent('native:focus'));
     expect(exposes.focused.get()).toBe(true);
+    expect(exposes.focusVisible.get()).toBe(true);
 
     ctx.rootTarget.dispatchEvent(new CustomEvent('pointer.down'));
     expect(exposes.pressed.get()).toBe(true);
+    expect(exposes.focusVisible.get()).toBe(false);
 
     ctx.rootTarget.dispatchEvent(new CustomEvent('press.commit'));
     expect(exposes.pressed.get()).toBe(false);
@@ -89,6 +93,7 @@ describe('prototype-libs/base: asButton', () => {
     controller.applyRawProps({ disabled: true } as any);
     expect(exposes.hovered.get()).toBe(false);
     expect(exposes.focused.get()).toBe(false);
+    expect(exposes.focusVisible.get()).toBe(false);
     expect(exposes.pressed.get()).toBe(false);
 
     ctx.rootTarget.dispatchEvent(new CustomEvent('pointer.enter'));
@@ -98,6 +103,7 @@ describe('prototype-libs/base: asButton', () => {
 
     expect(exposes.hovered.get()).toBe(false);
     expect(exposes.focused.get()).toBe(false);
+    expect(exposes.focusVisible.get()).toBe(false);
     expect(exposes.pressed.get()).toBe(false);
     expect(ctx.emitted).toEqual(['click']);
   });

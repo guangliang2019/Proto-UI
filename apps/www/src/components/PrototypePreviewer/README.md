@@ -211,6 +211,23 @@ console.log('可用原型:', getAvailablePrototypes());
 }
 ```
 
+### Prototype Tailwind Token 同步
+
+`PrototypePreviewer` 里的 prototype class token 来自运行时原型，不会被 Tailwind 的静态扫描自动发现。
+
+官网现在通过生成流程解决这个问题：
+
+1. `apps/www/scripts/generate-prototype-tailwind-sources.mjs` 扫描 `packages/prototype-libs/**` 中的静态 `tw(...)` 调用
+2. 同时提取可静态识别的 `rule.when(...)` 条件，并为 web 变体生成对应 token（例如 `hover:*`、`focus-visible:*`、`dark:*`、`aria-invalid:*`）
+3. 输出到 `src/styles/prototype-tokens.generated.css`
+4. `src/styles/tailwindcss.css` 导入这份 generated source，让 Tailwind 在 docs `dev/build` 前自动纳入这些 utility
+
+因此：
+
+- 不要再手写 prototype safelist
+- 新增 prototype-libs 样式时，优先保持 `tw(...)` 参数是静态可解析的字符串或静态映射
+- `pnpm --filter apps-www dev/build` 会自动在前置脚本里刷新 generated token source
+
 ## 🚀 最佳实践
 
 1. **就近维护**：使用 `*.demo.proto.ts` 后缀，原型文件放在文档附近
@@ -258,6 +275,7 @@ content/docs/zh-cn/
 ---
 // 在 Astro 组件的 script 标签中
 ---
+
 <script>
   import { loadPrototypes } from './prototype-modules';
 

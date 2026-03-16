@@ -18,6 +18,7 @@ import {
   TemplateNode,
 } from './spec';
 import { State, StateDefAPI } from './state';
+import type { Unsubscribe } from './state';
 
 // 统一错误上下文，方便在 runtime 做 phase guard 时给出可诊断信息
 
@@ -91,11 +92,14 @@ export interface DefHandle<Props extends PropsBaseType, Exposes = Record<string,
   props: {
     define(decl: PropsSpecMap<Props>): void;
     setDefaults(partialDefaults: PropsDefaults<Props>): void;
-    watch(keys: (keyof Props & string)[], cb: PropsWatchCallback<Props>): void;
-    watchAll(cb: PropsWatchCallback<Props>): void;
+    watch(keys: (keyof Props & string)[], cb: PropsWatchCallback<Props>): Unsubscribe;
+    watchAll(cb: PropsWatchCallback<Props>): Unsubscribe;
 
-    watchRaw(keys: (keyof Props & string)[], cb: RawWatchCallback<Props & PropsBaseType>): void;
-    watchRawAll(cb: RawWatchCallback<Props & PropsBaseType>): void;
+    watchRaw(
+      keys: (keyof Props & string)[],
+      cb: RawWatchCallback<Props & PropsBaseType>
+    ): Unsubscribe;
+    watchRawAll(cb: RawWatchCallback<Props & PropsBaseType>): Unsubscribe;
   };
 
   feedback: {
@@ -120,7 +124,7 @@ export interface DefHandle<Props extends PropsBaseType, Exposes = Record<string,
     ) => void;
   };
 
-  rule: (spec: any) => void;
+  rule: (spec: any) => { readonly id: number; dispose(): void };
 
   event: {
     on(
@@ -143,11 +147,14 @@ export interface DefHandle<Props extends PropsBaseType, Exposes = Record<string,
       key: ContextKey<T>,
       defaultValue: T
     ): (next: T | ((prev: T) => T)) => void;
-    subscribe<T extends JsonObject>(key: ContextKey<T>, onChange?: ContextOnChange<Props, T>): void;
+    subscribe<T extends JsonObject>(
+      key: ContextKey<T>,
+      onChange?: ContextOnChange<Props, T>
+    ): Unsubscribe;
     trySubscribe<T extends JsonObject>(
       key: ContextKey<T>,
       onChange?: ContextOnChangeOptional<Props, T>
-    ): void;
+    ): Unsubscribe;
   };
 }
 

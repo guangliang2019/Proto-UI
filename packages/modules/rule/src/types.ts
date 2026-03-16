@@ -9,6 +9,11 @@ import type {
   BorrowedStateHandle,
 } from '@proto-ui/core';
 
+export type RuleHandle = {
+  readonly id: number;
+  dispose(): void;
+};
+
 export type RuleDep<Props> =
   | { kind: 'prop'; key: keyof Props }
   | { kind: 'state'; id: any }
@@ -127,7 +132,7 @@ export type RulePort<Props extends {}> = {
 
 export type RuleFacade<Props extends {}> = ModuleFacade & {
   // setup-only: def.rule
-  rule: (spec: RuleSpec<Props>) => void;
+  rule: (spec: RuleSpec<Props>) => RuleHandle;
 };
 
 export type RuleModule<Props extends {}> = ModuleInstance<RuleFacade<Props>> & {

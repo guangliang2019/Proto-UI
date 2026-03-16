@@ -13,6 +13,10 @@ import { StateSubscribeCallback, StateWatchCallback } from './handles';
 
 export type Unsubscribe = () => void;
 
+export type InteractionStateName = 'disabled' | 'hovered' | 'pressed' | 'focused' | 'focusVisible';
+
+export type AccessibilityStateName = 'expanded' | 'invalid' | 'selected' | 'checked' | 'current';
+
 /** Owned: author has "design authority". No watch (intentional friction). */
 export interface OwnedStateHandle<V> {
   /** setup+runtime */
@@ -53,6 +57,14 @@ export interface ExposedStateHandle<V> {
 
 export interface StateDefAPI {
   bool(semantic: string, defaultValue: boolean): OwnedStateHandle<boolean>;
+
+  fromInteraction<P extends PropsBaseType = PropsBaseType>(
+    name: InteractionStateName
+  ): BorrowedStateHandle<boolean, P>;
+
+  fromAccessibility<P extends PropsBaseType = PropsBaseType>(
+    name: AccessibilityStateName
+  ): BorrowedStateHandle<boolean, P>;
 
   enum<const O extends readonly string[]>(
     semantic: string,

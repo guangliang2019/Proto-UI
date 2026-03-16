@@ -47,6 +47,54 @@ function isStateHandleLike(x: any): x is StateHandleLike {
   return !!x && typeof x === 'object' && typeof x.get === 'function' && !!x.__stateId;
 }
 
+function collectNamedStateHandles(entries: unknown[]): Record<string, StateHandleLike> | undefined {
+  const named = new Map<string, StateHandleLike>();
+  const seenIds = new Set<unknown>();
+
+  for (const entry of entries) {
+    if (!isStateHandleLike(entry)) continue;
+
+    const semantic = entry.__stateSemantic;
+    if (typeof semantic !== 'string' || !semantic) continue;
+
+    const id = entry.__stateId ?? semantic;
+    if (seenIds.has(id)) continue;
+    seenIds.add(id);
+    named.set(semantic, entry);
+  }
+
+  if (named.size === 0) return undefined;
+  return Object.fromEntries(named);
+}
+
+function collectDisposers(
+  entries: unknown[],
+  predicate?: (entry: unknown) => boolean
+): Array<() => void> {
+  const out: Array<() => void> = [];
+  for (const entry of entries) {
+    if (predicate && !predicate(entry)) continue;
+    if (typeof entry === 'function') {
+      out.push(entry as () => void);
+      continue;
+    }
+    const off = (entry as any)?.off;
+    if (typeof off === 'function') out.push(off);
+  }
+  return out;
+}
+
+function collectEventKeys(entries: unknown[]): Record<string, string> | undefined {
+  const out: Record<string, string> = {};
+  for (const entry of entries) {
+    if ((entry as any)?.op !== 'expose.event') continue;
+    const key = (entry as any)?.key;
+    if (typeof key !== 'string' || !key) continue;
+    out[key] = key;
+  }
+  return Object.keys(out).length > 0 ? out : undefined;
+}
+
 function getOrCreateTrace(proto: object): TraceStore {
   const anyProto = proto as any;
   if (!anyProto[TRACE_INTERNAL]) {
@@ -191,7 +239,7 @@ export function attachAsHookRuntime<P extends PropsBaseType>(
       const frame = frameStack[frameStack.length - 1];
       frame.effects[kind].push(entry);
     },
-    endCapture: (render?: RenderFn): AsHookResult => {
+    endCapture: (render?: RenderFn): AsHookResult<any, any> => {
       const frame = frameStack.pop();
       if (!frame) return render ? { render } : {};
 
@@ -207,9 +255,57 @@ export function attachAsHookRuntime<P extends PropsBaseType>(
       const context = compact(frame.effects.context);
       const event = compact(frame.effects.event);
       const feedback = compact(frame.effects.feedback);
+      const stateHandles = collectNamedStateHandles(frame.effects.state);
+      const propsDisposers = collectDisposers(frame.effects.props);
+      const contextDisposers = collectDisposers(
+        frame.effects.context,
+        (entry) => (entry as any)?.op === 'subscribe' || (entry as any)?.op === 'trySubscribe'
+      );
+      const ruleDisposers = collectDisposers(
+        frame.effects.context,
+        (entry) => (entry as any)?.op === 'rule'
+      );
+      const eventDisposers = collectDisposers(frame.effects.event);
+      const feedbackDisposers = collectDisposers(frame.effects.feedback);
+      const eventKeys = collectEventKeys(frame.effects.event);
+      const allDisposers = [
+        ...propsDisposers,
+        ...contextDisposers,
+        ...ruleDisposers,
+        ...eventDisposers,
+        ...feedbackDisposers,
+      ];
 
       if (typeof props !== 'undefined') result.props = props;
       if (typeof state !== 'undefined') result.state = state;
+      let projectedStateHandles: Record<string, unknown> | undefined;
+      if (typeof stateHandles !== 'undefined') {
+        projectedStateHandles = projectState(stateHandles) as Record<string, unknown>;
+        result.stateHandles = Object.freeze(projectedStateHandles as any);
+        result.getState = (key: string) =>
+          (projectedStateHandles as Record<string, unknown>)[key] as any;
+      }
+      if (projectedStateHandles || eventKeys) {
+        const artifacts: Record<string, unknown> = {};
+        if (projectedStateHandles) artifacts.stateHandles = result.stateHandles;
+        if (eventKeys) artifacts.eventKeys = Object.freeze(eventKeys);
+        result.artifacts = Object.freeze(artifacts);
+      }
+      if (allDisposers.length > 0) {
+        const disposers: Record<string, unknown> = {
+          all: Object.freeze(allDisposers.slice()),
+        };
+        if (propsDisposers.length > 0) disposers.props = Object.freeze(propsDisposers.slice());
+        if (contextDisposers.length > 0) {
+          disposers.context = Object.freeze(contextDisposers.slice());
+        }
+        if (ruleDisposers.length > 0) disposers.rule = Object.freeze(ruleDisposers.slice());
+        if (eventDisposers.length > 0) disposers.event = Object.freeze(eventDisposers.slice());
+        if (feedbackDisposers.length > 0) {
+          disposers.feedback = Object.freeze(feedbackDisposers.slice());
+        }
+        result.disposers = Object.freeze(disposers as any);
+      }
       if (typeof context !== 'undefined') result.context = context;
       if (typeof event !== 'undefined') result.event = event;
       if (typeof feedback !== 'undefined') result.feedback = feedback;

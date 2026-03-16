@@ -25,16 +25,53 @@ type Binding = {
 };
 
 function defaultNameMap(semantic: string) {
+  const official = mapOfficialSemanticName(semantic);
+  if (official) {
+    return {
+      dataAttr: `data-${official}`,
+      cssVar: `--pui-${official}`,
+    };
+  }
+
   const base = semantic
     .trim()
     .replace(/\s+/g, '-')
     .replace(/\./g, '-')
     .replace(/[^a-zA-Z0-9\-]/g, '-')
+    .replace(/-+/g, '-')
+    .replace(/^-+|-+$/g, '')
     .toLowerCase();
   return {
     dataAttr: `data-${base}`,
     cssVar: `--pui-${base}`,
   };
+}
+
+function mapOfficialSemanticName(semantic: string): string | null {
+  switch (semantic) {
+    case '@interaction/disabled':
+      return 'disabled';
+    case '@interaction/hovered':
+      return 'hovered';
+    case '@interaction/pressed':
+      return 'pressed';
+    case '@interaction/focused':
+      return 'focused';
+    case '@interaction/focusVisible':
+      return 'focus-visible';
+    case '@accessibility/expanded':
+      return 'expanded';
+    case '@accessibility/invalid':
+      return 'invalid';
+    case '@accessibility/selected':
+      return 'selected';
+    case '@accessibility/checked':
+      return 'checked';
+    case '@accessibility/current':
+      return 'current';
+    default:
+      return null;
+  }
 }
 
 function isExternalStateHandle(x: any): x is ExposeStateExternalHandle<any> {
@@ -142,6 +179,7 @@ export class ExposeStateWebModuleImpl extends ModuleBase {
         this.exposedByStateId.set(stateId, {
           stateId,
           key,
+          semantic,
           kind: spec.kind,
           attr: binding.attr,
           cssVar: binding.cssVar,

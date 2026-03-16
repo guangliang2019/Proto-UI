@@ -3,7 +3,6 @@
 const PREFIXES_V0 = [
   // Color
   'bg-',
-  'text-',
 
   // Spacing
   'p-',
@@ -41,7 +40,29 @@ const PREFIXES_V0 = [
   'rounded',
 ] as const;
 
+const TEXT_SIZE_TOKENS = new Set([
+  'xs',
+  'sm',
+  'base',
+  'lg',
+  'xl',
+  '2xl',
+  '3xl',
+  '4xl',
+  '5xl',
+  '6xl',
+  '7xl',
+  '8xl',
+  '9xl',
+]);
+
 export function getSemanticGroupKeyV0(token: string): string {
+  if (token.startsWith('bg-clip-')) return 'bg-clip-';
+  if (token.startsWith('text-')) {
+    const suffix = token.slice('text-'.length);
+    if (TEXT_SIZE_TOKENS.has(suffix) || suffix.startsWith('[')) return 'text-size';
+    return 'text-color';
+  }
   for (const p of PREFIXES_V0) {
     if (token.startsWith(p)) return p;
   }

@@ -109,6 +109,9 @@ importers:
       '@proto-ui/modules.props':
         specifier: workspace:*
         version: link:../../modules/props
+      '@proto-ui/modules.rule-expose-state-web':
+        specifier: workspace:*
+        version: link:../../modules/rule-expose-state-web
       '@proto-ui/modules.rule-meta':
         specifier: workspace:*
         version: link:../../modules/rule-meta
@@ -416,6 +419,30 @@ importers:
         specifier: workspace:*
         version: link:../../types
 
+  packages/modules/state-accessibility:
+    dependencies:
+      '@proto-ui/core':
+        specifier: workspace:*
+        version: link:../../core
+      '@proto-ui/modules.base':
+        specifier: workspace:*
+        version: link:../base
+      '@proto-ui/modules.state':
+        specifier: workspace:*
+        version: link:../state
+
+  packages/modules/state-interaction:
+    dependencies:
+      '@proto-ui/core':
+        specifier: workspace:*
+        version: link:../../core
+      '@proto-ui/modules.base':
+        specifier: workspace:*
+        version: link:../base
+      '@proto-ui/modules.state':
+        specifier: workspace:*
+        version: link:../state
+
   packages/modules/test-sys:
     dependencies:
       '@proto-ui/core':
@@ -487,6 +514,12 @@ importers:
       '@proto-ui/modules.state':
         specifier: workspace:*
         version: link:../modules/state
+      '@proto-ui/modules.state-accessibility':
+        specifier: workspace:*
+        version: link:../modules/state-accessibility
+      '@proto-ui/modules.state-interaction':
+        specifier: workspace:*
+        version: link:../modules/state-interaction
       '@proto-ui/modules.test-sys':
         specifier: workspace:*
         version: link:../modules/test-sys

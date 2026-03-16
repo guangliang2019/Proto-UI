@@ -6,6 +6,10 @@ import type { WhenExpr, RuleIR, RulePort } from '@proto-ui/modules.rule';
 import type { ExposeStateWebPort, ExposeStateWebBinding } from '@proto-ui/modules.expose-state-web';
 import type { FeedbackPort } from '@proto-ui/modules.feedback';
 import type { RuleExposeStateWebFacade, RuleExposeStateWebModule } from './types';
+import {
+  RULE_EXPOSE_STATE_WEB_NATIVE_VARIANT_POLICY_CAP,
+  type RuleExposeStateWebNativeVariantPolicy,
+} from './caps';
 
 type Condition =
   | { kind: 'state'; stateId: any; literal: string | number | boolean | null }
@@ -59,9 +63,58 @@ function stripDataPrefix(attr: string): string {
   return attr.startsWith('data-') ? attr.slice('data-'.length) : attr;
 }
 
+function buildSemanticVariant(
+  semantic: string | undefined,
+  condition: Condition,
+  allowNativeVariant: RuleExposeStateWebNativeVariantPolicy | null
+): string | null {
+  if (!semantic || condition.kind !== 'state' || condition.literal !== true) return null;
+
+  let variant: string | null = null;
+  switch (semantic) {
+    case '@interaction/hovered':
+      variant = 'hover';
+      break;
+    case '@interaction/pressed':
+      variant = 'active';
+      break;
+    case '@interaction/disabled':
+      variant = 'disabled';
+      break;
+    case '@interaction/focused':
+      variant = 'focus';
+      break;
+    case '@interaction/focusVisible':
+      variant = 'focus-visible';
+      break;
+    case '@accessibility/expanded':
+      variant = 'aria-expanded';
+      break;
+    case '@accessibility/invalid':
+      variant = 'aria-invalid';
+      break;
+    case '@accessibility/selected':
+      variant = 'aria-selected';
+      break;
+    case '@accessibility/checked':
+      variant = 'aria-checked';
+      break;
+    case '@accessibility/current':
+      variant = 'aria-current';
+      break;
+    default:
+      variant = null;
+  }
+
+  if (!variant) return null;
+  if (allowNativeVariant && !allowNativeVariant({ semantic, variant })) return null;
+  return variant;
+}
+
 function buildVariant(
   condition: Condition,
-  map: Map<string, ExposeStateWebBinding>
+  map: Map<string, ExposeStateWebBinding>,
+  allowNativeVariant: RuleExposeStateWebNativeVariantPolicy | null
 ): string | null {
   if (condition.kind === 'meta.dark') {
     return 'dark';
@@ -70,6 +123,9 @@ function buildVariant(
   const binding = map.get(String(condition.stateId));
   if (!binding) return null;
   if (binding.kind === 'number.range') return null;
+
+  const semanticVariant = buildSemanticVariant(binding.semantic, condition, allowNativeVariant);
+  if (semanticVariant) return semanticVariant;
 
   const attr = binding.attr;
   if (!attr) return null;
@@ -155,9 +211,16 @@ class RuleExposeStateWebImpl extends ModuleBase {
     return out;
   }
 
+  private getAllowNativeVariant(): RuleExposeStateWebNativeVariantPolicy | null {
+    return this.caps.has(RULE_EXPOSE_STATE_WEB_NATIVE_VARIANT_POLICY_CAP)
+      ? this.caps.get(RULE_EXPOSE_STATE_WEB_NATIVE_VARIANT_POLICY_CAP)
+      : null;
+  }
+
   private tryApply(): void {
     const map = this.exposeStateWeb.getExposedStateMap();
     if (!map || map.size === 0) return;
+    const allowNativeVariant = this.getAllowNativeVariant();
 
     if (!this.candidatesReady) {
       this.candidates = this.collectCandidates();
@@ -172,7 +235,7 @@ class RuleExposeStateWebImpl extends ModuleBase {
       const variants: string[] = [];
       let ok = true;
       for (const cond of c.conditions) {
-        const v = buildVariant(cond, map);
+        const v = buildVariant(cond, map, allowNativeVariant);
         if (!v) {
           ok = false;
           break;

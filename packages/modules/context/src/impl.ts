@@ -129,7 +129,7 @@ export class ContextModuleImpl extends ModuleBase {
     };
   }
 
-  subscribe<T extends JsonObject>(key: ContextKey<T>, onChange?: ContextChangeCb<T>): void {
+  subscribe<T extends JsonObject>(key: ContextKey<T>, onChange?: ContextChangeCb<T>): () => void {
     this.guardSetupOnly('def.context.subscribe');
 
     const self = this.getSelfToken();
@@ -143,17 +143,41 @@ export class ContextModuleImpl extends ModuleBase {
       );
     }
 
-    CONTEXT_CENTER.subscribe(self, key, 'required', onChange as any);
+    let active = true;
+    const wrapped =
+      typeof onChange === 'function'
+        ? (ctx: unknown, next: T | null, prev: T | null) => {
+            if (!active) return;
+            onChange(ctx, next as T, prev as T);
+          }
+        : undefined;
+
+    CONTEXT_CENTER.subscribe(self, key, 'required', wrapped as any);
+    return () => {
+      active = false;
+    };
   }
 
   trySubscribe<T extends JsonObject>(
     key: ContextKey<T>,
     onChange?: ContextChangeCbOptional<T>
-  ): void {
+  ): () => void {
     this.guardSetupOnly('def.context.trySubscribe');
 
     const self = this.getSelfToken();
-    CONTEXT_CENTER.subscribe(self, key, 'optional', onChange as any);
+    let active = true;
+    const wrapped =
+      typeof onChange === 'function'
+        ? (ctx: unknown, next: T | null, prev: T | null) => {
+            if (!active) return;
+            onChange(ctx, next, prev);
+          }
+        : undefined;
+
+    CONTEXT_CENTER.subscribe(self, key, 'optional', wrapped as any);
+    return () => {
+      active = false;
+    };
   }
 
   // -------------------------

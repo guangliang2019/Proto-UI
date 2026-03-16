@@ -52,16 +52,18 @@ export class PropsModuleImpl<P extends PropsBaseType> extends ModuleBase {
   private readonly declaredKeys: Set<string> = new Set();
 
   // watchers (setup-only registration)
-  private watch: Array<{ keys: string[]; cb: PropsWatchCb<P> }> = [];
-  private watchAll: Array<{ cb: PropsWatchCb<P> }> = [];
+  private watch: Array<{ keys: string[]; cb: PropsWatchCb<P>; active: boolean }> = [];
+  private watchAll: Array<{ cb: PropsWatchCb<P>; active: boolean }> = [];
   private watchRaw: Array<{
     keys: string[];
     cb: RawWatchCb<P & PropsBaseType>;
     devWarn?: boolean;
+    active: boolean;
   }> = [];
   private watchRawAll: Array<{
     cb: RawWatchCb<P & PropsBaseType>;
     devWarn?: boolean;
+    active: boolean;
   }> = [];
 
   private readonly implDiags: PropsKernelDiag[] = [];
@@ -97,7 +99,7 @@ export class PropsModuleImpl<P extends PropsBaseType> extends ModuleBase {
     this.kernel.setDefaults(partialDefaults);
   }
 
-  watchKeys(keys: (keyof P & string)[], cb: PropsWatchCb<P>): void {
+  watchKeys(keys: (keyof P & string)[], cb: PropsWatchCb<P>): () => void {
     this.guardSetupOnly('def.props.watch');
     if (!Array.isArray(keys) || keys.length === 0) {
       throw new Error(
@@ -117,29 +119,45 @@ export class PropsModuleImpl<P extends PropsBaseType> extends ModuleBase {
       }
     }
 
-    this.watch.push({ keys: [...(keys as any)], cb });
+    const entry = { keys: [...(keys as any)], cb, active: true };
+    this.watch.push(entry);
+    return () => {
+      entry.active = false;
+    };
   }
 
-  watchAllKeys(cb: PropsWatchCb<P>): void {
+  watchAllKeys(cb: PropsWatchCb<P>): () => void {
     this.guardSetupOnly('def.props.watchAll');
-    this.watchAll.push({ cb });
+    const entry = { cb, active: true };
+    this.watchAll.push(entry);
+    return () => {
+      entry.active = false;
+    };
   }
 
   watchRawKeys(
     keys: (keyof P & string)[],
     cb: RawWatchCb<P & PropsBaseType>,
     devWarn = true
-  ): void {
+  ): () => void {
     this.guardSetupOnly('def.props.watchRaw');
     if (!Array.isArray(keys) || keys.length === 0) {
       throw new Error(`[Props] watchRaw(keys) requires non-empty keys. Use watchRawAll() instead.`);
     }
-    this.watchRaw.push({ keys: [...(keys as any)], cb, devWarn });
+    const entry = { keys: [...(keys as any)], cb, devWarn, active: true };
+    this.watchRaw.push(entry);
+    return () => {
+      entry.active = false;
+    };
   }
 
-  watchRawAllKeys(cb: RawWatchCb<P & PropsBaseType>, devWarn = true): void {
+  watchRawAllKeys(cb: RawWatchCb<P & PropsBaseType>, devWarn = true): () => void {
     this.guardSetupOnly('def.props.watchRawAll');
-    this.watchRawAll.push({ cb, devWarn });
+    const entry = { cb, devWarn, active: true };
+    this.watchRawAll.push(entry);
+    return () => {
+      entry.active = false;
+    };
   }
 
   // -------------------------
@@ -211,6 +229,7 @@ export class PropsModuleImpl<P extends PropsBaseType> extends ModuleBase {
 
     // raw watchers: rawAll first, then keyed (registration order preserved within group)
     for (const w of this.watchRawAll) {
+      if (!w.active) continue;
       if (changedAllRaw.length === 0) continue;
       if (w.devWarn) {
         this.implDiags.push({
@@ -232,6 +251,7 @@ export class PropsModuleImpl<P extends PropsBaseType> extends ModuleBase {
     }
 
     for (const w of this.watchRaw) {
+      if (!w.active) continue;
       if (changedAllRaw.length === 0) continue;
       if (w.devWarn) {
         this.implDiags.push({
@@ -256,6 +276,7 @@ export class PropsModuleImpl<P extends PropsBaseType> extends ModuleBase {
 
     // resolved watchers: all first, then keyed (registration order preserved within group)
     for (const w of this.watchAll) {
+      if (!w.active) continue;
       if (changedAllResolved.length === 0) continue;
       const info: WatchInfo<P> = {
         changedKeysAll: changedAllResolved as any,
@@ -271,6 +292,7 @@ export class PropsModuleImpl<P extends PropsBaseType> extends ModuleBase {
     }
 
     for (const w of this.watch) {
+      if (!w.active) continue;
       if (changedAllResolved.length === 0) continue;
       const matched = diffKeys(prevResolved as any, nextResolved as any, w.keys);
       if (matched.length === 0) continue;

@@ -1,7 +1,7 @@
 import { definePrototype } from '@proto-ui/core';
 import { asButton } from './as-button';
 
-export type { ButtonProps, ButtonExposes } from './types';
+export type { ButtonProps, ButtonExposes, ButtonStateHandles, ButtonAsHookContract } from './types';
 export { asButton } from './as-button';
 
 const button = definePrototype({

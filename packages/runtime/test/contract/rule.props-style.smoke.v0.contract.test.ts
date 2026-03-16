@@ -53,4 +53,39 @@ describe('rule contract smoke: props -> style (v0)', () => {
     tokens = controller.getRuleStyleTokens();
     expect(tokens).toEqual([]);
   });
+
+  it('def.rule returns handle that can dispose the rule', () => {
+    let handle: any;
+
+    const proto: Prototype<{ active?: boolean }> = {
+      name: 'rule-props-style-dispose',
+      setup(def) {
+        def.props.define({ active: { type: 'boolean', default: true } } as any);
+        handle = def.rule({
+          when: (w) => w.prop('active').eq(true),
+          intent: (i) => i.feedback.style.use(tw('opacity-50')),
+        });
+        return (r) => [r.el('div', 'ok')];
+      },
+    };
+
+    const host: RuntimeHost<any> = {
+      prototypeName: 'rule-props-style-dispose',
+      getRawProps() {
+        return { active: true };
+      },
+      commit(_children, signal) {
+        signal?.done();
+      },
+      schedule(task) {
+        task();
+      },
+    };
+
+    const { controller } = executeWithHost(proto as any, host as any);
+    expect(controller.getRuleStyleTokens()).toContain('opacity-50');
+
+    handle.dispose();
+    expect(controller.getRuleStyleTokens()).not.toContain('opacity-50');
+  });
 });

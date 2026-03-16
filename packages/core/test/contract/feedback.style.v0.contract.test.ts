@@ -48,11 +48,23 @@ describe('core: feedback.style v0 contract', () => {
 
     // ":" is forbidden (variants/pseudo/selectors)
     expect(() => r.use(tw('data-[disabled]:opacity-50'))).toThrow();
-
-    // selector-ish chars are forbidden
     expect(() => r.use(tw('&:hover'))).toThrow();
-    expect(() => r.use(tw('.foo'))).toThrow();
-    expect(() => r.use(tw('#id'))).toThrow();
-    expect(() => r.use(tw('>div'))).toThrow();
+  });
+
+  it('accepts arbitrary values and decimal-like tokens when no variant syntax is present', () => {
+    const r = new FeedbackStyleRecorder();
+
+    r.use(
+      tw(
+        'gap-1.5 px-2.5 text-[0.8rem] rounded-[min(var(--radius-md),12px)] bg-[var(--brand-surface)]'
+      )
+    );
+
+    const out = r.export().tokens;
+    expect(out).toContain('gap-1.5');
+    expect(out).toContain('px-2.5');
+    expect(out).toContain('text-[0.8rem]');
+    expect(out).toContain('rounded-[min(var(--radius-md),12px)]');
+    expect(out).toContain('bg-[var(--brand-surface)]');
   });
 });

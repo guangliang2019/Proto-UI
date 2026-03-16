@@ -2,6 +2,7 @@
 import type { PropsBaseType } from '@proto-ui/types';
 import type { DefHandle, RendererHandle } from './handles';
 import type { TemplateChildren } from './spec';
+import type { BorrowedStateHandle, State } from './state';
 
 export interface Prototype<
   Props extends PropsBaseType = PropsBaseType,
@@ -24,9 +25,64 @@ export type AsHookTraceEntry = {
   privileged: boolean;
 };
 
-export type AsHookResult = {
+export type AsHookStateMap = Record<string, State<any>>;
+export type AsHookEventMap = Record<string, unknown>;
+export type AsHookDisposer = () => void;
+
+export type AsHookContract = {
+  state?: AsHookStateMap;
+  event?: AsHookEventMap;
+};
+
+type NormalizeAsHookContract<C> = C extends AsHookContract
+  ? {
+      state: C['state'] extends AsHookStateMap ? C['state'] : {};
+      event: C['event'] extends AsHookEventMap ? C['event'] : {};
+    }
+  : C extends AsHookStateMap
+    ? { state: C; event: {} }
+    : { state: {}; event: {} };
+
+type AsHookStatesOf<C> = NormalizeAsHookContract<C>['state'];
+type AsHookEventsOf<C> = NormalizeAsHookContract<C>['event'];
+
+export type AsHookDisposers = Readonly<{
+  all: readonly AsHookDisposer[];
+  props?: readonly AsHookDisposer[];
+  context?: readonly AsHookDisposer[];
+  event?: readonly AsHookDisposer[];
+  feedback?: readonly AsHookDisposer[];
+  rule?: readonly AsHookDisposer[];
+}>;
+
+export type AsHookBorrowedStates<
+  Props extends PropsBaseType,
+  States extends AsHookStateMap,
+> = Readonly<{
+  [K in keyof States]: States[K] extends State<infer V> ? BorrowedStateHandle<V, Props> : never;
+}>;
+
+export type AsHookEventKeys<Events extends AsHookEventMap> = Readonly<{
+  [K in keyof Events & string]: K;
+}>;
+
+export type AsHookArtifacts<
+  Props extends PropsBaseType = PropsBaseType,
+  ContractInput = {},
+> = Readonly<{
+  stateHandles?: AsHookBorrowedStates<Props, AsHookStatesOf<ContractInput>>;
+  eventKeys?: AsHookEventKeys<AsHookEventsOf<ContractInput>>;
+}>;
+
+export type AsHookResult<Props extends PropsBaseType = PropsBaseType, ContractInput = {}> = {
   props?: unknown;
   state?: unknown;
+  stateHandles?: AsHookBorrowedStates<Props, AsHookStatesOf<ContractInput>>;
+  getState?: <K extends keyof AsHookStatesOf<ContractInput> & string>(
+    key: K
+  ) => AsHookBorrowedStates<Props, AsHookStatesOf<ContractInput>>[K] | undefined;
+  artifacts?: AsHookArtifacts<Props, ContractInput>;
+  disposers?: AsHookDisposers;
   context?: unknown;
   event?: unknown;
   feedback?: unknown;
@@ -37,6 +93,7 @@ export type AsHookResult = {
 export type AsHookPrototype<
   Props extends PropsBaseType = PropsBaseType,
   Exposes = Record<string, unknown>,
+  ContractInput = {},
 > = Prototype<Props, Exposes>;
 
 export type AsHookRuntime = {
@@ -44,7 +101,7 @@ export type AsHookRuntime = {
   register(name: string, meta: { privileged: boolean }): { run: boolean; order: number };
   beginCapture(name: string): void;
   recordCaptured(kind: 'props' | 'state' | 'context' | 'event' | 'feedback', entry: unknown): void;
-  endCapture(render?: RenderFn): AsHookResult;
+  endCapture(render?: RenderFn): AsHookResult<any, any>;
   abortCapture(): void;
   projectState<T>(state: T): T;
   getTrace(): ReadonlyArray<AsHookTraceEntry>;
@@ -53,14 +110,22 @@ export type AsHookRuntime = {
 export type AsHookCaller<
   Props extends PropsBaseType = PropsBaseType,
   Exposes = Record<string, unknown>,
-> = (() => AsHookResult) & {
+  ContractInput = {},
+> = (() => AsHookResult<Props, ContractInput>) & {
   readonly kind: 'asHook';
-  readonly definition: AsHookPrototype<Props, Exposes>;
+  readonly definition: AsHookPrototype<Props, Exposes, ContractInput>;
 };
 
 export const __AS_HOOK_RUNTIME = Symbol.for('@proto-ui/asHook/runtime');
 export const __AS_HOOK_CURRENT_DEF = Symbol.for('@proto-ui/asHook/current-def');
 export const __AS_HOOK_PRIV_FACADES = Symbol.for('@proto-ui/asHook/priv-facades');
+
+function normalizeAsHookRender(value: RenderFn | void): RenderFn | undefined {
+  if (typeof value !== 'undefined' && typeof value !== 'function') {
+    throw new Error(`[AsHook] setup() must return render function or void, got: ${typeof value}.`);
+  }
+  return typeof value === 'function' ? value : undefined;
+}
 
 /** Thin wrapper: stabilize author-facing entry & improve inference */
 export function definePrototype<P extends PropsBaseType, E = Record<string, unknown>>(
@@ -84,7 +149,13 @@ export function definePrototype<P extends PropsBaseType, E = Record<string, unkn
  */
 export function defineAsHook<P extends PropsBaseType, E = Record<string, unknown>>(
   proto: AsHookPrototype<P, E>
-): AsHookCaller<P, E> {
+): AsHookCaller<P, E>;
+export function defineAsHook<P extends PropsBaseType, E = Record<string, unknown>, C = {}>(
+  proto: AsHookPrototype<P, E, C>
+): AsHookCaller<P, E, C>;
+export function defineAsHook<P extends PropsBaseType, E = Record<string, unknown>, C = {}>(
+  proto: AsHookPrototype<P, E, C>
+): AsHookCaller<P, E, C> {
   if (!proto || typeof proto !== 'object') {
     throw new Error(`[AsHook] defineAsHook() expects an object.`);
   }
@@ -118,15 +189,8 @@ export function defineAsHook<P extends PropsBaseType, E = Record<string, unknown
 
     rt.beginCapture(proto.name);
     try {
-      let maybeRender: RenderFn | void = undefined;
-      maybeRender = proto.setup(def);
-      if (typeof maybeRender !== 'undefined' && typeof maybeRender !== 'function') {
-        throw new Error(
-          `[AsHook] setup() must return render function or void, got: ${typeof maybeRender}.`
-        );
-      }
-
-      const result = rt.endCapture(maybeRender ?? undefined);
+      const render = normalizeAsHookRender(proto.setup(def));
+      const result = rt.endCapture(render);
       if (result && typeof result === 'object' && 'state' in result) {
         const nextState = rt.projectState((result as any).state);
         if ((result as any).state !== nextState) {
@@ -138,7 +202,7 @@ export function defineAsHook<P extends PropsBaseType, E = Record<string, unknown
       rt.abortCapture();
       throw e;
     }
-  }) as AsHookCaller<P, E>;
+  }) as AsHookCaller<P, E, C>;
 
   Object.defineProperty(caller, 'kind', {
     value: 'asHook',
