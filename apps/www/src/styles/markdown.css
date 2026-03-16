@@ -112,7 +112,8 @@
     @apply my-6 ml-6 list-disc [&>li]:mt-2;
   }
 
-  main[data-pagefind-body] code {
+  /* 仅对行内 code 应用样式，排除 pre>code 代码块（如 Shiki 高亮），避免暗色模式下黑色矩形 */
+  main[data-pagefind-body] :not(pre) > code {
     @apply bg-muted relative rounded-sm px-[0.3rem] py-[0.2rem] font-mono text-sm font-semibold;
   }
 

@@ -8,7 +8,17 @@ import AdapterPanelScript from '@/components/PrototypePreviewer/AdapterPanelScri
 
 <div data-adapter-panel="wc">
   这是 wc 的 button 组件
-  <PrototypePreviewer demoId="demo-combo" initialRuntime="wc" toolbar={false} runtimes={['wc']} />
+  <PrototypePreviewer
+    demoId="demo-combo"
+    initialRuntime="wc"
+    toolbar={false}
+    runtimes={['wc']}
+    hasCode={true}
+    codeLang="tsx"
+    code={
+      'import { Button } from "@/components/ui/button"\n export function DemoComboDemo() {\n  return (\n    <div className="border rounded flex gap-4">\n      <Button>Vue Button</Button>\n      <Button>Second Button</Button>\n    </div>\n  )\n}'
+    }
+  />
 </div>
 
 <div data-adapter-panel="react" style="display:none;">
