@@ -1,10 +1,11 @@
 // packages/runtime/test/contract/as-hook.v0.contract.test.ts
 import { describe, it, expect } from 'vitest';
-import type { Prototype } from '@proto-ui/core';
-import { defineAsHook, definePrototype } from '@proto-ui/core';
+import type { Prototype, State } from '@proto-ui/core';
+import { defineAsHook, definePrototype, tw } from '@proto-ui/core';
 import type { RuntimeHost } from '../../src';
 import { executeWithHost } from '../../src';
 import type { PropsBaseType } from '@proto-ui/types';
+import { EVENT_ROOT_TARGET_CAP } from '@proto-ui/modules.event';
 
 /**
  * Runtime Contract (v0): asHook
@@ -128,6 +129,43 @@ describe('runtime contract: asHook (v0)', () => {
     expect(calls).toEqual(['watch:a']);
   });
 
+  it('AS-HOOK-0350: props watch disposers are exposed and can deactivate captured watchers', () => {
+    const calls: string[] = [];
+    let res: any;
+
+    const asProps = defineAsHook({
+      name: 'asPropsWithDispose',
+      setup(def) {
+        def.props.define({ a: { type: 'number' } } as any);
+        def.props.watch(['a'], () => {
+          calls.push('watch:a');
+        });
+      },
+    });
+
+    const P: Prototype = definePrototype({
+      name: 'x-as-hook-0350',
+      setup() {
+        res = asProps();
+        return (r) => r.el('div', 'ok');
+      },
+    });
+
+    const { host } = createHost(P.name, { a: 1 });
+    const { controller } = executeWithHost(P as any, host as any);
+
+    expect(Array.isArray(res?.disposers?.all)).toBe(true);
+    expect(Array.isArray(res?.disposers?.props)).toBe(true);
+    expect(res?.disposers?.props?.length).toBe(1);
+
+    controller.applyRawProps({ a: 2 } as any);
+    expect(calls).toEqual(['watch:a']);
+
+    res.disposers.props[0]();
+    controller.applyRawProps({ a: 3 } as any);
+    expect(calls).toEqual(['watch:a']);
+  });
+
   it('AS-HOOK-0400: state handles from asHook must be projected to borrowed view', () => {
     let borrowed: any;
     let seen: any[] = [];
@@ -163,6 +201,150 @@ describe('runtime contract: asHook (v0)', () => {
     expect(typeof borrowed?.watch).toBe('function');
     expect(seen.length).toBeGreaterThan(0);
     expect(typeof seen[0]?.run?.update).toBe('function');
+  });
+
+  it('AS-HOOK-0450: named state handles are exposed as borrowed facade and can drive rules', () => {
+    let named: any;
+    let openHandle: any;
+    let artifacts: any;
+
+    const asState = defineAsHook<PropsBaseType, Record<string, never>, { open: State<boolean> }>({
+      name: 'asNamedState',
+      setup(def) {
+        def.state.bool('open', false);
+      },
+    });
+
+    const P: Prototype = definePrototype({
+      name: 'x-as-hook-0450',
+      setup(def) {
+        const res = asState();
+        named = res.stateHandles;
+        openHandle = res.getState?.('open');
+        artifacts = res.artifacts;
+
+        def.rule({
+          when: (w: any) => w.state(openHandle).eq(true),
+          intent: (i: any) => i.feedback.style.use(tw('opacity-50')),
+        });
+
+        def.lifecycle.onCreated(() => {
+          openHandle?.set(true);
+        });
+
+        return (r) => r.el('div', 'ok');
+      },
+    });
+
+    const { host } = createHost(P.name);
+    const { controller } = executeWithHost(P as any, host as any);
+
+    expect(typeof named?.open?.watch).toBe('function');
+    expect(named?.open).toBe(openHandle);
+    expect(artifacts?.stateHandles).toBe(named);
+    expect(controller.getRuleStyleTokens()).toContain('opacity-50');
+  });
+
+  it('AS-HOOK-0460: event disposers deactivate captured listeners', () => {
+    let calls = 0;
+    let res: any;
+    const rootTarget = new EventTarget();
+
+    const asEvent = defineAsHook({
+      name: 'asEvent',
+      setup(def) {
+        def.event.on('pointer.enter', () => {
+          calls += 1;
+        });
+      },
+    });
+
+    const P: Prototype = definePrototype({
+      name: 'x-as-hook-0470',
+      setup(def) {
+        res = asEvent();
+        def.lifecycle.onMounted(() => {
+          rootTarget.dispatchEvent(new CustomEvent('pointer.enter'));
+          res?.disposers?.event?.[0]?.();
+          rootTarget.dispatchEvent(new CustomEvent('pointer.enter'));
+        });
+        return (r) => r.el('div', 'ok');
+      },
+    });
+
+    const host: RuntimeHost<any> = {
+      prototypeName: P.name,
+      getRawProps: () => ({}),
+      commit(_children, signal) {
+        signal?.done();
+      },
+      schedule(task) {
+        task();
+      },
+      onRuntimeReady(wiring) {
+        wiring.attach('event', [[EVENT_ROOT_TARGET_CAP, () => rootTarget]]);
+      },
+    };
+
+    executeWithHost(P as any, host as any);
+
+    expect(Array.isArray(res?.disposers?.event)).toBe(true);
+    expect(calls).toBe(1);
+  });
+
+  it('AS-HOOK-0470: expose.event keys are captured as artifacts', () => {
+    let artifacts: any;
+
+    const asExposeEvent = defineAsHook({
+      name: 'asExposeEvent',
+      setup(def) {
+        def.expose.event('ready', { payload: 'void' });
+      },
+    });
+
+    const P: Prototype = definePrototype({
+      name: 'x-as-hook-0480',
+      setup() {
+        artifacts = asExposeEvent().artifacts;
+        return (r) => r.el('div', 'ok');
+      },
+    });
+
+    const { host } = createHost(P.name);
+    executeWithHost(P as any, host as any);
+
+    expect(artifacts?.eventKeys).toEqual({ ready: 'ready' });
+  });
+
+  it('AS-HOOK-0480: rule disposers remove captured rules from evaluation', () => {
+    let res: any;
+
+    const asRule = defineAsHook({
+      name: 'asRule',
+      setup(def) {
+        def.rule({
+          when: (w: any) => w.t(),
+          intent: (i: any) => i.feedback.style.use(tw('opacity-50')),
+        });
+      },
+    });
+
+    const P: Prototype = definePrototype({
+      name: 'x-as-hook-0480',
+      setup() {
+        res = asRule();
+        return (r) => r.el('div', 'ok');
+      },
+    });
+
+    const { host } = createHost(P.name);
+    const { controller } = executeWithHost(P as any, host as any);
+
+    expect(controller.getRuleStyleTokens()).toContain('opacity-50');
+    expect(Array.isArray(res?.disposers?.rule)).toBe(true);
+
+    res.disposers.rule[0]();
+    expect(controller.getRuleStyleTokens()).not.toContain('opacity-50');
   });
 
   it('AS-HOOK-0500: render fragment returned by asHook can be composed into caller render', () => {

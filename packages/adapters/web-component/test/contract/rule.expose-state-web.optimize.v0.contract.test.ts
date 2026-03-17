@@ -108,4 +108,96 @@ describe('adapter-web-component: rule expose-state-web optimization (v0)', () =>
 
     document.body.removeChild(el);
   });
+
+  it('maps supported official semantics to standard web variants', async () => {
+    const proto: Prototype = {
+      name: 'x-rule-esw-semantic-opt',
+      setup(def: any) {
+        const hovered = def.state.fromInteraction('hovered');
+        const pressed = def.state.fromInteraction('pressed');
+        const invalid = def.state.fromAccessibility('invalid');
+
+        def.expose('hovered', hovered);
+        def.expose('pressed', pressed);
+        def.expose('invalid', invalid);
+
+        def.rule({
+          when: (w: any) => w.state(hovered).eq(true),
+          intent: (i: any) => i.feedback.style.use(tw('opacity-50')),
+        });
+        def.rule({
+          when: (w: any) => w.state(pressed).eq(true),
+          intent: (i: any) => i.feedback.style.use(tw('ring-2')),
+        });
+        def.rule({
+          when: (w: any) => w.state(invalid).eq(true),
+          intent: (i: any) => i.feedback.style.use(tw('border-destructive')),
+        });
+
+        def.lifecycle.onMounted(() => {
+          hovered.set(true);
+          pressed.set(true);
+          invalid.set(true);
+        });
+
+        return (r: any) => [r.el('div', {}, ['ok'])];
+      },
+    } as any;
+
+    const El = AdaptToWebComponent(proto);
+    const el = new El();
+    document.body.appendChild(el);
+
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(el.classList.contains('hover:opacity-50'), el.className).toBe(true);
+    expect(el.classList.contains('active:ring-2'), el.className).toBe(true);
+    expect(el.classList.contains('aria-invalid:border-destructive'), el.className).toBe(true);
+
+    document.body.removeChild(el);
+  });
+
+  it('can fall back to data-* selectors when host policy disallows native variants', async () => {
+    const proto: Prototype = {
+      name: 'x-rule-esw-semantic-fallback',
+      setup(def: any) {
+        const disabled = def.state.fromInteraction('disabled');
+        const focusVisible = def.state.fromInteraction('focusVisible');
+
+        def.expose('disabled', disabled);
+        def.expose('focusVisible', focusVisible);
+
+        def.rule({
+          when: (w: any) => w.state(disabled).eq(true),
+          intent: (i: any) => i.feedback.style.use(tw('opacity-50')),
+        });
+        def.rule({
+          when: (w: any) => w.state(focusVisible).eq(true),
+          intent: (i: any) => i.feedback.style.use(tw('ring-2')),
+        });
+
+        def.lifecycle.onMounted(() => {
+          disabled.set(true);
+          focusVisible.set(true);
+        });
+
+        return (r: any) => [r.el('div', {}, ['ok'])];
+      },
+    } as any;
+
+    const El = AdaptToWebComponent(proto);
+    const el = new El();
+    document.body.appendChild(el);
+
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(el.classList.contains('data-[disabled]:opacity-50'), el.className).toBe(true);
+    expect(el.classList.contains('data-[focus-visible]:ring-2'), el.className).toBe(true);
+    expect(el.classList.contains('disabled:opacity-50'), el.className).toBe(false);
+    expect(el.classList.contains('focus-visible:ring-2'), el.className).toBe(false);
+
+    document.body.removeChild(el);
+  });
 });

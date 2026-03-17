@@ -118,4 +118,27 @@ describe('expose-state web extension', () => {
     expect(getAttr(el, 'data-mode-value')).toBe('0.2');
     expect(getVar(el, '--pui-mode-value')).toBe('0.2');
   });
+
+  it('sanitizes official semantic state names into stable data attributes', async () => {
+    const P: Prototype = {
+      name: 'x-esw-interaction-semantic',
+      setup(def) {
+        const s = def.state.fromInteraction('hovered');
+        def.expose('hovered', s);
+        def.lifecycle.onMounted(() => s.set(true));
+        return (r) => [r.el('div', 'ok')];
+      },
+    };
+
+    AdaptToWebComponent(P);
+
+    const el = document.createElement('x-esw-interaction-semantic') as HTMLElement;
+    document.body.appendChild(el);
+
+    await Promise.resolve();
+
+    const names = el.getAttributeNames();
+    expect(names.includes('data--interaction-hovered')).toBe(false);
+    expect(names.some((name) => /^data-.*hovered$/.test(name))).toBe(true);
+  });
 });

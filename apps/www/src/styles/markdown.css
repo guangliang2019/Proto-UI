@@ -144,7 +144,7 @@
   [data-theme='dark'] main[data-pagefind-body] .enhanced-image-container {
     @apply border-border;
     @apply shadow-xl;
-    background: hsl(var(--muted) / 0.2);
+    background: color-mix(in oklab, var(--color-muted) 20%, transparent);
   }
 
   /* 图片本身样式 */
@@ -166,7 +166,7 @@
   main[data-pagefind-body] .enhanced-image-svg-element {
     /* SVG 可以通过 CSS 变量控制颜色 */
     /* 如果 SVG 内部使用了 currentColor，这里会生效 */
-    color: hsl(var(--foreground));
+    color: var(--color-foreground);
     /* 确保 SVG 能够响应主题变化 */
     transition:
       color 0.3s ease,
@@ -182,9 +182,9 @@
   /* 为 SVG 预留主题变量接口 */
   main[data-pagefind-body] .enhanced-image-svg-element svg {
     /* 如果 SVG 内部元素使用了 CSS 变量，这里可以设置 */
-    --svg-fill-primary: hsl(var(--foreground));
-    --svg-fill-secondary: hsl(var(--muted-foreground));
-    --svg-stroke-primary: hsl(var(--border));
+    --svg-fill-primary: var(--color-foreground);
+    --svg-fill-secondary: var(--color-muted-foreground);
+    --svg-stroke-primary: var(--color-border);
   }
 
   /* 图片标题样式 */

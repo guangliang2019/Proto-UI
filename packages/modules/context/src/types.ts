@@ -1,5 +1,5 @@
 // packages/modules/context/src/types.ts
-import type { ModuleInstance } from '@proto-ui/core';
+import type { ModuleInstance, Unsubscribe } from '@proto-ui/core';
 import type { ContextKey, JsonObject } from '@proto-ui/types';
 import type { ContextInstanceToken } from './caps';
 
@@ -24,12 +24,12 @@ export type ContextFacade = {
     defaultValue: T
   ): (next: T | ((prev: T) => T)) => void;
 
-  subscribe<T extends JsonObject>(key: ContextKey<T>, onChange?: ContextChangeCb<T>): void;
+  subscribe<T extends JsonObject>(key: ContextKey<T>, onChange?: ContextChangeCb<T>): Unsubscribe;
 
   trySubscribe<T extends JsonObject>(
     key: ContextKey<T>,
     onChange?: ContextChangeCbOptional<T>
-  ): void;
+  ): Unsubscribe;
 
   // runtime-only
   read<T extends JsonObject>(key: ContextKey<T>): T;

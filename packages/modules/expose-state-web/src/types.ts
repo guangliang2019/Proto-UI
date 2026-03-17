@@ -7,6 +7,7 @@ export type ExposeStateWebFacade = {};
 export type ExposeStateWebBinding = {
   stateId: string;
   key: string;
+  semantic?: string;
   kind: StateSpec['kind'];
   attr?: string;
   cssVar?: string;

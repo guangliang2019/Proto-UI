@@ -14,6 +14,8 @@ import type { FeedbackFacade } from '@proto-ui/modules.feedback';
 import type { PropsFacade } from '@proto-ui/modules.props';
 import type { EventFacade } from '@proto-ui/modules.event';
 import type { StateFacade } from '@proto-ui/modules.state';
+import type { StateInteractionFacade } from '@proto-ui/modules.state-interaction';
+import type { StateAccessibilityFacade } from '@proto-ui/modules.state-accessibility';
 import type { ContextFacade } from '@proto-ui/modules.context';
 import type { ExposeFacade } from '@proto-ui/modules.expose';
 import { RuntimeEventCallbacks } from '../event';
@@ -61,6 +63,8 @@ export const createDefHandle = <P extends PropsBaseType, E = Record<string, unkn
   const props = facades['props'] as PropsFacade<P>;
 
   const state = facades['state'] as StateFacade;
+  const stateInteraction = facades['state-interaction'] as StateInteractionFacade | undefined;
+  const stateAccessibility = facades['state-accessibility'] as StateAccessibilityFacade | undefined;
   const context = facades['context'] as ContextFacade;
   const expose = facades['expose'] as ExposeFacade;
 
@@ -110,31 +114,35 @@ export const createDefHandle = <P extends PropsBaseType, E = Record<string, unkn
       // Wrap user callback so module-props does NOT depend on RunHandle type.
       watch(keys, cb) {
         ensureSetup(`def.props.watch`);
-        props.watch(keys as any, (ctx, next, prev, info) =>
+        const off = props.watch(keys as any, (ctx, next, prev, info) =>
           (cb as any)(ctx as RunHandle<P>, next, prev, info)
         );
-        recordCaptured(def, 'props', { op: 'watch', keys: [...keys] });
+        recordCaptured(def, 'props', { op: 'watch', keys: [...keys], off });
+        return off;
       },
       watchAll(cb) {
         ensureSetup(`def.props.watchAll`);
-        props.watchAll((ctx, next, prev, info) =>
+        const off = props.watchAll((ctx, next, prev, info) =>
           (cb as any)(ctx as RunHandle<P>, next, prev, info)
         );
-        recordCaptured(def, 'props', { op: 'watchAll' });
+        recordCaptured(def, 'props', { op: 'watchAll', off });
+        return off;
       },
       watchRaw(keys, cb) {
         ensureSetup(`def.props.watchRaw`);
-        props.watchRaw(keys as any, (ctx, next, prev, info) =>
+        const off = props.watchRaw(keys as any, (ctx, next, prev, info) =>
           (cb as any)(ctx as RunHandle<P>, next, prev, info)
         );
-        recordCaptured(def, 'props', { op: 'watchRaw', keys: [...keys] });
+        recordCaptured(def, 'props', { op: 'watchRaw', keys: [...keys], off });
+        return off;
       },
       watchRawAll(cb) {
         ensureSetup(`def.props.watchRawAll`);
-        props.watchRawAll((ctx, next, prev, info) =>
+        const off = props.watchRawAll((ctx, next, prev, info) =>
           (cb as any)(ctx as RunHandle<P>, next, prev, info)
         );
-        recordCaptured(def, 'props', { op: 'watchRawAll' });
+        recordCaptured(def, 'props', { op: 'watchRawAll', off });
+        return off;
       },
     },
 
@@ -189,7 +197,9 @@ export const createDefHandle = <P extends PropsBaseType, E = Record<string, unkn
 
     rule: (spec: RuleSpec<any>) => {
       ensureSetup('def.rule');
-      rules.rule(spec as any);
+      const handle = rules.rule(spec as any);
+      recordCaptured(def, 'context', { op: 'rule', handle, off: () => handle.dispose() });
+      return handle;
     },
 
     event: {
@@ -197,7 +207,13 @@ export const createDefHandle = <P extends PropsBaseType, E = Record<string, unkn
         ensureSetup(`def.event.on`);
         const token = eventFacade.on(type, options);
         eventCallbacks.register((token as any).id, cb);
-        recordCaptured(def, 'event', token);
+        const off = () => {
+          const id = (token as any)?.id;
+          if (typeof id === 'string' && id) {
+            eventCallbacks.remove(id);
+          }
+        };
+        recordCaptured(def, 'event', { token, off });
         return token;
       },
 
@@ -205,7 +221,13 @@ export const createDefHandle = <P extends PropsBaseType, E = Record<string, unkn
         ensureSetup(`def.event.onGlobal`);
         const token = eventFacade.onGlobal(type, options);
         eventCallbacks.register((token as any).id, cb);
-        recordCaptured(def, 'event', token);
+        const off = () => {
+          const id = (token as any)?.id;
+          if (typeof id === 'string' && id) {
+            eventCallbacks.remove(id);
+          }
+        };
+        recordCaptured(def, 'event', { token, off });
         return token;
       },
 
@@ -226,6 +248,20 @@ export const createDefHandle = <P extends PropsBaseType, E = Record<string, unkn
         const handle = state.bool(semantic, defaultValue);
         recordCaptured(def, 'state', handle);
         return handle;
+      },
+      fromInteraction(name) {
+        ensureSetup('def.state.fromInteraction');
+        if (!stateInteraction) {
+          throw new Error(`[StateInteraction] module unavailable for state: ${String(name)}`);
+        }
+        return stateInteraction.get(name as any) as any;
+      },
+      fromAccessibility(name) {
+        ensureSetup('def.state.fromAccessibility');
+        if (!stateAccessibility) {
+          throw new Error(`[StateAccessibility] module unavailable for state: ${String(name)}`);
+        }
+        return stateAccessibility.get(name as any) as any;
       },
       enum(semantic, defaultValue, spec) {
         ensureSetup('def.state.enum');
@@ -263,22 +299,28 @@ export const createDefHandle = <P extends PropsBaseType, E = Record<string, unkn
       subscribe(key, cb) {
         ensureSetup('def.context.subscribe');
         if (!cb) {
-          context.subscribe(key);
-          recordCaptured(def, 'context', { op: 'subscribe', key });
-          return;
+          const off = context.subscribe(key);
+          recordCaptured(def, 'context', { op: 'subscribe', key, off });
+          return off;
         }
-        context.subscribe(key, (ctx, next, prev) => cb(ctx as RunHandle<P>, next, prev));
-        recordCaptured(def, 'context', { op: 'subscribe', key, hasCallback: true });
+        const off = context.subscribe(key, (ctx, next, prev) =>
+          cb(ctx as RunHandle<P>, next, prev)
+        );
+        recordCaptured(def, 'context', { op: 'subscribe', key, hasCallback: true, off });
+        return off;
       },
       trySubscribe(key, cb) {
         ensureSetup('def.context.trySubscribe');
         if (!cb) {
-          context.trySubscribe(key);
-          recordCaptured(def, 'context', { op: 'trySubscribe', key });
-          return;
+          const off = context.trySubscribe(key);
+          recordCaptured(def, 'context', { op: 'trySubscribe', key, off });
+          return off;
         }
-        context.trySubscribe(key, (ctx, next, prev) => cb(ctx as RunHandle<P>, next, prev));
-        recordCaptured(def, 'context', { op: 'trySubscribe', key, hasCallback: true });
+        const off = context.trySubscribe(key, (ctx, next, prev) =>
+          cb(ctx as RunHandle<P>, next, prev)
+        );
+        recordCaptured(def, 'context', { op: 'trySubscribe', key, hasCallback: true, off });
+        return off;
       },
     },
   };

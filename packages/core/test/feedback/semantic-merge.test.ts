@@ -21,6 +21,15 @@ describe('feedback.semantic-merge.v0', () => {
     expect(r.tokens).toEqual(['text-blue-500', 'bg-red-500']);
   });
 
+  it('does not merge text color with text size, or bg clip with bg color', () => {
+    const r = mergeTwTokensV0(['text-sm', 'text-foreground', 'bg-clip-padding', 'bg-primary']);
+
+    expect(r.tokens).toContain('text-sm');
+    expect(r.tokens).toContain('text-foreground');
+    expect(r.tokens).toContain('bg-clip-padding');
+    expect(r.tokens).toContain('bg-primary');
+  });
+
   it('empty input -> empty output', () => {
     const r = mergeTwTokensV0([]);
     expect(r.tokens).toEqual([]);

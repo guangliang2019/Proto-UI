@@ -12,6 +12,8 @@ import { RuleExposeStateWebModuleDef } from '@proto-ui/modules.rule-expose-state
 import { RuleMetaModuleDef } from '@proto-ui/modules.rule-meta';
 import { RuleModuleDef } from '@proto-ui/modules.rule';
 import { StateModuleDef } from '@proto-ui/modules.state';
+import { StateInteractionModuleDef } from '@proto-ui/modules.state-interaction';
+import { StateAccessibilityModuleDef } from '@proto-ui/modules.state-accessibility';
 import { ContextModuleDef } from '@proto-ui/modules.context';
 import { AsTriggerModuleDef } from '@proto-ui/modules.as-trigger';
 import { __RUN_TEST_SYS, TestSysModuleDef, type TestSysPort } from '@proto-ui/modules.test-sys';
@@ -66,6 +68,8 @@ export function createRuntimeInstance<P extends PropsBaseType>(
     ExposeStateWebModuleDef,
     RuleExposeStateWebModuleDef,
     StateModuleDef,
+    StateInteractionModuleDef,
+    StateAccessibilityModuleDef,
     ContextModuleDef,
     TestSysModuleDef,
   ]);

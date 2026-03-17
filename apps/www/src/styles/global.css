@@ -63,10 +63,6 @@
   }
 }
 
-* {
-  border-color: var(--color-border);
-}
-
 .no-scrollbar {
   scrollbar-width: none;
 }

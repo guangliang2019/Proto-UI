@@ -1,5 +1,12 @@
 // packages/modules/rule/src/impl.ts
-import type { RuleIR, RuleSpec, RuleEvalCtx, RuleEvalResult, RuleExtension } from './types';
+import type {
+  RuleIR,
+  RuleSpec,
+  RuleEvalCtx,
+  RuleEvalResult,
+  RuleExtension,
+  RuleHandle,
+} from './types';
 import { compileRule } from './compile';
 import { evaluateRulesToPlan } from './eval';
 import type { PropsBaseType } from '@proto-ui/types';
@@ -29,7 +36,7 @@ export class RuleModuleImpl<Props extends PropsBaseType> {
   private driverActive = false;
   private unUseRuleStyle: (() => void) | null = null;
 
-  define(spec: RuleSpec<Props>) {
+  define(spec: RuleSpec<Props>): RuleHandle {
     const ir = compileRule(spec, {
       registerStateHandle: (id, handle) => {
         if (handle && typeof handle.get === 'function') {
@@ -39,6 +46,16 @@ export class RuleModuleImpl<Props extends PropsBaseType> {
     });
     const withId = { ...ir, id: this.nextRuleId++ };
     this.rules.push(withId);
+    const handle: RuleHandle = {
+      id: withId.id,
+      dispose: () => {
+        const before = this.rules.length;
+        this.rules = this.rules.filter((r) => r.id !== withId.id);
+        if (this.rules.length === before) return;
+        if (this.driverActive) this.evaluateAndApply();
+      },
+    };
+    return handle;
   }
 
   exportIR(): RuleIR<Props>[] {

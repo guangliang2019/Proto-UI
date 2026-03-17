@@ -5,12 +5,12 @@
  *
  * Forbidden:
  * - ':' (variants / pseudo / selector)
- * - '&', '>', '#', '.' (selector operators)
  *
  * Allowed:
  * - arbitrary values in brackets: `w-[2px]`, `h-[var(--x)]`
- *   with constraints:
- *   - bracket content MUST NOT contain ':' or whitespace
+ * - decimals / slash tokens / css functions / css variables
+ *   as long as token stays a single whitespace-free token and does not
+ *   introduce `:` variant syntax.
  */
 export function assertTwTokenV0(token: string, ctx?: string): void {
   const where = ctx ? ` (${ctx})` : '';
@@ -24,17 +24,13 @@ export function assertTwTokenV0(token: string, ctx?: string): void {
     throw new Error(`[feedback] invalid tw token${where}: contains whitespace: "${token}"`);
   }
 
-  // Forbid selector/variant syntax
-  const forbidden = [':', '&', '>', '#', '.'];
-  for (const ch of forbidden) {
-    if (token.includes(ch)) {
-      throw new Error(
-        `[feedback] invalid tw token${where}: forbidden character "${ch}" in "${token}"`
-      );
-    }
+  // Keep host-selector / variant syntax out of prototype authoring.
+  if (token.includes(':')) {
+    throw new Error(`[feedback] invalid tw token${where}: forbidden character ":" in "${token}"`);
   }
 
-  // Allow bracket arbitrary values with constraints
+  // Allow bracket arbitrary values with the same "no variant syntax / no
+  // whitespace" rule applied to the bracket payload.
   const left = token.indexOf('[');
   const right = token.lastIndexOf(']');
 

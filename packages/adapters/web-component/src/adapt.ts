@@ -171,11 +171,21 @@ export function AdaptToWebComponent<Props extends PropsBaseType>(
         .useExposeStateWeb({
           host: thisEl,
           nameMap: (semantic: string) => {
+            const official = mapOfficialSemanticName(semantic);
+            if (official) {
+              return {
+                dataAttr: `data-${official}`,
+                cssVar: `--pui-${official}`,
+              };
+            }
+
             const base = semantic
               .trim()
               .replace(/\s+/g, '-')
               .replace(/\./g, '-')
               .replace(/[^a-zA-Z0-9\-]/g, '-')
+              .replace(/-+/g, '-')
+              .replace(/^-+|-+$/g, '')
               .toLowerCase();
             return {
               dataAttr: `data-${base}`,
@@ -194,6 +204,26 @@ export function AdaptToWebComponent<Props extends PropsBaseType>(
           getPrototype: (inst: unknown) => PROTO_BY_INSTANCE.get(inst as HTMLElement) ?? null,
         })
         .useRuleMeta((key: string) => getMeta(key))
+        .useRuleExposeStateWeb({
+          nativeVariantPolicy: ({ semantic }) => {
+            switch (semantic) {
+              case '@interaction/hovered':
+              case '@interaction/pressed':
+              case '@accessibility/expanded':
+              case '@accessibility/invalid':
+              case '@accessibility/selected':
+              case '@accessibility/checked':
+              case '@accessibility/current':
+                return true;
+              case '@interaction/disabled':
+              case '@interaction/focused':
+              case '@interaction/focusVisible':
+                return false;
+              default:
+                return true;
+            }
+          },
+        })
         .build();
 
       const wiring = createHostWiring({ prototypeName: proto.name, modules });
@@ -398,4 +428,31 @@ function createWebEffectsPort(applier: ReturnType<typeof createOwnedTwTokenAppli
       flush();
     },
   };
+}
+
+function mapOfficialSemanticName(semantic: string): string | null {
+  switch (semantic) {
+    case '@interaction/disabled':
+      return 'disabled';
+    case '@interaction/hovered':
+      return 'hovered';
+    case '@interaction/pressed':
+      return 'pressed';
+    case '@interaction/focused':
+      return 'focused';
+    case '@interaction/focusVisible':
+      return 'focus-visible';
+    case '@accessibility/expanded':
+      return 'expanded';
+    case '@accessibility/invalid':
+      return 'invalid';
+    case '@accessibility/selected':
+      return 'selected';
+    case '@accessibility/checked':
+      return 'checked';
+    case '@accessibility/current':
+      return 'current';
+    default:
+      return null;
+  }
 }

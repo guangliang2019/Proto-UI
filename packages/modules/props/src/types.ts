@@ -1,6 +1,12 @@
 // packages/modules/props/src/types.ts
 import type { PropsBaseType, PropsSpecMap } from '@proto-ui/types';
-import type { ModuleInstance, PropsDefaults, PropsSnapshot, WatchInfo } from '@proto-ui/core';
+import type {
+  ModuleInstance,
+  PropsDefaults,
+  PropsSnapshot,
+  Unsubscribe,
+  WatchInfo,
+} from '@proto-ui/core';
 
 export type RawPropsSource<P extends PropsBaseType> = {
   debugName?: string;
@@ -53,10 +59,10 @@ export type PropsFacade<P extends PropsBaseType> = {
   setDefaults: (partial: PropsDefaults<P>) => void;
 
   // setup-only subscriptions (module-facing callbacks; ctx is unknown)
-  watch: (keys: (keyof P & string)[], cb: PropsWatchCb<P>) => void;
-  watchAll: (cb: PropsWatchCb<P>) => void;
-  watchRaw: (keys: (keyof P & string)[], cb: RawWatchCb<P & PropsBaseType>) => void;
-  watchRawAll: (cb: RawWatchCb<P & PropsBaseType>) => void;
+  watch: (keys: (keyof P & string)[], cb: PropsWatchCb<P>) => Unsubscribe;
+  watchAll: (cb: PropsWatchCb<P>) => Unsubscribe;
+  watchRaw: (keys: (keyof P & string)[], cb: RawWatchCb<P & PropsBaseType>) => Unsubscribe;
+  watchRawAll: (cb: RawWatchCb<P & PropsBaseType>) => Unsubscribe;
 
   // runtime read API
   get: () => PropsSnapshot<P>;

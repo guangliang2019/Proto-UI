@@ -32,6 +32,10 @@ import {
   type AsTriggerPrototypeGetter,
 } from '@proto-ui/modules.as-trigger';
 import { RULE_META_GET_CAP, type RuleMetaGetter } from '@proto-ui/modules.rule-meta';
+import {
+  RULE_EXPOSE_STATE_WEB_NATIVE_VARIANT_POLICY_CAP,
+  type RuleExposeStateWebNativeVariantPolicy,
+} from '@proto-ui/modules.rule-expose-state-web';
 import type { EffectsPort } from '@proto-ui/core';
 import type { PropsBaseType } from '@proto-ui/types';
 
@@ -56,6 +60,9 @@ export type CapsWiringBuilder = {
     getPrototype: AsTriggerPrototypeGetter;
   }): CapsWiringBuilder;
   useRuleMeta(getMeta: RuleMetaGetter): CapsWiringBuilder;
+  useRuleExposeStateWeb(args: {
+    nativeVariantPolicy: RuleExposeStateWebNativeVariantPolicy;
+  }): CapsWiringBuilder;
   build(): WiringSpec;
 };
 
@@ -114,6 +121,12 @@ export function createCapsWiring(): CapsWiringBuilder {
 
     useRuleMeta(getMeta) {
       return add('rule-meta', () => [[RULE_META_GET_CAP, getMeta]]);
+    },
+
+    useRuleExposeStateWeb({ nativeVariantPolicy }) {
+      return add('rule-expose-state-web', () => [
+        [RULE_EXPOSE_STATE_WEB_NATIVE_VARIANT_POLICY_CAP, nativeVariantPolicy],
+      ]);
     },
 
     build() {

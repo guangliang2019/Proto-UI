@@ -3,9 +3,11 @@
   "type": "module",
   "version": "0.0.1",
   "scripts": {
+    "predev": "node ./scripts/generate-prototype-tailwind-sources.mjs",
     "codegen": "tsx scripts/codegen/cli.ts",
     "dev": "astro dev",
     "start": "astro dev",
+    "prebuild": "node ./scripts/generate-prototype-tailwind-sources.mjs",
     "build": "astro build",
     "preview": "astro preview",
     "astro": "astro"
