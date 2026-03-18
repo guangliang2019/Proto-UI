@@ -16,6 +16,13 @@ import type { ModuleFactoryArgs } from '@proto-ui/modules.base';
 import type { PropsBaseType } from '@proto-ui/types';
 import type { FocusFacade, FocusModule, FocusPort } from './types';
 import type { StateEvent } from '@proto-ui/types';
+import {
+  FOCUS_BLUR_CAP,
+  FOCUS_IS_NATIVELY_FOCUSABLE_CAP,
+  FOCUS_REQUEST_FOCUS_CAP,
+  FOCUS_ROOT_TARGET_CAP,
+  FOCUS_SET_FOCUSABLE_CAP,
+} from './caps';
 
 const DEFAULT_FOCUSABLE_CONFIG: FocusableConfig = Object.freeze({
   autoFocus: false,
@@ -111,6 +118,31 @@ class FocusModuleImpl extends ModuleBase {
     }
   }
 
+  private getRootTarget(): HTMLElement | null {
+    if (!this.caps.has(FOCUS_ROOT_TARGET_CAP)) return null;
+    const getter = this.caps.get(FOCUS_ROOT_TARGET_CAP);
+    return getter?.() ?? null;
+  }
+
+  private syncHostFocusable() {
+    const target = this.getRootTarget();
+    if (!target) return;
+
+    const enabled = !this.focusableConfig.disabled;
+    const isNative = this.caps.has(FOCUS_IS_NATIVELY_FOCUSABLE_CAP)
+      ? this.caps.get(FOCUS_IS_NATIVELY_FOCUSABLE_CAP)(target)
+      : false;
+
+    if (this.caps.has(FOCUS_SET_FOCUSABLE_CAP)) {
+      this.caps.get(FOCUS_SET_FOCUSABLE_CAP)(target, enabled);
+      return;
+    }
+
+    if (!enabled && isNative) {
+      target.tabIndex = -1;
+    }
+  }
+
   private readonly focusableHandle: FocusableHandle<any> = {
     focused: this.focusedState.handle,
     focusVisible: this.focusVisibleState.handle,
@@ -187,6 +219,7 @@ class FocusModuleImpl extends ModuleBase {
       meta: mergeMeta(this.focusableConfig.meta, patch.meta),
     });
     this.setDisabled(this.focusableConfig.disabled, 'focus config updated');
+    this.syncHostFocusable();
   }
 
   configureScope(patch: FocusScopeConfigPatch): void {
@@ -255,6 +288,10 @@ class FocusModuleImpl extends ModuleBase {
 
   requestFocus(options?: FocusRequestOptions): void {
     if (this.focusableConfig.disabled) return;
+    const target = this.getRootTarget();
+    if (target && this.caps.has(FOCUS_REQUEST_FOCUS_CAP)) {
+      this.caps.get(FOCUS_REQUEST_FOCUS_CAP)(target, options);
+    }
     this.focusedState.set(true, options?.reason ?? 'programmatic');
     this.focusVisibleState.set(options?.reason === 'keyboard', options?.reason);
     this.activeState.set(true, options?.reason ?? 'programmatic');
@@ -262,6 +299,10 @@ class FocusModuleImpl extends ModuleBase {
   }
 
   blur(): void {
+    const target = this.getRootTarget();
+    if (target && this.caps.has(FOCUS_BLUR_CAP)) {
+      this.caps.get(FOCUS_BLUR_CAP)(target);
+    }
     this.focusedState.set(false, 'blur');
     this.focusVisibleState.set(false, 'blur');
     this.activeState.set(false, 'blur');
@@ -308,9 +349,11 @@ class FocusModuleImpl extends ModuleBase {
     if (disabled) {
       this.blur();
     }
+    this.syncHostFocusable();
   }
 
   afterRenderCommit(): void {
+    this.syncHostFocusable();
     if (this.didAutoFocus) return;
     this.didAutoFocus = true;
     if (this.focusableConfig.autoFocus && !this.focusableConfig.disabled) {

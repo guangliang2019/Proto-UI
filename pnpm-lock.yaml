@@ -363,6 +363,18 @@ importers:
         specifier: workspace:*
         version: link:../base
 
+  packages/modules/focus:
+    dependencies:
+      '@proto-ui/core':
+        specifier: workspace:*
+        version: link:../../core
+      '@proto-ui/modules.base':
+        specifier: workspace:*
+        version: link:../base
+      '@proto-ui/types':
+        specifier: workspace:*
+        version: link:../../types
+
   packages/modules/props:
     dependencies:
       '@proto-ui/core':
@@ -524,6 +536,9 @@ importers:
       '@proto-ui/modules.feedback':
         specifier: workspace:*
         version: link:../modules/feedback
+      '@proto-ui/modules.focus':
+        specifier: workspace:*
+        version: link:../modules/focus
       '@proto-ui/modules.props':
         specifier: workspace:*
         version: link:../modules/props
