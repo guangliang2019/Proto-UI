@@ -1,4 +1,4 @@
-import { asTrigger, defineAsHook } from '@proto-ui/core';
+import { asFocusable, asTrigger, defineAsHook } from '@proto-ui/core';
 import { ButtonAsHookContract, ButtonExposes, ButtonProps } from './types';
 
 export const asButton = defineAsHook<ButtonProps, ButtonExposes, ButtonAsHookContract>({
@@ -15,14 +15,14 @@ export const asButton = defineAsHook<ButtonProps, ButtonExposes, ButtonAsHookCon
 
     const disabled = def.state.fromInteraction('disabled');
     def.expose.state('disabled', disabled);
+    const focusable = asFocusable({ disabled: false });
 
     def.props.watch(['disabled'], (run, next) => {
       const nextDisabled = !!next.disabled;
       disabled.set(nextDisabled, 'reason: props.watch(disabled)');
+      focusable.setDisabled(nextDisabled);
       if (nextDisabled) {
         hovered.set(false, 'reason: disabled=true => reset hovered');
-        focused.set(false, 'reason: disabled=true => reset focused');
-        focusVisible.set(false, 'reason: disabled=true => reset focusVisible');
         pressed.set(false, 'reason: disabled=true => reset pressed');
       }
     });
@@ -44,28 +44,39 @@ export const asButton = defineAsHook<ButtonProps, ButtonExposes, ButtonAsHookCon
 
     const focused = def.state.fromInteraction('focused');
     const focusVisible = def.state.fromInteraction('focusVisible');
+    focusable.focused.watch((_run, event) => {
+      if (event.type === 'disconnect') {
+        focused.set(false, 'reason: focusable.focused.disconnect');
+        return;
+      }
+      focused.set(event.next, 'reason: focusable.focused.watch');
+    });
+    focusable.focusVisible.watch((_run, event) => {
+      if (event.type === 'disconnect') {
+        focusVisible.set(false, 'reason: focusable.focusVisible.disconnect');
+        return;
+      }
+      focusVisible.set(event.next, 'reason: focusable.focusVisible.watch');
+    });
     let keyboardModality = false;
     def.event.onGlobal('key.down', () => {
       keyboardModality = true;
     });
     def.event.on('pointer.down', () => {
       keyboardModality = false;
-      focusVisible.set(false, 'reason: event.on(pointer.down) => clear focusVisible');
+      if (focusable.isFocused()) {
+        focusable.focus({ reason: 'pointer' });
+      }
     });
     def.event.on('native:focus', () => {
       if (disabled.get()) return;
-      focused.set(true, 'reason: event.on(native:focus)');
-      focusVisible.set(
-        keyboardModality,
-        `reason: event.on(native:focus) => keyboardModality=${keyboardModality}`
-      );
+      focusable.focus({ reason: keyboardModality ? 'keyboard' : 'programmatic' });
     });
     def.event.on('native:blur', () => {
-      focused.set(false, 'reason: event.on(native:blur)');
-      focusVisible.set(false, 'reason: event.on(native:blur)');
+      focusable.blur();
     });
-    def.expose.state('focused', focused);
-    def.expose.state('focusVisible', focusVisible);
+    def.expose.state('focused', focusable.focused);
+    def.expose.state('focusVisible', focusable.focusVisible);
 
     const pressed = def.state.fromInteraction('pressed');
     def.event.on('pointer.down', () => {

@@ -3,6 +3,7 @@ import type { Prototype } from '@proto-ui/core';
 import { definePrototype } from '@proto-ui/core';
 import type { RuntimeHost } from '@proto-ui/runtime';
 import { executeWithHost } from '@proto-ui/runtime';
+import type { FocusPort } from '@proto-ui/modules.focus';
 import {
   EVENT_EMIT_CAP,
   EVENT_GLOBAL_TARGET_CAP,
@@ -69,7 +70,8 @@ describe('prototype-libs/base: asButton', () => {
     });
 
     const ctx = createHost({ disabled: false });
-    const { controller } = executeWithHost(P as any, ctx.host as any);
+    const { controller, caps } = executeWithHost(P as any, ctx.host as any);
+    const focusPort = caps.getPort<FocusPort>('focus');
 
     const exposes = ctx.getExposes() as any;
     expect(exposes).toBeTruthy();
@@ -95,6 +97,12 @@ describe('prototype-libs/base: asButton', () => {
     expect(exposes.focused.get()).toBe(false);
     expect(exposes.focusVisible.get()).toBe(false);
     expect(exposes.pressed.get()).toBe(false);
+    expect(focusPort?.getFocusableConfig().disabled).toBe(true);
+    expect(focusPort?.getFacts()).toMatchObject({
+      focused: false,
+      focusVisible: false,
+      focusable: false,
+    });
 
     ctx.rootTarget.dispatchEvent(new CustomEvent('pointer.enter'));
     ctx.rootTarget.dispatchEvent(new CustomEvent('native:focus'));

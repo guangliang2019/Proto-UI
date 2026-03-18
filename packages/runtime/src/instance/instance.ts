@@ -16,6 +16,7 @@ import { StateInteractionModuleDef } from '@proto-ui/modules.state-interaction';
 import { StateAccessibilityModuleDef } from '@proto-ui/modules.state-accessibility';
 import { ContextModuleDef } from '@proto-ui/modules.context';
 import { AsTriggerModuleDef } from '@proto-ui/modules.as-trigger';
+import { FocusModuleDef } from '@proto-ui/modules.focus';
 import { __RUN_TEST_SYS, TestSysModuleDef, type TestSysPort } from '@proto-ui/modules.test-sys';
 
 import type { ModuleOrchestrator } from '../orchestrator/module-orchestrator';
@@ -71,6 +72,7 @@ export function createRuntimeInstance<P extends PropsBaseType>(
     StateInteractionModuleDef,
     StateAccessibilityModuleDef,
     ContextModuleDef,
+    FocusModuleDef,
     TestSysModuleDef,
   ]);
 
