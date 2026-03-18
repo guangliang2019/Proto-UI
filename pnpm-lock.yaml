@@ -131,6 +131,9 @@ importers:
       '@proto-ui/modules.feedback':
         specifier: workspace:*
         version: link:../../modules/feedback
+      '@proto-ui/modules.focus':
+        specifier: workspace:*
+        version: link:../../modules/focus
       '@proto-ui/modules.props':
         specifier: workspace:*
         version: link:../../modules/props
