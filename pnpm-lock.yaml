@@ -37,6 +37,9 @@ importers:
 
   apps/www:
     dependencies:
+      '@astrojs/mdx':
+        specifier: ^4.3.13
+        version: 4.3.13(astro@5.17.2)
       '@astrojs/starlight':
         specifier: ^0.35.2
         version: 0.35.3(astro@5.17.2)

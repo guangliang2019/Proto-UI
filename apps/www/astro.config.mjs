@@ -1,5 +1,6 @@
 // @ts-check
 import { defineConfig } from 'astro/config';
+import mdx from '@astrojs/mdx';
 import starlight from '@astrojs/starlight';
 
 import tailwindcss from '@tailwindcss/vite';
@@ -376,6 +377,7 @@ export default defineConfig({
         rehypePlugins: [rehypeEnhancedImage],
       },
     }),
+    mdx(),
   ],
   vite: {
     resolve: {
