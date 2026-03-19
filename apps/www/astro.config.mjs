@@ -1,5 +1,6 @@
 // @ts-check
 import { defineConfig } from 'astro/config';
+import mdx from '@astrojs/mdx';
 import starlight from '@astrojs/starlight';
 
 import tailwindcss from '@tailwindcss/vite';
@@ -372,11 +373,12 @@ export default defineConfig({
         MarkdownContent: './src/components/override/MarkdownContent.astro',
         LanguageSelect: './src/components/override/LanguageSelect.astro',
       },
-      markdown: {
-        rehypePlugins: [rehypeEnhancedImage],
-      },
     }),
+    mdx(),
   ],
+  markdown: {
+    rehypePlugins: [rehypeEnhancedImage],
+  },
   vite: {
     resolve: {
       alias: {

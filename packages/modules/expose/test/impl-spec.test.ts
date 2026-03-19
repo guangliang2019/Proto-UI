@@ -54,7 +54,7 @@ describe('ExposeModuleImpl (contract-ish)', () => {
     expect(impl.port.get('a')).toBe(1);
     expect(impl.port.has('a')).toBe(true);
     expect(impl.port.has('c')).toBe(false);
-    expect(impl.port.keys().sort()).toEqual(['a', 'b']);
+    expect([...impl.port.keys()].sort()).toEqual(['a', 'b']);
   });
 
   it('publishes to host sink when available', () => {

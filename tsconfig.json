@@ -2,6 +2,9 @@
   "compilerOptions": {
     "baseUrl": ".",
     "paths": {
+      "@proto-ui/modules.*": ["packages/modules/*/src"],
+      "@proto-ui/adapters.*": ["packages/adapters/*/src"],
+      "@prototype-libs/*": ["packages/prototype-libs/*/src"],
       "@proto-ui/*": [
         "packages/*/src",
         "packages/modules/*/src",

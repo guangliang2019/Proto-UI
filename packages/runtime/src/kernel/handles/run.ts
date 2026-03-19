@@ -5,6 +5,7 @@ import { RunHandle } from '@proto-ui/core';
 import { PropsFacade } from '@proto-ui/modules.props';
 import { ContextFacade } from '@proto-ui/modules.context';
 import { EventFacade } from '@proto-ui/modules.event';
+import { AnatomyFacade } from '@proto-ui/modules.anatomy';
 
 export const createRunHandle = <P extends PropsBaseType>(
   update: RunHandle<P>['update'],
@@ -14,6 +15,7 @@ export const createRunHandle = <P extends PropsBaseType>(
   const props = facades['props'] as PropsFacade<P>;
   const context = facades['context'] as ContextFacade;
   const event = facades['event'] as EventFacade;
+  const anatomy = facades['anatomy'] as AnatomyFacade | undefined;
 
   return {
     update,
@@ -30,6 +32,20 @@ export const createRunHandle = <P extends PropsBaseType>(
     },
     event: {
       emit: (key, payload, options) => event.emit(key, payload, options),
+    },
+    anatomy: {
+      has: (family, role) => {
+        if (!anatomy) throw new Error(`[Anatomy] module unavailable`);
+        return anatomy.has(family, role);
+      },
+      parts: (family) => {
+        if (!anatomy) throw new Error(`[Anatomy] module unavailable`);
+        return anatomy.parts(family);
+      },
+      partsOf: (family, role) => {
+        if (!anatomy) throw new Error(`[Anatomy] module unavailable`);
+        return anatomy.partsOf(family, role);
+      },
     },
   };
 };

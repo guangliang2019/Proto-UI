@@ -15,7 +15,9 @@
     "@proto-ui/modules.rule-expose-state-web": "workspace:*",
     "@proto-ui/modules.rule-meta": "workspace:*",
     "@proto-ui/modules.context": "workspace:*",
-    "@proto-ui/modules.as-trigger": "workspace:*"
+    "@proto-ui/modules.anatomy": "workspace:*",
+    "@proto-ui/modules.as-trigger": "workspace:*",
+    "@proto-ui/modules.focus": "workspace:*"
   },
   "devDependencies": {},
   "exports": {

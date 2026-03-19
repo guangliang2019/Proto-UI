@@ -47,27 +47,6 @@ function makeTestHost(prototypeName: string): RuntimeHost<any> {
   return {
     prototypeName,
     getRawProps: () => ({}),
-    getRenderRead: () =>
-      ({
-        props: {
-          get: () => ({}),
-          getRaw: () => ({}),
-          isProvided: () => false,
-        },
-        context: { read: () => undefined, tryRead: () => undefined },
-        state: { read: () => undefined },
-      }) as any,
-    getRunHandle: () =>
-      ({
-        update: () => {},
-        props: {
-          get: () => ({}),
-          getRaw: () => ({}),
-          isProvided: () => false,
-        },
-        context: { read: () => undefined, tryRead: () => undefined },
-        state: { read: () => undefined },
-      }) as any,
     commit: () => {},
     schedule: (task) => task(), // run mounted synchronously for contract
   };

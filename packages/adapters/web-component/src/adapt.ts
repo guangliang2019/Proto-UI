@@ -165,6 +165,23 @@ export function AdaptToWebComponent<Props extends PropsBaseType>(
           root: () => router.rootTarget,
           global: () => router.globalTarget,
         })
+        .useFocus({
+          root: () => thisEl,
+          isNativelyFocusable: (target: HTMLElement) => isNativelyFocusable(target),
+          setFocusable: (target: HTMLElement, enabled: boolean) => {
+            if (enabled) {
+              target.tabIndex = 0;
+              return;
+            }
+            target.tabIndex = -1;
+          },
+          requestFocus: (target: HTMLElement) => {
+            target.focus();
+          },
+          blur: (target: HTMLElement) => {
+            target.blur();
+          },
+        })
         .useExposeState((record: Record<string, unknown>) => {
           this._exposes = record ?? {};
         })
@@ -197,6 +214,11 @@ export function AdaptToWebComponent<Props extends PropsBaseType>(
         .useContext({
           instance: thisEl,
           parent: (inst: unknown) => getProtoParent(inst as HTMLElement),
+        })
+        .useAnatomy({
+          instance: thisEl,
+          parent: (inst: unknown) => getProtoParent(inst as HTMLElement),
+          getPrototype: (inst: unknown) => PROTO_BY_INSTANCE.get(inst as HTMLElement) ?? null,
         })
         .useAsTrigger({
           instance: thisEl,
@@ -455,4 +477,15 @@ function mapOfficialSemanticName(semantic: string): string | null {
     default:
       return null;
   }
+}
+
+function isNativelyFocusable(el: HTMLElement): boolean {
+  const tag = el.tagName.toLowerCase();
+  if (tag === 'button' || tag === 'input' || tag === 'select' || tag === 'textarea') {
+    return true;
+  }
+  if (tag === 'a') {
+    return el.hasAttribute('href');
+  }
+  return false;
 }

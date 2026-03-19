@@ -1,9 +1,10 @@
 // packages/adapters/web-component/test/contract/context.basic.v0.contract.test.ts
 import { describe, it, expect } from 'vitest';
 import type { Prototype } from '@proto-ui/core';
+import type { ContextKey } from '@proto-ui/types';
 import { AdaptToWebComponent } from '@proto-ui/adapters.web-component';
 
-const KEY = { __brand: 'ContextKey', debugName: 'ctx' } as any;
+const KEY = { __brand: 'ContextKey', debugName: 'ctx' } as ContextKey<{ value: number }>;
 
 describe('contract: adapter-web-component / context basic (v0)', () => {
   it('context provide/subscribe/update works via WC adapter caps', async () => {

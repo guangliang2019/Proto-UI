@@ -87,7 +87,7 @@ async function main() {
 
   const results: { demoId: string; vue: string; react: string }[] = [];
   for (const [demoId, { demo }] of byDemo) {
-    const vueCode = generateVueCode(demo, `${toPascal(demoId)}Demo`);
+    const vueCode = generateVueCode(demo);
     const reactCode = generateReactCode(demo, `${toPascal(demoId)}Demo`);
     results.push({ demoId, vue: vueCode, react: reactCode });
     console.log(`[codegen] 已生成: ${demoId}`);

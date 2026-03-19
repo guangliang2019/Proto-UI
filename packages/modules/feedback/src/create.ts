@@ -12,7 +12,7 @@ import { EFFECTS_CAP } from './caps';
 export function createFeedbackModule(ctx: ModuleFactoryArgs): FeedbackModule {
   const { init, caps, deps } = ctx;
 
-  return createModule<'feedback', 'instance', FeedbackFacade>({
+  return createModule<'feedback', 'instance', FeedbackFacade, FeedbackPort>({
     name: 'feedback',
     scope: 'instance',
     init,

@@ -147,7 +147,7 @@ describe('prototype-libs/shadcn: button', () => {
           [AS_TRIGGER_GET_PROTO_CAP, () => null],
         ]);
         wiring.attach('rule-meta', [
-          [RULE_META_GET_CAP, (key) => (key === 'colorScheme' ? colorScheme : undefined)],
+          [RULE_META_GET_CAP, (key: string) => (key === 'colorScheme' ? colorScheme : undefined)],
         ]);
       },
     };

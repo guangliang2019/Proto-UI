@@ -83,7 +83,7 @@ export class ExposeStateModuleImpl extends ModuleBase {
     if (phase === 'unmounted') this.dispose();
   }
 
-  override afterRenderCommit(): void {
+  afterRenderCommit(): void {
     this.publishToHost();
   }
 

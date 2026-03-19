@@ -3,6 +3,7 @@ import type { Prototype } from '@proto-ui/core';
 import { definePrototype } from '@proto-ui/core';
 import type { RuntimeHost } from '@proto-ui/runtime';
 import { executeWithHost } from '@proto-ui/runtime';
+import type { FocusPort } from '@proto-ui/modules.focus';
 import {
   EVENT_EMIT_CAP,
   EVENT_GLOBAL_TARGET_CAP,
@@ -36,14 +37,16 @@ function createHost(initialRaw: Record<string, unknown> = {}) {
       wiring.attach('event', [
         [EVENT_ROOT_TARGET_CAP, () => rootTarget],
         [EVENT_GLOBAL_TARGET_CAP, () => globalTarget],
-        [EVENT_EMIT_CAP, (key) => emitted.push(key)],
+        [EVENT_EMIT_CAP, (key: string) => emitted.push(key)],
       ]);
       wiring.attach('as-trigger', [
         [AS_TRIGGER_INSTANCE_CAP, rootTarget],
         [AS_TRIGGER_PARENT_CAP, () => null],
         [AS_TRIGGER_GET_PROTO_CAP, () => null],
       ]);
-      wiring.attach('expose', [[EXPOSE_SET_EXPOSES_CAP, (next) => (exposes = next)]]);
+      wiring.attach('expose', [
+        [EXPOSE_SET_EXPOSES_CAP, (next: Record<string, unknown>) => (exposes = next)],
+      ]);
     },
   };
 
@@ -69,7 +72,8 @@ describe('prototype-libs/base: asButton', () => {
     });
 
     const ctx = createHost({ disabled: false });
-    const { controller } = executeWithHost(P as any, ctx.host as any);
+    const { controller, caps } = executeWithHost(P as any, ctx.host as any);
+    const focusPort = caps.getPort<FocusPort>('focus');
 
     const exposes = ctx.getExposes() as any;
     expect(exposes).toBeTruthy();
@@ -95,6 +99,12 @@ describe('prototype-libs/base: asButton', () => {
     expect(exposes.focused.get()).toBe(false);
     expect(exposes.focusVisible.get()).toBe(false);
     expect(exposes.pressed.get()).toBe(false);
+    expect(focusPort?.getFocusableConfig().disabled).toBe(true);
+    expect(focusPort?.getFacts()).toMatchObject({
+      focused: false,
+      focusVisible: false,
+      focusable: false,
+    });
 
     ctx.rootTarget.dispatchEvent(new CustomEvent('pointer.enter'));
     ctx.rootTarget.dispatchEvent(new CustomEvent('native:focus'));

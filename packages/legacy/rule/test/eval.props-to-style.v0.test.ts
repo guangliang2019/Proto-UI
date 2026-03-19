@@ -1,8 +1,9 @@
 // packages/legacy/rule/test/eval.props-to-style.v0.test.ts
 import { describe, it, expect } from 'vitest';
 import { tw } from '@proto-ui/core';
-import { compileRule, evaluateRulesToPlan } from '@proto-ui/rule';
-import type { RuleIR, RulePlanV0 } from '@proto-ui/rule';
+import { compileRule } from '../src/compile';
+import { evaluateRulesToPlan } from '../src/eval';
+import type { RuleIR, RulePlanV0 } from '../src/types';
 
 describe('rule.eval props->style (v0)', () => {
   it('inactive rule yields empty tokens', () => {

@@ -6,6 +6,7 @@ import { FeedbackModuleDef } from '@proto-ui/modules.feedback';
 import { PropsModuleDef } from '@proto-ui/modules.props';
 import { EventModuleDef } from '@proto-ui/modules.event';
 import { ExposeModuleDef } from '@proto-ui/modules.expose';
+import { AnatomyModuleDef } from '@proto-ui/modules.anatomy';
 import { ExposeStateModuleDef } from '@proto-ui/modules.expose-state';
 import { ExposeStateWebModuleDef } from '@proto-ui/modules.expose-state-web';
 import { RuleExposeStateWebModuleDef } from '@proto-ui/modules.rule-expose-state-web';
@@ -16,6 +17,7 @@ import { StateInteractionModuleDef } from '@proto-ui/modules.state-interaction';
 import { StateAccessibilityModuleDef } from '@proto-ui/modules.state-accessibility';
 import { ContextModuleDef } from '@proto-ui/modules.context';
 import { AsTriggerModuleDef } from '@proto-ui/modules.as-trigger';
+import { FocusModuleDef } from '@proto-ui/modules.focus';
 import { __RUN_TEST_SYS, TestSysModuleDef, type TestSysPort } from '@proto-ui/modules.test-sys';
 
 import type { ModuleOrchestrator } from '../orchestrator/module-orchestrator';
@@ -64,6 +66,7 @@ export function createRuntimeInstance<P extends PropsBaseType>(
     PropsModuleDef,
     EventModuleDef,
     ExposeModuleDef,
+    AnatomyModuleDef,
     ExposeStateModuleDef,
     ExposeStateWebModuleDef,
     RuleExposeStateWebModuleDef,
@@ -71,6 +74,7 @@ export function createRuntimeInstance<P extends PropsBaseType>(
     StateInteractionModuleDef,
     StateAccessibilityModuleDef,
     ContextModuleDef,
+    FocusModuleDef,
     TestSysModuleDef,
   ]);
 

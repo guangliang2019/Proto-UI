@@ -18,6 +18,7 @@ import type { StateInteractionFacade } from '@proto-ui/modules.state-interaction
 import type { StateAccessibilityFacade } from '@proto-ui/modules.state-accessibility';
 import type { ContextFacade } from '@proto-ui/modules.context';
 import type { ExposeFacade } from '@proto-ui/modules.expose';
+import type { AnatomyFacade } from '@proto-ui/modules.anatomy';
 import { RuntimeEventCallbacks } from '../event';
 
 export type LifecycleKind = 'created' | 'mounted' | 'updated' | 'unmounted';
@@ -67,6 +68,7 @@ export const createDefHandle = <P extends PropsBaseType, E = Record<string, unkn
   const stateAccessibility = facades['state-accessibility'] as StateAccessibilityFacade | undefined;
   const context = facades['context'] as ContextFacade;
   const expose = facades['expose'] as ExposeFacade;
+  const anatomy = facades['anatomy'] as AnatomyFacade | undefined;
 
   const eventFacade = facades['event'] as EventFacade;
   const eventCallbacks = new RuntimeEventCallbacks<P>();
@@ -321,6 +323,19 @@ export const createDefHandle = <P extends PropsBaseType, E = Record<string, unkn
         );
         recordCaptured(def, 'context', { op: 'trySubscribe', key, hasCallback: true, off });
         return off;
+      },
+    },
+
+    anatomy: {
+      family(family, decl) {
+        ensureSetup('def.anatomy.family');
+        if (!anatomy) throw new Error(`[Anatomy] module unavailable`);
+        anatomy.family(family, decl);
+      },
+      claim(family, decl) {
+        ensureSetup('def.anatomy.claim');
+        if (!anatomy) throw new Error(`[Anatomy] module unavailable`);
+        anatomy.claim(family, decl);
       },
     },
   };

@@ -51,7 +51,7 @@ export const runtime: RuntimeAPI = {
     host.innerHTML = '';
 
     const [{ React, ReactDOM }] = await Promise.all([loadReact()]);
-    const adapter = createReactAdapter({ React, ReactDOM });
+    const adapter = createReactAdapter(React as any);
 
     // 通过适配器获得 React 组件
     const Component = adapter(prototype);

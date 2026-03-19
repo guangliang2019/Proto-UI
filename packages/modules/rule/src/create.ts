@@ -50,7 +50,7 @@ export function createRuleModule<Props extends PropsBaseType>(
         },
       };
     },
-  });
+  }) as RuleModule<Props>;
 }
 
 export const RuleModuleDef = defineModule({

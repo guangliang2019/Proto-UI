@@ -32,7 +32,7 @@ describe('runtime contract: rule meta (v0)', () => {
       },
       onRuntimeReady(wiring) {
         wiring.attach('rule-meta', [
-          [RULE_META_GET_CAP, (key) => (key === 'colorScheme' ? colorScheme : undefined)],
+          [RULE_META_GET_CAP, (key: string) => (key === 'colorScheme' ? colorScheme : undefined)],
         ]);
       },
     };

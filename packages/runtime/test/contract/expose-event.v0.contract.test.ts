@@ -24,12 +24,14 @@ function createMockHost() {
       wiring.attach('event', [
         [
           EVENT_EMIT_CAP,
-          (key, payload, options) => {
+          (key: string, payload: unknown, options: unknown) => {
             emitted.push({ key, payload, options });
           },
         ],
       ]);
-      wiring.attach('expose', [[EXPOSE_SET_EXPOSES_CAP, (r) => exposes.push(r)]]);
+      wiring.attach('expose', [
+        [EXPOSE_SET_EXPOSES_CAP, (r: Record<string, unknown>) => exposes.push(r)],
+      ]);
     },
   };
 
@@ -45,7 +47,7 @@ describe('runtime contract: expose-event (v0)', () => {
         def.lifecycle.onMounted((run) => {
           run.event.emit('ready', { ok: true }, { note: 'x' });
         });
-        return (r) => [r.el('div', 'ok')];
+        return (r: any) => [r.el('div', 'ok')];
       },
     };
 

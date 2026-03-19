@@ -11,17 +11,9 @@ const whitepaperHref =
     : '/whitepaper/component-as-protocol/';
 const whitepaperLabel = locale === 'zh-cn' ? '阅读白皮书' : 'Read Whitepaper';
 
-let darkImage: ImageMetadata | undefined;
-let lightImage: ImageMetadata | undefined;
-let rawHtml: string | undefined;
 if (image) {
   if ('file' in image) {
-    darkImage = image.file;
   } else if ('dark' in image) {
-    darkImage = image.dark;
-    lightImage = image.light;
-  } else {
-    rawHtml = image.html;
   }
 }
 ---
