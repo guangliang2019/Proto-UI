@@ -4,7 +4,7 @@ import { createVueAdapter } from '@proto-ui/adapters.vue';
 import { getPrototype } from './registry';
 import { loadReact } from './runtimes/react-runtime';
 import { loadVue } from './runtimes/vue-runtime';
-import type { DemoChild, DemoNode, DemoRenderOptions, DemoRenderResult } from './demo-types';
+import type { DemoChild, DemoRenderOptions, DemoRenderResult } from './demo-types';
 
 const reactRoots = new WeakMap<HTMLElement, { unmount: () => void; render: (el: any) => void }>();
 

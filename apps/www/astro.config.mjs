@@ -373,12 +373,12 @@ export default defineConfig({
         MarkdownContent: './src/components/override/MarkdownContent.astro',
         LanguageSelect: './src/components/override/LanguageSelect.astro',
       },
-      markdown: {
-        rehypePlugins: [rehypeEnhancedImage],
-      },
     }),
     mdx(),
   ],
+  markdown: {
+    rehypePlugins: [rehypeEnhancedImage],
+  },
   vite: {
     resolve: {
       alias: {

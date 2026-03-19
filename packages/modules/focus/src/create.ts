@@ -391,7 +391,7 @@ class FocusModuleImpl extends ModuleBase {
 export function createFocusModule(ctx: ModuleFactoryArgs): FocusModule {
   const { init, caps, deps } = ctx;
 
-  return createModule<'focus', 'instance', FocusFacade>({
+  return createModule<'focus', 'instance', FocusFacade, FocusPort>({
     name: 'focus',
     scope: 'instance',
     init,

@@ -8,7 +8,7 @@ import { visit } from 'unist-util-visit';
  */
 export const rehypeEnhancedImage: Plugin<[], Root> = () => {
   return (tree) => {
-    visit(tree, 'element', (node, index, parent) => {
+    visit(tree as any, 'element', (node: any, index, parent: any) => {
       if (node.tagName === 'img' && parent && typeof index === 'number') {
         const img = node;
         const src = img.properties?.src as string | undefined;

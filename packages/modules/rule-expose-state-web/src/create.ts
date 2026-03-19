@@ -22,7 +22,7 @@ type Candidate = {
   tokens: string[];
 };
 
-function isStateMetaDeps<Props>(rule: RuleIR<Props>): boolean {
+function isStateMetaDeps<Props extends {}>(rule: RuleIR<Props>): boolean {
   let hasStateDep = false;
   for (const dep of rule.deps) {
     if (dep.kind === 'state') {
@@ -35,7 +35,7 @@ function isStateMetaDeps<Props>(rule: RuleIR<Props>): boolean {
   return hasStateDep;
 }
 
-function extractConditions<Props>(expr: WhenExpr<Props>): Condition[] | null {
+function extractConditions<Props extends {}>(expr: WhenExpr<Props>): Condition[] | null {
   switch (expr.type) {
     case 'eq':
       if (expr.left.type === 'state') {
@@ -113,7 +113,7 @@ function buildSemanticVariant(
 
 function buildVariant(
   condition: Condition,
-  map: Map<string, ExposeStateWebBinding>,
+  map: ReadonlyMap<string, ExposeStateWebBinding>,
   allowNativeVariant: RuleExposeStateWebNativeVariantPolicy | null
 ): string | null {
   if (condition.kind === 'meta.dark') {

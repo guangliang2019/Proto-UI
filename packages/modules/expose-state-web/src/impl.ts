@@ -96,6 +96,7 @@ export class ExposeStateWebModuleImpl extends ModuleBase {
     {
       stateId: string;
       key: string;
+      semantic: string;
       kind: StateSpec['kind'];
       attr?: string;
       cssVar?: string;
@@ -112,7 +113,7 @@ export class ExposeStateWebModuleImpl extends ModuleBase {
     if (phase === 'unmounted') this.dispose();
   }
 
-  override afterRenderCommit(): void {
+  afterRenderCommit(): void {
     this.refresh();
   }
 

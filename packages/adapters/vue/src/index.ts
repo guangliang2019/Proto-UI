@@ -1,2 +1,3 @@
 export * from './adapt';
-export * from './template';
+export { renderTemplateToVue } from './template';
+export type { VueRuntime as VueTemplateRuntime } from './template';

@@ -37,14 +37,16 @@ function createHost(initialRaw: Record<string, unknown> = {}) {
       wiring.attach('event', [
         [EVENT_ROOT_TARGET_CAP, () => rootTarget],
         [EVENT_GLOBAL_TARGET_CAP, () => globalTarget],
-        [EVENT_EMIT_CAP, (key) => emitted.push(key)],
+        [EVENT_EMIT_CAP, (key: string) => emitted.push(key)],
       ]);
       wiring.attach('as-trigger', [
         [AS_TRIGGER_INSTANCE_CAP, rootTarget],
         [AS_TRIGGER_PARENT_CAP, () => null],
         [AS_TRIGGER_GET_PROTO_CAP, () => null],
       ]);
-      wiring.attach('expose', [[EXPOSE_SET_EXPOSES_CAP, (next) => (exposes = next)]]);
+      wiring.attach('expose', [
+        [EXPOSE_SET_EXPOSES_CAP, (next: Record<string, unknown>) => (exposes = next)],
+      ]);
     },
   };
 

@@ -193,13 +193,7 @@ export class RuleModuleImpl<Props extends PropsBaseType> {
       props,
       readContext: (key: any) => {
         if (!contextFacade) return undefined;
-        if ('tryRead' in contextFacade) {
-          return contextFacade.tryRead(key as any) ?? undefined;
-        }
-        if ('read' in contextFacade) {
-          return contextFacade.read(key as any);
-        }
-        return undefined;
+        return contextFacade.tryRead(key as any) ?? undefined;
       },
     } as RuleEvalCtx<Props>);
 

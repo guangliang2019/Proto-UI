@@ -28,8 +28,8 @@ describe('adapter-base: host-wiring', () => {
     const wiring = createHostWiring({
       prototypeName: 'x-proto',
       modules: {
-        props: () => ({}),
-        feedback: () => ({}),
+        props: () => [] as const,
+        feedback: () => [] as const,
       },
     });
 
@@ -68,8 +68,8 @@ describe('adapter-base: host-wiring', () => {
     const wiring = createHostWiring({
       prototypeName: 'x-proto',
       modules: {
-        props: () => ({}),
-        feedback: () => ({}),
+        props: () => [] as const,
+        feedback: () => [] as const,
       },
     });
 
@@ -98,7 +98,7 @@ describe('adapter-base: host-wiring', () => {
       modules: {
         props: ({ prototypeName }) => {
           called++;
-          return { foo: prototypeName, n: called };
+          return { foo: prototypeName, n: called } as any;
         },
       },
     });

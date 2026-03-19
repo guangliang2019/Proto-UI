@@ -5,6 +5,9 @@
   "type": "module",
   "dependencies": {
     "@proto-ui/core": "workspace:*",
+    "@proto-ui/modules.as-trigger": "workspace:*",
+    "@proto-ui/modules.event": "workspace:*",
+    "@proto-ui/modules.rule-meta": "workspace:*",
     "@prototype-libs/base": "workspace:*"
   },
   "exports": {

@@ -1,8 +1,8 @@
 // packages/legacy/rule/test/compile.v0.test.ts
 import { describe, it, expect } from 'vitest';
 import { tw } from '@proto-ui/core';
-import { compileRule } from '@proto-ui/rule'; // or "../src/compile"
-import type { RuleIR } from '@proto-ui/rule';
+import { compileRule } from '../src/compile';
+import type { RuleIR } from '../src/types';
 
 describe('rule.compile (v0)', () => {
   it('collects prop deps (dedup + stable first-seen order)', () => {

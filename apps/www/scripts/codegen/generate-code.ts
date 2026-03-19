@@ -7,11 +7,7 @@ import type {
   DemoNode,
   DemoSpec,
 } from '../../src/components/PrototypePreviewer/demo-types';
-import {
-  prototypeMappings,
-  defaultIconMappings,
-  type PrototypeMapping,
-} from './prototype-mapping.config';
+import { prototypeMappings } from './prototype-mapping.config';
 
 function escapeAttr(val: unknown): string {
   if (typeof val === 'string') return JSON.stringify(val);
@@ -125,7 +121,7 @@ function generateReactJsx(node: DemoChild, indent: string): string {
 }
 
 /** 生成 Vue 单文件组件代码 */
-export function generateVueCode(demo: DemoSpec, componentName = 'DemoComponent'): string {
+export function generateVueCode(demo: DemoSpec): string {
   const ids = new Set<string>();
   collectPrototypeIds(demo.root, ids);
 

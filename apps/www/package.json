@@ -10,11 +10,11 @@
     "prebuild": "node ./scripts/generate-prototype-tailwind-sources.mjs",
     "build": "astro build",
     "preview": "astro preview",
+    "check": "astro check",
     "astro": "astro"
   },
   "dependencies": {
     "@astrojs/mdx": "^4.3.13",
-    "shiki": "^3.22.0",
     "@astrojs/starlight": "^0.35.2",
     "@proto-ui/adapters.react": "workspace:*",
     "@proto-ui/adapters.vue": "workspace:*",
@@ -27,11 +27,13 @@
     "@types/react-dom": "^19.2.0",
     "astro": "^5.6.1",
     "sharp": "^0.34.2",
+    "shiki": "^3.22.0",
     "tailwindcss": "^4.1.11",
     "unist-util-visit": "^5.0.0",
     "vue": "^3.5.13"
   },
   "devDependencies": {
+    "@astrojs/check": "^0.9.8",
     "@types/mdast": "^4.0.0",
     "mdast-util-mdx": "^3.0.0",
     "remark-mdx": "^3.0.0",

@@ -74,6 +74,9 @@ export function initPreviewer(options: PreviewerOptions) {
         }
 
         // 方式2：自动按需加载（推荐）
+        if (!prototypeId) {
+          throw new Error('[PrototypePreviewer] missing prototypeId');
+        }
         await loadPrototype(prototypeId);
       } catch (err) {
         console.error('[PrototypePreviewer] 加载原型模块失败:', prototypeId, err);
@@ -84,7 +87,7 @@ export function initPreviewer(options: PreviewerOptions) {
     return loaderPromise;
   }
 
-  async function switchTo(id: string, retryCount = 0) {
+  async function switchTo(id: string) {
     if (destroyed) return;
     const myVersion = ++version;
     if (select) select.disabled = true;

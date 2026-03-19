@@ -12,17 +12,9 @@ export function configureTemplateStyle(opt: { tw?: TwResolver }) {
 export function applyTemplateStyle(el: Element, style?: TemplateStyleHandle) {
   if (!style) return;
 
-  if (style.kind === 'css') {
-    const cssText = style.cssText?.trim();
-    if (!cssText) return;
-    // v0: inline style as IR carrier
-    (el as HTMLElement).setAttribute('style', cssText);
-    return;
-  }
-
   if (style.kind === 'tw') {
     if (!twResolver) return; // v0: ignore if not configured
-    const cssText = twResolver(style.tokens);
+    const cssText = twResolver(style.tokens.join(' '));
     if (cssText) (el as HTMLElement).setAttribute('style', cssText);
   }
 }

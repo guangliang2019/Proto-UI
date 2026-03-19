@@ -14,8 +14,8 @@ describe('rule contract smoke: props -> style (v0)', () => {
       setup(def) {
         def.props.define({ active: { type: 'boolean', default: false } } as any);
         def.rule({
-          when: (w) => w.prop('active').eq(true),
-          intent: (i) => i.feedback.style.use(tw('text-red-500')),
+          when: (w: any) => w.prop('active').eq(true),
+          intent: (i: any) => i.feedback.style.use(tw('text-red-500')),
         });
         return (r) => [r.el('div', 'ok')];
       },
@@ -62,8 +62,8 @@ describe('rule contract smoke: props -> style (v0)', () => {
       setup(def) {
         def.props.define({ active: { type: 'boolean', default: true } } as any);
         handle = def.rule({
-          when: (w) => w.prop('active').eq(true),
-          intent: (i) => i.feedback.style.use(tw('opacity-50')),
+          when: (w: any) => w.prop('active').eq(true),
+          intent: (i: any) => i.feedback.style.use(tw('opacity-50')),
         });
         return (r) => [r.el('div', 'ok')];
       },
