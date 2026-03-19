@@ -25,6 +25,12 @@ export function assertTwTokenV0(token: string, ctx?: string): void {
   }
 
   // Keep host-selector / variant syntax out of prototype authoring.
+  if (token.startsWith('.') || token.startsWith('#')) {
+    throw new Error(
+      `[feedback] invalid tw token${where}: selector-like token is forbidden in "${token}"`
+    );
+  }
+
   if (token.includes(':')) {
     throw new Error(`[feedback] invalid tw token${where}: forbidden character ":" in "${token}"`);
   }

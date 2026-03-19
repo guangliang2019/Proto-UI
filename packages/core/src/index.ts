@@ -1,6 +1,7 @@
 // packages/core/src/index.ts
 export * from './handles';
 export * from './prototype';
+export * from './anatomy';
 export * from './as-trigger';
 export * from './as-focusable';
 export * from './as-focus-scope';

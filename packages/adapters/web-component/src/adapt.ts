@@ -215,6 +215,11 @@ export function AdaptToWebComponent<Props extends PropsBaseType>(
           instance: thisEl,
           parent: (inst: unknown) => getProtoParent(inst as HTMLElement),
         })
+        .useAnatomy({
+          instance: thisEl,
+          parent: (inst: unknown) => getProtoParent(inst as HTMLElement),
+          getPrototype: (inst: unknown) => PROTO_BY_INSTANCE.get(inst as HTMLElement) ?? null,
+        })
         .useAsTrigger({
           instance: thisEl,
           parent: (inst: unknown) => getProtoParent(inst as HTMLElement),

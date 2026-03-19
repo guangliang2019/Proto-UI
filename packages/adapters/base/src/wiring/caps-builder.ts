@@ -18,6 +18,14 @@ import {
   type ExposeStateWebNameMap,
 } from '@proto-ui/modules.expose-state-web';
 import {
+  ANATOMY_GET_PROTO_CAP,
+  ANATOMY_INSTANCE_TOKEN_CAP,
+  ANATOMY_PARENT_CAP,
+  type AnatomyInstanceToken,
+  type AnatomyParentGetter,
+  type AnatomyPrototypeGetter,
+} from '@proto-ui/modules.anatomy';
+import {
   CONTEXT_INSTANCE_TOKEN_CAP,
   CONTEXT_PARENT_CAP,
   type ContextParentGetter,
@@ -65,6 +73,11 @@ export type CapsWiringBuilder = {
   useContext(args: {
     instance: ContextInstanceToken;
     parent: ContextParentGetter;
+  }): CapsWiringBuilder;
+  useAnatomy(args: {
+    instance: AnatomyInstanceToken;
+    parent: AnatomyParentGetter;
+    getPrototype: AnatomyPrototypeGetter;
   }): CapsWiringBuilder;
   useAsTrigger(args: {
     instance: AsTriggerInstanceToken;
@@ -127,6 +140,14 @@ export function createCapsWiring(): CapsWiringBuilder {
       return add('context', () => [
         [CONTEXT_INSTANCE_TOKEN_CAP, instance],
         [CONTEXT_PARENT_CAP, parent],
+      ]);
+    },
+
+    useAnatomy({ instance, parent, getPrototype }) {
+      return add('anatomy', () => [
+        [ANATOMY_INSTANCE_TOKEN_CAP, instance],
+        [ANATOMY_PARENT_CAP, parent],
+        [ANATOMY_GET_PROTO_CAP, getPrototype],
       ]);
     },
 

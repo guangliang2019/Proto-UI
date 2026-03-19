@@ -17,6 +17,12 @@ import {
   TemplateChildren,
   TemplateNode,
 } from './spec';
+import type {
+  AnatomyClaimDecl,
+  AnatomyFamily,
+  AnatomyFamilyDecl,
+  AnatomyPartView,
+} from './anatomy';
 import { State, StateDefAPI } from './state';
 import type { Unsubscribe } from './state';
 
@@ -78,6 +84,12 @@ export interface RunHandle<Props extends PropsBaseType> {
 
   event: {
     emit(key: string, payload?: any, options?: Record<string, unknown>): void;
+  };
+
+  anatomy: {
+    has(family: AnatomyFamily, role: string): boolean;
+    parts(family: AnatomyFamily): ReadonlyArray<AnatomyPartView>;
+    partsOf(family: AnatomyFamily, role: string): ReadonlyArray<AnatomyPartView>;
   };
 }
 
@@ -155,6 +167,11 @@ export interface DefHandle<Props extends PropsBaseType, Exposes = Record<string,
       key: ContextKey<T>,
       onChange?: ContextOnChangeOptional<Props, T>
     ): Unsubscribe;
+  };
+
+  anatomy: {
+    family(family: AnatomyFamily, decl: AnatomyFamilyDecl): void;
+    claim(family: AnatomyFamily, decl: AnatomyClaimDecl): void;
   };
 }
 

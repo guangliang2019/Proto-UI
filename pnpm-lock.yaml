@@ -113,6 +113,9 @@ importers:
       '@proto-ui/core':
         specifier: workspace:*
         version: link:../../core
+      '@proto-ui/modules.anatomy':
+        specifier: workspace:*
+        version: link:../../modules/anatomy
       '@proto-ui/modules.as-trigger':
         specifier: workspace:*
         version: link:../../modules/as-trigger
@@ -272,6 +275,18 @@ importers:
       '@proto-ui/core':
         specifier: workspace:*
         version: link:../../core
+
+  packages/modules/anatomy:
+    dependencies:
+      '@proto-ui/core':
+        specifier: workspace:*
+        version: link:../../core
+      '@proto-ui/modules.base':
+        specifier: workspace:*
+        version: link:../base
+      '@proto-ui/modules.expose':
+        specifier: workspace:*
+        version: link:../expose
 
   packages/modules/as-trigger:
     dependencies:
@@ -515,6 +530,9 @@ importers:
       '@proto-ui/core':
         specifier: workspace:*
         version: link:../core
+      '@proto-ui/modules.anatomy':
+        specifier: workspace:*
+        version: link:../modules/anatomy
       '@proto-ui/modules.as-trigger':
         specifier: workspace:*
         version: link:../modules/as-trigger

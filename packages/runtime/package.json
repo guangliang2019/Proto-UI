@@ -20,6 +20,7 @@
     "@proto-ui/modules.state-interaction": "workspace:*",
     "@proto-ui/modules.state-accessibility": "workspace:*",
     "@proto-ui/modules.context": "workspace:*",
+    "@proto-ui/modules.anatomy": "workspace:*",
     "@proto-ui/modules.as-trigger": "workspace:*",
     "@proto-ui/modules.focus": "workspace:*",
     "@proto-ui/modules.test-sys": "workspace:*"
