@@ -147,15 +147,15 @@ export class ContextModuleImpl extends ModuleBase {
     let active = true;
     const wrapped =
       typeof onChange === 'function'
-        ? (_ctx: unknown, next: T | null, prev: T | null) => {
+        ? (ctx: unknown, next: T | null, prev: T | null) => {
             if (!active) return;
             if (this.callbackDispatcher) {
-              this.callbackDispatcher((ctx) => {
-                onChange(ctx, next as T, prev as T);
+              this.callbackDispatcher((callbackCtx) => {
+                onChange(callbackCtx, next as T, prev as T);
               });
               return;
             }
-            onChange(this.sys.getCallbackCtx(), next as T, prev as T);
+            onChange(ctx, next as T, prev as T);
           }
         : undefined;
 
@@ -175,15 +175,15 @@ export class ContextModuleImpl extends ModuleBase {
     let active = true;
     const wrapped =
       typeof onChange === 'function'
-        ? (_ctx: unknown, next: T | null, prev: T | null) => {
+        ? (ctx: unknown, next: T | null, prev: T | null) => {
             if (!active) return;
             if (this.callbackDispatcher) {
-              this.callbackDispatcher((ctx) => {
-                onChange(ctx, next, prev);
+              this.callbackDispatcher((callbackCtx) => {
+                onChange(callbackCtx, next, prev);
               });
               return;
             }
-            onChange(this.sys.getCallbackCtx(), next, prev);
+            onChange(ctx, next, prev);
           }
         : undefined;
 

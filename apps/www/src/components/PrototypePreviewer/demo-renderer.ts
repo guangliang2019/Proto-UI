@@ -74,7 +74,7 @@ async function renderDemoReact(opt: DemoRenderOptions): Promise<DemoRenderResult
   const { host, demo } = opt;
 
   const { React, ReactDOM } = await loadReact();
-  const adapter = createReactAdapter({ React, ReactDOM } as any);
+  const adapter = createReactAdapter(React as any);
 
   const existingRoot = reactRoots.get(host);
   if (existingRoot) {

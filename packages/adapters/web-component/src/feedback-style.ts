@@ -65,7 +65,10 @@ export type OwnedTokenApplier = {
  * - Never removes user classes
  * - `apply([])` removes all previously owned tokens
  */
-export function createOwnedTwTokenApplier(host: HTMLElement): OwnedTokenApplier {
+export function createOwnedTwTokenApplier(
+  host: HTMLElement,
+  hooks: { onChange?: () => void } = {}
+): OwnedTokenApplier {
   let owned = new Set<string>();
 
   const apply = (nextTokens: string[]) => {
@@ -95,11 +98,13 @@ export function createOwnedTwTokenApplier(host: HTMLElement): OwnedTokenApplier 
     }
 
     owned = nextSet;
+    hooks.onChange?.();
   };
 
   const clear = () => {
     for (const tok of owned) host.classList.remove(tok);
     owned = new Set<string>();
+    hooks.onChange?.();
   };
 
   const getOwned = () => owned;
