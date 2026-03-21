@@ -231,6 +231,9 @@ function resolveSemanticBinding(node) {
       {
         hovered: 'hover',
         pressed: 'active',
+        disabled: 'data-[disabled]',
+        focused: 'data-[focused]',
+        focusVisible: 'data-[focus-visible]',
       }[name] ?? null
     );
   }

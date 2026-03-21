@@ -6,7 +6,9 @@ import { RAW_PROPS_SOURCE_CAP, type RawPropsSource } from '@proto-ui/modules.pro
 import { EFFECTS_CAP } from '@proto-ui/modules.feedback';
 import {
   EVENT_GLOBAL_TARGET_CAP,
+  EVENT_EMIT_CAP,
   EVENT_ROOT_TARGET_CAP,
+  type EventEmitSink,
   type EventTargetGetter,
 } from '@proto-ui/modules.event';
 import { EXPOSE_SET_EXPOSES_CAP, type ExposeHostSink } from '@proto-ui/modules.expose';
@@ -46,12 +48,16 @@ import {
 } from '@proto-ui/modules.rule-expose-state-web';
 import {
   FOCUS_BLUR_CAP,
+  FOCUS_INSTANCE_TOKEN_CAP,
   FOCUS_IS_NATIVELY_FOCUSABLE_CAP,
+  FOCUS_PARENT_CAP,
   FOCUS_REQUEST_FOCUS_CAP,
   FOCUS_ROOT_TARGET_CAP,
   FOCUS_SET_FOCUSABLE_CAP,
   type FocusBlur,
+  type FocusInstanceToken,
   type FocusIsNativelyFocusable,
+  type FocusParentGetter,
   type FocusRequestFocus,
   type FocusRootTargetGetter,
   type FocusSetFocusable,
@@ -63,7 +69,11 @@ export type CapsWiringBuilder = {
   add(moduleName: string, provide: () => CapEntries): CapsWiringBuilder;
   useProps<P extends PropsBaseType>(source: RawPropsSource<P>): CapsWiringBuilder;
   useFeedback(effects: EffectsPort): CapsWiringBuilder;
-  useEventTargets(args: { root: EventTargetGetter; global: EventTargetGetter }): CapsWiringBuilder;
+  useEventTargets(args: {
+    root: EventTargetGetter;
+    global: EventTargetGetter;
+    emit?: EventEmitSink;
+  }): CapsWiringBuilder;
   useExposeState(setExposes: ExposeHostSink): CapsWiringBuilder;
   useExposeStateWeb(args: {
     host: HTMLElement;
@@ -85,6 +95,8 @@ export type CapsWiringBuilder = {
     getPrototype: AsTriggerPrototypeGetter;
   }): CapsWiringBuilder;
   useFocus(args: {
+    instance: FocusInstanceToken;
+    parent: FocusParentGetter;
     root: FocusRootTargetGetter;
     isNativelyFocusable: FocusIsNativelyFocusable;
     setFocusable: FocusSetFocusable;
@@ -117,10 +129,11 @@ export function createCapsWiring(): CapsWiringBuilder {
       return add('feedback', () => [[EFFECTS_CAP, effects]]);
     },
 
-    useEventTargets({ root, global }) {
+    useEventTargets({ root, global, emit }) {
       return add('event', () => [
         [EVENT_ROOT_TARGET_CAP, root],
         [EVENT_GLOBAL_TARGET_CAP, global],
+        ...(emit ? [[EVENT_EMIT_CAP, emit] as const] : []),
       ]);
     },
 
@@ -159,8 +172,10 @@ export function createCapsWiring(): CapsWiringBuilder {
       ]);
     },
 
-    useFocus({ root, isNativelyFocusable, setFocusable, requestFocus, blur }) {
+    useFocus({ instance, parent, root, isNativelyFocusable, setFocusable, requestFocus, blur }) {
       return add('focus', () => [
+        [FOCUS_INSTANCE_TOKEN_CAP, instance],
+        [FOCUS_PARENT_CAP, parent],
         [FOCUS_ROOT_TARGET_CAP, root],
         [FOCUS_IS_NATIVELY_FOCUSABLE_CAP, isNativelyFocusable],
         [FOCUS_SET_FOCUSABLE_CAP, setFocusable],

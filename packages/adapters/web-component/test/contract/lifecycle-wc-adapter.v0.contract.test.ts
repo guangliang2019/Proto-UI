@@ -49,4 +49,70 @@ describe('contract: adapter-web-component / lifecycle (v0)', () => {
 
     expect(calls.includes('unmounted')).toBe(true);
   });
+
+  it('intra-document synchronous move must not trigger real unmounted/dispose', async () => {
+    const calls: string[] = [];
+
+    const P: Prototype = {
+      name: 'x-wc-life-contract-3',
+      setup(def) {
+        def.feedback.style.use({ kind: 'tw', tokens: ['inline-flex'] } as any);
+        def.lifecycle.onUnmounted(() => calls.push('unmounted'));
+        return (r) => [r.el('div', 'ok')];
+      },
+    };
+
+    AdaptToWebComponent(P);
+
+    const hostA = document.createElement('div');
+    const hostB = document.createElement('div');
+    document.body.appendChild(hostA);
+    document.body.appendChild(hostB);
+
+    const el = document.createElement('x-wc-life-contract-3') as any;
+    hostA.appendChild(el);
+
+    await Promise.resolve();
+    await Promise.resolve();
+
+    hostB.appendChild(el);
+
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(calls).toEqual([]);
+    expect(el.classList.contains('inline-flex')).toBe(true);
+
+    el.remove();
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(calls).toEqual(['unmounted']);
+  });
+
+  it('register=false returns a usable custom element class without auto-defining it', async () => {
+    const P: Prototype = {
+      name: 'x-wc-life-contract-4',
+      setup() {
+        return (r) => [r.el('div', 'ok')];
+      },
+    };
+
+    const tag = 'x-wc-life-contract-4-manual';
+    const Ctor = AdaptToWebComponent(P, {
+      register: false,
+      registerAs: tag,
+    });
+
+    expect(customElements.get(tag)).toBeUndefined();
+
+    customElements.define(tag, Ctor);
+
+    const el = document.createElement(tag) as any;
+    document.body.appendChild(el);
+
+    await Promise.resolve();
+
+    expect(el.tagName.toLowerCase()).toBe(tag);
+  });
 });

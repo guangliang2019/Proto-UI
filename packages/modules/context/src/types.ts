@@ -4,6 +4,7 @@ import type { ContextKey, JsonObject } from '@proto-ui/types';
 import type { ContextInstanceToken } from './caps';
 
 export type ContextCallbackCtx = unknown;
+export type ContextCallbackDispatcher = (fn: (ctx: unknown) => void) => void;
 
 export type ContextChangeCb<T extends JsonObject> = (
   ctx: ContextCallbackCtx,
@@ -62,6 +63,7 @@ export type ContextCallbackTask = {
 };
 
 export type ContextPort = {
+  setCallbackDispatcher(dispatch: ContextCallbackDispatcher): void;
   dumpProviders(): readonly ContextProviderEntry[];
   dumpSubscriptions(): readonly ContextSubscriptionEntry[];
   dumpCallbackQueue(): readonly ContextCallbackTask[];

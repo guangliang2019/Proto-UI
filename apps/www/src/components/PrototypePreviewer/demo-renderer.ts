@@ -1,10 +1,11 @@
-import { AdaptToWebComponent, setElementProps } from '@proto-ui/adapters.web-component';
+import { setElementProps } from '@proto-ui/adapters.web-component';
 import { createReactAdapter } from '@proto-ui/adapters.react';
 import { createVueAdapter } from '@proto-ui/adapters.vue';
 import { getPrototype } from './registry';
 import { loadReact } from './runtimes/react-runtime';
 import { loadVue } from './runtimes/vue-runtime';
 import type { DemoChild, DemoRenderOptions, DemoRenderResult } from './demo-types';
+import { ensurePreviewWcRegistered } from './wc-registry';
 
 const reactRoots = new WeakMap<HTMLElement, { unmount: () => void; render: (el: any) => void }>();
 
@@ -27,10 +28,7 @@ function renderDemoNodeWc(node: DemoChild, parent: HTMLElement) {
   }
 
   const proto = getPrototype(node.prototypeId);
-  const wcName = `wc-${proto.name}`;
-  if (!customElements.get(wcName)) {
-    AdaptToWebComponent({ ...proto, name: wcName });
-  }
+  const wcName = ensurePreviewWcRegistered(node.prototypeId, proto);
 
   const el = document.createElement(wcName);
   if (node.className) el.className = node.className;
@@ -76,7 +74,7 @@ async function renderDemoReact(opt: DemoRenderOptions): Promise<DemoRenderResult
   const { host, demo } = opt;
 
   const { React, ReactDOM } = await loadReact();
-  const adapter = createReactAdapter({ React, ReactDOM } as any);
+  const adapter = createReactAdapter(React as any);
 
   const existingRoot = reactRoots.get(host);
   if (existingRoot) {

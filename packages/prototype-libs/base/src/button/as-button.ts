@@ -16,18 +16,30 @@ export const asButton = defineAsHook<ButtonProps, ButtonExposes, ButtonAsHookCon
     const disabled = def.state.fromInteraction('disabled');
     def.expose.state('disabled', disabled);
     const focusable = asFocusable({ disabled: false });
+    const hovered = def.state.fromInteraction('hovered');
+    const focused = def.state.fromInteraction('focused');
+    const focusVisible = def.state.fromInteraction('focusVisible');
+    const pressed = def.state.fromInteraction('pressed');
 
-    def.props.watch(['disabled'], (run, next) => {
-      const nextDisabled = !!next.disabled;
-      disabled.set(nextDisabled, 'reason: props.watch(disabled)');
+    const syncDisabled = (nextDisabled: boolean) => {
+      disabled.set(nextDisabled, 'reason: sync disabled');
       focusable.setDisabled(nextDisabled);
       if (nextDisabled) {
         hovered.set(false, 'reason: disabled=true => reset hovered');
+        focused.set(false, 'reason: disabled=true => reset focused');
+        focusVisible.set(false, 'reason: disabled=true => reset focusVisible');
         pressed.set(false, 'reason: disabled=true => reset pressed');
       }
+    };
+
+    def.lifecycle.onCreated((run) => {
+      syncDisabled(!!run.props.get().disabled);
     });
 
-    const hovered = def.state.fromInteraction('hovered');
+    def.props.watch(['disabled'], (run, next) => {
+      syncDisabled(!!next.disabled);
+    });
+
     def.event
       .on('pointer.enter', () => {
         if (disabled.get()) return;
@@ -42,8 +54,6 @@ export const asButton = defineAsHook<ButtonProps, ButtonExposes, ButtonAsHookCon
       .desc('asButton: pointer leave');
     def.expose.state('hovered', hovered);
 
-    const focused = def.state.fromInteraction('focused');
-    const focusVisible = def.state.fromInteraction('focusVisible');
     focusable.focused.watch((_run, event) => {
       if (event.type === 'disconnect') {
         focused.set(false, 'reason: focusable.focused.disconnect');
@@ -78,7 +88,6 @@ export const asButton = defineAsHook<ButtonProps, ButtonExposes, ButtonAsHookCon
     def.expose.state('focused', focusable.focused);
     def.expose.state('focusVisible', focusable.focusVisible);
 
-    const pressed = def.state.fromInteraction('pressed');
     def.event.on('pointer.down', () => {
       if (disabled.get()) return;
       pressed.set(true, 'reason: event.on(pointer.down)');

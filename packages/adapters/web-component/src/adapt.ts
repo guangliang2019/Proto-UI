@@ -1,5 +1,5 @@
 // packages/adapters/web-component/src/adapt.ts
-import type { Prototype, EffectsPort, StyleHandle } from '@proto-ui/core';
+import type { Prototype } from '@proto-ui/core';
 import { PropsBaseType } from '@proto-ui/types';
 
 import { type RawPropsSource } from '@proto-ui/modules.props';
@@ -7,23 +7,21 @@ import { type RawPropsSource } from '@proto-ui/modules.props';
 import {
   createHostWiring,
   createEventGate,
-  createCapsWiring,
-  createAdapterHost,
   createWebProtoEventRouter,
 } from '@proto-ui/adapters.base';
 
-import { commitChildren } from './commit';
 import { bindController, getElementProps, unbindController } from './props';
 import { SlotProjector } from './slot-projector';
 import { createOwnedTwTokenApplier } from './feedback-style';
-import { __RUN_TEST_SYS, type TestSysPort } from '@proto-ui/modules.test-sys';
+import { installDebugHooks, removeDebugHooks } from './debug/hooks';
+import { installDefaultHostDisplay, type HostDisplayController } from './host-display';
+import { createDefaultMetaGetter } from './platform/meta';
+import { markProtoInstance } from './platform/instance-tree';
+import { createWebEffectsPort } from './runtime/effects-port';
+import { createWebComponentModules } from './runtime/modules';
+import { createWebComponentHostSession } from './runtime/session';
 
-// Debug hook for contract tests / diagnostics.
-// Intentionally not part of public authoring API.
-// Accessed as: (el as any)[__WC_DEBUG_SYS]
-export const __WC_DEBUG_SYS = Symbol.for('@proto-ui/adapters.web-component/__debug_sys');
-const __WC_PROTO_INSTANCE = Symbol.for('@proto-ui/adapters.web-component/__proto_instance');
-const PROTO_BY_INSTANCE = new WeakMap<HTMLElement, Prototype<any>>();
+export { __WC_DEBUG_SYS } from './debug/hooks';
 
 function assertKebabCase(tag: string) {
   if (!tag.includes('-') || tag.toLowerCase() !== tag) {
@@ -31,26 +29,10 @@ function assertKebabCase(tag: string) {
   }
 }
 
-function isProtoInstance(node: Node | null): node is HTMLElement {
-  if (!node || !(node as any)) return false;
-  return (node as any)[__WC_PROTO_INSTANCE] === true;
-}
-
-function getProtoParent(instance: HTMLElement): HTMLElement | null {
-  let cur: Node | null = instance.parentNode;
-  while (cur) {
-    if (typeof ShadowRoot !== 'undefined' && cur instanceof ShadowRoot) {
-      cur = cur.host;
-      continue;
-    }
-    if (isProtoInstance(cur)) return cur as HTMLElement;
-    cur = cur.parentNode;
-  }
-  return null;
-}
-
 export interface WebComponentAdapterOptions<Props extends PropsBaseType = PropsBaseType> {
   shadow?: boolean;
+  register?: boolean;
+  registerAs?: string;
   getProps?: (el: HTMLElement) => Partial<Props> | null | undefined;
   schedule?: (task: () => void) => void;
   getMeta?: (key: string) => unknown;
@@ -60,31 +42,13 @@ export interface WebComponentAdapterOptions<Props extends PropsBaseType = PropsB
   };
 }
 
-function createDefaultMetaGetter(): (key: string) => unknown {
-  return (key: string) => {
-    if (key === 'colorScheme') {
-      if (typeof window !== 'undefined' && typeof window.matchMedia === 'function') {
-        return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-      }
-      return 'light';
-    }
-    if (key === 'reducedMotion') {
-      if (typeof window !== 'undefined' && typeof window.matchMedia === 'function') {
-        return window.matchMedia('(prefers-reduced-motion: reduce)').matches
-          ? 'reduce'
-          : 'no-preference';
-      }
-      return 'no-preference';
-    }
-    return undefined;
-  };
-}
-
 export function AdaptToWebComponent<Props extends PropsBaseType>(
   proto: Prototype<Props>,
   opt: WebComponentAdapterOptions<Props> = {}
 ) {
-  assertKebabCase(proto.name);
+  const register = opt.register ?? true;
+  const tagName = opt.registerAs ?? proto.name;
+  assertKebabCase(tagName);
 
   const shadow = opt.shadow ?? false;
   const getProps = opt.getProps ?? (() => ({}) as Partial<Props>);
@@ -95,9 +59,12 @@ export function AdaptToWebComponent<Props extends PropsBaseType>(
   class ProtoElement extends HTMLElement {
     private _mountedOnce = false;
     private _invokeUnmounted: (() => void) | null = null;
+    private _disconnectVersion = 0;
+    private _pendingOwnedTokens: string[] | null = null;
 
     private _root: Element | ShadowRoot;
     private _slotProjector: SlotProjector | null = null;
+    private _hostDisplay: HostDisplayController | null = null;
 
     private _applier: ReturnType<typeof createOwnedTwTokenApplier> | null = null;
     private _exposes: Record<string, unknown> = {};
@@ -105,18 +72,26 @@ export function AdaptToWebComponent<Props extends PropsBaseType>(
     constructor() {
       super();
       this._root = shadow ? (this.attachShadow({ mode: 'open' }) as ShadowRoot) : this;
-      (this as any)[__WC_PROTO_INSTANCE] = true;
-      PROTO_BY_INSTANCE.set(this, proto as Prototype<any>);
+      markProtoInstance(this, proto as Prototype<any>);
     }
 
     connectedCallback() {
-      if (this._mountedOnce) return;
+      this._disconnectVersion += 1;
+      if (this._mountedOnce) {
+        if (this._pendingOwnedTokens?.length) {
+          this._applier?.apply(this._pendingOwnedTokens);
+        }
+        this._hostDisplay?.sync();
+        this._pendingOwnedTokens = null;
+        return;
+      }
       this._mountedOnce = true;
 
       const eventGate = createEventGate();
 
       const thisEl = this;
       const thisRoot = this._root;
+      this._hostDisplay = installDefaultHostDisplay(thisEl);
 
       const router = createWebProtoEventRouter({
         rootEl: thisEl,
@@ -126,13 +101,17 @@ export function AdaptToWebComponent<Props extends PropsBaseType>(
 
       // Create applier/effectsPort BEFORE executeWithHost,
       // because we must inject them in host.onRuntimeReady (CP1).
-      const applier = createOwnedTwTokenApplier(thisEl);
+      const applier = createOwnedTwTokenApplier(thisEl, {
+        onChange: () => {
+          this._hostDisplay?.sync();
+        },
+      });
       this._applier = applier;
 
-      const effectsPort: EffectsPort = createWebEffectsPort(applier);
+      const effectsPort = createWebEffectsPort(applier);
 
       const rawPropsSource: RawPropsSource<Props> = {
-        debugName: `${proto.name}#raw-props`,
+        debugName: `${tagName}#raw-props`,
 
         get(): Readonly<Props & PropsBaseType> {
           // attrs-first, then opt.getProps
@@ -157,239 +136,60 @@ export function AdaptToWebComponent<Props extends PropsBaseType>(
         },
       };
 
-      // --- adapter-base wiring (CP1)
-      const modules = createCapsWiring()
-        .useProps(rawPropsSource)
-        .useFeedback(effectsPort)
-        .useEventTargets({
-          root: () => router.rootTarget,
-          global: () => router.globalTarget,
-        })
-        .useFocus({
-          root: () => thisEl,
-          isNativelyFocusable: (target: HTMLElement) => isNativelyFocusable(target),
-          setFocusable: (target: HTMLElement, enabled: boolean) => {
-            if (enabled) {
-              target.tabIndex = 0;
-              return;
-            }
-            target.tabIndex = -1;
-          },
-          requestFocus: (target: HTMLElement) => {
-            target.focus();
-          },
-          blur: (target: HTMLElement) => {
-            target.blur();
-          },
-        })
-        .useExposeState((record: Record<string, unknown>) => {
-          this._exposes = record ?? {};
-        })
-        .useExposeStateWeb({
-          host: thisEl,
-          nameMap: (semantic: string) => {
-            const official = mapOfficialSemanticName(semantic);
-            if (official) {
-              return {
-                dataAttr: `data-${official}`,
-                cssVar: `--pui-${official}`,
-              };
-            }
-
-            const base = semantic
-              .trim()
-              .replace(/\s+/g, '-')
-              .replace(/\./g, '-')
-              .replace(/[^a-zA-Z0-9\-]/g, '-')
-              .replace(/-+/g, '-')
-              .replace(/^-+|-+$/g, '')
-              .toLowerCase();
-            return {
-              dataAttr: `data-${base}`,
-              cssVar: `--pui-${base}`,
-            };
-          },
-          mode: exposeStateWebMode,
-        })
-        .useContext({
-          instance: thisEl,
-          parent: (inst: unknown) => getProtoParent(inst as HTMLElement),
-        })
-        .useAnatomy({
-          instance: thisEl,
-          parent: (inst: unknown) => getProtoParent(inst as HTMLElement),
-          getPrototype: (inst: unknown) => PROTO_BY_INSTANCE.get(inst as HTMLElement) ?? null,
-        })
-        .useAsTrigger({
-          instance: thisEl,
-          parent: (inst: unknown) => getProtoParent(inst as HTMLElement),
-          getPrototype: (inst: unknown) => PROTO_BY_INSTANCE.get(inst as HTMLElement) ?? null,
-        })
-        .useRuleMeta((key: string) => getMeta(key))
-        .useRuleExposeStateWeb({
-          nativeVariantPolicy: ({ semantic }) => {
-            switch (semantic) {
-              case '@interaction/hovered':
-              case '@interaction/pressed':
-              case '@accessibility/expanded':
-              case '@accessibility/invalid':
-              case '@accessibility/selected':
-              case '@accessibility/checked':
-              case '@accessibility/current':
-                return true;
-              case '@interaction/disabled':
-              case '@interaction/focused':
-              case '@interaction/focusVisible':
-                return false;
-              default:
-                return true;
-            }
-          },
-        })
-        .build();
-
-      const wiring = createHostWiring({ prototypeName: proto.name, modules });
-
-      let capsHub: any = null;
-      const hostSession = createAdapterHost(
-        proto,
-        {
-          getRawProps: () => rawPropsSource.get() as Readonly<Props & PropsBaseType>,
-          schedule,
-          commit: (children, signal) => {
-            if (shadow) {
-              commitChildren(thisRoot as any, children, { mode: 'shadow' });
-              this._slotProjector?.disconnect();
-              this._slotProjector = null;
-
-              // WC profile: CP4 ~= commit done
-              eventGate.enable();
-              signal?.done();
-              return;
-            }
-
-            if (isSlotOnly(children)) {
-              this._slotProjector?.disconnect();
-              this._slotProjector = null;
-
-              // still a commit boundary; make events effective afterwards
-              eventGate.enable();
-              signal?.done();
-              return;
-            }
-
-            if (!this._slotProjector) this._slotProjector = new SlotProjector(thisEl);
-            const projector = this._slotProjector;
-
-            const slotPool = projector.collectSlotPoolBeforeCommit();
-            const owned = new WeakSet<Node>();
-
-            const res = commitChildren(thisRoot as any, children, {
-              mode: 'light',
-              slotPool,
-              owned,
-            });
-
-            projector.afterCommit({
-              owned,
-              slotStart: res.slotStart,
-              slotEnd: res.slotEnd,
-              projected: slotPool,
-              enableMO: res.hasSlot,
-            });
-
-            if (!res.hasSlot) {
-              projector.disconnect();
-              this._slotProjector = null;
-            }
-
-            // WC profile: CP4 ~= commit done
-            eventGate.enable();
-            signal?.done();
-          },
+      const modules = createWebComponentModules({
+        el: thisEl,
+        router,
+        rawPropsSource,
+        effectsPort,
+        getMeta,
+        exposeStateWebMode,
+        setExposes: (record) => {
+          this._exposes = record;
         },
-        {
-          // CP1: runtime ready hook (called before created + before first commit)
-          onRuntimeReady: (wiringApi) => {
-            wiring.onRuntimeReady(wiringApi);
-          },
+      });
 
-          // CP8: unmount begins hook (before unmounted callbacks)
-          // IMPORTANT: do NOT reset caps here.
-          // This hook is for "make things ineffective immediately", e.g. disconnect observers.
-          onUnmountBegin: () => {
-            eventGate.disable();
+      const wiring = createHostWiring({ prototypeName: tagName, modules });
 
-            // If slot projector has an active MO, disconnect it early.
-            this._slotProjector?.disconnect();
-            this._slotProjector = null;
-          },
-
-          afterUnmount: () => {
-            try {
-              const port = (capsHub as any).getPort?.('test-sys');
-              port?.trace?.('after-unmount');
-            } catch {}
-
-            // 2) adapter-base cleanup (best-effort, after runtime disposal)
-            // NOTE: if your createHostWiring.afterUnmount() calls controller.reset(),
-            // it should swallow errors because moduleHub may already be disposed.
-            wiring.afterUnmount();
-            eventGate.dispose();
-            router.dispose();
-
-            // 3) then adapter local cleanup
-            this._slotProjector?.disconnect();
-            this._slotProjector = null;
-
-            this._applier?.clear();
-            this._applier = null;
-
-            unbindController(this);
-
-            // clear debug hook
-            try {
-              delete (this as any)[__WC_DEBUG_SYS];
-            } catch {}
-          },
-        }
-      );
+      const hostSession = createWebComponentHostSession({
+        proto,
+        tagName,
+        shadow,
+        host: thisEl,
+        root: thisRoot,
+        schedule,
+        rawPropsSource,
+        wiring,
+        eventGate,
+        router,
+        getSlotProjector: () => this._slotProjector,
+        ensureSlotProjector: () => {
+          if (!this._slotProjector) this._slotProjector = new SlotProjector(thisEl);
+          return this._slotProjector;
+        },
+        clearSlotProjector: () => {
+          this._slotProjector?.disconnect();
+          this._slotProjector = null;
+        },
+        onAfterUnmount: () => {
+          this._exposes = {};
+          this._applier?.clear();
+          this._applier = null;
+          this._hostDisplay?.disconnect();
+          this._hostDisplay = null;
+          unbindController(this);
+          removeDebugHooks(this);
+        },
+      });
 
       const { controller } = hostSession;
-      capsHub = hostSession.caps;
-
-      // Debug: expose test-sys port for contract tests (best-effort).
-      // If module not present, leave undefined.
-      try {
-        const sysPort = (capsHub as any).getPort?.('test-sys');
-        (thisEl as any)[__WC_DEBUG_SYS] = sysPort;
-      } catch {
-        // ignore in v0
-      }
-
-      // expose debug trace getter (non-enumerable)
-      Object.defineProperty(this as any, '__debugTestSysTrace', {
-        enumerable: false,
-        configurable: true,
-        get: () => {
-          const port = (capsHub as any).getPort?.('test-sys') as TestSysPort;
-          return port?.getTrace?.() ?? [];
-        },
-      });
-
-      // 也可以再给一个 clear：
-      Object.defineProperty(this as any, '__debugClearTestSysTrace', {
-        enumerable: false,
-        configurable: true,
-        value: () => {
-          const port = (capsHub as any).getPort?.('test-sys') as TestSysPort;
-          port?.clearTrace?.();
-        },
-      });
+      installDebugHooks(thisEl, hostSession.caps);
 
       // expose update for convenience (existing behavior)
       (this as any).update = () => controller.update();
-      (this as any).getExposes = () => ({ ...(this._exposes ?? {}) });
+      (this as any).getExposes = () => {
+        if (!this.isConnected) return {};
+        return { ...(this._exposes ?? {}) };
+      };
 
       bindController(this, controller);
 
@@ -398,94 +198,33 @@ export function AdaptToWebComponent<Props extends PropsBaseType>(
     }
 
     disconnectedCallback() {
-      this._invokeUnmounted?.();
-      this._invokeUnmounted = null;
+      this._pendingOwnedTokens = this._applier ? Array.from(this._applier.getOwned()) : null;
+      this._applier?.clear();
+      this._hostDisplay?.sync();
+
+      const disconnectVersion = ++this._disconnectVersion;
+      queueMicrotask(() => {
+        if (this._disconnectVersion !== disconnectVersion) {
+          if (this._pendingOwnedTokens?.length) {
+            this._applier?.apply(this._pendingOwnedTokens);
+          }
+          this._hostDisplay?.sync();
+          this._pendingOwnedTokens = null;
+          return;
+        }
+        if (this.isConnected) return;
+
+        this._invokeUnmounted?.();
+        this._invokeUnmounted = null;
+        this._mountedOnce = false;
+        this._pendingOwnedTokens = null;
+      });
     }
   }
 
-  if (!customElements.get(proto.name)) {
-    customElements.define(proto.name, ProtoElement);
+  if (register && !customElements.get(tagName)) {
+    customElements.define(tagName, ProtoElement);
   }
 
   return ProtoElement;
-}
-
-// --- helpers
-
-function isSlotOnly(children: any): boolean {
-  if (children == null) return false;
-
-  const one = Array.isArray(children) ? (children.length === 1 ? children[0] : null) : children;
-
-  if (!one || typeof one !== 'object') return false;
-
-  const t = (one as any).type;
-  return t && typeof t === 'object' && t.kind === 'slot';
-}
-
-function createWebEffectsPort(applier: ReturnType<typeof createOwnedTwTokenApplier>): EffectsPort {
-  let latest: StyleHandle | null = null;
-  let flushing = false;
-
-  const flush = () => {
-    if (flushing) return;
-    flushing = true;
-    try {
-      const h = latest;
-      if (!h) return;
-      if (h.kind === 'tw') applier.apply(h.tokens);
-    } finally {
-      flushing = false;
-    }
-  };
-
-  return {
-    queueStyle(handle) {
-      latest = handle;
-    },
-    requestFlush() {
-      flush();
-    },
-    flushNow() {
-      flush();
-    },
-  };
-}
-
-function mapOfficialSemanticName(semantic: string): string | null {
-  switch (semantic) {
-    case '@interaction/disabled':
-      return 'disabled';
-    case '@interaction/hovered':
-      return 'hovered';
-    case '@interaction/pressed':
-      return 'pressed';
-    case '@interaction/focused':
-      return 'focused';
-    case '@interaction/focusVisible':
-      return 'focus-visible';
-    case '@accessibility/expanded':
-      return 'expanded';
-    case '@accessibility/invalid':
-      return 'invalid';
-    case '@accessibility/selected':
-      return 'selected';
-    case '@accessibility/checked':
-      return 'checked';
-    case '@accessibility/current':
-      return 'current';
-    default:
-      return null;
-  }
-}
-
-function isNativelyFocusable(el: HTMLElement): boolean {
-  const tag = el.tagName.toLowerCase();
-  if (tag === 'button' || tag === 'input' || tag === 'select' || tag === 'textarea') {
-    return true;
-  }
-  if (tag === 'a') {
-    return el.hasAttribute('href');
-  }
-  return false;
 }

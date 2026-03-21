@@ -1,21 +1,22 @@
-// packages/adapters/react/src/adapt.ts
-import type { Prototype, EffectsPort, StyleHandle } from '@proto-ui/core';
-import { mergeTwTokensV0 } from '@proto-ui/core';
+import type { Prototype } from '@proto-ui/core';
 import type { CommitSignal, RuntimeController } from '@proto-ui/runtime';
-import { PropsBaseType } from '@proto-ui/types';
-
 import {
-  createCapsWiring,
   createHostWiring,
   createEventGate,
-  createAdapterHost,
   createWebProtoEventRouter,
 } from '@proto-ui/adapters.base';
+import type { ExposeStateWebMode } from '@proto-ui/modules.expose-state-web';
+import type { RawPropsSource } from '@proto-ui/modules.props';
+import { PropsBaseType } from '@proto-ui/types';
 
+import { createDefaultMetaGetter } from './platform/meta';
+import { markProtoInstance } from './platform/instance-tree';
+import { createReactEffectsPort } from './runtime/effects-port';
+import { createReactModules } from './runtime/modules';
+import { createReactHostSession } from './runtime/session';
 import { renderTemplateToReact, type ReactRuntime as ReactRenderRuntime } from './template';
 
-import type { RawPropsSource } from '@proto-ui/modules.props';
-import type { ExposeStateWebMode } from '@proto-ui/modules.expose-state-web';
+export { __REACT_PROTO_INSTANCE } from './platform/instance-tree';
 
 export type ReactRuntime = ReactRenderRuntime & {
   useState: <T>(init: T) => [T, (next: T) => void];
@@ -24,29 +25,8 @@ export type ReactRuntime = ReactRenderRuntime & {
   useLayoutEffect: (cb: () => void | (() => void), deps?: any[]) => void;
   useImperativeHandle: (ref: any, create: () => any, deps?: any[]) => void;
   forwardRef: (render: (props: any, ref: any) => any) => any;
-  createElement: (type: any, props: any, ...children: any[]) => any;
+  createElement: (type: any, props?: any, ...children: any[]) => any;
 };
-
-export const __REACT_PROTO_INSTANCE = Symbol.for('@proto-ui/adapters.react/__proto_instance');
-const PROTO_BY_INSTANCE = new WeakMap<HTMLElement, Prototype<any>>();
-
-function isProtoInstance(node: Node | null): node is HTMLElement {
-  if (!node || !(node as any)) return false;
-  return (node as any)[__REACT_PROTO_INSTANCE] === true;
-}
-
-function getProtoParent(instance: HTMLElement): HTMLElement | null {
-  let cur: Node | null = instance.parentNode;
-  while (cur) {
-    if (typeof ShadowRoot !== 'undefined' && cur instanceof ShadowRoot) {
-      cur = cur.host;
-      continue;
-    }
-    if (isProtoInstance(cur)) return cur as HTMLElement;
-    cur = cur.parentNode;
-  }
-  return null;
-}
 
 export type ReactAdapterHandle = {
   update(): void;
@@ -58,6 +38,7 @@ export type ReactAdapterProps<Props extends PropsBaseType> = Props &
     children?: any;
     hostClassName?: string;
     hostStyle?: any;
+    [key: `on${string}`]: unknown;
   };
 
 export interface ReactAdapterOptions<Props extends PropsBaseType> {
@@ -69,79 +50,23 @@ export interface ReactAdapterOptions<Props extends PropsBaseType> {
   rootTag?: string;
 }
 
+type ReactRuntimeInput = ReactRuntime | { React: ReactRuntime };
+
 function defaultGetProps<Props extends PropsBaseType>(
   props: ReactAdapterProps<Props>
 ): Partial<Props> {
   const { children, hostClassName, hostStyle, ...rest } = (props ?? {}) as any;
-  return rest as Partial<Props>;
+  const filtered: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(rest)) {
+    if (isFrameworkEventProp(key, value)) continue;
+    filtered[key] = value;
+  }
+  return filtered as Partial<Props>;
 }
 
-function createReactEffectsPort(setHostTokens: (next: string[]) => void): EffectsPort {
-  let latest: StyleHandle | null = null;
-  let flushing = false;
+export function createReactAdapter(runtimeInput: ReactRuntimeInput) {
+  const runtime = normalizeRuntime(runtimeInput);
 
-  const flush = () => {
-    if (flushing) return;
-    flushing = true;
-    try {
-      const h = latest;
-      if (!h) return;
-      if (h.kind === 'tw') {
-        const merged = mergeTwTokensV0(h.tokens).tokens;
-        setHostTokens(merged);
-      }
-    } finally {
-      flushing = false;
-    }
-  };
-
-  return {
-    queueStyle(handle) {
-      latest = handle;
-    },
-    requestFlush() {
-      flush();
-    },
-    flushNow() {
-      flush();
-    },
-  };
-}
-
-function createNameMap(semantic: string) {
-  const base = semantic
-    .trim()
-    .replace(/\s+/g, '-')
-    .replace(/\./g, '-')
-    .replace(/[^a-zA-Z0-9\-]/g, '-')
-    .toLowerCase();
-  return {
-    dataAttr: `data-${base}`,
-    cssVar: `--pui-${base}`,
-  };
-}
-
-function createDefaultMetaGetter(): (key: string) => unknown {
-  return (key: string) => {
-    if (key === 'colorScheme') {
-      if (typeof window !== 'undefined' && typeof window.matchMedia === 'function') {
-        return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-      }
-      return 'light';
-    }
-    if (key === 'reducedMotion') {
-      if (typeof window !== 'undefined' && typeof window.matchMedia === 'function') {
-        return window.matchMedia('(prefers-reduced-motion: reduce)').matches
-          ? 'reduce'
-          : 'no-preference';
-      }
-      return 'no-preference';
-    }
-    return undefined;
-  };
-}
-
-export function createReactAdapter(runtime: ReactRuntime) {
   return function AdaptToReact<Props extends PropsBaseType>(
     proto: Prototype<Props>,
     opt: ReactAdapterOptions<Props> = {}
@@ -160,12 +85,12 @@ export function createReactAdapter(runtime: ReactRuntime) {
 
       const controllerRef = runtime.useRef<RuntimeController | null>(null);
       const eventGateRef = runtime.useRef<ReturnType<typeof createEventGate> | null>(null);
-      const routerRef = runtime.useRef<ReturnType<typeof createWebProtoEventRouter> | null>(null);
-
       const exposesRef = runtime.useRef<Record<string, unknown>>({});
 
       const propsRef = runtime.useRef<ReactAdapterProps<Props>>(props);
       propsRef.current = props;
+      const eventCallbacksRef = runtime.useRef<Record<string, (payload?: unknown) => void>>({});
+      eventCallbacksRef.current = collectEventCallbacks(props);
 
       const subsRef = runtime.useRef<Set<() => void>>(new Set());
       const rawPropsSourceRef = runtime.useRef<RawPropsSource<Props> | null>(null);
@@ -177,9 +102,8 @@ export function createReactAdapter(runtime: ReactRuntime) {
         rawPropsSourceRef.current = {
           debugName: `${proto.name}#raw-props`,
           get() {
-            const base = propsRef.current;
-            const p = getProps(base) ?? ({} as Partial<Props>);
-            return p as unknown as Readonly<Props & PropsBaseType>;
+            const nextProps = getProps(propsRef.current) ?? ({} as Partial<Props>);
+            return nextProps as Readonly<Props & PropsBaseType>;
           },
           subscribe(cb) {
             subsRef.current.add(cb);
@@ -207,8 +131,7 @@ export function createReactAdapter(runtime: ReactRuntime) {
         if (!rootEl) return;
         if (controllerRef.current) return;
 
-        (rootEl as any)[__REACT_PROTO_INSTANCE] = true;
-        PROTO_BY_INSTANCE.set(rootEl, proto as Prototype<any>);
+        markProtoInstance(rootEl, proto as Prototype<any>);
 
         const eventGate = createEventGate();
         eventGateRef.current = eventGate;
@@ -218,69 +141,47 @@ export function createReactAdapter(runtime: ReactRuntime) {
           globalEl: typeof window === 'undefined' ? rootEl : window,
           isEnabled: () => eventGate.isEnabled?.() ?? true,
         });
-        routerRef.current = router;
 
-        const effectsPort: EffectsPort = createReactEffectsPort(setHostTokens);
+        const effectsPort = createReactEffectsPort((tokens) => {
+          setHostTokens(tokens);
+        });
+
         const rawPropsSource = rawPropsSourceRef.current as RawPropsSource<Props>;
-
-        const modules = createCapsWiring()
-          .useProps(rawPropsSource)
-          .useFeedback(effectsPort)
-          .useEventTargets({
-            root: () => router.rootTarget,
-            global: () => router.globalTarget,
-          })
-          .useExposeState((record) => {
-            exposesRef.current = record ?? {};
-          })
-          .useExposeStateWeb({
-            host: rootEl,
-            nameMap: createNameMap,
-            mode: exposeStateWebMode,
-          })
-          .useContext({
-            instance: rootEl,
-            parent: (inst) => getProtoParent(inst as HTMLElement),
-          })
-          .useAsTrigger({
-            instance: rootEl,
-            parent: (inst) => getProtoParent(inst as HTMLElement),
-            getPrototype: (inst) => PROTO_BY_INSTANCE.get(inst as HTMLElement) ?? null,
-          })
-          .useRuleMeta((key: string) => getMeta(key))
-          .build();
+        const modules = createReactModules({
+          el: rootEl,
+          router,
+          emit: (key, payload) => {
+            eventCallbacksRef.current[key]?.(payload);
+          },
+          rawPropsSource,
+          effectsPort,
+          getMeta,
+          exposeStateWebMode,
+          setExposes: (record) => {
+            exposesRef.current = record;
+          },
+        });
 
         const wiring = createHostWiring({ prototypeName: proto.name, modules });
 
-        const hostSession = createAdapterHost(
+        const hostSession = createReactHostSession({
           proto,
-          {
-            getRawProps: () => rawPropsSource.get() as Readonly<Props & PropsBaseType>,
-            schedule,
-            commit: (children, signal) => {
-              eventGate.disable();
-              pendingCommitRef.current = true;
-              pendingSignalRef.current = signal ?? null;
-              setRenderChildren(children);
-            },
+          schedule,
+          rawPropsSource,
+          wiring,
+          eventGate,
+          router,
+          onCommit: (children, signal) => {
+            pendingCommitRef.current = true;
+            pendingSignalRef.current = signal;
+            setRenderChildren(children);
           },
-          {
-            onRuntimeReady: (wiringApi) => {
-              wiring.onRuntimeReady(wiringApi);
-            },
-            onUnmountBegin: () => {
-              eventGate.disable();
-            },
-            afterUnmount: () => {
-              wiring.afterUnmount();
-              eventGate.dispose();
-              router.dispose();
-
-              controllerRef.current = null;
-              exposesRef.current = {};
-            },
-          }
-        );
+          onAfterUnmount: () => {
+            controllerRef.current = null;
+            exposesRef.current = {};
+            setHostTokens([]);
+          },
+        });
 
         controllerRef.current = hostSession.controller as RuntimeController;
 
@@ -298,11 +199,6 @@ export function createReactAdapter(runtime: ReactRuntime) {
         pendingSignalRef.current = null;
       }, [renderChildren]);
 
-      const hostClassName = [props.hostClassName, hostTokens.join(' ')]
-        .map((x) => (x ?? '').trim())
-        .filter((x) => x.length > 0)
-        .join(' ');
-
       const rendered = renderTemplateToReact(runtime, renderChildren, {
         slot: props.children,
       });
@@ -311,7 +207,7 @@ export function createReactAdapter(runtime: ReactRuntime) {
         rootTag,
         {
           ref: rootRef as any,
-          className: hostClassName || undefined,
+          className: mergeHostClassName(props.hostClassName, hostTokens),
           style: props.hostStyle,
         },
         rendered
@@ -319,7 +215,56 @@ export function createReactAdapter(runtime: ReactRuntime) {
     });
 
     Component.displayName = `Proto(${proto.name})`;
-
     return Component;
   };
+}
+
+function normalizeRuntime(input: ReactRuntimeInput): ReactRuntime {
+  return (input as any).React ?? (input as ReactRuntime);
+}
+
+function mergeHostClassName(input: unknown, hostTokens: string[]) {
+  const values = [input, hostTokens.join(' ')]
+    .map((value: any) => (typeof value === 'string' ? value.trim() : value))
+    .filter((value: any) => {
+      if (typeof value === 'string') return value.length > 0;
+      return value != null;
+    });
+
+  const seen = new Set<string>();
+  const out: string[] = [];
+
+  for (const value of values) {
+    if (typeof value !== 'string') continue;
+    for (const token of value.split(/\s+/)) {
+      if (!token || seen.has(token)) continue;
+      seen.add(token);
+      out.push(token);
+    }
+  }
+
+  return out.length > 0 ? out.join(' ') : undefined;
+}
+
+function collectEventCallbacks(
+  props: Record<string, unknown>
+): Record<string, (payload?: unknown) => void> {
+  const out: Record<string, (payload?: unknown) => void> = {};
+  for (const [key, value] of Object.entries(props)) {
+    if (!isFrameworkEventProp(key, value)) continue;
+    const eventKey = fromHandlerPropName(key);
+    if (!eventKey) continue;
+    out[eventKey] = value as (payload?: unknown) => void;
+  }
+  return out;
+}
+
+function isFrameworkEventProp(key: string, value: unknown) {
+  return /^on[A-Z]/.test(key) && typeof value === 'function';
+}
+
+function fromHandlerPropName(key: string) {
+  const raw = key.slice(2);
+  if (!raw) return null;
+  return raw[0]!.toLowerCase() + raw.slice(1);
 }

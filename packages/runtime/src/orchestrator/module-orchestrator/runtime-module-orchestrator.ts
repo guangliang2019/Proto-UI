@@ -285,6 +285,10 @@ export class RuntimeModuleOrchestrator implements ModuleOrchestrator {
     this.callbackCtx = ctx;
   }
 
+  __getCallbackCtx(): unknown {
+    return this.callbackCtx;
+  }
+
   // -------------------------
   // lifecycle
   // -------------------------

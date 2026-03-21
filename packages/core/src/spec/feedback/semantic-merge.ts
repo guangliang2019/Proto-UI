@@ -28,8 +28,7 @@ const PREFIXES_V0 = [
   'max-w-',
   'max-h-',
 
-  // Layout / Flex
-  'flex',
+  // Layout
   'justify-',
   'items-',
   'content-',
@@ -57,6 +56,34 @@ const TEXT_SIZE_TOKENS = new Set([
 ]);
 
 export function getSemanticGroupKeyV0(token: string): string {
+  if (
+    token === 'flex' ||
+    token === 'inline-flex' ||
+    token === 'block' ||
+    token === 'inline-block'
+  ) {
+    return 'display';
+  }
+  if (
+    token === 'flex-row' ||
+    token === 'flex-row-reverse' ||
+    token === 'flex-col' ||
+    token === 'flex-col-reverse'
+  ) {
+    return 'flex-direction';
+  }
+  if (
+    token === 'border' ||
+    token === 'border-0' ||
+    token === 'border-2' ||
+    token === 'border-4' ||
+    token === 'border-8'
+  ) {
+    return 'border-width';
+  }
+  if (token.startsWith('border-')) {
+    return 'border-color';
+  }
   if (token.startsWith('bg-clip-')) return 'bg-clip-';
   if (token.startsWith('text-')) {
     const suffix = token.slice('text-'.length);
