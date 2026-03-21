@@ -13,13 +13,15 @@ export function createVueModules<Props extends PropsBaseType>(args: {
     rootTarget: EventTarget;
     globalTarget: EventTarget;
   };
+  emit: (key: string, payload?: unknown, options?: Record<string, unknown>) => void;
   rawPropsSource: RawPropsSource<Props>;
   effectsPort: EffectsPort;
   getMeta: (key: string) => unknown;
   exposeStateWebMode?: ExposeStateWebMode;
   setExposes: (record: Record<string, unknown>) => void;
 }) {
-  const { el, router, rawPropsSource, effectsPort, getMeta, exposeStateWebMode, setExposes } = args;
+  const { el, router, emit, rawPropsSource, effectsPort, getMeta, exposeStateWebMode, setExposes } =
+    args;
 
   return createCapsWiring()
     .useProps(rawPropsSource)
@@ -27,6 +29,7 @@ export function createVueModules<Props extends PropsBaseType>(args: {
     .useEventTargets({
       root: () => router.rootTarget,
       global: () => router.globalTarget,
+      emit,
     })
     .useFocus({
       instance: el,

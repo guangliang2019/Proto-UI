@@ -38,6 +38,7 @@ export type ReactAdapterProps<Props extends PropsBaseType> = Props &
     children?: any;
     hostClassName?: string;
     hostStyle?: any;
+    [key: `on${string}`]: unknown;
   };
 
 export interface ReactAdapterOptions<Props extends PropsBaseType> {
@@ -55,7 +56,12 @@ function defaultGetProps<Props extends PropsBaseType>(
   props: ReactAdapterProps<Props>
 ): Partial<Props> {
   const { children, hostClassName, hostStyle, ...rest } = (props ?? {}) as any;
-  return rest as Partial<Props>;
+  const filtered: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(rest)) {
+    if (isFrameworkEventProp(key, value)) continue;
+    filtered[key] = value;
+  }
+  return filtered as Partial<Props>;
 }
 
 export function createReactAdapter(runtimeInput: ReactRuntimeInput) {
@@ -83,6 +89,8 @@ export function createReactAdapter(runtimeInput: ReactRuntimeInput) {
 
       const propsRef = runtime.useRef<ReactAdapterProps<Props>>(props);
       propsRef.current = props;
+      const eventCallbacksRef = runtime.useRef<Record<string, (payload?: unknown) => void>>({});
+      eventCallbacksRef.current = collectEventCallbacks(props);
 
       const subsRef = runtime.useRef<Set<() => void>>(new Set());
       const rawPropsSourceRef = runtime.useRef<RawPropsSource<Props> | null>(null);
@@ -142,6 +150,9 @@ export function createReactAdapter(runtimeInput: ReactRuntimeInput) {
         const modules = createReactModules({
           el: rootEl,
           router,
+          emit: (key, payload) => {
+            eventCallbacksRef.current[key]?.(payload);
+          },
           rawPropsSource,
           effectsPort,
           getMeta,
@@ -233,4 +244,27 @@ function mergeHostClassName(input: unknown, hostTokens: string[]) {
   }
 
   return out.length > 0 ? out.join(' ') : undefined;
+}
+
+function collectEventCallbacks(
+  props: Record<string, unknown>
+): Record<string, (payload?: unknown) => void> {
+  const out: Record<string, (payload?: unknown) => void> = {};
+  for (const [key, value] of Object.entries(props)) {
+    if (!isFrameworkEventProp(key, value)) continue;
+    const eventKey = fromHandlerPropName(key);
+    if (!eventKey) continue;
+    out[eventKey] = value as (payload?: unknown) => void;
+  }
+  return out;
+}
+
+function isFrameworkEventProp(key: string, value: unknown) {
+  return /^on[A-Z]/.test(key) && typeof value === 'function';
+}
+
+function fromHandlerPropName(key: string) {
+  const raw = key.slice(2);
+  if (!raw) return null;
+  return raw[0]!.toLowerCase() + raw.slice(1);
 }

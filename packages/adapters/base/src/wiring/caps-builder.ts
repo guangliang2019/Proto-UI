@@ -6,7 +6,9 @@ import { RAW_PROPS_SOURCE_CAP, type RawPropsSource } from '@proto-ui/modules.pro
 import { EFFECTS_CAP } from '@proto-ui/modules.feedback';
 import {
   EVENT_GLOBAL_TARGET_CAP,
+  EVENT_EMIT_CAP,
   EVENT_ROOT_TARGET_CAP,
+  type EventEmitSink,
   type EventTargetGetter,
 } from '@proto-ui/modules.event';
 import { EXPOSE_SET_EXPOSES_CAP, type ExposeHostSink } from '@proto-ui/modules.expose';
@@ -67,7 +69,11 @@ export type CapsWiringBuilder = {
   add(moduleName: string, provide: () => CapEntries): CapsWiringBuilder;
   useProps<P extends PropsBaseType>(source: RawPropsSource<P>): CapsWiringBuilder;
   useFeedback(effects: EffectsPort): CapsWiringBuilder;
-  useEventTargets(args: { root: EventTargetGetter; global: EventTargetGetter }): CapsWiringBuilder;
+  useEventTargets(args: {
+    root: EventTargetGetter;
+    global: EventTargetGetter;
+    emit?: EventEmitSink;
+  }): CapsWiringBuilder;
   useExposeState(setExposes: ExposeHostSink): CapsWiringBuilder;
   useExposeStateWeb(args: {
     host: HTMLElement;
@@ -123,10 +129,11 @@ export function createCapsWiring(): CapsWiringBuilder {
       return add('feedback', () => [[EFFECTS_CAP, effects]]);
     },
 
-    useEventTargets({ root, global }) {
+    useEventTargets({ root, global, emit }) {
       return add('event', () => [
         [EVENT_ROOT_TARGET_CAP, root],
         [EVENT_GLOBAL_TARGET_CAP, global],
+        ...(emit ? [[EVENT_EMIT_CAP, emit] as const] : []),
       ]);
     },
 

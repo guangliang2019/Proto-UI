@@ -38,6 +38,7 @@ export type VueAdapterProps<Props extends PropsBaseType> = Props &
   PropsBaseType & {
     hostClass?: string | string[] | Record<string, boolean>;
     hostStyle?: Record<string, string> | string | Array<Record<string, string>>;
+    [key: `on${string}`]: unknown;
   };
 
 export interface VueAdapterOptions<Props extends PropsBaseType> {
@@ -53,7 +54,12 @@ function defaultGetProps<Props extends PropsBaseType>(
   props: VueAdapterProps<Props>
 ): Partial<Props> {
   const { hostClass, hostStyle, ...rest } = (props ?? {}) as any;
-  return rest as Partial<Props>;
+  const filtered: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(rest)) {
+    if (isFrameworkEventProp(key, value)) continue;
+    filtered[key] = value;
+  }
+  return filtered as Partial<Props>;
 }
 
 export function createVueAdapter(runtime: VueRuntime) {
@@ -153,6 +159,9 @@ export function createVueAdapter(runtime: VueRuntime) {
           const modules = createVueModules({
             el: rootEl,
             router,
+            emit: (key, payload, options) => {
+              ctx.emit(key, payload, options);
+            },
             rawPropsSource,
             effectsPort,
             getMeta,
@@ -245,4 +254,8 @@ function mergeHostClass(input: unknown, hostTokens: string[]) {
   }
 
   return out;
+}
+
+function isFrameworkEventProp(key: string, value: unknown) {
+  return /^on[A-Z]/.test(key) && typeof value === 'function';
 }
