@@ -13,10 +13,9 @@
 It is responsible for:
 
 - defining a local focus boundary
-- collecting and coordinating member focusables
 - applying entry and restore policies
 - handling trap/loop behavior where supported
-- resolving routine intra-scope navigation
+- optionally coordinating an internal focus group
 
 It is not responsible for:
 
@@ -33,7 +32,7 @@ FocusScope is required because many common widgets need local focus governance:
 - overlay content
 - select/listbox/menu content
 - dialog/popover content
-- composite tab/list structures
+- composite tab/list structures with boundary semantics
 
 Routine local navigation should not require authors to manually script focus movement for every widget.
 
@@ -79,16 +78,11 @@ v0 should minimally support:
 
 - `trap`
 
-- `loop`
-
-- `navigation`
-  - at least tab and arrow-oriented local navigation
-
-- `orientation`
-  - at least `vertical | horizontal | both`
-
 - `emptyPolicy`
   - at least `container | none`
+
+- optional group composition
+  - a scope may carry an internal `asFocusGroup(...)`-style capability
 
 These policies should cover common component-library scenarios without forcing manual focus scripting.
 
@@ -113,6 +107,7 @@ type FocusScopeHandle = {
   restoreFocus(): void;
 
   configure(patch: FocusScopeConfigPatch): void;
+  getGroup(): FocusGroupHandle | null;
 };
 ```
 
@@ -124,13 +119,14 @@ The handle should expose structured focus commands rather than arbitrary instanc
 
 ## 6. Navigation Principle
 
-FocusScope is responsible for **local focus resolution**.
+FocusScope is responsible for **boundary-level local focus resolution**.
 
-Authors may influence policy, but should not need to manually script routine intra-scope navigation such as:
+Authors may influence policy, but should not need to manually script routine boundary entry/restore such as:
 
-- next/previous item in select content
 - selected-item entry on overlay open
 - trigger restoration on overlay close
+
+Routine next/previous item navigation may be delegated to a focus group capability.
 
 ---
 

@@ -33,6 +33,7 @@ export function createContextModule(ctx: ModuleFactoryArgs): ContextModule {
           dispose: () => impl.dispose(),
         },
         port: {
+          setCallbackDispatcher: (dispatch) => impl.setCallbackDispatcher(dispatch),
           dumpProviders: () => impl.portDumpProviders(),
           dumpSubscriptions: () => impl.portDumpSubscriptions(),
           dumpCallbackQueue: () => impl.portDumpCallbackQueue(),

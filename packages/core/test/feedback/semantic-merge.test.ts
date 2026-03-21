@@ -30,6 +30,16 @@ describe('feedback.semantic-merge.v0', () => {
     expect(r.tokens).toContain('bg-primary');
   });
 
+  it('does not merge display with flex direction', () => {
+    const r = mergeTwTokensV0(['flex', 'flex-col', 'gap-3']);
+    expect(r.tokens).toEqual(['flex', 'flex-col', 'gap-3']);
+  });
+
+  it('does not merge border width with border color', () => {
+    const r = mergeTwTokensV0(['border', 'border-border/60', 'rounded-xl']);
+    expect(r.tokens).toEqual(['border', 'border-border/60', 'rounded-xl']);
+  });
+
   it('empty input -> empty output', () => {
     const r = mergeTwTokensV0([]);
     expect(r.tokens).toEqual([]);

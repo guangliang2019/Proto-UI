@@ -17,6 +17,7 @@ import type { PropsPort, PropsWatchTask } from '@proto-ui/modules.props';
  */
 export class CallbackScope<P extends PropsBaseType> {
   constructor(
+    private readonly getPhase: () => ExecPhase,
     private readonly setPhase: (p: ExecPhase) => void,
     private readonly moduleHub: ModuleOrchestrator
   ) {}
@@ -40,6 +41,9 @@ export class CallbackScope<P extends PropsBaseType> {
    * This guarantees cleanup even if callback throws.
    */
   run<T>(ctx: RunHandle<P>, fn: () => T): T {
+    const prevPhase = this.getPhase();
+    const prevCtx = (this.moduleHub as any).__getCallbackCtx?.();
+
     this.setPhase('callback');
 
     // Provide callback ctx for modules via SYS_CAP.getCallbackCtx()
@@ -50,9 +54,8 @@ export class CallbackScope<P extends PropsBaseType> {
       this.dispatchPropsTasks(ctx);
       return fn();
     } finally {
-      // clear ctx to avoid accidental leakage
-      (this.moduleHub as any).__setCallbackCtx?.(undefined);
-      this.setPhase('unknown');
+      (this.moduleHub as any).__setCallbackCtx?.(prevCtx);
+      this.setPhase(prevPhase);
     }
   }
 
@@ -62,6 +65,9 @@ export class CallbackScope<P extends PropsBaseType> {
    * and we only want to dispatch watch tasks.
    */
   runNoSync<T>(ctx: RunHandle<P>, fn: () => T): T {
+    const prevPhase = this.getPhase();
+    const prevCtx = (this.moduleHub as any).__getCallbackCtx?.();
+
     this.setPhase('callback');
     (this.moduleHub as any).__setCallbackCtx?.(ctx);
 
@@ -69,8 +75,8 @@ export class CallbackScope<P extends PropsBaseType> {
       this.dispatchPropsTasks(ctx);
       return fn();
     } finally {
-      (this.moduleHub as any).__setCallbackCtx?.(undefined);
-      this.setPhase('unknown');
+      (this.moduleHub as any).__setCallbackCtx?.(prevCtx);
+      this.setPhase(prevPhase);
     }
   }
 

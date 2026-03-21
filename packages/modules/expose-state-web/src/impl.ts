@@ -19,6 +19,7 @@ type Binding = {
   key: string;
   off?: () => void;
   attr?: string;
+  officialAttr?: string;
   cssVar?: string;
   kind?: StateSpec['kind'];
   stateId?: string;
@@ -69,6 +70,23 @@ function mapOfficialSemanticName(semantic: string): string | null {
       return 'checked';
     case '@accessibility/current':
       return 'current';
+    default:
+      return null;
+  }
+}
+
+function mapOfficialAriaAttr(semantic: string): string | null {
+  switch (semantic) {
+    case '@accessibility/expanded':
+      return 'aria-expanded';
+    case '@accessibility/invalid':
+      return 'aria-invalid';
+    case '@accessibility/selected':
+      return 'aria-selected';
+    case '@accessibility/checked':
+      return 'aria-checked';
+    case '@accessibility/current':
+      return 'aria-current';
     default:
       return null;
   }
@@ -173,6 +191,7 @@ export class ExposeStateWebModuleImpl extends ModuleBase {
         stateId,
         kind: spec.kind,
         attr: this.allowAttrForKind(spec.kind, mode) ? mapping.dataAttr : undefined,
+        officialAttr: mapOfficialAriaAttr(semantic),
         cssVar: mapping.cssVar,
       };
 
@@ -214,12 +233,19 @@ export class ExposeStateWebModuleImpl extends ModuleBase {
     if (!kind) return;
 
     const attr = binding.attr;
+    const officialAttr = binding.officialAttr;
     const cssVar = binding.cssVar;
 
     const setAttr = (val: string | null) => {
       if (!attr) return;
       if (val === null) host.removeAttribute(attr);
       else host.setAttribute(attr, val);
+    };
+
+    const setOfficialAttr = (val: string | null) => {
+      if (!officialAttr) return;
+      if (val === null) host.removeAttribute(officialAttr);
+      else host.setAttribute(officialAttr, val);
     };
 
     const setVar = (val: string | null) => {
@@ -232,6 +258,7 @@ export class ExposeStateWebModuleImpl extends ModuleBase {
       case 'bool': {
         if (v) setAttr('');
         else setAttr(null);
+        setOfficialAttr(v ? 'true' : 'false');
         // no css var by default
         break;
       }
@@ -239,18 +266,21 @@ export class ExposeStateWebModuleImpl extends ModuleBase {
       case 'string': {
         const value = v == null ? '' : String(v);
         setAttr(value);
+        setOfficialAttr(value || null);
         if (mode.allowStringVar) setVar(value);
         break;
       }
       case 'number.discrete': {
         const value = v == null ? '' : String(v);
         setAttr(value);
+        setOfficialAttr(value || null);
         setVar(value);
         break;
       }
       case 'number.range': {
         const value = v == null ? '' : String(v);
         if (mode.allowContinuousAttr) setAttr(value);
+        setOfficialAttr(value || null);
         setVar(value);
         break;
       }

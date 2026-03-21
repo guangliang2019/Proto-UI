@@ -16,6 +16,7 @@ import { StateModuleDef } from '@proto-ui/modules.state';
 import { StateInteractionModuleDef } from '@proto-ui/modules.state-interaction';
 import { StateAccessibilityModuleDef } from '@proto-ui/modules.state-accessibility';
 import { ContextModuleDef } from '@proto-ui/modules.context';
+import type { ContextPort } from '@proto-ui/modules.context';
 import { AsTriggerModuleDef } from '@proto-ui/modules.as-trigger';
 import { FocusModuleDef } from '@proto-ui/modules.focus';
 import { __RUN_TEST_SYS, TestSysModuleDef, type TestSysPort } from '@proto-ui/modules.test-sys';
@@ -98,7 +99,15 @@ export function createRuntimeInstance<P extends PropsBaseType>(
   // align once (after setup ends kernel is typically "unknown")
   phaseRef = kernel.getPhase() as any;
 
-  const callbackScope = new CallbackScope<P>((p) => kernel.setPhase(p as any), moduleHub);
+  const callbackScope = new CallbackScope<P>(
+    () => kernel.getPhase() as ExecPhase,
+    (p) => kernel.setPhase(p as any),
+    moduleHub
+  );
+  const contextPort = moduleHub.getPort<ContextPort>('context');
+  contextPort?.setCallbackDispatcher?.((fn) => {
+    callbackScope.runNoSync(kernel.run, () => fn(kernel.run));
+  });
 
   // add test-sys to run handle, for contract tests
   const testSys = moduleHub.getPort<TestSysPort>('test-sys');

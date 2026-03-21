@@ -51,6 +51,8 @@ function getProtoParent(instance: HTMLElement): HTMLElement | null {
 
 export interface WebComponentAdapterOptions<Props extends PropsBaseType = PropsBaseType> {
   shadow?: boolean;
+  register?: boolean;
+  registerAs?: string;
   getProps?: (el: HTMLElement) => Partial<Props> | null | undefined;
   schedule?: (task: () => void) => void;
   getMeta?: (key: string) => unknown;
@@ -84,7 +86,9 @@ export function AdaptToWebComponent<Props extends PropsBaseType>(
   proto: Prototype<Props>,
   opt: WebComponentAdapterOptions<Props> = {}
 ) {
-  assertKebabCase(proto.name);
+  const register = opt.register ?? true;
+  const tagName = opt.registerAs ?? proto.name;
+  assertKebabCase(tagName);
 
   const shadow = opt.shadow ?? false;
   const getProps = opt.getProps ?? (() => ({}) as Partial<Props>);
@@ -95,6 +99,7 @@ export function AdaptToWebComponent<Props extends PropsBaseType>(
   class ProtoElement extends HTMLElement {
     private _mountedOnce = false;
     private _invokeUnmounted: (() => void) | null = null;
+    private _disconnectVersion = 0;
 
     private _root: Element | ShadowRoot;
     private _slotProjector: SlotProjector | null = null;
@@ -110,6 +115,7 @@ export function AdaptToWebComponent<Props extends PropsBaseType>(
     }
 
     connectedCallback() {
+      this._disconnectVersion += 1;
       if (this._mountedOnce) return;
       this._mountedOnce = true;
 
@@ -132,7 +138,7 @@ export function AdaptToWebComponent<Props extends PropsBaseType>(
       const effectsPort: EffectsPort = createWebEffectsPort(applier);
 
       const rawPropsSource: RawPropsSource<Props> = {
-        debugName: `${proto.name}#raw-props`,
+        debugName: `${tagName}#raw-props`,
 
         get(): Readonly<Props & PropsBaseType> {
           // attrs-first, then opt.getProps
@@ -166,6 +172,8 @@ export function AdaptToWebComponent<Props extends PropsBaseType>(
           global: () => router.globalTarget,
         })
         .useFocus({
+          instance: thisEl,
+          parent: (inst: unknown) => getProtoParent(inst as HTMLElement),
           root: () => thisEl,
           isNativelyFocusable: (target: HTMLElement) => isNativelyFocusable(target),
           setFocusable: (target: HTMLElement, enabled: boolean) => {
@@ -248,11 +256,11 @@ export function AdaptToWebComponent<Props extends PropsBaseType>(
         })
         .build();
 
-      const wiring = createHostWiring({ prototypeName: proto.name, modules });
+      const wiring = createHostWiring({ prototypeName: tagName, modules });
 
       let capsHub: any = null;
       const hostSession = createAdapterHost(
-        proto,
+        { ...proto, name: tagName },
         {
           getRawProps: () => rawPropsSource.get() as Readonly<Props & PropsBaseType>,
           schedule,
@@ -398,13 +406,20 @@ export function AdaptToWebComponent<Props extends PropsBaseType>(
     }
 
     disconnectedCallback() {
-      this._invokeUnmounted?.();
-      this._invokeUnmounted = null;
+      const disconnectVersion = ++this._disconnectVersion;
+      queueMicrotask(() => {
+        if (this._disconnectVersion !== disconnectVersion) return;
+        if (this.isConnected) return;
+
+        this._invokeUnmounted?.();
+        this._invokeUnmounted = null;
+        this._mountedOnce = false;
+      });
     }
   }
 
-  if (!customElements.get(proto.name)) {
-    customElements.define(proto.name, ProtoElement);
+  if (register && !customElements.get(tagName)) {
+    customElements.define(tagName, ProtoElement);
   }
 
   return ProtoElement;

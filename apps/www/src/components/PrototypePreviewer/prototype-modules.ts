@@ -24,8 +24,36 @@ const manualPrototypeModules: Record<string, PrototypeModuleLoader> = {
     registerPrototype('base-button', mod.button);
   },
   'shadcn-button': async () => {
-    const mod = await import('@prototype-libs/shadcn');
-    registerPrototype('shadcn-button', mod.button);
+    const mod = await import('../../../../../packages/prototype-libs/shadcn/src/button/index');
+    registerPrototype('shadcn-button', mod.default);
+  },
+  'shadcn-toggle': async () => {
+    const mod = await import('../../../../../packages/prototype-libs/shadcn/src/toggle/index');
+    registerPrototype('shadcn-toggle', mod.default);
+  },
+  'shadcn-switch-root': async () => {
+    const mod = await import('../../../../../packages/prototype-libs/shadcn/src/switch/root');
+    registerPrototype('shadcn-switch-root', mod.default);
+  },
+  'shadcn-switch-thumb': async () => {
+    const mod = await import('../../../../../packages/prototype-libs/shadcn/src/switch/thumb');
+    registerPrototype('shadcn-switch-thumb', mod.default);
+  },
+  'shadcn-tabs-root': async () => {
+    const mod = await import('../../../../../packages/prototype-libs/shadcn/src/tabs/root');
+    registerPrototype('shadcn-tabs-root', mod.default);
+  },
+  'shadcn-tabs-list': async () => {
+    const mod = await import('../../../../../packages/prototype-libs/shadcn/src/tabs/list');
+    registerPrototype('shadcn-tabs-list', mod.default);
+  },
+  'shadcn-tabs-trigger': async () => {
+    const mod = await import('../../../../../packages/prototype-libs/shadcn/src/tabs/trigger');
+    registerPrototype('shadcn-tabs-trigger', mod.default);
+  },
+  'shadcn-tabs-content': async () => {
+    const mod = await import('../../../../../packages/prototype-libs/shadcn/src/tabs/content');
+    registerPrototype('shadcn-tabs-content', mod.default);
   },
 };
 

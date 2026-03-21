@@ -46,12 +46,16 @@ import {
 } from '@proto-ui/modules.rule-expose-state-web';
 import {
   FOCUS_BLUR_CAP,
+  FOCUS_INSTANCE_TOKEN_CAP,
   FOCUS_IS_NATIVELY_FOCUSABLE_CAP,
+  FOCUS_PARENT_CAP,
   FOCUS_REQUEST_FOCUS_CAP,
   FOCUS_ROOT_TARGET_CAP,
   FOCUS_SET_FOCUSABLE_CAP,
   type FocusBlur,
+  type FocusInstanceToken,
   type FocusIsNativelyFocusable,
+  type FocusParentGetter,
   type FocusRequestFocus,
   type FocusRootTargetGetter,
   type FocusSetFocusable,
@@ -85,6 +89,8 @@ export type CapsWiringBuilder = {
     getPrototype: AsTriggerPrototypeGetter;
   }): CapsWiringBuilder;
   useFocus(args: {
+    instance: FocusInstanceToken;
+    parent: FocusParentGetter;
     root: FocusRootTargetGetter;
     isNativelyFocusable: FocusIsNativelyFocusable;
     setFocusable: FocusSetFocusable;
@@ -159,8 +165,10 @@ export function createCapsWiring(): CapsWiringBuilder {
       ]);
     },
 
-    useFocus({ root, isNativelyFocusable, setFocusable, requestFocus, blur }) {
+    useFocus({ instance, parent, root, isNativelyFocusable, setFocusable, requestFocus, blur }) {
       return add('focus', () => [
+        [FOCUS_INSTANCE_TOKEN_CAP, instance],
+        [FOCUS_PARENT_CAP, parent],
         [FOCUS_ROOT_TARGET_CAP, root],
         [FOCUS_IS_NATIVELY_FOCUSABLE_CAP, isNativelyFocusable],
         [FOCUS_SET_FOCUSABLE_CAP, setFocusable],

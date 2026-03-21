@@ -9,7 +9,7 @@ import {
   type ContextInstanceToken,
   type ContextParentGetter,
 } from './caps';
-import type { ContextChangeCb, ContextChangeCbOptional } from './types';
+import type { ContextCallbackDispatcher, ContextChangeCb, ContextChangeCbOptional } from './types';
 import { CONTEXT_CENTER, type SubscriptionMode } from './center';
 
 const ERR = {
@@ -81,6 +81,7 @@ function assertJsonObject(value: any, op: string): asserts value is JsonObject {
 
 export class ContextModuleImpl extends ModuleBase {
   private readonly prototypeName: string;
+  private callbackDispatcher: ContextCallbackDispatcher | null = null;
 
   constructor(caps: CapsVaultView, prototypeName: string) {
     super(caps);
@@ -146,9 +147,15 @@ export class ContextModuleImpl extends ModuleBase {
     let active = true;
     const wrapped =
       typeof onChange === 'function'
-        ? (ctx: unknown, next: T | null, prev: T | null) => {
+        ? (_ctx: unknown, next: T | null, prev: T | null) => {
             if (!active) return;
-            onChange(ctx, next as T, prev as T);
+            if (this.callbackDispatcher) {
+              this.callbackDispatcher((ctx) => {
+                onChange(ctx, next as T, prev as T);
+              });
+              return;
+            }
+            onChange(this.sys.getCallbackCtx(), next as T, prev as T);
           }
         : undefined;
 
@@ -168,9 +175,15 @@ export class ContextModuleImpl extends ModuleBase {
     let active = true;
     const wrapped =
       typeof onChange === 'function'
-        ? (ctx: unknown, next: T | null, prev: T | null) => {
+        ? (_ctx: unknown, next: T | null, prev: T | null) => {
             if (!active) return;
-            onChange(ctx, next, prev);
+            if (this.callbackDispatcher) {
+              this.callbackDispatcher((ctx) => {
+                onChange(ctx, next, prev);
+              });
+              return;
+            }
+            onChange(this.sys.getCallbackCtx(), next, prev);
           }
         : undefined;
 
@@ -306,6 +319,10 @@ export class ContextModuleImpl extends ModuleBase {
 
   portDumpCallbackQueue() {
     return CONTEXT_CENTER.dumpCallbackQueue();
+  }
+
+  setCallbackDispatcher(dispatch: ContextCallbackDispatcher): void {
+    this.callbackDispatcher = dispatch;
   }
 
   // -------------------------

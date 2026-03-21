@@ -141,4 +141,33 @@ describe('expose-state web extension', () => {
     expect(names.includes('data--interaction-hovered')).toBe(false);
     expect(names.some((name) => /^data-.*hovered$/.test(name))).toBe(true);
   });
+
+  it('also reflects official accessibility semantics to aria-* attributes', async () => {
+    const P: Prototype = {
+      name: 'x-esw-official-aria',
+      setup(def) {
+        const checked = def.state.fromAccessibility('checked');
+        const selected = def.state.fromAccessibility('selected');
+        def.expose('checked', checked);
+        def.expose('selected', selected);
+        def.lifecycle.onMounted(() => {
+          checked.set(true);
+          selected.set(true);
+        });
+        return (r) => [r.el('div', 'ok')];
+      },
+    };
+
+    AdaptToWebComponent(P);
+
+    const el = document.createElement('x-esw-official-aria') as HTMLElement;
+    document.body.appendChild(el);
+
+    await Promise.resolve();
+
+    expect(getAttr(el, 'data-checked')).toBe('');
+    expect(getAttr(el, 'data-selected')).toBe('');
+    expect(getAttr(el, 'aria-checked')).toBe('true');
+    expect(getAttr(el, 'aria-selected')).toBe('true');
+  });
 });
