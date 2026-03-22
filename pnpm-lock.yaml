@@ -426,6 +426,18 @@ importers:
         specifier: workspace:*
         version: link:../../types
 
+  packages/modules/overlay:
+    dependencies:
+      '@proto-ui/core':
+        specifier: workspace:*
+        version: link:../../core
+      '@proto-ui/modules.base':
+        specifier: workspace:*
+        version: link:../base
+      '@proto-ui/types':
+        specifier: workspace:*
+        version: link:../../types
+
   packages/modules/props:
     dependencies:
       '@proto-ui/core':
@@ -614,6 +626,9 @@ importers:
       '@proto-ui/modules.focus':
         specifier: workspace:*
         version: link:../modules/focus
+      '@proto-ui/modules.overlay':
+        specifier: workspace:*
+        version: link:../modules/overlay
       '@proto-ui/modules.props':
         specifier: workspace:*
         version: link:../modules/props

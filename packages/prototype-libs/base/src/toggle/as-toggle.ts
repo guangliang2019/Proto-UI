@@ -4,6 +4,7 @@ import type { ToggleAsHookContract, ToggleExposes, ToggleProps } from './types';
 
 export const asToggle = defineAsHook<ToggleProps, ToggleExposes, ToggleAsHookContract>({
   name: 'as-toggle',
+  mode: 'once',
   setup(def) {
     asButton();
 

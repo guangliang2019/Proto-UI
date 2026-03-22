@@ -23,6 +23,7 @@
     "@proto-ui/modules.anatomy": "workspace:*",
     "@proto-ui/modules.as-trigger": "workspace:*",
     "@proto-ui/modules.focus": "workspace:*",
+    "@proto-ui/modules.overlay": "workspace:*",
     "@proto-ui/modules.test-sys": "workspace:*"
   },
   "exports": {

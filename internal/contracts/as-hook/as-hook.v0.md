@@ -57,6 +57,29 @@ The following are **not** v0 goals:
   - its effects must attach to the calling prototype
   - it does not create an independent subject
 
+### 2.1.1 Parameterized authored asHook (proposed direction)
+
+For authored asHooks, Proto UI may support:
+
+- `setup(def, options?)`
+- caller shape:
+  - `asX()`
+  - `asX(options)`
+
+This does **not** change the prototype nature of asHook:
+
+- `setup` remains the prototype setup entry
+- `setup` return value remains reserved for `RenderFn | void`
+- options only make the hook logic configurable
+
+This capability is intended primarily for tool-like and strategy-like asHooks, such as:
+
+- `asEscapeKey(options)`
+- `asOpenState(options)`
+- `asCommitClose(options)`
+
+It should not require authors to fall back to ad-hoc `(def, options) => { ... }` helpers merely to support setup-time configuration.
+
 ### 2.2 Naming Rule (v0, mandatory)
 
 - asHook `name` must match `/^as[A-Z]/`.
@@ -73,6 +96,20 @@ The following are **not** v0 goals:
   - `asX()`
 - Named sub-callers are allowed:
   - `asX.mode()`
+
+### 3.1.1 Parameterized caller shape (proposed direction)
+
+When an authored asHook declares options, the caller should support:
+
+- `asX(options)`
+
+This option-passing model should remain setup-only.
+
+The existence of options should not change the authoring classification of the hook:
+
+- it is still an asHook
+- it is still setup-only
+- its effects still attach to the caller prototype
 
 ### 3.2 Runtime Constraint
 
@@ -146,6 +183,96 @@ For this class:
 - unsafe conflicts must throw, or at minimum produce a clear warning
 
 This exception does not apply to normal `defineAsHook(...)` products.
+
+### 6.3 Unified authored mode model (proposed direction)
+
+To make authored asHooks usable as the mainstream logic-reuse entry, Proto UI may unify authored and privileged asHooks under explicit installation modes.
+
+Proposed modes:
+
+- `configurable`
+- `once`
+- `multiple`
+
+Intended meaning:
+
+- `configurable`
+  - install once
+  - allow repeated setup-time calls with options/config patches
+  - later calls do not reinstall the whole hook
+  - later calls route into a hook-defined configuration path
+
+- `once`
+  - repeated same-name calls are skipped
+  - effectively a degenerate form of configurable hook with no useful patch surface
+
+- `multiple`
+  - each call is a distinct installation
+  - no singleton-like reuse is assumed
+
+This model is intended to reduce the semantic gap between:
+
+- privileged configurable hooks such as `asFocusable(...)` / `asFocusScope(...)`
+- future parameterized authored hooks such as `asEscapeKey(options)`
+
+The preferred mainstream mode is expected to be `configurable`, while:
+
+- `once` is appropriate for install-only hooks
+- `multiple` should remain uncommon and explicit
+
+### 6.4 `setup` and `configure` split (proposed direction)
+
+To avoid overloading prototype `setup` with both install-time and patch-time logic, a configurable asHook may eventually support a definition split such as:
+
+- `setup(def, options?)`
+- `configure(configApi, options, tools)`
+
+Intent:
+
+- `setup` remains clean and prototype-shaped
+- `setup` still returns only `RenderFn | void`
+- `configure` is the hook-specific patch/merge entry
+- repeated configurable calls should prefer `configure(...)` over rerunning arbitrary install logic
+
+Important boundary:
+
+- `configure(...)` should not receive unrestricted `def`
+- otherwise configurable hooks would reintroduce duplicate-install hazards through a different path
+
+Instead, `configure(...)` should receive a restricted hook-owned configuration surface and utilities such as:
+
+- merge allowed field
+- reject non-mergeable field
+- warn on override
+- throw on unsafe conflict
+
+This is especially important for hooks where:
+
+- some fields are late-configurable
+- some fields are singleton-defining
+- some fields are entirely non-mergeable
+
+### 6.5 Mergeability classes (proposed direction)
+
+For configurable hooks, fields may naturally fall into categories:
+
+- fully mergeable
+- partially mergeable
+- non-mergeable
+
+Typical interpretations:
+
+- fully mergeable
+  - later options may deterministically replace or merge earlier values
+
+- partially mergeable
+  - some fields may merge
+  - some fields may warn or throw on conflict
+
+- non-mergeable
+  - repeated configuration with incompatible values should fail clearly
+
+This classification should be owned by the hook contract itself rather than hidden in runtime heuristics.
 
 ---
 

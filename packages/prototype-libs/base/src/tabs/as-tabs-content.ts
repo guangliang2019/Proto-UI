@@ -16,6 +16,7 @@ export const asTabsContent = defineAsHook<
   TabsContentAsHookContract
 >({
   name: 'as-tabs-content',
+  mode: 'once',
   setup(def) {
     registerTabsFamily(def as any);
     def.anatomy.claim(TABS_FAMILY, { role: 'content' });

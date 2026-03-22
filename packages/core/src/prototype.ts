@@ -23,7 +23,10 @@ export type AsHookTraceEntry = {
   name: string;
   order: number;
   privileged: boolean;
+  mode?: AsHookMode;
 };
+
+export type AsHookMode = 'configurable' | 'once' | 'multiple';
 
 export type AsHookStateMap = Record<string, State<any>>;
 export type AsHookEventMap = Record<string, unknown>;
@@ -90,15 +93,47 @@ export type AsHookResult<Props extends PropsBaseType = PropsBaseType, ContractIn
   [key: string]: unknown;
 };
 
+export type AsHookInstanceState = {
+  store: Record<string, unknown>;
+  result?: AsHookResult<any, any>;
+};
+
+export type AsHookConfigApi = AsHookInstanceState & {
+  name: string;
+  order: number;
+};
+
+export type AsHookConfigureTools = {
+  warn(message: string): void;
+  conflict(message: string): never;
+};
+
 export type AsHookPrototype<
   Props extends PropsBaseType = PropsBaseType,
   Exposes = Record<string, unknown>,
   ContractInput = {},
-> = Prototype<Props, Exposes>;
+  Options = void,
+> = {
+  name: string;
+  mode?: AsHookMode;
+  setup: (
+    def: DefHandle<Props, Exposes>,
+    options: Options,
+    api: AsHookConfigApi
+  ) => RenderFn | void;
+  configure?: (api: AsHookConfigApi, options: Options, tools: AsHookConfigureTools) => void;
+};
 
 export type AsHookRuntime = {
   ensureSetup(op: string): void;
-  register(name: string, meta: { privileged: boolean }): { run: boolean; order: number };
+  register(
+    name: string,
+    meta: { privileged: boolean; mode?: AsHookMode }
+  ): {
+    action: 'setup' | 'configure' | 'skip';
+    order: number;
+    state: AsHookInstanceState;
+  };
   beginCapture(name: string): void;
   recordCaptured(kind: 'props' | 'state' | 'context' | 'event' | 'feedback', entry: unknown): void;
   endCapture(render?: RenderFn): AsHookResult<any, any>;
@@ -111,9 +146,10 @@ export type AsHookCaller<
   Props extends PropsBaseType = PropsBaseType,
   Exposes = Record<string, unknown>,
   ContractInput = {},
-> = (() => AsHookResult<Props, ContractInput>) & {
+  Options = void,
+> = ((options?: Options) => AsHookResult<Props, ContractInput>) & {
   readonly kind: 'asHook';
-  readonly definition: AsHookPrototype<Props, Exposes, ContractInput>;
+  readonly definition: AsHookPrototype<Props, Exposes, ContractInput, Options>;
 };
 
 export const __AS_HOOK_RUNTIME = Symbol.for('@proto-ui/asHook/runtime');
@@ -147,15 +183,18 @@ export function definePrototype<P extends PropsBaseType, E = Record<string, unkn
  * AsHook is still "a prototype authored by Component Author",
  * but its *import result* will be treated as borrowed in the future.
  */
-export function defineAsHook<P extends PropsBaseType, E = Record<string, unknown>>(
-  proto: AsHookPrototype<P, E>
-): AsHookCaller<P, E>;
-export function defineAsHook<P extends PropsBaseType, E = Record<string, unknown>, C = {}>(
-  proto: AsHookPrototype<P, E, C>
-): AsHookCaller<P, E, C>;
-export function defineAsHook<P extends PropsBaseType, E = Record<string, unknown>, C = {}>(
-  proto: AsHookPrototype<P, E, C>
-): AsHookCaller<P, E, C> {
+export function defineAsHook<
+  P extends PropsBaseType,
+  E = Record<string, unknown>,
+  C = {},
+  O = void,
+>(proto: AsHookPrototype<P, E, C, O>): AsHookCaller<P, E, C, O>;
+export function defineAsHook<
+  P extends PropsBaseType,
+  E = Record<string, unknown>,
+  C = {},
+  O = void,
+>(proto: AsHookPrototype<P, E, C, O>): AsHookCaller<P, E, C, O> {
   if (!proto || typeof proto !== 'object') {
     throw new Error(`[AsHook] defineAsHook() expects an object.`);
   }
@@ -172,7 +211,7 @@ export function defineAsHook<P extends PropsBaseType, E = Record<string, unknown
   //   );
   // }
 
-  const caller = (() => {
+  const caller = ((options?: O) => {
     const def = (globalThis as any)[__AS_HOOK_CURRENT_DEF] as DefHandle<P, E> | undefined;
     if (!def) {
       throw new Error(`[AsHook] no active setup context for ${proto.name}.`);
@@ -184,25 +223,61 @@ export function defineAsHook<P extends PropsBaseType, E = Record<string, unknown
     }
 
     rt.ensureSetup(`asHook(${proto.name})`);
-    const reg = rt.register(proto.name, { privileged: false });
-    if (!reg.run) return {};
-
-    rt.beginCapture(proto.name);
-    try {
-      const render = normalizeAsHookRender(proto.setup(def));
-      const result = rt.endCapture(render);
-      if (result && typeof result === 'object' && 'state' in result) {
-        const nextState = rt.projectState((result as any).state);
-        if ((result as any).state !== nextState) {
-          return { ...(result as any), state: nextState };
+    const reg = rt.register(proto.name, {
+      privileged: false,
+      mode: proto.mode ?? 'configurable',
+    });
+    const api: AsHookConfigApi = {
+      name: proto.name,
+      order: reg.order,
+      store: reg.state.store,
+    };
+    const tools: AsHookConfigureTools = {
+      warn(message: string) {
+        if (typeof console !== 'undefined' && typeof console.warn === 'function') {
+          console.warn(`[AsHook:${proto.name}] ${message}`);
         }
-      }
-      return result;
-    } catch (e) {
-      rt.abortCapture();
-      throw e;
+      },
+      conflict(message: string): never {
+        throw new Error(`[AsHook:${proto.name}] ${message}`);
+      },
+    };
+
+    if (reg.action === 'skip') {
+      return reg.state.result ?? {};
     }
-  }) as AsHookCaller<P, E, C>;
+
+    if (reg.action === 'setup') {
+      rt.beginCapture(proto.name);
+      try {
+        const render = normalizeAsHookRender(proto.setup(def, options as O, api));
+        const result = rt.endCapture(render);
+        let finalResult = result;
+        if (result && typeof result === 'object' && 'state' in result) {
+          const nextState = rt.projectState((result as any).state);
+          if ((result as any).state !== nextState) {
+            finalResult = { ...(result as any), state: nextState };
+          }
+        }
+        reg.state.result = finalResult;
+        if (
+          (proto.mode ?? 'configurable') === 'configurable' &&
+          typeof proto.configure === 'function'
+        ) {
+          proto.configure(api, options as O, tools);
+        }
+        return reg.state.result ?? {};
+      } catch (e) {
+        rt.abortCapture();
+        throw e;
+      }
+    }
+
+    if (typeof proto.configure === 'function') {
+      proto.configure(api, options as O, tools);
+    }
+    return reg.state.result ?? {};
+  }) as AsHookCaller<P, E, C, O>;
 
   Object.defineProperty(caller, 'kind', {
     value: 'asHook',
