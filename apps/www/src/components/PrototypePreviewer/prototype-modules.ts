@@ -5,6 +5,10 @@ import { registerPrototype } from './registry';
 
 export type PrototypeModuleLoader = () => Promise<any>;
 
+type ImportMetaWithGlob = ImportMeta & {
+  glob?: (pattern: string) => Record<string, PrototypeModuleLoader>;
+};
+
 const DEMO_SUFFIX = '.demo.proto.ts';
 
 function getPrototypeIdFromPath(path: string): string | null {
@@ -60,7 +64,8 @@ const manualPrototypeModules: Record<string, PrototypeModuleLoader> = {
 /**
  * 自动注册：扫描所有 *.demo.proto.ts
  */
-const autoModuleLoaders = import.meta.glob('../../content/**/*.demo.proto.ts');
+const autoModuleLoaders =
+  (import.meta as ImportMetaWithGlob).glob?.('../../content/**/*.demo.proto.ts') ?? {};
 const autoPrototypeModules: Record<string, PrototypeModuleLoader> = {};
 
 for (const [path, loader] of Object.entries(autoModuleLoaders)) {

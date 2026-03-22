@@ -1,5 +1,5 @@
 import { defineAsHook } from '@proto-ui/core';
-import type { ExposeMethod, ExposeState, OwnedStateHandle, RunHandle, State } from '@proto-ui/core';
+import type { ExposeMethod, ExposeState, RunHandle, State } from '@proto-ui/core';
 
 export type OpenStateOptions = {
   prop?: string;
@@ -84,24 +84,30 @@ export const asOpenState = defineAsHook<
     api.store.syncControlled = syncControlled;
     api.store.setOpen = setOpen;
 
-    def.expose.state(exposeStateKey, open);
-    def.expose.method(exposeOpenMethodKey, (reason?: string) => {
+    def.expose.state(exposeStateKey as keyof OpenStateExposes & string, open);
+    def.expose.method(exposeOpenMethodKey as keyof OpenStateExposes & string, (reason?: string) => {
       setOpen(true, reason ?? 'reason: asOpenState.openNow');
     });
-    def.expose.method(exposeCloseMethodKey, (reason?: string) => {
-      setOpen(false, reason ?? 'reason: asOpenState.close');
-    });
-    def.expose.method(exposeToggleMethodKey, (reason?: string) => {
-      setOpen(!open.get(), reason ?? 'reason: asOpenState.toggle');
-    });
+    def.expose.method(
+      exposeCloseMethodKey as keyof OpenStateExposes & string,
+      (reason?: string) => {
+        setOpen(false, reason ?? 'reason: asOpenState.close');
+      }
+    );
+    def.expose.method(
+      exposeToggleMethodKey as keyof OpenStateExposes & string,
+      (reason?: string) => {
+        setOpen(!open.get(), reason ?? 'reason: asOpenState.toggle');
+      }
+    );
 
     def.lifecycle.onCreated((run) => {
       syncFromProps(run);
     });
 
     def.props.watch([prop as any, disabledProp as any], (run, next) => {
-      syncControlled(run, !!next[prop as keyof typeof next]);
-      api.store.disabled = !!next[disabledProp as keyof typeof next];
+      syncControlled(run, !!(next as Record<string, unknown>)[prop]);
+      api.store.disabled = !!(next as Record<string, unknown>)[disabledProp];
     });
   },
 });

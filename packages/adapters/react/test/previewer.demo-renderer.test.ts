@@ -55,7 +55,7 @@ describe('PrototypePreviewer demo-renderer / react', () => {
         def.props.define({
           label: { type: 'string', default: 'fallback' },
         });
-        return (r) => [r.el('div', String(r.props.label))];
+        return (r) => [r.el('div', String(r.read.props.get().label))];
       },
     });
 

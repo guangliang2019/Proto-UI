@@ -191,7 +191,7 @@ export class ExposeStateWebModuleImpl extends ModuleBase {
         stateId,
         kind: spec.kind,
         attr: this.allowAttrForKind(spec.kind, mode) ? mapping.dataAttr : undefined,
-        officialAttr: mapOfficialAriaAttr(semantic),
+        officialAttr: mapOfficialAriaAttr(semantic) ?? undefined,
         cssVar: mapping.cssVar,
       };
 

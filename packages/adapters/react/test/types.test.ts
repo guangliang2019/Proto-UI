@@ -38,6 +38,6 @@ describe('adapter-react: type helpers', () => {
       hostStyle?: any;
       onClick?: () => void;
       onCheckedChange?: (payload: { checked: boolean }) => void;
-    }>();
+    }>({} as any);
   });
 });
