@@ -59,6 +59,32 @@ const manualPrototypeModules: Record<string, PrototypeModuleLoader> = {
     const mod = await import('../../../../../packages/prototype-libs/shadcn/src/tabs/content');
     registerPrototype('shadcn-tabs-content', mod.default);
   },
+  'base-hover-card-root': async () => {
+    const mod = await import('../../../../../packages/prototype-libs/base/src/hover-card/root');
+    registerPrototype('base-hover-card-root', mod.default);
+  },
+  'base-hover-card-trigger': async () => {
+    const mod = await import('../../../../../packages/prototype-libs/base/src/hover-card/trigger');
+    registerPrototype('base-hover-card-trigger', mod.default);
+  },
+  'base-hover-card-content': async () => {
+    const mod = await import('../../../../../packages/prototype-libs/base/src/hover-card/content');
+    registerPrototype('base-hover-card-content', mod.default);
+  },
+  'shadcn-hover-card-root': async () => {
+    const mod = await import('../../../../../packages/prototype-libs/shadcn/src/hover-card/root');
+    registerPrototype('shadcn-hover-card-root', mod.default);
+  },
+  'shadcn-hover-card-trigger': async () => {
+    const mod =
+      await import('../../../../../packages/prototype-libs/shadcn/src/hover-card/trigger');
+    registerPrototype('shadcn-hover-card-trigger', mod.default);
+  },
+  'shadcn-hover-card-content': async () => {
+    const mod =
+      await import('../../../../../packages/prototype-libs/shadcn/src/hover-card/content');
+    registerPrototype('shadcn-hover-card-content', mod.default);
+  },
 };
 
 /**

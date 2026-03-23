@@ -6,10 +6,14 @@ export { switchRoot, switchThumb } from './switch';
 export { default as shadcnSwitchRoot } from './switch/root';
 export { default as shadcnSwitchThumb } from './switch/thumb';
 export { tabsRoot, tabsList, tabsTrigger, tabsContent } from './tabs';
+export { hoverCardRoot, hoverCardTrigger, hoverCardContent } from './hover-card';
 export { default as shadcnTabsRoot } from './tabs/root';
 export { default as shadcnTabsList } from './tabs/list';
 export { default as shadcnTabsTrigger } from './tabs/trigger';
 export { default as shadcnTabsContent } from './tabs/content';
+export { default as shadcnHoverCardRoot } from './hover-card/root';
+export { default as shadcnHoverCardTrigger } from './hover-card/trigger';
+export { default as shadcnHoverCardContent } from './hover-card/content';
 export type {
   ShadcnButtonProps,
   ShadcnButtonExposes,
@@ -46,3 +50,14 @@ export type {
   ShadcnTabsContentExposes,
   ShadcnTabsContentAsHookContract,
 } from './tabs/types';
+export type {
+  ShadcnHoverCardRootProps,
+  ShadcnHoverCardRootExposes,
+  ShadcnHoverCardRootAsHookContract,
+  ShadcnHoverCardTriggerProps,
+  ShadcnHoverCardTriggerExposes,
+  ShadcnHoverCardTriggerAsHookContract,
+  ShadcnHoverCardContentProps,
+  ShadcnHoverCardContentExposes,
+  ShadcnHoverCardContentAsHookContract,
+} from './hover-card/types';
