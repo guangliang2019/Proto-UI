@@ -1,4 +1,5 @@
-import { createAnatomyFamily, type DefHandle, type PropsBaseType } from '@proto-ui/core';
+import { createAnatomyFamily, type DefHandle } from '@proto-ui/core';
+import type { PropsBaseType } from '@proto-ui/types';
 
 export const SWITCH_FAMILY = createAnatomyFamily('base-switch');
 

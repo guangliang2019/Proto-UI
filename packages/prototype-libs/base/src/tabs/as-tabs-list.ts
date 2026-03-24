@@ -4,6 +4,7 @@ import type { TabsListAsHookContract, TabsListExposes, TabsListProps } from './t
 
 export const asTabsList = defineAsHook<TabsListProps, TabsListExposes, TabsListAsHookContract>({
   name: 'as-tabs-list',
+  mode: 'once',
   setup(def) {
     registerTabsFamily(def as any);
     def.anatomy.claim(TABS_FAMILY, { role: 'list' });

@@ -19,6 +19,7 @@ import { ContextModuleDef } from '@proto-ui/modules.context';
 import type { ContextPort } from '@proto-ui/modules.context';
 import { AsTriggerModuleDef } from '@proto-ui/modules.as-trigger';
 import { FocusModuleDef } from '@proto-ui/modules.focus';
+import { OverlayModuleDef } from '@proto-ui/modules.overlay';
 import { __RUN_TEST_SYS, TestSysModuleDef, type TestSysPort } from '@proto-ui/modules.test-sys';
 
 import type { ModuleOrchestrator } from '../orchestrator/module-orchestrator';
@@ -76,6 +77,7 @@ export function createRuntimeInstance<P extends PropsBaseType>(
     StateAccessibilityModuleDef,
     ContextModuleDef,
     FocusModuleDef,
+    OverlayModuleDef,
     TestSysModuleDef,
   ]);
 

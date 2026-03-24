@@ -8,6 +8,7 @@ export const asSwitchThumb = defineAsHook<
   SwitchThumbAsHookContract
 >({
   name: 'as-switch-thumb',
+  mode: 'once',
   setup(def) {
     registerSwitchFamily(def as any);
     def.anatomy.claim(SWITCH_FAMILY, { role: 'thumb' });

@@ -1,10 +1,5 @@
-import {
-  createAnatomyFamily,
-  createFocusGroupKey,
-  type DefHandle,
-  type PropsBaseType,
-} from '@proto-ui/core';
-import type { ContextKey } from '@proto-ui/types';
+import { createAnatomyFamily, createFocusGroupKey, type DefHandle } from '@proto-ui/core';
+import type { ContextKey, PropsBaseType } from '@proto-ui/types';
 
 export type TabsOrientation = 'horizontal' | 'vertical';
 export type TabsActivationMode = 'automatic' | 'manual';

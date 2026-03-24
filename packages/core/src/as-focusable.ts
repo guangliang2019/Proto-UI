@@ -19,7 +19,7 @@ export function asFocusable(patch?: FocusableConfigPatch): FocusableHandle<any> 
   }
 
   rt.ensureSetup(`asHook(asFocusable)`);
-  rt.register('asFocusable', { privileged: true });
+  rt.register('asFocusable', { privileged: true, mode: 'configurable' });
 
   const facades = (def as any)[__AS_HOOK_PRIV_FACADES] as Record<string, any> | undefined;
   const facade = facades?.focus as { getFocusable: () => FocusableHandle<any> } | undefined;

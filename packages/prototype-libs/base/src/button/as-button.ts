@@ -3,6 +3,7 @@ import { ButtonAsHookContract, ButtonExposes, ButtonProps } from './types';
 
 export const asButton = defineAsHook<ButtonProps, ButtonExposes, ButtonAsHookContract>({
   name: 'as-button',
+  mode: 'once',
   setup: (def) => {
     asTrigger();
 

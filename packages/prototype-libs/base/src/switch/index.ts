@@ -8,6 +8,7 @@ export type {
   SwitchRootAsHookContract,
   SwitchThumbProps,
   SwitchThumbExposes,
+  SwitchThumbStateHandles,
   SwitchThumbAsHookContract,
 } from './types';
 

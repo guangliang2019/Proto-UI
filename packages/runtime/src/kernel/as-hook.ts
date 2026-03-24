@@ -1,5 +1,7 @@
 // packages/runtime/src/kernel/as-hook.ts
 import type {
+  AsHookInstanceState,
+  AsHookMode,
   AsHookRuntime,
   AsHookResult,
   AsHookTraceEntry,
@@ -25,7 +27,7 @@ type DefRuntimeState = {
   prototypeName: string;
 };
 
-type AsHookMeta = { privileged: boolean };
+type AsHookMeta = { privileged: boolean; mode?: AsHookMode };
 type EffectKind = 'props' | 'state' | 'context' | 'event' | 'feedback';
 type EffectFrame = {
   name: string;
@@ -113,7 +115,12 @@ function getOrCreateTrace(proto: object): TraceStore {
     });
   }
 
-  return (anyProto[TRACE_INTERNAL] as TraceStore) ?? { entries: [], nameSet: new Set() };
+  return (
+    (anyProto[TRACE_INTERNAL] as TraceStore) ?? {
+      entries: [],
+      nameSet: new Set(),
+    }
+  );
 }
 
 function createBorrowedHandle<P extends PropsBaseType, V>(
@@ -177,7 +184,10 @@ export function attachAsHookRuntime<P extends PropsBaseType>(
   opt?: { projectState?: <T>(state: T) => T }
 ): void {
   const trace = getOrCreateTrace(proto);
-  const used = new Set<string>();
+  const instances = new Map<
+    string,
+    { order: number; state: AsHookInstanceState; mode: AsHookMode }
+  >();
   const frameStack: EffectFrame[] = [];
   let instanceOrder = 0;
   const projectState = opt?.projectState ?? ((state: any) => state);
@@ -210,25 +220,47 @@ export function attachAsHookRuntime<P extends PropsBaseType>(
   const runtime: AsHookRuntime = {
     ensureSetup,
     register: (name: string, meta: AsHookMeta) => {
-      if (used.has(name)) return { run: false, order: -1 };
-      used.add(name);
+      const mode = meta.mode ?? 'configurable';
+      const existing = instances.get(name);
 
-      let order = instanceOrder++;
-      let entryOrder = order;
-      const existing = trace.entries.find((e) => e.name === name);
-      if (existing) entryOrder = existing.order;
-
-      if (!trace.nameSet.has(name)) {
-        const entry: AsHookTraceEntry = {
-          name,
-          order: entryOrder,
-          privileged: !!meta.privileged,
-        };
-        trace.nameSet.add(name);
-        trace.entries.push(entry);
+      if (mode === 'multiple') {
+        const order = instanceOrder++;
+        const state: AsHookInstanceState = { store: {} };
+        if (!trace.nameSet.has(name)) {
+          const entry: AsHookTraceEntry = {
+            name,
+            order,
+            privileged: !!meta.privileged,
+            mode,
+          };
+          trace.nameSet.add(name);
+          trace.entries.push(entry);
+        }
+        return { action: 'setup' as const, order, state };
       }
 
-      return { run: true, order: entryOrder };
+      if (!existing) {
+        const order = instanceOrder++;
+        const state: AsHookInstanceState = { store: {} };
+        instances.set(name, { order, state, mode });
+        if (!trace.nameSet.has(name)) {
+          const entry: AsHookTraceEntry = {
+            name,
+            order,
+            privileged: !!meta.privileged,
+            mode,
+          };
+          trace.nameSet.add(name);
+          trace.entries.push(entry);
+        }
+        return { action: 'setup' as const, order, state };
+      }
+
+      if (existing.mode === 'once' || mode === 'once') {
+        return { action: 'skip' as const, order: existing.order, state: existing.state };
+      }
+
+      return { action: 'configure' as const, order: existing.order, state: existing.state };
     },
     beginCapture: (name: string) => {
       const parent = frameStack.length > 0 ? frameStack[frameStack.length - 1] : undefined;

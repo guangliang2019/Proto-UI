@@ -3,12 +3,11 @@
   "type": "module",
   "version": "0.0.1",
   "scripts": {
-    "predev": "node ./scripts/generate-prototype-tailwind-sources.mjs",
+    "generate:prototype-tokens": "node ./scripts/generate-prototype-tailwind-sources.mjs",
     "codegen": "tsx scripts/codegen/cli.ts",
-    "dev": "astro dev",
-    "start": "astro dev",
-    "prebuild": "node ./scripts/generate-prototype-tailwind-sources.mjs",
-    "build": "astro build",
+    "dev": "pnpm run generate:prototype-tokens && astro dev",
+    "start": "pnpm run dev",
+    "build": "pnpm run generate:prototype-tokens && astro build",
     "preview": "astro preview",
     "check": "astro check",
     "astro": "astro"

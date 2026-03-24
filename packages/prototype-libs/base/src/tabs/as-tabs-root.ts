@@ -4,6 +4,7 @@ import type { TabsRootAsHookContract, TabsRootExposes, TabsRootProps } from './t
 
 export const asTabsRoot = defineAsHook<TabsRootProps, TabsRootExposes, TabsRootAsHookContract>({
   name: 'as-tabs-root',
+  mode: 'once',
   setup(def) {
     registerTabsFamily(def as any);
     def.anatomy.claim(TABS_FAMILY, { role: 'root' });

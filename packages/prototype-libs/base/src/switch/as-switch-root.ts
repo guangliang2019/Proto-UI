@@ -9,6 +9,7 @@ export const asSwitchRoot = defineAsHook<
   SwitchRootAsHookContract
 >({
   name: 'as-switch-root',
+  mode: 'once',
   setup(def) {
     registerSwitchFamily(def as any);
     def.anatomy.claim(SWITCH_FAMILY, { role: 'root' });

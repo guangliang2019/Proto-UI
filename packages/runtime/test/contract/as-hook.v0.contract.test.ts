@@ -416,4 +416,135 @@ describe('runtime contract: asHook (v0)', () => {
     expect(desc?.enumerable).toBe(false);
     expect(desc?.set).toBeUndefined();
   });
+
+  it('AS-HOOK-0700: parameterized asHook passes options into setup', () => {
+    let seen: Array<number | undefined> = [];
+
+    const asParam = defineAsHook<PropsBaseType, Record<string, never>, {}, { value?: number }>({
+      name: 'asParam',
+      setup(_def, options) {
+        seen.push(options?.value);
+      },
+    });
+
+    const P: Prototype = definePrototype({
+      name: 'x-as-hook-0700',
+      setup() {
+        asParam({ value: 1 });
+        return (r) => r.el('div', 'ok');
+      },
+    });
+
+    const { host } = createHost(P.name);
+    executeWithHost(P as any, host as any);
+
+    expect(seen).toEqual([1]);
+  });
+
+  it('AS-HOOK-0800: configurable hook runs setup once and configure on later calls', () => {
+    let setupCount = 0;
+    let configureCount = 0;
+    let first: any;
+    let second: any;
+    let storeRef: Record<string, unknown> | undefined;
+
+    const asConfigurable = defineAsHook<
+      PropsBaseType,
+      Record<string, never>,
+      { open: State<boolean> },
+      { open?: boolean }
+    >({
+      name: 'asConfigurable',
+      mode: 'configurable',
+      setup(def, options, api) {
+        setupCount += 1;
+        const open = def.state.bool('open', !!options?.open);
+        api.store.open = open;
+        api.store.lastOpen = !!options?.open;
+        storeRef = api.store;
+      },
+      configure(api, options) {
+        configureCount += 1;
+        api.store.lastOpen = options?.open;
+      },
+    });
+
+    const P: Prototype = definePrototype({
+      name: 'x-as-hook-0800',
+      setup() {
+        first = asConfigurable({ open: false });
+        second = asConfigurable({ open: true });
+        return (r) => r.el('div', 'ok');
+      },
+    });
+
+    const { host } = createHost(P.name);
+    executeWithHost(P as any, host as any);
+
+    expect(setupCount).toBe(1);
+    expect(configureCount).toBe(2);
+    expect(first).toBe(second);
+    expect(first.getState?.('open')?.get()).toBe(false);
+    expect(storeRef?.lastOpen).toBe(true);
+    expect((P as any).__asHooks[0]).toMatchObject({ name: 'asConfigurable', mode: 'configurable' });
+  });
+
+  it('AS-HOOK-0900: once mode skips later same-name calls', () => {
+    let setupCount = 0;
+
+    const asExplicitOnce = defineAsHook<
+      PropsBaseType,
+      Record<string, never>,
+      {},
+      { label?: string }
+    >({
+      name: 'asExplicitOnce',
+      mode: 'once',
+      setup() {
+        setupCount += 1;
+      },
+    });
+
+    const P: Prototype = definePrototype({
+      name: 'x-as-hook-0900',
+      setup() {
+        asExplicitOnce({ label: 'a' });
+        asExplicitOnce({ label: 'b' });
+        return (r) => r.el('div', 'ok');
+      },
+    });
+
+    const { host } = createHost(P.name);
+    executeWithHost(P as any, host as any);
+
+    expect(setupCount).toBe(1);
+    expect((P as any).__asHooks[0]).toMatchObject({ name: 'asExplicitOnce', mode: 'once' });
+  });
+
+  it('AS-HOOK-1000: multiple mode installs independently on repeated calls', () => {
+    let setupCount = 0;
+
+    const asMultiple = defineAsHook({
+      name: 'asMultiple',
+      mode: 'multiple',
+      setup() {
+        setupCount += 1;
+      },
+    });
+
+    const P: Prototype = definePrototype({
+      name: 'x-as-hook-1000',
+      setup() {
+        asMultiple();
+        asMultiple();
+        return (r) => r.el('div', 'ok');
+      },
+    });
+
+    const { host } = createHost(P.name);
+    executeWithHost(P as any, host as any);
+
+    expect(setupCount).toBe(2);
+    expect((P as any).__asHooks[0]).toMatchObject({ name: 'asMultiple', mode: 'multiple' });
+  });
 });
