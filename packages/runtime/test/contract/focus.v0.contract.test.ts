@@ -56,7 +56,9 @@ describe('runtime contract: focus (v0)', () => {
       scopeKey: second,
     });
     expect(port?.getWarnings()).toEqual([expect.stringContaining('focusable.scopeKey overridden')]);
-    expect((P as any).__asHooks).toEqual([{ name: 'asFocusable', order: 0, privileged: true }]);
+    expect((P as any).__asHooks).toEqual([
+      { name: 'asFocusable', order: 0, privileged: true, mode: 'configurable' },
+    ]);
   });
 
   it('FOCUS-0200: repeated asFocusScope calls reuse one handle and key patch is retained', () => {
@@ -95,7 +97,9 @@ describe('runtime contract: focus (v0)', () => {
         expect.stringContaining('scope.loop overridden'),
       ])
     );
-    expect((P as any).__asHooks).toEqual([{ name: 'asFocusScope', order: 0, privileged: true }]);
+    expect((P as any).__asHooks).toEqual([
+      { name: 'asFocusScope', order: 0, privileged: true, mode: 'configurable' },
+    ]);
   });
 
   it('FOCUS-0300: configure is setup-only on focus handles', () => {

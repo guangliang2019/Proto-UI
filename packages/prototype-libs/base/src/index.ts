@@ -4,3 +4,8 @@ export * from './toggle';
 export { default as toggle } from './toggle';
 export * from './switch';
 export * from './tabs';
+export * from './dropdown';
+export * from './hover-card';
+export * from './tools';
+export { default as dropdown } from './dropdown';
+export { default as hoverCard } from './hover-card';

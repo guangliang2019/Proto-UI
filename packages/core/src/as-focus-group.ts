@@ -19,7 +19,7 @@ export function asFocusGroup(patch?: FocusGroupConfigPatch): FocusGroupHandle<an
   }
 
   rt.ensureSetup(`asHook(asFocusGroup)`);
-  rt.register('asFocusGroup', { privileged: true });
+  rt.register('asFocusGroup', { privileged: true, mode: 'configurable' });
 
   const facades = (def as any)[__AS_HOOK_PRIV_FACADES] as Record<string, any> | undefined;
   const facade = facades?.focus as { getGroup: () => FocusGroupHandle<any> } | undefined;

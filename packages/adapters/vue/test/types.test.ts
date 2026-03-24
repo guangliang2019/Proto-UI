@@ -37,13 +37,13 @@ describe('adapter-vue: type helpers', () => {
       hostStyle?: Record<string, string> | string | Array<Record<string, string>>;
       onClick?: () => void;
       onCheckedChange?: (payload: { checked: boolean }, options?: Record<string, unknown>) => void;
-    }>();
+    }>({} as any);
   });
 
   it('derives Vue emits tuples from exposed events', () => {
     expectTypeOf<ProtoVueEmits<typeof proto>>().toEqualTypeOf<{
       click: [];
       checkedChange: [payload: { checked: boolean }, options?: Record<string, unknown>];
-    }>();
+    }>({} as any);
   });
 });

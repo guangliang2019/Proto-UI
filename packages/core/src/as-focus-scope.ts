@@ -19,7 +19,7 @@ export function asFocusScope(patch?: FocusScopeConfigPatch): FocusScopeHandle<an
   }
 
   rt.ensureSetup(`asHook(asFocusScope)`);
-  rt.register('asFocusScope', { privileged: true });
+  rt.register('asFocusScope', { privileged: true, mode: 'configurable' });
 
   const facades = (def as any)[__AS_HOOK_PRIV_FACADES] as Record<string, any> | undefined;
   const facade = facades?.focus as { getScope: () => FocusScopeHandle<any> } | undefined;

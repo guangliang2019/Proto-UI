@@ -17,6 +17,7 @@ export const asTabsTrigger = defineAsHook<
   TabsTriggerAsHookContract
 >({
   name: 'as-tabs-trigger',
+  mode: 'once',
   setup(def) {
     registerTabsFamily(def as any);
     def.anatomy.claim(TABS_FAMILY, { role: 'trigger' });

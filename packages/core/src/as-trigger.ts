@@ -18,8 +18,8 @@ export function asTrigger(): void {
   }
 
   rt.ensureSetup(`asHook(asTrigger)`);
-  const reg = rt.register('asTrigger', { privileged: true });
-  if (!reg.run) return;
+  const reg = rt.register('asTrigger', { privileged: true, mode: 'once' });
+  if (reg.action !== 'setup') return;
 
   const facades = (def as any)[__AS_HOOK_PRIV_FACADES] as Record<string, any> | undefined;
   const facade = facades?.['as-trigger'] as { apply: () => void } | undefined;

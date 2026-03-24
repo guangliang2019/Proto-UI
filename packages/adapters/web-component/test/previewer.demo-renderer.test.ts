@@ -17,7 +17,7 @@ describe('PrototypePreviewer demo-renderer / wc', () => {
 
     const session = await renderDemo({
       runtime: 'wc',
-      demo,
+      demo: demo as any,
       host,
     });
 
