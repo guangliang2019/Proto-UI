@@ -30,5 +30,5 @@ description: 'Proto UI 当前适配器生态的概览'
 
 写作提示：
 
-- 想继续使用：前往 [Start Here / 如何开始使用 Proto UI？](/zh-cn/start-here/how-to-start-using-proto-ui/)
+- 想继续使用：前往 [Start Here / 快速开始](/zh-cn/start-here/quick-start/)
 - 想参与建设：前往 `编写适配器`

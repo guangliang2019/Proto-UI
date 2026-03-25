@@ -1,7 +1,7 @@
 ---
-title: '原型抽象'
-desp: '原型如何被抽象'
-description: '原型如何被抽象'
+title: '原型边界 / 原型拆分原则'
+desp: '哪些内容应该进入 Prototype，以及原型应如何拆分'
+description: '哪些内容应该进入 Prototype，以及原型应如何拆分'
 ---
 
 ## 这篇文章要回答什么？

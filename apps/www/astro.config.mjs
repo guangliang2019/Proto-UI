@@ -66,33 +66,28 @@ export default defineConfig({
               slug: 'start-here/what-you-saw',
             },
             {
-              label: '为什么这不是普通的跨框架封装？',
+              label: 'Why Proto UI',
               translations: {
-                en: 'Why This Is Not Just Cross-Framework Wrapping',
-                'zh-CN': '为什么这不是普通的跨框架封装？',
+                en: 'Why Proto UI',
+                'zh-CN': 'Why Proto UI',
               },
-              slug: 'start-here/not-just-cross-framework-wrapping',
+              slug: 'start-here/why-proto-ui',
             },
             {
-              label: '跨宿主运行意味着什么？',
+              label: '它是怎么工作的？',
               translations: {
-                en: 'What Cross-Host Running Means',
-                'zh-CN': '跨宿主运行意味着什么？',
+                en: 'How It Works',
+                'zh-CN': '它是怎么工作的？',
               },
-              slug: 'start-here/what-cross-host-running-means',
+              slug: 'start-here/how-it-works',
             },
             {
-              label: '如何开始使用 Proto UI？',
+              label: '快速开始',
               translations: {
-                en: 'How to Start Using Proto UI',
-                'zh-CN': '如何开始使用 Proto UI？',
+                en: 'Quick Start',
+                'zh-CN': '快速开始',
               },
-              slug: 'start-here/how-to-start-using-proto-ui',
-            },
-            {
-              label: '我接下来该从哪里继续读？',
-              translations: { en: 'Where to Go Next', 'zh-CN': '我接下来该从哪里继续读？' },
-              slug: 'start-here/where-to-go-next',
+              slug: 'start-here/quick-start',
             },
           ],
         },
@@ -141,9 +136,12 @@ export default defineConfig({
               slug: 'whitepaper/information-flow-model',
             },
             {
-              label: '原型抽象',
-              translations: { en: 'Prototype Abstraction', 'zh-CN': '原型抽象' },
-              slug: 'whitepaper/prototype-abstraction',
+              label: '原型边界 / 原型拆分原则',
+              translations: {
+                en: 'Prototype Boundaries / Splitting Principles',
+                'zh-CN': '原型边界 / 原型拆分原则',
+              },
+              slug: 'whitepaper/prototype-boundary',
             },
             {
               label: '执行语义',
@@ -164,11 +162,6 @@ export default defineConfig({
               label: '演进路径',
               translations: { en: 'Evolution Path', 'zh-CN': '演进路径' },
               slug: 'whitepaper/evolution-path',
-            },
-            {
-              label: 'FAQ',
-              translations: { en: 'FAQ', 'zh-CN': 'FAQ' },
-              slug: 'whitepaper/faq',
             },
           ],
         },
