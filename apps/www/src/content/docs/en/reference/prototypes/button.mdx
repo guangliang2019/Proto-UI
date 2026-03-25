@@ -5,21 +5,64 @@ description: 'Prototype: Button'
 ---
 
 import AdapterPanelScript from '@/components/PrototypePreviewer/AdapterPanelScript.astro';
-import ButtonDemo from '@/content/docs/demo_components/button/button.astro';
+import PrototypePreviewer from '@/components/PrototypePreviewer/PrototypePreviewer.astro';
+import { codeMap } from '@/content/docs/demo_components/button/buttonCode';
+import { getCode } from '@/utils/conversionUtils';
 
 <div data-adapter-panel="wc">
-  This is the wc button component
-  <ButtonDemo runtime="wc" demoId="demo-combo" />
+  This is the button component for wc
+  <PrototypePreviewer
+    demoId="demo-button"
+    initialRuntime="wc"
+    toolbar={false}
+    runtimes={['wc']}
+    hasCode={true}
+    code={getCode('wc', 'demo-button', codeMap)}
+  />
+  This is the test component for wc
+  <PrototypePreviewer
+    demoId="demo-button"
+    initialRuntime="wc"
+    toolbar={false}
+    runtimes={['wc']}
+    hasCode={true}
+    code={getCode('wc', 'demo-button', codeMap)}
+  />
 </div>
 
 <div data-adapter-panel="react" style="display:none;">
-  This is the react button component
-  <ButtonDemo runtime="react" demoId="demo-combo" />
+  This is the button component for react
+  <PrototypePreviewer
+    demoId="demo-button"
+    initialRuntime="react"
+    toolbar={false}
+    runtimes={['react']}
+    hasCode={true}
+    code={getCode('react', 'demo-button', codeMap)}
+  />
 </div>
 
 <div data-adapter-panel="vue" style="display:none;">
-  This is the vue button component
-  <ButtonDemo runtime="vue" demoId="demo-combo" />
+  This is the button component for vue
+  <PrototypePreviewer
+    demoId="demo-button"
+    initialRuntime="vue"
+    toolbar={false}
+    runtimes={['vue']}
+    hasCode={true}
+    code={getCode('vue', 'demo-button', codeMap)}
+  />
+
+This is the test component for vue
+
+  <PrototypePreviewer
+    demoId="demo-button"
+    initialRuntime="vue"
+    toolbar={false}
+    runtimes={['vue']}
+    hasCode={true}
+    code={getCode('vue', 'demo-button', codeMap)}
+  />
 </div>
 
 <AdapterPanelScript />
