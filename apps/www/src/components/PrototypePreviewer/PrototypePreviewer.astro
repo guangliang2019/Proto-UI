@@ -3,6 +3,14 @@ import type { RuntimeId } from './runtimes/registry';
 import AdapterSelect from '../override/AdapterSelect.astro';
 import { AdapterIds } from './runtimes/registry';
 import CodePanel from './CodePanel.astro';
+import type { CodeLang } from './CodePanel.astro';
+
+function codeLangForRuntime(runtime: RuntimeId): CodeLang {
+  if (runtime === 'vue') return 'vue';
+  if (runtime === 'react') return 'tsx';
+  return 'html';
+}
+
 interface Props {
   prototypeId?: string; // 原型 ID（与 demoId 二选一）
   demoId?: string; // demo ID（*.demo.ts）
@@ -99,7 +107,6 @@ const rid = `pp-${Math.random().toString(36).slice(2)}`;
     )
   }
 
-  <!-- Preview 面板 -->
   <div
     id={`${rid}-preview`}
     role="tabpanel"
@@ -112,8 +119,7 @@ const rid = `pp-${Math.random().toString(36).slice(2)}`;
     </div>
   </div>
 
-  <!-- Code 面板：默认收起，点击“View code” 展开 -->
-  {hasCode && <CodePanel code={codeSnippet} />}
+  {hasCode && <CodePanel code={codeSnippet} lang={codeLangForRuntime(initialRuntime)} />}
 
   <style>
     .proto-previewer {

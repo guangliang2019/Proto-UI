@@ -1,0 +1,25 @@
+---
+title: 'Button'
+desp: 'Prototype: Button'
+description: 'Prototype: Button'
+---
+
+import AdapterPanelScript from '@/components/PrototypePreviewer/AdapterPanelScript.astro';
+import ButtonDemo from '@/content/docs/demo_components/button/button.astro';
+
+<div data-adapter-panel="wc">
+  This is the wc button component
+  <ButtonDemo runtime="wc" demoId="demo-combo" />
+</div>
+
+<div data-adapter-panel="react" style="display:none;">
+  This is the react button component
+  <ButtonDemo runtime="react" demoId="demo-combo" />
+</div>
+
+<div data-adapter-panel="vue" style="display:none;">
+  This is the vue button component
+  <ButtonDemo runtime="vue" demoId="demo-combo" />
+</div>
+
+<AdapterPanelScript />
