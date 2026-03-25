@@ -20,7 +20,7 @@ export default {
             kind: 'proto',
             prototypeId: 'shadcn-tabs-trigger',
             props: { value: 'password' },
-            children: ['Password'],
+            children: [{ kind: 'proto', prototypeId: 'shadcn-button', children: ['Password'] }],
           },
           {
             kind: 'proto',

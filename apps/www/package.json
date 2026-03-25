@@ -4,7 +4,7 @@
   "version": "0.0.1",
   "scripts": {
     "generate:prototype-tokens": "node ./scripts/generate-prototype-tailwind-sources.mjs",
-    "codegen": "tsx scripts/codegen/cli.ts",
+    "generate-code": "tsx scripts/example_code_generation/cli.ts",
     "dev": "pnpm run generate:prototype-tokens && astro dev",
     "start": "pnpm run dev",
     "build": "pnpm run generate:prototype-tokens && astro build",
@@ -33,6 +33,7 @@
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.8",
+    "prettier": "^3.8.1",
     "@types/mdast": "^4.0.0",
     "mdast-util-mdx": "^3.0.0",
     "remark-mdx": "^3.0.0",
