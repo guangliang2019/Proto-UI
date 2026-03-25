@@ -32,7 +32,7 @@ const highlighted = await highlightWithShiki(code, lang);
 
 <figure class="relative" data-code-shell>
   <div
-    class="group relative max-h-24 overflow-hidden p-2 border-t border-border bg-muted data-[code-expanded=true]:max-h-none data-[code-expanded=true]:overflow-visible"
+    class="group relative max-h-24 min-h-12 overflow-hidden p-2 border-t border-border bg-muted data-[code-expanded=true]:max-h-none data-[code-expanded=true]:overflow-visible"
     data-code-inner
   >
     <button
@@ -73,7 +73,7 @@ const highlighted = await highlightWithShiki(code, lang);
       data-code-content
       set:html={highlighted}
     />
-    <!-- 底部帘幕渐变，未展开时可见 -->
+
     <div
       class="absolute inset-x-0 bottom-0 h-16 z-9 pointer-events-none bg-gradient-to-b from-transparent to-muted group-data-[code-expanded=true]:hidden"
       data-code-fade
@@ -96,6 +96,9 @@ const highlighted = await highlightWithShiki(code, lang);
 <script>
   (function () {
     document.querySelectorAll<HTMLElement>('[data-code-shell]').forEach((shell) => {
+      if (shell.dataset.codeInit === '1') return;
+      shell.dataset.codeInit = '1';
+
       const panel = shell.querySelector('[data-code-inner]') as HTMLElement | null;
       const toggle = shell.querySelector('[data-code-toggle]') as HTMLButtonElement | null;
       const copyBtn = shell.querySelector('[data-copy]') as HTMLButtonElement | null;
@@ -109,7 +112,43 @@ const highlighted = await highlightWithShiki(code, lang);
           toggle.setAttribute('aria-expanded', String(expanded));
         }
       }
+
+      const content = shell.querySelector('[data-code-content]') as HTMLElement | null;
       setExpanded(false);
+
+      function syncToggleFromCollapsedClip() {
+        if (!content || !panel) return;
+        if (shell.dataset.codeExpanded === 'true') return;
+        const pr = panel.getBoundingClientRect();
+        if (pr.height < 8) return;
+
+        const epsilon = 2;
+        const pre = content.querySelector('.proto-previewer__code') as HTMLElement | null;
+        const fullH = pre?.scrollHeight ?? content.scrollHeight;
+        const visibleH = content.clientHeight;
+        const exceedsCollapsedCap = fullH > visibleH + epsilon;
+        if (!exceedsCollapsedCap) {
+          setExpanded(true);
+        } else {
+          setExpanded(false);
+        }
+      }
+
+      function scheduleSync() {
+        requestAnimationFrame(() => {
+          requestAnimationFrame(syncToggleFromCollapsedClip);
+        });
+      }
+
+      scheduleSync();
+
+      if (typeof ResizeObserver !== 'undefined' && panel) {
+        const ro = new ResizeObserver(() => scheduleSync());
+        ro.observe(panel);
+      }
+
+      document.addEventListener('proto-adapter:change', scheduleSync);
+
       if (toggle) {
         toggle.addEventListener('click', () => {
           const expanded = shell.dataset.codeExpanded === 'true';
