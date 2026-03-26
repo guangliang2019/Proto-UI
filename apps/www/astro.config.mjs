@@ -136,10 +136,10 @@ export default defineConfig({
               slug: 'whitepaper/information-flow-model',
             },
             {
-              label: '原型边界 / 原型拆分原则',
+              label: '原型边界',
               translations: {
-                en: 'Prototype Boundaries / Splitting Principles',
-                'zh-CN': '原型边界 / 原型拆分原则',
+                en: 'Prototype Boundaries',
+                'zh-CN': '原型边界',
               },
               slug: 'whitepaper/prototype-boundary',
             },
@@ -149,8 +149,8 @@ export default defineConfig({
               slug: 'whitepaper/execution-semantics',
             },
             {
-              label: '翻译层：Adapter / Compiler',
-              translations: { en: 'Translation Layer', 'zh-CN': '翻译层：Adapter / Compiler' },
+              label: '翻译层',
+              translations: { en: 'Translation Layer', 'zh-CN': '翻译层' },
               slug: 'whitepaper/translation-layer',
             },
             {
