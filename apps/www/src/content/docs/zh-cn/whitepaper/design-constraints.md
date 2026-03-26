@@ -312,4 +312,9 @@ Proto UI 当然可以在未来逐步放宽某些约束，
 
 > **这些边界在正式规范与工程实现中，究竟是如何被落下来的？**
 
-这也是为什么在白皮书之后，还需要继续进入 `Specifications` 与 `Engineering` 的部分。
+你可以按自己的目标继续往下读：
+
+- 如果你想继续澄清边界与常见疑问：前往 [FAQ](/zh-cn/whitepaper/faq/)
+- 如果你想查阅正式契约：前往 [Specifications / 规范导读](/zh-cn/specs/introduction/)
+- 如果你想理解实现层如何承接这些原则：前往 [Engineering / 工程导读](/zh-cn/engineering/introduction/)
+- 如果你已经想尝试参与原型或适配器建设：前往 [Ecosystem / 生态导读](/zh-cn/ecosystem/)

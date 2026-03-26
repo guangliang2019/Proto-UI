@@ -327,4 +327,4 @@ Proto UI 不会自动要求：
 
 > 这些被约束好的原型语义，究竟如何进入具体宿主，并在那里被实现出来？
 
-这正是下一篇 `翻译层：Adapter / Compiler` 要讨论的内容。
+这正是下一篇 [翻译层：Adapter / Compiler](/zh-cn/whitepaper/translation-layer/) 要讨论的内容。
