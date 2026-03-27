@@ -1,6 +1,7 @@
 ---
-title: Button
-description: 按钮组件
+title: 'Button'
+desp: 'Prototype: Button'
+description: 'Prototype: Button'
 ---
 
 import AdapterPanelScript from '@/components/PrototypePreviewer/AdapterPanelScript.astro';
@@ -9,7 +10,7 @@ import { codeMap } from '@/content/docs/demo_components/button/buttonCode';
 import { getCode } from '@/utils/conversionUtils';
 
 <div data-adapter-panel="wc">
-  这是 wc 的 button 组件
+  This is the button component for wc
   <PrototypePreviewer
     demoId="demo-button"
     initialRuntime="wc"
@@ -18,7 +19,7 @@ import { getCode } from '@/utils/conversionUtils';
     hasCode={true}
     code={getCode('wc', 'demo-button', codeMap)}
   />
-  这是 wc 的 测试 组件
+  This is the test component for wc
   <PrototypePreviewer
     demoId="demo-button"
     initialRuntime="wc"
@@ -30,7 +31,7 @@ import { getCode } from '@/utils/conversionUtils';
 </div>
 
 <div data-adapter-panel="react" style="display:none;">
-  这是 react 的 button 组件
+  This is the button component for react
   <PrototypePreviewer
     demoId="demo-button"
     initialRuntime="react"
@@ -42,7 +43,7 @@ import { getCode } from '@/utils/conversionUtils';
 </div>
 
 <div data-adapter-panel="vue" style="display:none;">
-  这是 vue 的 button 组件
+  This is the button component for vue
   <PrototypePreviewer
     demoId="demo-button"
     initialRuntime="vue"
@@ -52,7 +53,7 @@ import { getCode } from '@/utils/conversionUtils';
     code={getCode('vue', 'demo-button', codeMap)}
   />
 
-    这是 vue 的 测试 组件
+This is the test component for vue
 
   <PrototypePreviewer
     demoId="demo-button"
