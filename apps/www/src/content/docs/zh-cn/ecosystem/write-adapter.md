@@ -6,38 +6,35 @@ description: '适配器作者指南'
 
 ## 这篇文章要回答什么？
 
-写作提示：
-
-- 说明什么情况下才值得新增一个 Adapter。
-- 说明编写 Adapter 在 Proto UI 中承担的是翻译责任，而不是自由实现一个组件库。
+- 什么情况下才值得新增一个 Adapter。
+- 官方适配器和社区适配器分别承担什么角色。
+- 最小适配器需要承接哪些能力。
+- 什么情况下需要先补契约与测试，再继续扩展适配器。
 
 ## 这篇适合什么读者？
 
-写作提示：
-
 - 面向已经理解翻译层、规范与工程层的人。
+- 面向已经确认目标宿主值得支持的人。
 - 不面向首次接触 Proto UI 的读者。
 
 ## 写适配器之前应先确认什么？
 
-写作提示：
-
 - 是否已有可复用的适配层
 - 目标宿主的能力边界与价值是否足够清晰
 - 是否理解适配器必须守住哪些语义不变量
+- 是否清楚这会是实验性适配器、社区适配器，还是官方重点支持方向
 
-## 这里应当包含哪些信息？
-
-写作提示：
+## 这篇应当优先讲什么？
 
 - 适配器的责任边界
 - 宿主能力评估
 - 与 `Host Caps`、`Runtime 架构`、规范文的前置关系
+- 最小适配器应先承接哪些核心能力
+- 什么时候应该先去补测试，再继续扩大支持面
 
 ## 下一步怎么读？
 
-写作提示：
-
-- 指向 `Whitepaper / 翻译层：Adapter / Compiler`
-- 指向 `Specifications`
-- 指向 `Engineering / Adapter 指南`
+- 回看 [Whitepaper / 翻译层：Adapter / Compiler](/zh-cn/whitepaper/translation-layer/)
+- 查阅 [Specifications / 规范导读](/zh-cn/specs/introduction/)
+- 进入 [Engineering / Adapter 指南](/zh-cn/engineering/adapter-guide/)
+- 如果准备把适配器带入生态：前往 `契约与测试`
