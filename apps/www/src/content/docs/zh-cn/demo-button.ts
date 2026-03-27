@@ -1,4 +1,4 @@
-import { definePrototype, tw } from '@proto-ui/core';
+import { definePrototype, tw } from '@proto.ui/core';
 import { registerPrototype } from '../../../components/PrototypePreviewer/registry';
 
 const DemoButton = definePrototype({

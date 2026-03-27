@@ -1,5 +1,5 @@
 import { describe, expectTypeOf, it } from 'vitest';
-import { definePrototype, type ExposeEvent, type ExposeState } from '@proto-ui/core';
+import { definePrototype, type ExposeEvent, type ExposeState } from '@proto.ui/core';
 
 import type { ProtoVueEmits, ProtoVueEventProps, ProtoVueProps } from '../src/types';
 

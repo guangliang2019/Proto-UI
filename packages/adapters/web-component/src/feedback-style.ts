@@ -1,5 +1,5 @@
 // packages/adapters/web-component/src/feedback-style.ts
-import { mergeTwTokensV0 } from '@proto-ui/core';
+import { mergeTwTokensV0 } from '@proto.ui/core';
 
 const KEY = '__proto_ui_applied_style_tokens_v0__';
 

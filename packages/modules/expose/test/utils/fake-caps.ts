@@ -1,5 +1,5 @@
 // packages/modules/expose/test/utils/fake-caps.ts
-import { SYS_CAP } from '@proto-ui/modules.base';
+import { SYS_CAP } from '@proto.ui/module-base';
 import { EXPOSE_SET_EXPOSES_CAP } from '../../src/caps';
 
 type ExecPhase = 'setup' | 'render' | 'callback' | 'unknown';

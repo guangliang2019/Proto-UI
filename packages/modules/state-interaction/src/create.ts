@@ -1,7 +1,7 @@
-import { createModule, defineModule } from '@proto-ui/modules.base';
-import type { ModuleFactoryArgs } from '@proto-ui/modules.base';
-import type { InteractionStateName } from '@proto-ui/core';
-import type { StateFacade, StatePort } from '@proto-ui/modules.state';
+import { createModule, defineModule } from '@proto.ui/module-base';
+import type { ModuleFactoryArgs } from '@proto.ui/module-base';
+import type { InteractionStateName } from '@proto.ui/core';
+import type { StateFacade, StatePort } from '@proto.ui/module-state';
 import type { StateInteractionFacade, StateInteractionModule } from './types';
 
 class StateInteractionModuleImpl {

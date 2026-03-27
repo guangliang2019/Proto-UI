@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import type { Prototype } from '@proto-ui/core';
-import { tw } from '@proto-ui/core';
+import type { Prototype } from '@proto.ui/core';
+import { tw } from '@proto.ui/core';
 import { AdaptToWebComponent } from '../../src/adapt';
 
 describe('adapter-web-component: rule expose-state-web optimization (v0)', () => {

@@ -5,7 +5,7 @@ import type {
   AnatomyPartView,
   ModuleInstance,
   ModulePort,
-} from '@proto-ui/core';
+} from '@proto.ui/core';
 
 export type AnatomyDiagnostic = {
   level: 'warning' | 'error';

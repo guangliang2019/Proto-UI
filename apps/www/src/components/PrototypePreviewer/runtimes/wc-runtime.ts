@@ -1,4 +1,4 @@
-import { setElementProps } from '@proto-ui/adapters.web-component';
+import { setElementProps } from '@proto.ui/adapter-web-component';
 import type { RuntimeAPI } from './registry';
 import { ensurePreviewWcRegistered } from '../wc-registry';
 

@@ -1,5 +1,5 @@
-import { Prototype } from '@proto-ui/core';
-import { PropsBaseType } from '@proto-ui/types';
+import { Prototype } from '@proto.ui/core';
+import { PropsBaseType } from '@proto.ui/types';
 import { ExecuteOptions, ExecuteResult } from './types';
 import { createRuntimeInstance } from '../instance';
 

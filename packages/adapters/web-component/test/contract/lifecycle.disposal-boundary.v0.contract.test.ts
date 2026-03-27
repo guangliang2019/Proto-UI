@@ -1,8 +1,8 @@
 import { describe, it, expect } from 'vitest';
-import type { Prototype } from '@proto-ui/core';
-import { AdaptToWebComponent } from '@proto-ui/adapters.web-component';
-import { __RUN_TEST_SYS } from '@proto-ui/modules.test-sys';
-import type { TestSysPort } from '@proto-ui/modules.test-sys';
+import type { Prototype } from '@proto.ui/core';
+import { AdaptToWebComponent } from '@proto.ui/adapter-web-component';
+import { __RUN_TEST_SYS } from '@proto.ui/module-test-sys';
+import type { TestSysPort } from '@proto.ui/module-test-sys';
 
 describe('contract: adapter-web-component / disposal boundary (v0)', () => {
   it('during unmounted: disposed=false; after unmounted returns: disposed=true', async () => {

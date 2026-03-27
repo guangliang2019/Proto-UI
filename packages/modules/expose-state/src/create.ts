@@ -1,6 +1,6 @@
 // packages/modules/expose-state/src/create.ts
-import { createModule, defineModule } from '@proto-ui/modules.base';
-import type { ModuleFactoryArgs } from '@proto-ui/modules.base';
+import { createModule, defineModule } from '@proto.ui/module-base';
+import type { ModuleFactoryArgs } from '@proto.ui/module-base';
 
 import type { ExposeStateFacade, ExposeStateModule, ExposeStatePort } from './types';
 import { ExposeStateModuleImpl } from './impl';

@@ -1,6 +1,6 @@
-import { createModule, defineModule } from '@proto-ui/modules.base';
-import type { ModuleFactoryArgs } from '@proto-ui/modules.base';
-import { SYS_CAP } from '@proto-ui/modules.base';
+import { createModule, defineModule } from '@proto.ui/module-base';
+import type { ModuleFactoryArgs } from '@proto.ui/module-base';
+import { SYS_CAP } from '@proto.ui/module-base';
 
 import { StateModuleImpl } from './impl';
 import type { StateFacade, StateModule, StatePort } from './types';

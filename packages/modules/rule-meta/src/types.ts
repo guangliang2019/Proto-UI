@@ -1,4 +1,4 @@
-import type { ModuleInstance } from '@proto-ui/core';
+import type { ModuleInstance } from '@proto.ui/core';
 
 export type RuleMetaFacade = {};
 

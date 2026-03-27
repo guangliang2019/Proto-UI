@@ -1,17 +1,38 @@
 {
-  "name": "@proto-ui/modules.overlay",
-  "version": "0.0.0",
-  "private": true,
+  "name": "@proto.ui/module-overlay",
+  "version": "0.0.1",
+  "private": false,
   "type": "module",
   "dependencies": {
-    "@proto-ui/core": "workspace:*",
-    "@proto-ui/modules.base": "workspace:*",
-    "@proto-ui/types": "workspace:*"
+    "@proto.ui/core": "workspace:*",
+    "@proto.ui/module-base": "workspace:*",
+    "@proto.ui/types": "workspace:*"
   },
   "exports": {
     ".": {
       "types": "./src/index.ts",
       "default": "./src/index.ts"
     }
-  }
+  },
+  "description": "Proto UI module that provides overlay capability for adapters.",
+  "license": "MIT",
+  "homepage": "https://github.com/guangliang2019/Prototype-UI/tree/main/packages/modules/overlay",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/guangliang2019/Prototype-UI.git",
+    "directory": "packages/modules/overlay"
+  },
+  "bugs": {
+    "url": "https://github.com/guangliang2019/Prototype-UI/issues"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "keywords": [
+    "proto-ui",
+    "proto",
+    "ui",
+    "module",
+    "overlay"
+  ]
 }

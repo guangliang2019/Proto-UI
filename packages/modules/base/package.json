@@ -1,15 +1,36 @@
 {
-  "name": "@proto-ui/modules.base",
-  "version": "0.0.0",
-  "private": true,
+  "name": "@proto.ui/module-base",
+  "version": "0.0.1",
+  "private": false,
   "type": "module",
   "dependencies": {
-    "@proto-ui/core": "workspace:*"
+    "@proto.ui/core": "workspace:*"
   },
   "exports": {
     ".": {
       "types": "./src/index.ts",
       "default": "./src/index.ts"
     }
-  }
+  },
+  "description": "Base package for building Proto UI modules.",
+  "license": "MIT",
+  "homepage": "https://github.com/guangliang2019/Prototype-UI/tree/main/packages/modules/base",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/guangliang2019/Prototype-UI.git",
+    "directory": "packages/modules/base"
+  },
+  "bugs": {
+    "url": "https://github.com/guangliang2019/Prototype-UI/issues"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "keywords": [
+    "proto-ui",
+    "proto",
+    "ui",
+    "module",
+    "base"
+  ]
 }

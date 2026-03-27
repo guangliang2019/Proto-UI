@@ -1,6 +1,6 @@
-import { definePrototype, tw } from '@proto-ui/core';
+import { definePrototype, tw } from '@proto.ui/core';
 
-import { asButton } from '@prototype-libs/base';
+import { asButton } from '@proto.ui/prototypes-base';
 const DemoInline = definePrototype({
   name: 'demo-inline',
   setup(def) {

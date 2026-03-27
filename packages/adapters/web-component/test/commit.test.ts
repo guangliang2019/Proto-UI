@@ -1,7 +1,7 @@
 // packages/adapters/web-component/test/commit.test.ts
 import { describe, it, expect } from 'vitest';
-import type { Prototype } from '@proto-ui/core';
-import { AdaptToWebComponent } from '@proto-ui/adapters.web-component';
+import type { Prototype } from '@proto.ui/core';
+import { AdaptToWebComponent } from '@proto.ui/adapter-web-component';
 
 describe('adapter-web-component v0', () => {
   it('renders basic string element and text', () => {

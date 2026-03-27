@@ -1,8 +1,8 @@
 import { describe, it, expect } from 'vitest';
-import type { Prototype } from '@proto-ui/core';
+import type { Prototype } from '@proto.ui/core';
 import { executeWithHost, RuntimeHost } from '../../src';
-import { __RUN_TEST_SYS } from '@proto-ui/modules.test-sys';
-import type { TestSysPort } from '@proto-ui/modules.test-sys';
+import { __RUN_TEST_SYS } from '@proto.ui/module-test-sys';
+import type { TestSysPort } from '@proto.ui/module-test-sys';
 
 describe('contract: runtime / domain switch at CP0 (v0)', () => {
   it('created callback runs in domain=runtime (setup already exited)', () => {

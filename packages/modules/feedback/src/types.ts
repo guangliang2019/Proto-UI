@@ -1,5 +1,5 @@
-import type { StyleHandle, ModuleInstance } from '@proto-ui/core';
-import type { ModuleFacade, ModuleHooks, ModuleScope } from '@proto-ui/core';
+import type { StyleHandle, ModuleInstance } from '@proto.ui/core';
+import type { ModuleFacade, ModuleHooks, ModuleScope } from '@proto.ui/core';
 
 export interface FeedbackFacade extends ModuleFacade {
   style: {

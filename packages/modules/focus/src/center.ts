@@ -1,4 +1,4 @@
-import type { FocusGroupKey, FocusableConfig, FocusGroupConfig, FocusFacts } from '@proto-ui/core';
+import type { FocusGroupKey, FocusableConfig, FocusGroupConfig, FocusFacts } from '@proto.ui/core';
 import type { FocusInstanceToken, FocusParentGetter } from './caps';
 
 export type FocusCenterEntry = {

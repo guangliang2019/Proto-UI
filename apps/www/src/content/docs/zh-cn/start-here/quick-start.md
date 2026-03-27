@@ -8,7 +8,7 @@ description: '初始化 Proto UI，并把组件安装到你的项目中'
 你可以直接通过 `npx` 使用 Proto UI CLI，不需要提前全局安装。
 
 ```bash
-npx @proto-ui/cli --help
+npx @proto.ui/cli --help
 ```
 
 ---
@@ -18,7 +18,7 @@ npx @proto-ui/cli --help
 在你的项目根目录执行：
 
 ```bash
-npx @proto-ui/cli init
+npx @proto.ui/cli init
 ```
 
 初始化完成后，项目根目录会生成一个 `proto-ui/` 文件夹。
@@ -53,7 +53,7 @@ your-project/
 例如，在 React 项目中添加一个 `shadcn-button`：
 
 ```bash
-npx @proto-ui/cli add react shadcn-button
+npx @proto.ui/cli add react shadcn-button
 ```
 
 这个命令会：
@@ -88,8 +88,8 @@ Proto UI 的接入是按组件进行的。
 你可以继续执行：
 
 ```bash
-npx @proto-ui/cli add react shadcn-input
-npx @proto-ui/cli add react shadcn-dialog
+npx @proto.ui/cli add react shadcn-input
+npx @proto.ui/cli add react shadcn-dialog
 ```
 
 然后继续从同一个入口使用它们：

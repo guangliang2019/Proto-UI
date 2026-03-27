@@ -1,14 +1,14 @@
 // packages/adapters/web-component/src/adapt.ts
-import type { Prototype } from '@proto-ui/core';
-import { PropsBaseType } from '@proto-ui/types';
+import type { Prototype } from '@proto.ui/core';
+import { PropsBaseType } from '@proto.ui/types';
 
-import { type RawPropsSource } from '@proto-ui/modules.props';
+import { type RawPropsSource } from '@proto.ui/module-props';
 
 import {
   createHostWiring,
   createEventGate,
   createWebProtoEventRouter,
-} from '@proto-ui/adapters.base';
+} from '@proto.ui/adapter-base';
 
 import { bindController, getElementProps, unbindController } from './props';
 import { SlotProjector } from './slot-projector';
@@ -42,10 +42,22 @@ export interface WebComponentAdapterOptions<Props extends PropsBaseType = PropsB
   };
 }
 
+export type WebComponentAdapterHandle = {
+  update(): void;
+  getExposes(): Record<string, unknown>;
+};
+
+export type WebComponentAdapterElement = HTMLElement & WebComponentAdapterHandle;
+
+export type WebComponentAdapterConstructor = {
+  new (): WebComponentAdapterElement;
+  prototype: WebComponentAdapterElement;
+};
+
 export function AdaptToWebComponent<Props extends PropsBaseType>(
   proto: Prototype<Props>,
   opt: WebComponentAdapterOptions<Props> = {}
-) {
+): WebComponentAdapterConstructor {
   const register = opt.register ?? true;
   const tagName = opt.registerAs ?? proto.name;
   assertKebabCase(tagName);
@@ -226,5 +238,5 @@ export function AdaptToWebComponent<Props extends PropsBaseType>(
     customElements.define(tagName, ProtoElement);
   }
 
-  return ProtoElement;
+  return ProtoElement as unknown as WebComponentAdapterConstructor;
 }

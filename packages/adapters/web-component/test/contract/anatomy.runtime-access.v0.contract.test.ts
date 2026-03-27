@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { AdaptToWebComponent } from '@proto-ui/adapters.web-component';
-import { createAnatomyFamily, type Prototype } from '@proto-ui/core';
+import { AdaptToWebComponent } from '@proto.ui/adapter-web-component';
+import { createAnatomyFamily, type Prototype } from '@proto.ui/core';
 
 const FAMILY = createAnatomyFamily('select-runtime-access');
 

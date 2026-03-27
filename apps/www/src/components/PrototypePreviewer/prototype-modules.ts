@@ -24,65 +24,63 @@ function getPrototypeIdFromPath(path: string): string | null {
  */
 const manualPrototypeModules: Record<string, PrototypeModuleLoader> = {
   'base-button': async () => {
-    const mod = await import('@prototype-libs/base');
+    const mod = await import('@proto.ui/prototypes-base');
     registerPrototype('base-button', mod.button);
   },
   'shadcn-button': async () => {
-    const mod = await import('../../../../../packages/prototype-libs/shadcn/src/button/index');
+    const mod = await import('../../../../../packages/prototypes/shadcn/src/button/index');
     registerPrototype('shadcn-button', mod.default);
   },
   'shadcn-toggle': async () => {
-    const mod = await import('../../../../../packages/prototype-libs/shadcn/src/toggle/index');
+    const mod = await import('../../../../../packages/prototypes/shadcn/src/toggle/index');
     registerPrototype('shadcn-toggle', mod.default);
   },
   'shadcn-switch-root': async () => {
-    const mod = await import('../../../../../packages/prototype-libs/shadcn/src/switch/root');
+    const mod = await import('../../../../../packages/prototypes/shadcn/src/switch/root');
     registerPrototype('shadcn-switch-root', mod.default);
   },
   'shadcn-switch-thumb': async () => {
-    const mod = await import('../../../../../packages/prototype-libs/shadcn/src/switch/thumb');
+    const mod = await import('../../../../../packages/prototypes/shadcn/src/switch/thumb');
     registerPrototype('shadcn-switch-thumb', mod.default);
   },
   'shadcn-tabs-root': async () => {
-    const mod = await import('../../../../../packages/prototype-libs/shadcn/src/tabs/root');
+    const mod = await import('../../../../../packages/prototypes/shadcn/src/tabs/root');
     registerPrototype('shadcn-tabs-root', mod.default);
   },
   'shadcn-tabs-list': async () => {
-    const mod = await import('../../../../../packages/prototype-libs/shadcn/src/tabs/list');
+    const mod = await import('../../../../../packages/prototypes/shadcn/src/tabs/list');
     registerPrototype('shadcn-tabs-list', mod.default);
   },
   'shadcn-tabs-trigger': async () => {
-    const mod = await import('../../../../../packages/prototype-libs/shadcn/src/tabs/trigger');
+    const mod = await import('../../../../../packages/prototypes/shadcn/src/tabs/trigger');
     registerPrototype('shadcn-tabs-trigger', mod.default);
   },
   'shadcn-tabs-content': async () => {
-    const mod = await import('../../../../../packages/prototype-libs/shadcn/src/tabs/content');
+    const mod = await import('../../../../../packages/prototypes/shadcn/src/tabs/content');
     registerPrototype('shadcn-tabs-content', mod.default);
   },
   'base-hover-card-root': async () => {
-    const mod = await import('../../../../../packages/prototype-libs/base/src/hover-card/root');
+    const mod = await import('../../../../../packages/prototypes/base/src/hover-card/root');
     registerPrototype('base-hover-card-root', mod.default);
   },
   'base-hover-card-trigger': async () => {
-    const mod = await import('../../../../../packages/prototype-libs/base/src/hover-card/trigger');
+    const mod = await import('../../../../../packages/prototypes/base/src/hover-card/trigger');
     registerPrototype('base-hover-card-trigger', mod.default);
   },
   'base-hover-card-content': async () => {
-    const mod = await import('../../../../../packages/prototype-libs/base/src/hover-card/content');
+    const mod = await import('../../../../../packages/prototypes/base/src/hover-card/content');
     registerPrototype('base-hover-card-content', mod.default);
   },
   'shadcn-hover-card-root': async () => {
-    const mod = await import('../../../../../packages/prototype-libs/shadcn/src/hover-card/root');
+    const mod = await import('../../../../../packages/prototypes/shadcn/src/hover-card/root');
     registerPrototype('shadcn-hover-card-root', mod.default);
   },
   'shadcn-hover-card-trigger': async () => {
-    const mod =
-      await import('../../../../../packages/prototype-libs/shadcn/src/hover-card/trigger');
+    const mod = await import('../../../../../packages/prototypes/shadcn/src/hover-card/trigger');
     registerPrototype('shadcn-hover-card-trigger', mod.default);
   },
   'shadcn-hover-card-content': async () => {
-    const mod =
-      await import('../../../../../packages/prototype-libs/shadcn/src/hover-card/content');
+    const mod = await import('../../../../../packages/prototypes/shadcn/src/hover-card/content');
     registerPrototype('shadcn-hover-card-content', mod.default);
   },
 };

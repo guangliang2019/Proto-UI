@@ -1,7 +1,7 @@
 {
-  "name": "@proto-ui/types",
-  "version": "0.0.0",
-  "private": true,
+  "name": "@proto.ui/types",
+  "version": "0.0.1",
+  "private": false,
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -13,5 +13,25 @@
   },
   "scripts": {
     "build": "tsc -p tsconfig.build.json"
-  }
+  },
+  "description": "Shared type definitions for Proto UI packages.",
+  "license": "MIT",
+  "homepage": "https://github.com/guangliang2019/Prototype-UI/tree/main/packages/types",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/guangliang2019/Prototype-UI.git",
+    "directory": "packages/types"
+  },
+  "bugs": {
+    "url": "https://github.com/guangliang2019/Prototype-UI/issues"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "keywords": [
+    "proto-ui",
+    "proto",
+    "ui",
+    "types"
+  ]
 }

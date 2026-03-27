@@ -3,12 +3,12 @@
 import { describe, it, expect } from 'vitest';
 
 // ✅ 方案 A：如果 module-props 已经从入口导出了 PropsKernel
-// import { PropsKernel } from "@proto-ui/modules.props";
+// import { PropsKernel } from "@proto.ui/module-props";
 
 // ✅ 方案 B：如果尚未导出，请改成你仓库里真实的导入路径
 import { PropsKernel } from '../src/kernel/kernel';
 
-describe('@proto-ui/modules.props PropsKernel (EmptyBehavior)', () => {
+describe('@proto.ui/module-props PropsKernel (EmptyBehavior)', () => {
   it('PROP-0001: get only returns declared keys, getRaw returns all', () => {
     const pm = new PropsKernel<any>();
     pm.define({ a: { type: 'number', default: 1 } });

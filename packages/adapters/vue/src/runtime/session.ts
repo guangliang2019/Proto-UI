@@ -1,8 +1,8 @@
-import { createAdapterHost, createHostWiring } from '@proto-ui/adapters.base';
-import type { CommitSignal } from '@proto-ui/runtime';
-import type { Prototype } from '@proto-ui/core';
-import type { RawPropsSource } from '@proto-ui/modules.props';
-import type { PropsBaseType } from '@proto-ui/types';
+import { createAdapterHost, createHostWiring } from '@proto.ui/adapter-base';
+import type { CommitSignal } from '@proto.ui/runtime';
+import type { Prototype } from '@proto.ui/core';
+import type { RawPropsSource } from '@proto.ui/module-props';
+import type { PropsBaseType } from '@proto.ui/types';
 
 export function createVueHostSession<Props extends PropsBaseType>(args: {
   proto: Prototype<Props>;

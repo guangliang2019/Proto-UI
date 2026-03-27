@@ -1,6 +1,6 @@
-import { createModule, defineModule } from '@proto-ui/modules.base';
-import type { ModuleFactoryArgs } from '@proto-ui/modules.base';
-import type { EventPort } from '@proto-ui/modules.event';
+import { createModule, defineModule } from '@proto.ui/module-base';
+import type { ModuleFactoryArgs } from '@proto.ui/module-base';
+import type { EventPort } from '@proto.ui/module-event';
 
 import type { AsTriggerFacade, AsTriggerModule } from './types';
 import { AsTriggerModuleImpl } from './impl';

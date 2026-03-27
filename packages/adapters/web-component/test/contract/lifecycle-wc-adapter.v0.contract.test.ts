@@ -1,7 +1,7 @@
 // packages/adapters/web-component/test/contract/lifecycle-wc-adapter.v0.contract.test.ts
 import { describe, it, expect } from 'vitest';
-import type { Prototype } from '@proto-ui/core';
-import { AdaptToWebComponent } from '@proto-ui/adapters.web-component';
+import type { Prototype } from '@proto.ui/core';
+import { AdaptToWebComponent } from '@proto.ui/adapter-web-component';
 
 describe('contract: adapter-web-component / lifecycle (v0)', () => {
   it('created before mounted; mounted scheduled by adapter.schedule', async () => {

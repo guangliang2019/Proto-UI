@@ -1,12 +1,12 @@
 // packages/modules/expose-state/src/impl.ts
-import type { CapsVaultView, ProtoPhase, OwnedStateHandle } from '@proto-ui/core';
-import { ModuleBase } from '@proto-ui/modules.base';
-import type { ModuleDeps } from '@proto-ui/modules.base';
-import type { StateEvent, StateSpec } from '@proto-ui/types';
+import type { CapsVaultView, ProtoPhase, OwnedStateHandle } from '@proto.ui/core';
+import { ModuleBase } from '@proto.ui/module-base';
+import type { ModuleDeps } from '@proto.ui/module-base';
+import type { StateEvent, StateSpec } from '@proto.ui/types';
 
-import { EXPOSE_SET_EXPOSES_CAP } from '@proto-ui/modules.expose';
-import type { ExposePort } from '@proto-ui/modules.expose';
-import type { StatePort } from '@proto-ui/modules.state';
+import { EXPOSE_SET_EXPOSES_CAP } from '@proto.ui/module-expose';
+import type { ExposePort } from '@proto.ui/module-expose';
+import type { StatePort } from '@proto.ui/module-state';
 
 import type { ExposeStateDiag, ExposeStateExternalHandle, ExposeStatePort } from './types';
 

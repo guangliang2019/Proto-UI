@@ -7,7 +7,7 @@ import type {
   TemplateNode,
   TemplateType,
   ReservedType,
-} from '@proto-ui/core';
+} from '@proto.ui/core';
 
 export type CommitOptions = {
   mode?: 'light' | 'shadow';

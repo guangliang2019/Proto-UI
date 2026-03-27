@@ -1,10 +1,10 @@
 // packages/modules/rule-expose-state-web/src/create.ts
-import { createModule, defineModule, ModuleBase } from '@proto-ui/modules.base';
-import type { ModuleFactoryArgs, ModuleDeps } from '@proto-ui/modules.base';
-import type { ProtoPhase, StyleHandle } from '@proto-ui/core';
-import type { WhenExpr, RuleIR, RulePort } from '@proto-ui/modules.rule';
-import type { ExposeStateWebPort, ExposeStateWebBinding } from '@proto-ui/modules.expose-state-web';
-import type { FeedbackPort } from '@proto-ui/modules.feedback';
+import { createModule, defineModule, ModuleBase } from '@proto.ui/module-base';
+import type { ModuleFactoryArgs, ModuleDeps } from '@proto.ui/module-base';
+import type { ProtoPhase, StyleHandle } from '@proto.ui/core';
+import type { WhenExpr, RuleIR, RulePort } from '@proto.ui/module-rule';
+import type { ExposeStateWebPort, ExposeStateWebBinding } from '@proto.ui/module-expose-state-web';
+import type { FeedbackPort } from '@proto.ui/module-feedback';
 import type { RuleExposeStateWebFacade, RuleExposeStateWebModule } from './types';
 import {
   RULE_EXPOSE_STATE_WEB_NATIVE_VARIANT_POLICY_CAP,

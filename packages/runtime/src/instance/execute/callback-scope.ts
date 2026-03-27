@@ -1,9 +1,9 @@
 // packages/runtime/src/instance/execute/callback-scope.ts
-import type { PropsBaseType } from '@proto-ui/types';
-import type { RunHandle } from '@proto-ui/core';
-import type { ExecPhase } from '@proto-ui/modules.base';
+import type { PropsBaseType } from '@proto.ui/types';
+import type { RunHandle } from '@proto.ui/core';
+import type { ExecPhase } from '@proto.ui/module-base';
 import type { ModuleOrchestrator } from '../../orchestrator/module-orchestrator';
-import type { PropsPort, PropsWatchTask } from '@proto-ui/modules.props';
+import type { PropsPort, PropsWatchTask } from '@proto.ui/module-props';
 
 /**
  * Centralize callback-phase semantics:

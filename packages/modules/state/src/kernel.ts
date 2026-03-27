@@ -1,5 +1,5 @@
-import type { OwnedStateHandle } from '@proto-ui/core';
-import type { StateEvent, StateSetReason, StateSpec } from '@proto-ui/types';
+import type { OwnedStateHandle } from '@proto.ui/core';
+import type { StateEvent, StateSetReason, StateSpec } from '@proto.ui/types';
 
 export type StateKind = 'bool' | 'enum' | 'string' | 'number.range' | 'number.discrete';
 
@@ -96,7 +96,7 @@ export class StateKernel {
     rec.value = next;
 
     const emit = () => {
-      // Align with @proto-ui/types StateEvent<V> union
+      // Align with @proto.ui/types StateEvent<V> union
       const e: StateEvent<V> = { type: 'next', prev, next, reason };
       for (const cb of rec.subscribers) cb(e);
     };

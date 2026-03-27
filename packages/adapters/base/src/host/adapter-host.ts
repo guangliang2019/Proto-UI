@@ -1,7 +1,7 @@
 // packages/adapters/base/src/host/adapter-host.ts
-import type { Prototype } from '@proto-ui/core';
-import type { PropsBaseType } from '@proto-ui/types';
-import { executeWithHost, type RuntimeHost, type ExecuteWithHostResult } from '@proto-ui/runtime';
+import type { Prototype } from '@proto.ui/core';
+import type { PropsBaseType } from '@proto.ui/types';
+import { executeWithHost, type RuntimeHost, type ExecuteWithHostResult } from '@proto.ui/runtime';
 import { createTeardown } from '../lifecycle/teardown';
 
 export type AdapterHostHooks<P extends PropsBaseType> = {

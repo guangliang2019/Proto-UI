@@ -1,5 +1,5 @@
 // packages/modules/context/test/utils/fake-caps.ts
-import { SYS_CAP } from '@proto-ui/modules.base';
+import { SYS_CAP } from '@proto.ui/module-base';
 import {
   CONTEXT_INSTANCE_TOKEN_CAP,
   CONTEXT_PARENT_CAP,

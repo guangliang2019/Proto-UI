@@ -5,20 +5,20 @@ import {
   type DefHandle,
   type RunHandle,
   type StyleHandle,
-} from '@proto-ui/core';
+} from '@proto.ui/core';
 import { illegalPhase } from '../guard';
-import type { RuleSpec, RuleFacade } from '@proto-ui/modules.rule';
-import type { ExposeEventSpec, PropsBaseType } from '@proto-ui/types';
+import type { RuleSpec, RuleFacade } from '@proto.ui/module-rule';
+import type { ExposeEventSpec, PropsBaseType } from '@proto.ui/types';
 import type { ModuleOrchestratorFacadeView } from '../../orchestrator/module-orchestrator/types';
-import type { FeedbackFacade } from '@proto-ui/modules.feedback';
-import type { PropsFacade } from '@proto-ui/modules.props';
-import type { EventFacade } from '@proto-ui/modules.event';
-import type { StateFacade } from '@proto-ui/modules.state';
-import type { StateInteractionFacade } from '@proto-ui/modules.state-interaction';
-import type { StateAccessibilityFacade } from '@proto-ui/modules.state-accessibility';
-import type { ContextFacade } from '@proto-ui/modules.context';
-import type { ExposeFacade } from '@proto-ui/modules.expose';
-import type { AnatomyFacade } from '@proto-ui/modules.anatomy';
+import type { FeedbackFacade } from '@proto.ui/module-feedback';
+import type { PropsFacade } from '@proto.ui/module-props';
+import type { EventFacade } from '@proto.ui/module-event';
+import type { StateFacade } from '@proto.ui/module-state';
+import type { StateInteractionFacade } from '@proto.ui/module-state-interaction';
+import type { StateAccessibilityFacade } from '@proto.ui/module-state-accessibility';
+import type { ContextFacade } from '@proto.ui/module-context';
+import type { ExposeFacade } from '@proto.ui/module-expose';
+import type { AnatomyFacade } from '@proto.ui/module-anatomy';
 import { RuntimeEventCallbacks } from '../event';
 
 export type LifecycleKind = 'created' | 'mounted' | 'updated' | 'unmounted';

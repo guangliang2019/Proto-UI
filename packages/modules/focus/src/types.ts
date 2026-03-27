@@ -13,8 +13,8 @@ import type {
   FocusableConfigPatch,
   FocusableHandle,
   ModuleInstance,
-} from '@proto-ui/core';
-import type { PropsBaseType } from '@proto-ui/types';
+} from '@proto.ui/core';
+import type { PropsBaseType } from '@proto.ui/types';
 
 export type FocusFacade = {
   getFocusable<P extends PropsBaseType = PropsBaseType>(): FocusableHandle<P>;

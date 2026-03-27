@@ -7,7 +7,7 @@ settings:
 importers:
   .:
     devDependencies:
-      '@proto-ui/types':
+      '@proto.ui/types':
         specifier: workspace:*
         version: link:packages/types
       happy-dom:
@@ -43,24 +43,24 @@ importers:
       '@astrojs/starlight':
         specifier: ^0.35.2
         version: 0.35.3(astro@5.17.2)
-      '@proto-ui/adapters.react':
+      '@proto.ui/adapter-react':
         specifier: workspace:*
         version: link:../../packages/adapters/react
-      '@proto-ui/adapters.vue':
+      '@proto.ui/adapter-vue':
         specifier: workspace:*
         version: link:../../packages/adapters/vue
-      '@proto-ui/adapters.web-component':
+      '@proto.ui/adapter-web-component':
         specifier: workspace:*
         version: link:../../packages/adapters/web-component
-      '@proto-ui/core':
+      '@proto.ui/core':
         specifier: workspace:*
         version: link:../../packages/core
-      '@prototype-libs/base':
+      '@proto.ui/prototypes-base':
         specifier: workspace:*
-        version: link:../../packages/prototype-libs/base
-      '@prototype-libs/shadcn':
+        version: link:../../packages/prototypes/base
+      '@proto.ui/prototypes-shadcn':
         specifier: workspace:*
-        version: link:../../packages/prototype-libs/shadcn
+        version: link:../../packages/prototypes/shadcn
       '@tailwindcss/vite':
         specifier: ^4.1.11
         version: 4.1.18(vite@6.4.1)
@@ -113,547 +113,541 @@ importers:
 
   packages/adapters/base:
     dependencies:
-      '@proto-ui/core':
+      '@proto.ui/core':
         specifier: workspace:*
         version: link:../../core
-      '@proto-ui/modules.anatomy':
+      '@proto.ui/module-anatomy':
         specifier: workspace:*
         version: link:../../modules/anatomy
-      '@proto-ui/modules.as-trigger':
+      '@proto.ui/module-as-trigger':
         specifier: workspace:*
         version: link:../../modules/as-trigger
-      '@proto-ui/modules.context':
+      '@proto.ui/module-context':
         specifier: workspace:*
         version: link:../../modules/context
-      '@proto-ui/modules.event':
+      '@proto.ui/module-event':
         specifier: workspace:*
         version: link:../../modules/event
-      '@proto-ui/modules.expose':
+      '@proto.ui/module-expose':
         specifier: workspace:*
         version: link:../../modules/expose
-      '@proto-ui/modules.expose-state-web':
+      '@proto.ui/module-expose-state-web':
         specifier: workspace:*
         version: link:../../modules/expose-state-web
-      '@proto-ui/modules.feedback':
+      '@proto.ui/module-feedback':
         specifier: workspace:*
         version: link:../../modules/feedback
-      '@proto-ui/modules.focus':
+      '@proto.ui/module-focus':
         specifier: workspace:*
         version: link:../../modules/focus
-      '@proto-ui/modules.props':
+      '@proto.ui/module-props':
         specifier: workspace:*
         version: link:../../modules/props
-      '@proto-ui/modules.rule-expose-state-web':
+      '@proto.ui/module-rule-expose-state-web':
         specifier: workspace:*
         version: link:../../modules/rule-expose-state-web
-      '@proto-ui/modules.rule-meta':
+      '@proto.ui/module-rule-meta':
         specifier: workspace:*
         version: link:../../modules/rule-meta
-      '@proto-ui/runtime':
+      '@proto.ui/runtime':
         specifier: workspace:*
         version: link:../../runtime
-      '@proto-ui/types':
+      '@proto.ui/types':
         specifier: workspace:*
         version: link:../../types
 
   packages/adapters/react:
     dependencies:
-      '@proto-ui/adapters.base':
+      '@proto.ui/adapter-base':
         specifier: workspace:*
         version: link:../base
-      '@proto-ui/core':
+      '@proto.ui/core':
         specifier: workspace:*
         version: link:../../core
-      '@proto-ui/modules.anatomy':
+      '@proto.ui/module-anatomy':
         specifier: workspace:*
         version: link:../../modules/anatomy
-      '@proto-ui/modules.as-trigger':
+      '@proto.ui/module-as-trigger':
         specifier: workspace:*
         version: link:../../modules/as-trigger
-      '@proto-ui/modules.context':
+      '@proto.ui/module-context':
         specifier: workspace:*
         version: link:../../modules/context
-      '@proto-ui/modules.event':
+      '@proto.ui/module-event':
         specifier: workspace:*
         version: link:../../modules/event
-      '@proto-ui/modules.expose':
+      '@proto.ui/module-expose':
         specifier: workspace:*
         version: link:../../modules/expose
-      '@proto-ui/modules.expose-state':
+      '@proto.ui/module-expose-state':
         specifier: workspace:*
         version: link:../../modules/expose-state
-      '@proto-ui/modules.expose-state-web':
+      '@proto.ui/module-expose-state-web':
         specifier: workspace:*
         version: link:../../modules/expose-state-web
-      '@proto-ui/modules.feedback':
+      '@proto.ui/module-feedback':
         specifier: workspace:*
         version: link:../../modules/feedback
-      '@proto-ui/modules.focus':
+      '@proto.ui/module-focus':
         specifier: workspace:*
         version: link:../../modules/focus
-      '@proto-ui/modules.props':
+      '@proto.ui/module-props':
         specifier: workspace:*
         version: link:../../modules/props
-      '@proto-ui/modules.rule-expose-state-web':
+      '@proto.ui/module-rule-expose-state-web':
         specifier: workspace:*
         version: link:../../modules/rule-expose-state-web
-      '@proto-ui/modules.rule-meta':
+      '@proto.ui/module-rule-meta':
         specifier: workspace:*
         version: link:../../modules/rule-meta
-      '@proto-ui/runtime':
+      '@proto.ui/runtime':
         specifier: workspace:*
         version: link:../../runtime
-      '@proto-ui/types':
+      '@proto.ui/types':
         specifier: workspace:*
         version: link:../../types
 
   packages/adapters/vue:
     dependencies:
-      '@proto-ui/adapters.base':
+      '@proto.ui/adapter-base':
         specifier: workspace:*
         version: link:../base
-      '@proto-ui/core':
+      '@proto.ui/core':
         specifier: workspace:*
         version: link:../../core
-      '@proto-ui/modules.anatomy':
+      '@proto.ui/module-anatomy':
         specifier: workspace:*
         version: link:../../modules/anatomy
-      '@proto-ui/modules.as-trigger':
+      '@proto.ui/module-as-trigger':
         specifier: workspace:*
         version: link:../../modules/as-trigger
-      '@proto-ui/modules.context':
+      '@proto.ui/module-context':
         specifier: workspace:*
         version: link:../../modules/context
-      '@proto-ui/modules.event':
+      '@proto.ui/module-event':
         specifier: workspace:*
         version: link:../../modules/event
-      '@proto-ui/modules.expose':
+      '@proto.ui/module-expose':
         specifier: workspace:*
         version: link:../../modules/expose
-      '@proto-ui/modules.expose-state':
+      '@proto.ui/module-expose-state':
         specifier: workspace:*
         version: link:../../modules/expose-state
-      '@proto-ui/modules.expose-state-web':
+      '@proto.ui/module-expose-state-web':
         specifier: workspace:*
         version: link:../../modules/expose-state-web
-      '@proto-ui/modules.feedback':
+      '@proto.ui/module-feedback':
         specifier: workspace:*
         version: link:../../modules/feedback
-      '@proto-ui/modules.focus':
+      '@proto.ui/module-focus':
         specifier: workspace:*
         version: link:../../modules/focus
-      '@proto-ui/modules.props':
+      '@proto.ui/module-props':
         specifier: workspace:*
         version: link:../../modules/props
-      '@proto-ui/modules.rule-expose-state-web':
+      '@proto.ui/module-rule-expose-state-web':
         specifier: workspace:*
         version: link:../../modules/rule-expose-state-web
-      '@proto-ui/modules.rule-meta':
+      '@proto.ui/module-rule-meta':
         specifier: workspace:*
         version: link:../../modules/rule-meta
-      '@proto-ui/runtime':
+      '@proto.ui/runtime':
         specifier: workspace:*
         version: link:../../runtime
-      '@proto-ui/types':
+      '@proto.ui/types':
         specifier: workspace:*
         version: link:../../types
 
   packages/adapters/web-component:
     dependencies:
-      '@proto-ui/adapters.base':
+      '@proto.ui/adapter-base':
         specifier: workspace:*
         version: link:../base
-      '@proto-ui/core':
+      '@proto.ui/core':
         specifier: workspace:*
         version: link:../../core
-      '@proto-ui/modules.context':
+      '@proto.ui/module-context':
         specifier: workspace:*
         version: link:../../modules/context
-      '@proto-ui/modules.event':
+      '@proto.ui/module-event':
         specifier: workspace:*
         version: link:../../modules/event
-      '@proto-ui/modules.expose':
+      '@proto.ui/module-expose':
         specifier: workspace:*
         version: link:../../modules/expose
-      '@proto-ui/modules.expose-state':
+      '@proto.ui/module-expose-state':
         specifier: workspace:*
         version: link:../../modules/expose-state
-      '@proto-ui/modules.expose-state-web':
+      '@proto.ui/module-expose-state-web':
         specifier: workspace:*
         version: link:../../modules/expose-state-web
-      '@proto-ui/modules.feedback':
+      '@proto.ui/module-feedback':
         specifier: workspace:*
         version: link:../../modules/feedback
-      '@proto-ui/modules.props':
+      '@proto.ui/module-props':
         specifier: workspace:*
         version: link:../../modules/props
-      '@proto-ui/modules.test-sys':
+      '@proto.ui/module-test-sys':
         specifier: workspace:*
         version: link:../../modules/test-sys
-      '@proto-ui/runtime':
+      '@proto.ui/runtime':
         specifier: workspace:*
         version: link:../../runtime
-      '@proto-ui/types':
+      '@proto.ui/types':
         specifier: workspace:*
         version: link:../../types
 
   packages/core:
     devDependencies:
-      '@proto-ui/types':
+      '@proto.ui/types':
         specifier: workspace:*
         version: link:../types
 
-  packages/legacy/rule:
-    dependencies:
-      '@proto-ui/core':
-        specifier: workspace:*
-        version: link:../../core
-
   packages/modules/anatomy:
     dependencies:
-      '@proto-ui/core':
+      '@proto.ui/core':
         specifier: workspace:*
         version: link:../../core
-      '@proto-ui/modules.base':
+      '@proto.ui/module-base':
         specifier: workspace:*
         version: link:../base
-      '@proto-ui/modules.expose':
+      '@proto.ui/module-expose':
         specifier: workspace:*
         version: link:../expose
 
   packages/modules/as-trigger:
     dependencies:
-      '@proto-ui/core':
+      '@proto.ui/core':
         specifier: workspace:*
         version: link:../../core
-      '@proto-ui/modules.base':
+      '@proto.ui/module-base':
         specifier: workspace:*
         version: link:../base
-      '@proto-ui/modules.event':
+      '@proto.ui/module-event':
         specifier: workspace:*
         version: link:../event
 
   packages/modules/base:
     dependencies:
-      '@proto-ui/core':
+      '@proto.ui/core':
         specifier: workspace:*
         version: link:../../core
 
   packages/modules/context:
     dependencies:
-      '@proto-ui/core':
+      '@proto.ui/core':
         specifier: workspace:*
         version: link:../../core
-      '@proto-ui/modules.base':
+      '@proto.ui/module-base':
         specifier: workspace:*
         version: link:../base
-      '@proto-ui/types':
+      '@proto.ui/types':
         specifier: workspace:*
         version: link:../../types
 
   packages/modules/event:
     dependencies:
-      '@proto-ui/core':
+      '@proto.ui/core':
         specifier: workspace:*
         version: link:../../core
-      '@proto-ui/modules.base':
+      '@proto.ui/module-base':
         specifier: workspace:*
         version: link:../base
-      '@proto-ui/types':
+      '@proto.ui/types':
         specifier: workspace:*
         version: link:../../types
 
   packages/modules/expose:
     dependencies:
-      '@proto-ui/core':
+      '@proto.ui/core':
         specifier: workspace:*
         version: link:../../core
-      '@proto-ui/modules.base':
+      '@proto.ui/module-base':
         specifier: workspace:*
         version: link:../base
 
   packages/modules/expose-state:
     dependencies:
-      '@proto-ui/core':
+      '@proto.ui/core':
         specifier: workspace:*
         version: link:../../core
-      '@proto-ui/modules.base':
+      '@proto.ui/module-base':
         specifier: workspace:*
         version: link:../base
-      '@proto-ui/modules.expose':
+      '@proto.ui/module-expose':
         specifier: workspace:*
         version: link:../expose
-      '@proto-ui/modules.state':
+      '@proto.ui/module-state':
         specifier: workspace:*
         version: link:../state
-      '@proto-ui/types':
+      '@proto.ui/types':
         specifier: workspace:*
         version: link:../../types
 
   packages/modules/expose-state-web:
     dependencies:
-      '@proto-ui/core':
+      '@proto.ui/core':
         specifier: workspace:*
         version: link:../../core
-      '@proto-ui/modules.base':
+      '@proto.ui/module-base':
         specifier: workspace:*
         version: link:../base
-      '@proto-ui/modules.expose-state':
+      '@proto.ui/module-expose-state':
         specifier: workspace:*
         version: link:../expose-state
-      '@proto-ui/types':
+      '@proto.ui/types':
         specifier: workspace:*
         version: link:../../types
 
   packages/modules/feedback:
     dependencies:
-      '@proto-ui/core':
+      '@proto.ui/core':
         specifier: workspace:*
         version: link:../../core
-      '@proto-ui/modules.base':
+      '@proto.ui/module-base':
         specifier: workspace:*
         version: link:../base
 
   packages/modules/focus:
     dependencies:
-      '@proto-ui/core':
+      '@proto.ui/core':
         specifier: workspace:*
         version: link:../../core
-      '@proto-ui/modules.base':
+      '@proto.ui/module-base':
         specifier: workspace:*
         version: link:../base
-      '@proto-ui/types':
+      '@proto.ui/types':
         specifier: workspace:*
         version: link:../../types
 
   packages/modules/overlay:
     dependencies:
-      '@proto-ui/core':
+      '@proto.ui/core':
         specifier: workspace:*
         version: link:../../core
-      '@proto-ui/modules.base':
+      '@proto.ui/module-base':
         specifier: workspace:*
         version: link:../base
-      '@proto-ui/types':
+      '@proto.ui/types':
         specifier: workspace:*
         version: link:../../types
 
   packages/modules/props:
     dependencies:
-      '@proto-ui/core':
+      '@proto.ui/core':
         specifier: workspace:*
         version: link:../../core
-      '@proto-ui/modules.base':
+      '@proto.ui/module-base':
         specifier: workspace:*
         version: link:../base
-      '@proto-ui/types':
+      '@proto.ui/types':
         specifier: workspace:*
         version: link:../../types
 
   packages/modules/rule:
     dependencies:
-      '@proto-ui/core':
+      '@proto.ui/core':
         specifier: workspace:*
         version: link:../../core
-      '@proto-ui/modules.base':
+      '@proto.ui/module-base':
         specifier: workspace:*
         version: link:../base
-      '@proto-ui/modules.context':
+      '@proto.ui/module-context':
         specifier: workspace:*
         version: link:../context
-      '@proto-ui/modules.feedback':
+      '@proto.ui/module-feedback':
         specifier: workspace:*
         version: link:../feedback
-      '@proto-ui/modules.props':
+      '@proto.ui/module-props':
         specifier: workspace:*
         version: link:../props
-      '@proto-ui/modules.state':
+      '@proto.ui/module-state':
         specifier: workspace:*
         version: link:../state
-      '@proto-ui/types':
+      '@proto.ui/types':
         specifier: workspace:*
         version: link:../../types
 
   packages/modules/rule-expose-state-web:
     dependencies:
-      '@proto-ui/core':
+      '@proto.ui/core':
         specifier: workspace:*
         version: link:../../core
-      '@proto-ui/modules.base':
+      '@proto.ui/module-base':
         specifier: workspace:*
         version: link:../base
-      '@proto-ui/modules.expose-state-web':
+      '@proto.ui/module-expose-state-web':
         specifier: workspace:*
         version: link:../expose-state-web
-      '@proto-ui/modules.feedback':
+      '@proto.ui/module-feedback':
         specifier: workspace:*
         version: link:../feedback
-      '@proto-ui/modules.rule':
+      '@proto.ui/module-rule':
         specifier: workspace:*
         version: link:../rule
-      '@proto-ui/types':
+      '@proto.ui/types':
         specifier: workspace:*
         version: link:../../types
 
   packages/modules/rule-meta:
     dependencies:
-      '@proto-ui/core':
+      '@proto.ui/core':
         specifier: workspace:*
         version: link:../../core
-      '@proto-ui/modules.base':
+      '@proto.ui/module-base':
         specifier: workspace:*
         version: link:../base
-      '@proto-ui/modules.rule':
+      '@proto.ui/module-rule':
         specifier: workspace:*
         version: link:../rule
 
   packages/modules/state:
     dependencies:
-      '@proto-ui/core':
+      '@proto.ui/core':
         specifier: workspace:*
         version: link:../../core
-      '@proto-ui/modules.base':
+      '@proto.ui/module-base':
         specifier: workspace:*
         version: link:../base
-      '@proto-ui/types':
+      '@proto.ui/types':
         specifier: workspace:*
         version: link:../../types
 
   packages/modules/state-accessibility:
     dependencies:
-      '@proto-ui/core':
+      '@proto.ui/core':
         specifier: workspace:*
         version: link:../../core
-      '@proto-ui/modules.base':
+      '@proto.ui/module-base':
         specifier: workspace:*
         version: link:../base
-      '@proto-ui/modules.state':
+      '@proto.ui/module-state':
         specifier: workspace:*
         version: link:../state
 
   packages/modules/state-interaction:
     dependencies:
-      '@proto-ui/core':
+      '@proto.ui/core':
         specifier: workspace:*
         version: link:../../core
-      '@proto-ui/modules.base':
+      '@proto.ui/module-base':
         specifier: workspace:*
         version: link:../base
-      '@proto-ui/modules.state':
+      '@proto.ui/module-state':
         specifier: workspace:*
         version: link:../state
 
   packages/modules/test-sys:
     dependencies:
-      '@proto-ui/core':
+      '@proto.ui/core':
         specifier: workspace:*
         version: link:../../core
-      '@proto-ui/modules.base':
+      '@proto.ui/module-base':
         specifier: workspace:*
         version: link:../base
-      '@proto-ui/types':
+      '@proto.ui/types':
         specifier: workspace:*
         version: link:../../types
 
-  packages/prototype-libs/base:
+  packages/prototypes/base:
     dependencies:
-      '@proto-ui/core':
+      '@proto.ui/core':
         specifier: workspace:*
         version: link:../../core
-      '@proto-ui/modules.as-trigger':
+      '@proto.ui/module-as-trigger':
         specifier: workspace:*
         version: link:../../modules/as-trigger
-      '@proto-ui/modules.event':
+      '@proto.ui/module-event':
         specifier: workspace:*
         version: link:../../modules/event
-      '@proto-ui/modules.expose':
+      '@proto.ui/module-expose':
         specifier: workspace:*
         version: link:../../modules/expose
-      '@proto-ui/modules.focus':
+      '@proto.ui/module-focus':
         specifier: workspace:*
         version: link:../../modules/focus
 
-  packages/prototype-libs/shadcn:
+  packages/prototypes/shadcn:
     dependencies:
-      '@proto-ui/core':
+      '@proto.ui/core':
         specifier: workspace:*
         version: link:../../core
-      '@proto-ui/modules.as-trigger':
+      '@proto.ui/module-as-trigger':
         specifier: workspace:*
         version: link:../../modules/as-trigger
-      '@proto-ui/modules.event':
+      '@proto.ui/module-event':
         specifier: workspace:*
         version: link:../../modules/event
-      '@proto-ui/modules.rule-meta':
+      '@proto.ui/module-rule-meta':
         specifier: workspace:*
         version: link:../../modules/rule-meta
-      '@prototype-libs/base':
+      '@proto.ui/prototypes-base':
         specifier: workspace:*
         version: link:../base
 
   packages/runtime:
     dependencies:
-      '@proto-ui/core':
+      '@proto.ui/core':
         specifier: workspace:*
         version: link:../core
-      '@proto-ui/modules.anatomy':
+      '@proto.ui/module-anatomy':
         specifier: workspace:*
         version: link:../modules/anatomy
-      '@proto-ui/modules.as-trigger':
+      '@proto.ui/module-as-trigger':
         specifier: workspace:*
         version: link:../modules/as-trigger
-      '@proto-ui/modules.base':
+      '@proto.ui/module-base':
         specifier: workspace:*
         version: link:../modules/base
-      '@proto-ui/modules.context':
+      '@proto.ui/module-context':
         specifier: workspace:*
         version: link:../modules/context
-      '@proto-ui/modules.event':
+      '@proto.ui/module-event':
         specifier: workspace:*
         version: link:../modules/event
-      '@proto-ui/modules.expose':
+      '@proto.ui/module-expose':
         specifier: workspace:*
         version: link:../modules/expose
-      '@proto-ui/modules.expose-state':
+      '@proto.ui/module-expose-state':
         specifier: workspace:*
         version: link:../modules/expose-state
-      '@proto-ui/modules.expose-state-web':
+      '@proto.ui/module-expose-state-web':
         specifier: workspace:*
         version: link:../modules/expose-state-web
-      '@proto-ui/modules.feedback':
+      '@proto.ui/module-feedback':
         specifier: workspace:*
         version: link:../modules/feedback
-      '@proto-ui/modules.focus':
+      '@proto.ui/module-focus':
         specifier: workspace:*
         version: link:../modules/focus
-      '@proto-ui/modules.overlay':
+      '@proto.ui/module-overlay':
         specifier: workspace:*
         version: link:../modules/overlay
-      '@proto-ui/modules.props':
+      '@proto.ui/module-props':
         specifier: workspace:*
         version: link:../modules/props
-      '@proto-ui/modules.rule':
+      '@proto.ui/module-rule':
         specifier: workspace:*
         version: link:../modules/rule
-      '@proto-ui/modules.rule-expose-state-web':
+      '@proto.ui/module-rule-expose-state-web':
         specifier: workspace:*
         version: link:../modules/rule-expose-state-web
-      '@proto-ui/modules.rule-meta':
+      '@proto.ui/module-rule-meta':
         specifier: workspace:*
         version: link:../modules/rule-meta
-      '@proto-ui/modules.state':
+      '@proto.ui/module-state':
         specifier: workspace:*
         version: link:../modules/state
-      '@proto-ui/modules.state-accessibility':
+      '@proto.ui/module-state-accessibility':
         specifier: workspace:*
         version: link:../modules/state-accessibility
-      '@proto-ui/modules.state-interaction':
+      '@proto.ui/module-state-interaction':
         specifier: workspace:*
         version: link:../modules/state-interaction
-      '@proto-ui/modules.test-sys':
+      '@proto.ui/module-test-sys':
         specifier: workspace:*
         version: link:../modules/test-sys
-      '@proto-ui/types':
+      '@proto.ui/types':
         specifier: workspace:*
         version: link:../types
 

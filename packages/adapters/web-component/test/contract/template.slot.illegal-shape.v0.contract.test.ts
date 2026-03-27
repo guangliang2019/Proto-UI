@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { commitChildren } from '@proto-ui/adapters.web-component';
+import { commitChildren } from '@proto.ui/adapter-web-component';
 
 describe('contract: adapter-web-component / template slot illegal-shape (v0)', () => {
   it('slot must not carry children', () => {

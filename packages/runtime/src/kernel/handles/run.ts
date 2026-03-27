@@ -1,11 +1,11 @@
 // packages/runtime/src/kernel/handles/run.ts
-import { PropsBaseType } from '@proto-ui/types';
+import { PropsBaseType } from '@proto.ui/types';
 import type { ModuleOrchestratorFacadeView } from '../../orchestrator/module-orchestrator/types';
-import { RunHandle } from '@proto-ui/core';
-import { PropsFacade } from '@proto-ui/modules.props';
-import { ContextFacade } from '@proto-ui/modules.context';
-import { EventFacade } from '@proto-ui/modules.event';
-import { AnatomyFacade } from '@proto-ui/modules.anatomy';
+import { RunHandle } from '@proto.ui/core';
+import { PropsFacade } from '@proto.ui/module-props';
+import { ContextFacade } from '@proto.ui/module-context';
+import { EventFacade } from '@proto.ui/module-event';
+import { AnatomyFacade } from '@proto.ui/module-anatomy';
 
 export const createRunHandle = <P extends PropsBaseType>(
   update: RunHandle<P>['update'],

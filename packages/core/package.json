@@ -1,15 +1,35 @@
 {
-  "name": "@proto-ui/core",
-  "version": "0.0.0",
-  "private": true,
+  "name": "@proto.ui/core",
+  "version": "0.0.1",
+  "private": false,
   "type": "module",
   "devDependencies": {
-    "@proto-ui/types": "workspace:*"
+    "@proto.ui/types": "workspace:*"
   },
   "exports": {
     ".": {
       "types": "./src/index.ts",
       "default": "./src/index.ts"
     }
-  }
+  },
+  "description": "Proto UI core syntax and protocol primitives.",
+  "license": "MIT",
+  "homepage": "https://github.com/guangliang2019/Prototype-UI/tree/main/packages/core",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/guangliang2019/Prototype-UI.git",
+    "directory": "packages/core"
+  },
+  "bugs": {
+    "url": "https://github.com/guangliang2019/Prototype-UI/issues"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "keywords": [
+    "proto-ui",
+    "proto",
+    "ui",
+    "core"
+  ]
 }

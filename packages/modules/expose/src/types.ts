@@ -1,5 +1,5 @@
 // packages/modules/expose/src/types.ts
-import type { ModuleInstance, ModulePort } from '@proto-ui/core';
+import type { ModuleInstance, ModulePort } from '@proto.ui/core';
 
 export type ExposeFacade = {
   expose(key: string, value: unknown): void;

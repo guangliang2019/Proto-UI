@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { createAnatomyFamily, type Prototype } from '@proto-ui/core';
-import type { ContextKey } from '@proto-ui/types';
+import { createAnatomyFamily, type Prototype } from '@proto.ui/core';
+import type { ContextKey } from '@proto.ui/types';
 
 import { createMountedReactAdapter, createMountedReactAdapterInto } from './utils/fake-react';
 

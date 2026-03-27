@@ -1,6 +1,6 @@
-import { createModule, defineModule, ModuleBase } from '@proto-ui/modules.base';
-import type { ModuleFactoryArgs, ModuleDeps } from '@proto-ui/modules.base';
-import type { RulePort } from '@proto-ui/modules.rule';
+import { createModule, defineModule, ModuleBase } from '@proto.ui/module-base';
+import type { ModuleFactoryArgs, ModuleDeps } from '@proto.ui/module-base';
+import type { RulePort } from '@proto.ui/module-rule';
 import type { RuleMetaFacade, RuleMetaModule } from './types';
 import { RULE_META_GET_CAP } from './caps';
 

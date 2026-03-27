@@ -1,24 +1,24 @@
 // packages/adapters/base/src/wiring/caps-builder.ts
-import type { CapEntries } from '@proto-ui/core';
+import type { CapEntries } from '@proto.ui/core';
 import type { WiringSpec } from '../types';
 
-import { RAW_PROPS_SOURCE_CAP, type RawPropsSource } from '@proto-ui/modules.props';
-import { EFFECTS_CAP } from '@proto-ui/modules.feedback';
+import { RAW_PROPS_SOURCE_CAP, type RawPropsSource } from '@proto.ui/module-props';
+import { EFFECTS_CAP } from '@proto.ui/module-feedback';
 import {
   EVENT_GLOBAL_TARGET_CAP,
   EVENT_EMIT_CAP,
   EVENT_ROOT_TARGET_CAP,
   type EventEmitSink,
   type EventTargetGetter,
-} from '@proto-ui/modules.event';
-import { EXPOSE_SET_EXPOSES_CAP, type ExposeHostSink } from '@proto-ui/modules.expose';
+} from '@proto.ui/module-event';
+import { EXPOSE_SET_EXPOSES_CAP, type ExposeHostSink } from '@proto.ui/module-expose';
 import {
   EXPOSE_STATE_WEB_MAP_CAP,
   EXPOSE_STATE_WEB_MODE_CAP,
   HOST_ELEMENT_CAP,
   type ExposeStateWebMode,
   type ExposeStateWebNameMap,
-} from '@proto-ui/modules.expose-state-web';
+} from '@proto.ui/module-expose-state-web';
 import {
   ANATOMY_GET_PROTO_CAP,
   ANATOMY_INSTANCE_TOKEN_CAP,
@@ -26,13 +26,13 @@ import {
   type AnatomyInstanceToken,
   type AnatomyParentGetter,
   type AnatomyPrototypeGetter,
-} from '@proto-ui/modules.anatomy';
+} from '@proto.ui/module-anatomy';
 import {
   CONTEXT_INSTANCE_TOKEN_CAP,
   CONTEXT_PARENT_CAP,
   type ContextParentGetter,
   type ContextInstanceToken,
-} from '@proto-ui/modules.context';
+} from '@proto.ui/module-context';
 import {
   AS_TRIGGER_GET_PROTO_CAP,
   AS_TRIGGER_INSTANCE_CAP,
@@ -40,12 +40,12 @@ import {
   type AsTriggerInstanceToken,
   type AsTriggerParentGetter,
   type AsTriggerPrototypeGetter,
-} from '@proto-ui/modules.as-trigger';
-import { RULE_META_GET_CAP, type RuleMetaGetter } from '@proto-ui/modules.rule-meta';
+} from '@proto.ui/module-as-trigger';
+import { RULE_META_GET_CAP, type RuleMetaGetter } from '@proto.ui/module-rule-meta';
 import {
   RULE_EXPOSE_STATE_WEB_NATIVE_VARIANT_POLICY_CAP,
   type RuleExposeStateWebNativeVariantPolicy,
-} from '@proto-ui/modules.rule-expose-state-web';
+} from '@proto.ui/module-rule-expose-state-web';
 import {
   FOCUS_BLUR_CAP,
   FOCUS_INSTANCE_TOKEN_CAP,
@@ -61,9 +61,9 @@ import {
   type FocusRequestFocus,
   type FocusRootTargetGetter,
   type FocusSetFocusable,
-} from '@proto-ui/modules.focus';
-import type { EffectsPort } from '@proto-ui/core';
-import type { PropsBaseType } from '@proto-ui/types';
+} from '@proto.ui/module-focus';
+import type { EffectsPort } from '@proto.ui/core';
+import type { PropsBaseType } from '@proto.ui/types';
 
 export type CapsWiringBuilder = {
   add(moduleName: string, provide: () => CapEntries): CapsWiringBuilder;

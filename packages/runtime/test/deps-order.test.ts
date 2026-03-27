@@ -1,9 +1,9 @@
 // packages/runtime/test/orchestrator/deps-order.test.ts
 import { describe, it, expect } from 'vitest';
 import { RuntimeModuleOrchestrator } from '../src/orchestrator/module-orchestrator';
-import type { ModuleDef } from '@proto-ui/modules.base';
-import type { ExecPhase } from '@proto-ui/modules.base';
-import type { ModuleFacade } from '@proto-ui/core';
+import type { ModuleDef } from '@proto.ui/module-base';
+import type { ExecPhase } from '@proto.ui/module-base';
+import type { ModuleFacade } from '@proto.ui/core';
 
 /**
  * These tests are intentionally "unit tests" (not contract tests).

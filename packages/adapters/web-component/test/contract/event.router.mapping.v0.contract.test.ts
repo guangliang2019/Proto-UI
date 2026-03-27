@@ -1,6 +1,6 @@
 // packages/adapters/web-component/test/contract/event.router.mapping.v0.contract.test.ts
 import { describe, it, expect } from 'vitest';
-import { createWebProtoEventRouter } from '@proto-ui/adapters.base';
+import { createWebProtoEventRouter } from '@proto.ui/adapter-base';
 
 function once<T = any>(t: EventTarget, type: string) {
   return new Promise<T>((resolve) => {

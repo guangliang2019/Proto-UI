@@ -5,7 +5,7 @@ import type {
   ModuleInstance,
   ModuleScope,
   ProtoPhase,
-} from '@proto-ui/core';
+} from '@proto.ui/core';
 import type { CapsController } from '../caps';
 
 /**

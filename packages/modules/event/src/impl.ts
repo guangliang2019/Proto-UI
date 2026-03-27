@@ -1,12 +1,12 @@
 // packages/modules/event/src/impl.ts
-import type { ProtoPhase, CapsVaultView } from '@proto-ui/core';
-import { illegalPhase } from '@proto-ui/core';
+import type { ProtoPhase, CapsVaultView } from '@proto.ui/core';
+import { illegalPhase } from '@proto.ui/core';
 
-import { ModuleBase } from '@proto-ui/modules.base';
+import { ModuleBase } from '@proto.ui/module-base';
 
 import type { EventDispatch } from './types';
 import { EventKernel } from './kernel';
-import { EventListenerToken, EventTypeV0, ExposeEventSpec } from '@proto-ui/types';
+import { EventListenerToken, EventTypeV0, ExposeEventSpec } from '@proto.ui/types';
 import { EVENT_GLOBAL_TARGET_CAP, EVENT_ROOT_TARGET_CAP, EVENT_EMIT_CAP } from './caps';
 
 function illegalEventTarget(message: string, detail?: any) {

@@ -9,11 +9,11 @@ import type {
 } from './types';
 import { compileRule } from './compile';
 import { evaluateRulesToPlan } from './eval';
-import type { PropsBaseType } from '@proto-ui/types';
-import type { PropsFacade, PropsPort } from '@proto-ui/modules.props';
-import type { StatePort } from '@proto-ui/modules.state';
-import type { FeedbackPort } from '@proto-ui/modules.feedback';
-import type { ContextFacade } from '@proto-ui/modules.context';
+import type { PropsBaseType } from '@proto.ui/types';
+import type { PropsFacade, PropsPort } from '@proto.ui/module-props';
+import type { StatePort } from '@proto.ui/module-state';
+import type { FeedbackPort } from '@proto.ui/module-feedback';
+import type { ContextFacade } from '@proto.ui/module-context';
 
 type RuleExecutorDeps<Props extends PropsBaseType> = {
   propsFacade?: PropsFacade<Props>;

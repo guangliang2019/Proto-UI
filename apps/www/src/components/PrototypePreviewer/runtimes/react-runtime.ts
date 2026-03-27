@@ -1,5 +1,5 @@
 import type { RuntimeAPI } from './registry';
-import { createReactAdapter } from '@proto-ui/adapters.react';
+import { createReactAdapter } from '@proto.ui/adapter-react';
 import type * as ReactTypes from 'react';
 import type * as ReactDOMTypes from 'react-dom/client';
 

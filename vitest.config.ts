@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { defineConfig } from 'vitest/config';
 
-const PROTO_UI_PREFIX = '@proto-ui/';
+const PROTO_UI_PREFIX = '@proto.ui/';
 
 function resolveProtoUiImport(id: string): string | null {
   if (!id.startsWith(PROTO_UI_PREFIX)) return null;
@@ -13,10 +13,12 @@ function resolveProtoUiImport(id: string): string | null {
   const rest = parts.slice(1);
 
   let subdir: string;
-  if (pkg.startsWith('modules.')) {
-    subdir = path.join('modules', pkg.slice('modules.'.length));
-  } else if (pkg.startsWith('adapters.')) {
-    subdir = path.join('adapters', pkg.slice('adapters.'.length));
+  if (pkg.startsWith('module-')) {
+    subdir = path.join('modules', pkg.slice('module-'.length));
+  } else if (pkg.startsWith('adapter-')) {
+    subdir = path.join('adapters', pkg.slice('adapter-'.length));
+  } else if (pkg.startsWith('prototypes-')) {
+    subdir = path.join('prototypes', pkg.slice('prototypes-'.length));
   } else if (pkg === 'rule') {
     subdir = path.join('legacy', 'rule');
   } else {

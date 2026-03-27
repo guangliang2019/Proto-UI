@@ -3,7 +3,7 @@
 ## Status
 
 - Version: v0
-- Target: `@proto-ui/adapters.web-component`
+- Target: `@proto.ui/adapters.web-component`
 - Applies to: Light DOM + Shadow DOM modes
 
 ## Glossary

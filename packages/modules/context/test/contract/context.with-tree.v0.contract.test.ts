@@ -1,6 +1,6 @@
 // packages/modules/context/test/contract/context.with-tree.v0.contract.test.ts
 import { describe, it, expect, beforeEach } from 'vitest';
-import type { ContextKey } from '@proto-ui/types';
+import type { ContextKey } from '@proto.ui/types';
 import { ContextModuleImpl } from '../../src/impl';
 import { CONTEXT_CENTER } from '../../src/center';
 import { makeCaps, createSysCaps } from '../utils/fake-caps';

@@ -1,7 +1,7 @@
 // packages/modules/context/src/impl.ts
-import type { CapsVaultView, ProtoPhase } from '@proto-ui/core';
-import { ModuleBase } from '@proto-ui/modules.base';
-import type { ContextKey, JsonObject } from '@proto-ui/types';
+import type { CapsVaultView, ProtoPhase } from '@proto.ui/core';
+import { ModuleBase } from '@proto.ui/module-base';
+import type { ContextKey, JsonObject } from '@proto.ui/types';
 
 import {
   CONTEXT_INSTANCE_TOKEN_CAP,

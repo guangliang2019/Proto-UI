@@ -1,12 +1,12 @@
 // packages/modules/props/src/types.ts
-import type { PropsBaseType, PropsSpecMap } from '@proto-ui/types';
+import type { PropsBaseType, PropsSpecMap } from '@proto.ui/types';
 import type {
   ModuleInstance,
   PropsDefaults,
   PropsSnapshot,
   Unsubscribe,
   WatchInfo,
-} from '@proto-ui/core';
+} from '@proto.ui/core';
 
 export type RawPropsSource<P extends PropsBaseType> = {
   debugName?: string;

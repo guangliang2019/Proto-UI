@@ -53,7 +53,7 @@ The architecture is stable enough to move from v0 to v1 without destructive rewr
 
 - **Contracts (like RFCs):** `/internal/contracts`
 - **Adapters:** `/packages/adapters`
-- **Prototype libraries (planned):** `/packages/prototype-libs`
+- **Prototype libraries (planned):** `/packages/prototypes`
 - **Docs / website content:** `/apps/www/src/content`
 
 ---

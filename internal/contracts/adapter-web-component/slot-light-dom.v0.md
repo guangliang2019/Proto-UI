@@ -2,7 +2,7 @@
 
 ## Scope
 
-This contract defines **Light DOM** slot projection semantics for `@proto-ui/adapters.web-component` v0.
+This contract defines **Light DOM** slot projection semantics for `@proto.ui/adapters.web-component` v0.
 
 - Applies when `defineWebComponent(proto, { shadow: false })` (default)
 - Applies when template contains **exactly one** `r.r.slot()` (unnamed)

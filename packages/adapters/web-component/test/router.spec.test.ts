@@ -1,6 +1,6 @@
 // @vitest-environment happy-dom
 import { describe, it, expect } from 'vitest';
-import { createWebProtoEventRouter } from '@proto-ui/adapters.base';
+import { createWebProtoEventRouter } from '@proto.ui/adapter-base';
 
 function once(target: EventTarget, type: string) {
   return new Promise<any>((resolve) => {

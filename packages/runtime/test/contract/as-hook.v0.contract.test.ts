@@ -1,11 +1,11 @@
 // packages/runtime/test/contract/as-hook.v0.contract.test.ts
 import { describe, it, expect } from 'vitest';
-import type { Prototype, State } from '@proto-ui/core';
-import { defineAsHook, definePrototype, tw } from '@proto-ui/core';
+import type { Prototype, State } from '@proto.ui/core';
+import { defineAsHook, definePrototype, tw } from '@proto.ui/core';
 import type { RuntimeHost } from '../../src';
 import { executeWithHost } from '../../src';
-import type { PropsBaseType } from '@proto-ui/types';
-import { EVENT_ROOT_TARGET_CAP } from '@proto-ui/modules.event';
+import type { PropsBaseType } from '@proto.ui/types';
+import { EVENT_ROOT_TARGET_CAP } from '@proto.ui/module-event';
 
 /**
  * Runtime Contract (v0): asHook

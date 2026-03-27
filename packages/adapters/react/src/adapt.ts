@@ -1,13 +1,13 @@
-import type { Prototype } from '@proto-ui/core';
-import type { CommitSignal, RuntimeController } from '@proto-ui/runtime';
+import type { Prototype } from '@proto.ui/core';
+import type { CommitSignal, RuntimeController } from '@proto.ui/runtime';
 import {
   createHostWiring,
   createEventGate,
   createWebProtoEventRouter,
-} from '@proto-ui/adapters.base';
-import type { ExposeStateWebMode } from '@proto-ui/modules.expose-state-web';
-import type { RawPropsSource } from '@proto-ui/modules.props';
-import { PropsBaseType } from '@proto-ui/types';
+} from '@proto.ui/adapter-base';
+import type { ExposeStateWebMode } from '@proto.ui/module-expose-state-web';
+import type { RawPropsSource } from '@proto.ui/module-props';
+import { PropsBaseType } from '@proto.ui/types';
 
 import { createDefaultMetaGetter } from './platform/meta';
 import { markProtoInstance } from './platform/instance-tree';

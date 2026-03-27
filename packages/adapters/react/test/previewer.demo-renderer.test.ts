@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { definePrototype } from '@proto-ui/core';
+import { definePrototype } from '@proto.ui/core';
 
 import { registerPrototype } from '../../../../apps/www/src/components/PrototypePreviewer/registry';
 

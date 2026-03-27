@@ -1,6 +1,6 @@
-import type { TestSysPort } from '@proto-ui/modules.test-sys';
+import type { TestSysPort } from '@proto.ui/module-test-sys';
 
-export const __WC_DEBUG_SYS = Symbol.for('@proto-ui/adapters.web-component/__debug_sys');
+export const __WC_DEBUG_SYS = Symbol.for('@proto.ui/adapter-web-component/__debug_sys');
 
 export function installDebugHooks(el: HTMLElement, capsHub: any) {
   try {

@@ -1,0 +1,42 @@
+{
+  "name": "@proto.ui/prototypes-shadcn",
+  "version": "0.0.1",
+  "private": false,
+  "type": "module",
+  "dependencies": {
+    "@proto.ui/core": "workspace:*",
+    "@proto.ui/module-as-trigger": "workspace:*",
+    "@proto.ui/module-event": "workspace:*",
+    "@proto.ui/module-rule-meta": "workspace:*",
+    "@proto.ui/prototypes-base": "workspace:*"
+  },
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "default": "./src/index.ts"
+    }
+  },
+  "description": "shadcn-style Proto UI prototype library for adapter-driven components.",
+  "license": "MIT",
+  "homepage": "https://github.com/guangliang2019/Prototype-UI/tree/main/packages/prototypes/shadcn",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/guangliang2019/Prototype-UI.git",
+    "directory": "packages/prototypes/shadcn"
+  },
+  "bugs": {
+    "url": "https://github.com/guangliang2019/Prototype-UI/issues"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "keywords": [
+    "proto-ui",
+    "proto",
+    "ui",
+    "prototypes",
+    "shadcn",
+    "prototype-library",
+    "shadcn-style"
+  ]
+}

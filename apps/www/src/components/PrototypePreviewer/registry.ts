@@ -1,5 +1,5 @@
 // src/core/preview/registry.ts
-import type { Prototype } from '@proto-ui/core';
+import type { Prototype } from '@proto.ui/core';
 
 // 检测是否在浏览器环境
 const isBrowser = typeof window !== 'undefined';

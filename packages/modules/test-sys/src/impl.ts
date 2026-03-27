@@ -1,5 +1,5 @@
-import type { CapsVaultView } from '@proto-ui/core';
-import { SYS_CAP, type SystemCaps } from '@proto-ui/modules.base';
+import type { CapsVaultView } from '@proto.ui/core';
+import { SYS_CAP, type SystemCaps } from '@proto.ui/module-base';
 import type { SysSnapshot, TestSysPort } from './types';
 
 export class TestSysImpl {

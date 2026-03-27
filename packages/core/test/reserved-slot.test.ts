@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { createRendererPrimitives } from '@proto-ui/core';
+import { createRendererPrimitives } from '@proto.ui/core';
 
 describe('core template reserved slot (v0)', () => {
   it('slot() takes no arguments (named slot not supported)', () => {

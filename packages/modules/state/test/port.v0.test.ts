@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import type { SystemCaps, ExecPhase } from '@proto-ui/modules.base';
+import type { SystemCaps, ExecPhase } from '@proto.ui/module-base';
 import { StateModuleImpl } from '../src/impl';
 
 function createMockSys() {

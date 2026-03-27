@@ -1,7 +1,7 @@
 // packages/runtime/test/contract/props-integration.v0.contract.test.ts
 import { describe, it, expect } from 'vitest';
-import type { PropsBaseType, PropsSpecMap } from '@proto-ui/types';
-import { definePrototype } from '@proto-ui/core';
+import type { PropsBaseType, PropsSpecMap } from '@proto.ui/types';
+import { definePrototype } from '@proto.ui/core';
 import { executeWithHost, RuntimeHost } from '../../src';
 
 function createMockHost<P extends PropsBaseType>(initialRaw: Record<string, any>) {

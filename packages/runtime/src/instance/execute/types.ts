@@ -1,6 +1,6 @@
 // packages/runtime/src/instance/execute/types.ts
-import { TemplateChildren } from '@proto-ui/core';
-import { PropsBaseType } from '@proto-ui/types';
+import { TemplateChildren } from '@proto.ui/core';
+import { PropsBaseType } from '@proto.ui/types';
 import { LifecycleRegistry } from '../../kernel/handles/def';
 import { ModuleOrchestrator } from '../../orchestrator/module-orchestrator';
 

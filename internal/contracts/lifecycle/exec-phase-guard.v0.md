@@ -33,7 +33,7 @@ This contract defines:
   - `"runtime"`: any execution after setup (callbacks / render / host-driven paths).
 
 - **ProtoPhase**: logical lifecycle checkpoint (semantic timeline), controlled by runtime.
-  - v0 set is minimal and comes from `@proto-ui/core`:
+  - v0 set is minimal and comes from `@proto.ui/core`:
     - `"setup"`
     - `"created"`
     - `"mounted"`

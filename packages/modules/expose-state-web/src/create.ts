@@ -1,6 +1,6 @@
 // packages/modules/expose-state-web/src/create.ts
-import { createModule, defineModule } from '@proto-ui/modules.base';
-import type { ModuleFactoryArgs } from '@proto-ui/modules.base';
+import { createModule, defineModule } from '@proto.ui/module-base';
+import type { ModuleFactoryArgs } from '@proto.ui/module-base';
 
 import type { ExposeStateWebFacade, ExposeStateWebModule, ExposeStateWebPort } from './types';
 import { ExposeStateWebModuleImpl } from './impl';

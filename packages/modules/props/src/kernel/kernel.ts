@@ -1,7 +1,7 @@
 // packages/modules/props/src/kernel/kernel.ts
-import type { EmptyBehavior, PropSpec, PropsSpecMap, PropsBaseType } from '@proto-ui/types';
+import type { EmptyBehavior, PropSpec, PropsSpecMap, PropsBaseType } from '@proto.ui/types';
 import { mergeSpecs } from './merge';
-import type { PropsDefaults, PropsSnapshot } from '@proto-ui/core';
+import type { PropsDefaults, PropsSnapshot } from '@proto.ui/core';
 import type { PropsKernelDiag } from '../types';
 import type { PropsResolveMeta } from './types';
 

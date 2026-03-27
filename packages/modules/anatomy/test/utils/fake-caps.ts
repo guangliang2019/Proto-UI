@@ -1,4 +1,4 @@
-import { SYS_CAP } from '@proto-ui/modules.base';
+import { SYS_CAP } from '@proto.ui/module-base';
 import {
   ANATOMY_GET_PROTO_CAP,
   ANATOMY_INSTANCE_TOKEN_CAP,

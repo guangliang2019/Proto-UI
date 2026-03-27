@@ -1,6 +1,6 @@
 // packages/modules/expose-state-web/src/types.ts
-import type { ModuleInstance, ModulePort } from '@proto-ui/core';
-import type { StateSpec } from '@proto-ui/types';
+import type { ModuleInstance, ModulePort } from '@proto.ui/core';
+import type { StateSpec } from '@proto.ui/types';
 
 export type ExposeStateWebFacade = {};
 

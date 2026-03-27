@@ -1,30 +1,30 @@
 // packages/runtime/src/instance/instance.ts
-import type { Prototype, RunHandle, TemplateChildren } from '@proto-ui/core';
-import type { PropsBaseType } from '@proto-ui/types';
+import type { Prototype, RunHandle, TemplateChildren } from '@proto.ui/core';
+import type { PropsBaseType } from '@proto.ui/types';
 
-import { FeedbackModuleDef } from '@proto-ui/modules.feedback';
-import { PropsModuleDef } from '@proto-ui/modules.props';
-import { EventModuleDef } from '@proto-ui/modules.event';
-import { ExposeModuleDef } from '@proto-ui/modules.expose';
-import { AnatomyModuleDef } from '@proto-ui/modules.anatomy';
-import { ExposeStateModuleDef } from '@proto-ui/modules.expose-state';
-import { ExposeStateWebModuleDef } from '@proto-ui/modules.expose-state-web';
-import { RuleExposeStateWebModuleDef } from '@proto-ui/modules.rule-expose-state-web';
-import { RuleMetaModuleDef } from '@proto-ui/modules.rule-meta';
-import { RuleModuleDef } from '@proto-ui/modules.rule';
-import { StateModuleDef } from '@proto-ui/modules.state';
-import { StateInteractionModuleDef } from '@proto-ui/modules.state-interaction';
-import { StateAccessibilityModuleDef } from '@proto-ui/modules.state-accessibility';
-import { ContextModuleDef } from '@proto-ui/modules.context';
-import type { ContextPort } from '@proto-ui/modules.context';
-import { AsTriggerModuleDef } from '@proto-ui/modules.as-trigger';
-import { FocusModuleDef } from '@proto-ui/modules.focus';
-import { OverlayModuleDef } from '@proto-ui/modules.overlay';
-import { __RUN_TEST_SYS, TestSysModuleDef, type TestSysPort } from '@proto-ui/modules.test-sys';
+import { FeedbackModuleDef } from '@proto.ui/module-feedback';
+import { PropsModuleDef } from '@proto.ui/module-props';
+import { EventModuleDef } from '@proto.ui/module-event';
+import { ExposeModuleDef } from '@proto.ui/module-expose';
+import { AnatomyModuleDef } from '@proto.ui/module-anatomy';
+import { ExposeStateModuleDef } from '@proto.ui/module-expose-state';
+import { ExposeStateWebModuleDef } from '@proto.ui/module-expose-state-web';
+import { RuleExposeStateWebModuleDef } from '@proto.ui/module-rule-expose-state-web';
+import { RuleMetaModuleDef } from '@proto.ui/module-rule-meta';
+import { RuleModuleDef } from '@proto.ui/module-rule';
+import { StateModuleDef } from '@proto.ui/module-state';
+import { StateInteractionModuleDef } from '@proto.ui/module-state-interaction';
+import { StateAccessibilityModuleDef } from '@proto.ui/module-state-accessibility';
+import { ContextModuleDef } from '@proto.ui/module-context';
+import type { ContextPort } from '@proto.ui/module-context';
+import { AsTriggerModuleDef } from '@proto.ui/module-as-trigger';
+import { FocusModuleDef } from '@proto.ui/module-focus';
+import { OverlayModuleDef } from '@proto.ui/module-overlay';
+import { __RUN_TEST_SYS, TestSysModuleDef, type TestSysPort } from '@proto.ui/module-test-sys';
 
 import type { ModuleOrchestrator } from '../orchestrator/module-orchestrator';
 import { RuntimeModuleOrchestrator } from '../orchestrator/module-orchestrator';
-import type { ExecPhase } from '@proto-ui/modules.base';
+import type { ExecPhase } from '@proto.ui/module-base';
 import { __RT_EVENT_CALLBACKS } from '../kernel/event';
 
 import { CallbackScope } from './execute/callback-scope';

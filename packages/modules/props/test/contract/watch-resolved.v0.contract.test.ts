@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { PropsModuleImpl } from '../../src/impl';
-import type { PropsSpecMap } from '@proto-ui/types';
+import type { PropsSpecMap } from '@proto.ui/types';
 
 /**
  * Watch Resolved Contract v0
