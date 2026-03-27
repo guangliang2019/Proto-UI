@@ -1,11 +1,11 @@
 // packages/modules/expose-state-web/src/impl.ts
-import type { CapsVaultView, ProtoPhase } from '@proto-ui/core';
-import { ModuleBase } from '@proto-ui/modules.base';
-import type { ModuleDeps } from '@proto-ui/modules.base';
-import type { StateSpec } from '@proto-ui/types';
+import type { CapsVaultView, ProtoPhase } from '@proto.ui/core';
+import { ModuleBase } from '@proto.ui/module-base';
+import type { ModuleDeps } from '@proto.ui/module-base';
+import type { StateSpec } from '@proto.ui/types';
 
-import type { ExposeStatePort } from '@proto-ui/modules.expose-state';
-import type { ExposeStateExternalHandle } from '@proto-ui/modules.expose-state';
+import type { ExposeStatePort } from '@proto.ui/module-expose-state';
+import type { ExposeStateExternalHandle } from '@proto.ui/module-expose-state';
 
 import {
   EXPOSE_STATE_WEB_MAP_CAP,

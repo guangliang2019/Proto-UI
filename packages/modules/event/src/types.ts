@@ -1,7 +1,7 @@
 // packages/modules/event/src/types.ts
-import type { ModuleInstance } from '@proto-ui/core';
-import type { ModulePort } from '@proto-ui/core';
-import { EventListenerToken, EventTypeV0, ExposeEventSpec } from '@proto-ui/types';
+import type { ModuleInstance } from '@proto.ui/core';
+import type { ModulePort } from '@proto.ui/core';
+import { EventListenerToken, EventTypeV0, ExposeEventSpec } from '@proto.ui/types';
 
 export type EventDispatch = (id: string, ev: any) => void;
 

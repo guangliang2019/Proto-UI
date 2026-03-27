@@ -1,5 +1,5 @@
 // packages/modules/event/src/kernel.ts
-import { EventTypeV0 } from '@proto-ui/types';
+import { EventTypeV0 } from '@proto.ui/types';
 import type { EventDiag, EventDispatch } from './types';
 
 type TargetKind = 'root' | 'global';

@@ -1,4 +1,4 @@
-import type { EffectsPort, StyleHandle } from '@proto-ui/core';
+import type { EffectsPort, StyleHandle } from '@proto.ui/core';
 
 import { type OwnedTokenApplier } from '../feedback-style';
 

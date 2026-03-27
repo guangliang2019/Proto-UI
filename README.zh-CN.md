@@ -53,7 +53,7 @@ v0 用 Adapter 验证可行性，v1 将用 Compiler 保证零运行时开销。
 
 - **契约（类似 RFC）：** `/internal/contracts`
 - **Adapters：** `/packages/adapters`
-- **Prototype libs（计划中）：** `/packages/prototype-libs`
+- **Prototype libs（计划中）：** `/packages/prototypes`
 - **官网/文档内容：** `/apps/www/src/content`
 
 ---

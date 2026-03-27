@@ -1,7 +1,7 @@
 // packages/modules/props/test/contract/props.meta.empty-accept.v0.contract.test.ts
 import { describe, it, expect } from 'vitest';
 import { PropsKernel } from '../../src/kernel/kernel';
-import type { PropsSpecMap } from '@proto-ui/types';
+import type { PropsSpecMap } from '@proto.ui/types';
 
 type P = {
   disabled: boolean | null; // author explicitly allows null

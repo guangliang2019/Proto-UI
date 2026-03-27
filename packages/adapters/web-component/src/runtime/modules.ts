@@ -1,7 +1,7 @@
-import { createCapsWiring } from '@proto-ui/adapters.base';
-import type { EffectsPort } from '@proto-ui/core';
-import { type RawPropsSource } from '@proto-ui/modules.props';
-import { type PropsBaseType } from '@proto-ui/types';
+import { createCapsWiring } from '@proto.ui/adapter-base';
+import type { EffectsPort } from '@proto.ui/core';
+import { type RawPropsSource } from '@proto.ui/module-props';
+import { type PropsBaseType } from '@proto.ui/types';
 
 import {
   createWebComponentNameMap,

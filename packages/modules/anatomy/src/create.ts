@@ -1,6 +1,6 @@
-import { createModule, defineModule } from '@proto-ui/modules.base';
-import type { ModuleFactoryArgs } from '@proto-ui/modules.base';
-import type { ExposePort } from '@proto-ui/modules.expose';
+import { createModule, defineModule } from '@proto.ui/module-base';
+import type { ModuleFactoryArgs } from '@proto.ui/module-base';
+import type { ExposePort } from '@proto.ui/module-expose';
 
 import type { AnatomyFacade, AnatomyModule, AnatomyPort } from './types';
 import { AnatomyModuleImpl } from './impl';

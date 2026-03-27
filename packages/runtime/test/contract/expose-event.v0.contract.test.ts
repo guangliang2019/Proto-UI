@@ -1,9 +1,9 @@
 import { describe, it, expect } from 'vitest';
-import type { Prototype } from '@proto-ui/core';
+import type { Prototype } from '@proto.ui/core';
 import type { RuntimeHost } from '../../src';
 import { executeWithHost } from '../../src';
-import { EVENT_EMIT_CAP } from '@proto-ui/modules.event';
-import { EXPOSE_SET_EXPOSES_CAP } from '@proto-ui/modules.expose';
+import { EVENT_EMIT_CAP } from '@proto.ui/module-event';
+import { EXPOSE_SET_EXPOSES_CAP } from '@proto.ui/module-expose';
 
 function createMockHost() {
   const emitted: Array<{ key: string; payload: any; options: any }> = [];

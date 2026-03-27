@@ -8,7 +8,7 @@ import {
   PropsBaseType,
   PropsSpecMap,
   StateEvent,
-} from '@proto-ui/types';
+} from '@proto.ui/types';
 import {
   UnUse,
   StyleHandle,

@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import type { Prototype } from '@proto-ui/core';
-import { tw } from '@proto-ui/core';
+import type { Prototype } from '@proto.ui/core';
+import { tw } from '@proto.ui/core';
 import { executeWithHost, RuntimeHost } from '../../src';
 
 describe('runtime: feedback.style.setup-only v0', () => {

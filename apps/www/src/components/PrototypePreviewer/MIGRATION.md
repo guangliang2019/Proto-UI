@@ -19,7 +19,7 @@ v3 引入了按需动态加载机制，带来以下优势：
 
 ```typescript
 // demo-inline.demo.proto.ts
-import { definePrototype } from '@proto-ui/core';
+import { definePrototype } from '@proto.ui/core';
 
 const DemoInline = definePrototype({
   name: 'demo-inline',

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import type { Prototype } from '@proto-ui/core';
-import { tw } from '@proto-ui/core';
+import type { Prototype } from '@proto.ui/core';
+import { tw } from '@proto.ui/core';
 import type { RuntimeHost } from '../../src';
 import { executeWithHost } from '../../src';
 

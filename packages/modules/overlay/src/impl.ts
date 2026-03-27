@@ -10,10 +10,10 @@ import type {
   OverlayPlacement,
   OverlayReason,
   OverlayRegistration,
-} from '@proto-ui/core';
-import { illegalPhase } from '@proto-ui/core';
-import { ModuleBase } from '@proto-ui/modules.base';
-import type { StateEvent } from '@proto-ui/types';
+} from '@proto.ui/core';
+import { illegalPhase } from '@proto.ui/core';
+import { ModuleBase } from '@proto.ui/module-base';
+import type { StateEvent } from '@proto.ui/types';
 
 const DEFAULT_CONFIG: OverlayConfig = Object.freeze({
   defaultOpen: false,

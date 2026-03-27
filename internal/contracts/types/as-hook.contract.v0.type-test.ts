@@ -1,4 +1,4 @@
-import type { AsHookResult, State } from '@proto-ui/core';
+import type { AsHookResult, State } from '@proto.ui/core';
 
 type Props = { disabled?: boolean };
 

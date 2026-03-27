@@ -1,5 +1,5 @@
 // packages/adapters/web-component/src/style.ts
-import type { TemplateStyleHandle } from '@proto-ui/core';
+import type { TemplateStyleHandle } from '@proto.ui/core';
 
 export type TwResolver = (tokens: string) => string; // returns cssText for v0
 

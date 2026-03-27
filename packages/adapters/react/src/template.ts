@@ -6,7 +6,7 @@ import {
   type TemplateNode,
   type TemplateType,
   type ReservedType,
-} from '@proto-ui/core';
+} from '@proto.ui/core';
 
 export const ERR_TEMPLATE_PROTOTYPE_REF_V0 =
   '[Template] PrototypeRef is not allowed in Template v0.';

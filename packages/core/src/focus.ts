@@ -1,4 +1,4 @@
-import type { PropsBaseType } from '@proto-ui/types';
+import type { PropsBaseType } from '@proto.ui/types';
 import type { ObservedStateHandle } from './state';
 
 export type FocusScopeMeta = Readonly<{
@@ -23,14 +23,14 @@ export type FocusGroupKey = Readonly<{
 
 export function createFocusScopeKey(meta?: FocusScopeMeta): FocusScopeKey {
   return Object.freeze({
-    id: Symbol(meta?.debugLabel ?? '@proto-ui/focus-scope'),
+    id: Symbol(meta?.debugLabel ?? '@proto.ui/focus-scope'),
     meta: meta ? Object.freeze({ ...meta }) : undefined,
   });
 }
 
 export function createFocusGroupKey(meta?: FocusGroupMeta): FocusGroupKey {
   return Object.freeze({
-    id: Symbol(meta?.debugLabel ?? '@proto-ui/focus-group'),
+    id: Symbol(meta?.debugLabel ?? '@proto.ui/focus-group'),
     meta: meta ? Object.freeze({ ...meta }) : undefined,
   });
 }

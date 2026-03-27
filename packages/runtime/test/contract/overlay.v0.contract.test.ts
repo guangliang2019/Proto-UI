@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { asOverlay, definePrototype, type OverlayHandle } from '@proto-ui/core';
+import { asOverlay, definePrototype, type OverlayHandle } from '@proto.ui/core';
 import type { RuntimeHost } from '../../src';
 import { executeWithHost } from '../../src';
-import type { OverlayPort } from '@proto-ui/modules.overlay';
-import type { PropsBaseType } from '@proto-ui/types';
+import type { OverlayPort } from '@proto.ui/module-overlay';
+import type { PropsBaseType } from '@proto.ui/types';
 
 const createHost = <P extends PropsBaseType>(name: string) => {
   const host: RuntimeHost<P> = {

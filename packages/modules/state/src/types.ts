@@ -1,11 +1,11 @@
-import type { ModuleInstance, OwnedStateHandle, Unsubscribe } from '@proto-ui/core';
+import type { ModuleInstance, OwnedStateHandle, Unsubscribe } from '@proto.ui/core';
 import type {
   EnumStateDefineSpec,
   StringStateDefineSpec,
   NumberRangeStateDefineSpec,
   NumberDiscreteStateDefineSpec,
   StateEvent,
-} from '@proto-ui/types';
+} from '@proto.ui/types';
 
 export type InternalStateWatchCallback<V> = (ctx: unknown, e: StateEvent<V>) => void;
 

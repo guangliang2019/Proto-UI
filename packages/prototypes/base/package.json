@@ -1,0 +1,41 @@
+{
+  "name": "@proto.ui/prototypes-base",
+  "version": "0.0.1",
+  "private": false,
+  "type": "module",
+  "dependencies": {
+    "@proto.ui/core": "workspace:*",
+    "@proto.ui/module-as-trigger": "workspace:*",
+    "@proto.ui/module-event": "workspace:*",
+    "@proto.ui/module-expose": "workspace:*",
+    "@proto.ui/module-focus": "workspace:*"
+  },
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "default": "./src/index.ts"
+    }
+  },
+  "description": "Base Proto UI prototype library for reusable interaction prototypes.",
+  "license": "MIT",
+  "homepage": "https://github.com/guangliang2019/Prototype-UI/tree/main/packages/prototypes/base",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/guangliang2019/Prototype-UI.git",
+    "directory": "packages/prototypes/base"
+  },
+  "bugs": {
+    "url": "https://github.com/guangliang2019/Prototype-UI/issues"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "keywords": [
+    "proto-ui",
+    "proto",
+    "ui",
+    "prototypes",
+    "base",
+    "prototype-library"
+  ]
+}

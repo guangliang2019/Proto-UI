@@ -1,7 +1,7 @@
 // packages/modules/rule/src/intent-builder.ts
 import type { IntentBuilder, RuleIntent, RuleOp, StateIntentBuilder } from './types';
-import type { StyleHandle, OwnedStateHandle, BorrowedStateHandle } from '@proto-ui/core';
-import type { PropsBaseType } from '@proto-ui/types';
+import type { StyleHandle, OwnedStateHandle, BorrowedStateHandle } from '@proto.ui/core';
+import type { PropsBaseType } from '@proto.ui/types';
 
 export function createIntentBuilder() {
   const ops: RuleOp[] = [];

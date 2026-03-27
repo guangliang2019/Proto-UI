@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { AdaptToWebComponent } from '../src/adapt';
-import { definePrototype, tw } from '@proto-ui/core';
+import { definePrototype, tw } from '@proto.ui/core';
 
 describe('adapter-web-component: intra-document move', () => {
   it('does not dispose a mounted custom element when it is synchronously moved within the document', async () => {

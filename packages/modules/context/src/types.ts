@@ -1,6 +1,6 @@
 // packages/modules/context/src/types.ts
-import type { ModuleInstance, Unsubscribe } from '@proto-ui/core';
-import type { ContextKey, JsonObject } from '@proto-ui/types';
+import type { ModuleInstance, Unsubscribe } from '@proto.ui/core';
+import type { ContextKey, JsonObject } from '@proto.ui/types';
 import type { ContextInstanceToken } from './caps';
 
 export type ContextCallbackCtx = unknown;

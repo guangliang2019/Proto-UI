@@ -5,11 +5,11 @@ import {
   createFocusGroupKey,
   definePrototype,
   type FocusGroupHandle,
-} from '@proto-ui/core';
+} from '@proto.ui/core';
 import type { RuntimeHost } from '../../src';
 import { executeWithHost } from '../../src';
-import type { FocusPort } from '@proto-ui/modules.focus';
-import type { PropsBaseType } from '@proto-ui/types';
+import type { FocusPort } from '@proto.ui/module-focus';
+import type { PropsBaseType } from '@proto.ui/types';
 
 const createHost = <P extends PropsBaseType>(name: string) => {
   const host: RuntimeHost<P> = {

@@ -9,13 +9,13 @@ import type {
   DefHandle,
   RenderFn,
   RunHandle,
-} from '@proto-ui/core';
-import { __AS_HOOK_RUNTIME as AS_HOOK_RT } from '@proto-ui/core';
-import type { PropsBaseType } from '@proto-ui/types';
-import type { StatePort } from '@proto-ui/modules.state';
+} from '@proto.ui/core';
+import { __AS_HOOK_RUNTIME as AS_HOOK_RT } from '@proto.ui/core';
+import type { PropsBaseType } from '@proto.ui/types';
+import type { StatePort } from '@proto.ui/module-state';
 import { illegalPhase } from './guard';
 
-const TRACE_INTERNAL = Symbol.for('@proto-ui/asHook/trace-internal');
+const TRACE_INTERNAL = Symbol.for('@proto.ui/asHook/trace-internal');
 
 type TraceStore = {
   entries: AsHookTraceEntry[];

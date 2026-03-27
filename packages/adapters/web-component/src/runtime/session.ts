@@ -1,7 +1,7 @@
-import { createAdapterHost, createHostWiring } from '@proto-ui/adapters.base';
-import type { Prototype, TemplateChildren } from '@proto-ui/core';
-import { type RawPropsSource } from '@proto-ui/modules.props';
-import { type PropsBaseType } from '@proto-ui/types';
+import { createAdapterHost, createHostWiring } from '@proto.ui/adapter-base';
+import type { Prototype, TemplateChildren } from '@proto.ui/core';
+import { type RawPropsSource } from '@proto.ui/module-props';
+import { type PropsBaseType } from '@proto.ui/types';
 
 import { commitChildren } from '../commit';
 import { SlotProjector } from '../slot-projector';

@@ -1,6 +1,6 @@
 // packages/adapters/web-component/test/contract/event.router.gate.v0.contract.test.ts
 import { describe, it, expect } from 'vitest';
-import { createWebProtoEventRouter } from '@proto-ui/adapters.base';
+import { createWebProtoEventRouter } from '@proto.ui/adapter-base';
 
 describe('contract: adapter-web-component / event router gate (v0)', () => {
   it('when gate disabled, proto semantic events must not be emitted', () => {

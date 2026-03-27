@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { createAnatomyFamily, type Prototype } from '@proto-ui/core';
+import { createAnatomyFamily, type Prototype } from '@proto.ui/core';
 import { AnatomyModuleImpl } from '../src/impl';
 import { makeCaps, createSysCaps } from './utils/fake-caps';
 

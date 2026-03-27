@@ -1,6 +1,6 @@
 import { it, expect } from 'vitest';
 import { AdaptToWebComponent } from '../src/adapt';
-import { tw } from '@proto-ui/core';
+import { tw } from '@proto.ui/core';
 
 it('template-props style(tw) does not throw, and is ignored by default without resolver', async () => {
   AdaptToWebComponent({

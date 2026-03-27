@@ -10,8 +10,8 @@ import {
   TemplateChildren,
   __AS_HOOK_CURRENT_DEF,
   __AS_HOOK_PRIV_FACADES,
-} from '@proto-ui/core';
-import { PropsBaseType } from '@proto-ui/types';
+} from '@proto.ui/core';
+import { PropsBaseType } from '@proto.ui/types';
 import {
   createDefHandle,
   createLifecycleRegistry,
@@ -19,10 +19,10 @@ import {
   LifecycleRegistry,
   type EventCallbacksSink,
 } from './handles';
-import type { RuleFacade } from '@proto-ui/modules.rule';
+import type { RuleFacade } from '@proto.ui/module-rule';
 import type { ModuleOrchestratorFacadeView } from '../orchestrator/module-orchestrator/types';
-import type { PropsFacade } from '@proto-ui/modules.props';
-import type { ExecPhase } from '@proto-ui/modules.base';
+import type { PropsFacade } from '@proto.ui/module-props';
+import type { ExecPhase } from '@proto.ui/module-base';
 import type { RuntimeTimeline } from './timeline';
 import { attachAsHookRuntime } from './as-hook';
 
@@ -90,7 +90,11 @@ export function createKernel<P extends PropsBaseType>(
   } finally {
     (globalThis as any)[__AS_HOOK_CURRENT_DEF] = undefined;
   }
-  const renderFn: RenderFn = maybeRender ?? ((renderer) => [renderer.r.slot()]);
+  const defaultRender: RenderFn = (renderer) => [renderer.r.slot()];
+  let renderFn: RenderFn = defaultRender;
+  if (typeof maybeRender === 'function') {
+    renderFn = maybeRender;
+  }
   setPhase('unknown');
 
   // ----------------

@@ -59,7 +59,7 @@
 
 **ProtoPhase** 表示由 runtime 控制的**逻辑生命周期检查点**（semantic timeline）。
 
-v0 的 ProtoPhase 集合由 `@proto-ui/core` 定义，最小集合为：
+v0 的 ProtoPhase 集合由 `@proto.ui/core` 定义，最小集合为：
 
 - `"setup"`
 - `"created"`

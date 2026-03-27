@@ -1,5 +1,5 @@
 // packages/modules/rule/src/types.ts
-import type { PropsBaseType } from '@proto-ui/types';
+import type { PropsBaseType } from '@proto.ui/types';
 import type {
   ModuleInstance,
   ModuleFacade,
@@ -7,7 +7,7 @@ import type {
   StyleHandle,
   OwnedStateHandle,
   BorrowedStateHandle,
-} from '@proto-ui/core';
+} from '@proto.ui/core';
 
 export type RuleHandle = {
   readonly id: number;

@@ -1,12 +1,12 @@
 // packages/runtime/src/instance/execute/with-host.ts
-import { Prototype, RunHandle } from '@proto-ui/core';
-import { PropsBaseType } from '@proto-ui/types';
+import { Prototype, RunHandle } from '@proto.ui/core';
+import { PropsBaseType } from '@proto.ui/types';
 import { RuntimeHost } from '../host';
 import { ExecuteWithHostResult, RuntimeController } from './types';
 import { createTimeline } from '../../kernel/timeline';
-import type { PropsFacade, PropsPort } from '@proto-ui/modules.props';
-import type { RulePort } from '@proto-ui/modules.rule';
-import { EventPort } from '@proto-ui/modules.event';
+import type { PropsFacade, PropsPort } from '@proto.ui/module-props';
+import type { RulePort } from '@proto.ui/module-rule';
+import { EventPort } from '@proto.ui/module-event';
 import { __RT_EVENT_CALLBACKS } from '../../kernel/event';
 import { createRuntimeInstance } from '../instance';
 

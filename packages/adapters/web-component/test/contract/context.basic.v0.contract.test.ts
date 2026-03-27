@@ -1,8 +1,8 @@
 // packages/adapters/web-component/test/contract/context.basic.v0.contract.test.ts
 import { describe, it, expect } from 'vitest';
-import type { Prototype } from '@proto-ui/core';
-import type { ContextKey } from '@proto-ui/types';
-import { AdaptToWebComponent } from '@proto-ui/adapters.web-component';
+import type { Prototype } from '@proto.ui/core';
+import type { ContextKey } from '@proto.ui/types';
+import { AdaptToWebComponent } from '@proto.ui/adapter-web-component';
 
 const KEY = { __brand: 'ContextKey', debugName: 'ctx' } as ContextKey<{ value: number }>;
 

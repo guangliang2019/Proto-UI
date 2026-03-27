@@ -1,4 +1,4 @@
-import { cap, type ProtoPhase } from '@proto-ui/core';
+import { cap, type ProtoPhase } from '@proto.ui/core';
 
 export type ExecPhase = 'setup' | 'render' | 'callback' | 'unknown';
 export type GuardDomain = 'setup' | 'runtime';
@@ -40,4 +40,4 @@ export interface SystemCaps {
   getCallbackCtx(): unknown;
 }
 
-export const SYS_CAP = cap<SystemCaps>('@proto-ui/__sys');
+export const SYS_CAP = cap<SystemCaps>('@proto.ui/__sys');

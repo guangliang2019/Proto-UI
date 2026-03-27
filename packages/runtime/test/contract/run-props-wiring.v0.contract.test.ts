@@ -1,6 +1,6 @@
 // packages/runtime/test/contracts/run-props-wiring.v0.contract.test.ts
 import { describe, it, expect } from 'vitest';
-import type { Prototype } from '@proto-ui/core';
+import type { Prototype } from '@proto.ui/core';
 import { executeWithHost, RuntimeHost } from '../../src';
 
 /**

@@ -1,6 +1,6 @@
-import { setElementProps } from '@proto-ui/adapters.web-component';
-import { createReactAdapter } from '@proto-ui/adapters.react';
-import { createVueAdapter } from '@proto-ui/adapters.vue';
+import { setElementProps } from '@proto.ui/adapter-web-component';
+import { createReactAdapter } from '@proto.ui/adapter-react';
+import { createVueAdapter } from '@proto.ui/adapter-vue';
 import { getPrototype } from './registry';
 import { loadReact } from './runtimes/react-runtime';
 import { loadVue } from './runtimes/vue-runtime';

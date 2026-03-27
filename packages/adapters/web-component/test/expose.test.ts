@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import type { Prototype } from '@proto-ui/core';
-import { AdaptToWebComponent } from '@proto-ui/adapters.web-component';
+import type { Prototype } from '@proto.ui/core';
+import { AdaptToWebComponent } from '@proto.ui/adapter-web-component';
 
 describe('adapter-web-component expose wiring', () => {
   it('provides getExposes() for App Maker and wires expose sink', () => {

@@ -1,19 +1,41 @@
 {
-  "name": "@proto-ui/modules.expose-state",
-  "version": "0.0.0",
-  "private": true,
+  "name": "@proto.ui/module-expose-state",
+  "version": "0.0.1",
+  "private": false,
   "type": "module",
   "dependencies": {
-    "@proto-ui/core": "workspace:*",
-    "@proto-ui/types": "workspace:*",
-    "@proto-ui/modules.base": "workspace:*",
-    "@proto-ui/modules.expose": "workspace:*",
-    "@proto-ui/modules.state": "workspace:*"
+    "@proto.ui/core": "workspace:*",
+    "@proto.ui/types": "workspace:*",
+    "@proto.ui/module-base": "workspace:*",
+    "@proto.ui/module-expose": "workspace:*",
+    "@proto.ui/module-state": "workspace:*"
   },
   "exports": {
     ".": {
       "types": "./src/index.ts",
       "default": "./src/index.ts"
     }
-  }
+  },
+  "description": "Proto UI module that provides state expose capability for adapters.",
+  "license": "MIT",
+  "homepage": "https://github.com/guangliang2019/Prototype-UI/tree/main/packages/modules/expose-state",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/guangliang2019/Prototype-UI.git",
+    "directory": "packages/modules/expose-state"
+  },
+  "bugs": {
+    "url": "https://github.com/guangliang2019/Prototype-UI/issues"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "keywords": [
+    "proto-ui",
+    "proto",
+    "ui",
+    "module",
+    "expose",
+    "state"
+  ]
 }

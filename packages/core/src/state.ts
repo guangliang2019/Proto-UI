@@ -8,7 +8,7 @@ import {
   StateSpec,
   StateSetReason,
   StringStateDefineSpec,
-} from '@proto-ui/types';
+} from '@proto.ui/types';
 import { StateSubscribeCallback, StateWatchCallback } from './handles';
 
 export type Unsubscribe = () => void;
@@ -45,7 +45,7 @@ export interface ObservedStateHandle<V, P extends PropsBaseType> {
 }
 
 // ---- App-maker side projection (expose + state joint API) ----
-// 这个建议放 @proto-ui/types 也行，但放 core 也不破依赖图；
+// 这个建议放 @proto.ui/types 也行，但放 core 也不破依赖图；
 // 不过 types 更适合作为 Exposes 泛型的公共约束。
 // 先写 core 里版本，后续你决定挪走。
 export interface ExposedStateHandle<V> {

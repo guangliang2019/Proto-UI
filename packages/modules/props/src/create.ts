@@ -1,7 +1,7 @@
 // packages/modules/props/src/create.ts
-import { createModule, defineModule } from '@proto-ui/modules.base';
-import type { ModuleFactoryArgs } from '@proto-ui/modules.base';
-import type { PropsBaseType } from '@proto-ui/types';
+import { createModule, defineModule } from '@proto.ui/module-base';
+import type { ModuleFactoryArgs } from '@proto.ui/module-base';
+import type { PropsBaseType } from '@proto.ui/types';
 
 import type { PropsFacade, PropsModule, PropsPort } from './types';
 import { PropsModuleImpl } from './impl';

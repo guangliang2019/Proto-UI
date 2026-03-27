@@ -1,4 +1,4 @@
-import type { ModuleInstance, ModulePort } from '@proto-ui/core';
+import type { ModuleInstance, ModulePort } from '@proto.ui/core';
 
 export type RuleExposeStateWebFacade = {};
 

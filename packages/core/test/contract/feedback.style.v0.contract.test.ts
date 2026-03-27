@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { FeedbackStyleRecorder, tw } from '@proto-ui/core';
+import { FeedbackStyleRecorder, tw } from '@proto.ui/core';
 
 describe('core: feedback.style v0 contract', () => {
   it('records tw handles and exports merged tokens deterministically', () => {

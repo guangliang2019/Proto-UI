@@ -1,8 +1,8 @@
 // packages/modules/expose/src/impl.ts
-import type { ProtoPhase, CapsVaultView } from '@proto-ui/core';
-import { illegalPhase } from '@proto-ui/core';
+import type { ProtoPhase, CapsVaultView } from '@proto.ui/core';
+import { illegalPhase } from '@proto.ui/core';
 
-import { ModuleBase } from '@proto-ui/modules.base';
+import { ModuleBase } from '@proto.ui/module-base';
 
 import { EXPOSE_SET_EXPOSES_CAP } from './caps';
 import { ExposeKernel } from './kernel';

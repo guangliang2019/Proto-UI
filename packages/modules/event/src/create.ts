@@ -1,6 +1,6 @@
 // packages/modules/event/src/create.ts
-import { createModule, defineModule } from '@proto-ui/modules.base';
-import type { ModuleFactoryArgs } from '@proto-ui/modules.base';
+import { createModule, defineModule } from '@proto.ui/module-base';
+import type { ModuleFactoryArgs } from '@proto.ui/module-base';
 
 import type { EventFacade, EventModule, EventPort } from './types';
 import { EventModuleImpl } from './impl';

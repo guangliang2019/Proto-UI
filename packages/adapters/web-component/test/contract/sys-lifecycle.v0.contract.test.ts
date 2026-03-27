@@ -1,7 +1,7 @@
 // packages/adapters/web-component/test/contract/sys-lifecycle.v0.contract.test.ts
 import { describe, it, expect } from 'vitest';
-import type { Prototype } from '@proto-ui/core';
-import { AdaptToWebComponent, __WC_DEBUG_SYS } from '@proto-ui/adapters.web-component';
+import type { Prototype } from '@proto.ui/core';
+import { AdaptToWebComponent, __WC_DEBUG_SYS } from '@proto.ui/adapter-web-component';
 
 type SysPortLike = {
   snapshot?: () => {

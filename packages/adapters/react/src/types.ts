@@ -1,5 +1,5 @@
-import type { AsHookCaller, ExposeEvent, ExposeOf, Prototype } from '@proto-ui/core';
-import type { PropsBaseType } from '@proto-ui/types';
+import type { AsHookCaller, ExposeEvent, ExposeOf, Prototype } from '@proto.ui/core';
+import type { PropsBaseType } from '@proto.ui/types';
 
 type ProtoLike = Prototype<any, any> | AsHookCaller<any, any, any>;
 

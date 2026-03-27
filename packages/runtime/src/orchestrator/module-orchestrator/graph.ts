@@ -1,5 +1,5 @@
 // packages/runtime/src/orchestrator/module-orchestrator/graph.ts
-import type { ModuleDef } from '@proto-ui/modules.base';
+import type { ModuleDef } from '@proto.ui/module-base';
 
 export type ModuleDepsSpec = {
   hard: Set<string>;

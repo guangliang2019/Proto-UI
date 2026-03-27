@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { tw } from '@proto-ui/core';
+import { tw } from '@proto.ui/core';
 
 import { AdaptToWebComponent } from '../src/adapt';
 

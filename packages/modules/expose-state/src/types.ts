@@ -1,6 +1,6 @@
 // packages/modules/expose-state/src/types.ts
-import type { ModuleInstance, ModulePort, Unsubscribe } from '@proto-ui/core';
-import type { StateEvent, StateSpec } from '@proto-ui/types';
+import type { ModuleInstance, ModulePort, Unsubscribe } from '@proto.ui/core';
+import type { StateEvent, StateSpec } from '@proto.ui/types';
 
 export type ExposeStateExternalHandle<V = any> = {
   get(): V;

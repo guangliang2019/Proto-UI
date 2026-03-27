@@ -1,6 +1,6 @@
-import type { Prototype } from '@proto-ui/core';
+import type { Prototype } from '@proto.ui/core';
 
-export const __REACT_PROTO_INSTANCE = Symbol.for('@proto-ui/adapters.react/__proto_instance');
+export const __REACT_PROTO_INSTANCE = Symbol.for('@proto.ui/adapter-react/__proto_instance');
 
 const PROTO_BY_INSTANCE = new WeakMap<HTMLElement, Prototype<any>>();
 

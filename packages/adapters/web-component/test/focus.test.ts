@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { definePrototype } from '@proto-ui/core';
-import { AdaptToWebComponent } from '@proto-ui/adapters.web-component';
-import { asButton } from '../../../prototype-libs/base/src/button/as-button';
+import { definePrototype } from '@proto.ui/core';
+import { AdaptToWebComponent } from '@proto.ui/adapter-web-component';
+import { asButton } from '../../../prototypes/base/src/button/as-button';
 
 describe('adapter-web-component focus wiring', () => {
   it('makes asButton host focusable and syncs focus/blur to exposes', () => {

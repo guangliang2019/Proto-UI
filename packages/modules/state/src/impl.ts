@@ -1,6 +1,6 @@
-import type { OwnedStateHandle } from '@proto-ui/core';
-import type { SystemCaps } from '@proto-ui/modules.base';
-import type { StateEvent, StateSetReason } from '@proto-ui/types';
+import type { OwnedStateHandle } from '@proto.ui/core';
+import type { SystemCaps } from '@proto.ui/module-base';
+import type { StateEvent, StateSetReason } from '@proto.ui/types';
 
 import { StateKernel } from './kernel';
 import type { InternalStateWatchCallback, StateFacade, StatePort } from './types';

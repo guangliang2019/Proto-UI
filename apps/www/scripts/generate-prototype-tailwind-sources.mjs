@@ -6,7 +6,7 @@ import ts from 'typescript';
 const SCRIPT_DIR = path.dirname(fileURLToPath(import.meta.url));
 const APP_ROOT = path.resolve(SCRIPT_DIR, '..');
 const REPO_ROOT = path.resolve(SCRIPT_DIR, '..', '..', '..');
-const PROTOTYPE_LIBS_DIR = path.join(REPO_ROOT, 'packages', 'prototype-libs');
+const PROTOTYPE_LIBS_DIR = path.join(REPO_ROOT, 'packages', 'prototypes');
 const OUTPUT_FILE = path.join(APP_ROOT, 'src', 'styles', 'prototype-tokens.generated.css');
 
 async function main() {

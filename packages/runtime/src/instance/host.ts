@@ -1,6 +1,6 @@
 // packages/runtime/src/instance/host.ts
-import type { TemplateChildren } from '@proto-ui/core';
-import type { PropsBaseType } from '@proto-ui/types';
+import type { TemplateChildren } from '@proto.ui/core';
+import type { PropsBaseType } from '@proto.ui/types';
 import type { ModuleWiring } from '../orchestrator/module-orchestrator';
 
 export type CommitSignal = {

@@ -1,16 +1,16 @@
 // packages/runtime/test/contract/as-trigger.v0.contract.test.ts
 import { describe, it, expect } from 'vitest';
-import { definePrototype, asTrigger } from '@proto-ui/core';
-import type { Prototype } from '@proto-ui/core';
+import { definePrototype, asTrigger } from '@proto.ui/core';
+import type { Prototype } from '@proto.ui/core';
 import type { RuntimeHost } from '../../src';
 import { executeWithHost } from '../../src';
-import type { PropsBaseType } from '@proto-ui/types';
-import { EVENT_ROOT_TARGET_CAP, EVENT_GLOBAL_TARGET_CAP } from '@proto-ui/modules.event';
+import type { PropsBaseType } from '@proto.ui/types';
+import { EVENT_ROOT_TARGET_CAP, EVENT_GLOBAL_TARGET_CAP } from '@proto.ui/module-event';
 import {
   AS_TRIGGER_INSTANCE_CAP,
   AS_TRIGGER_PARENT_CAP,
   AS_TRIGGER_GET_PROTO_CAP,
-} from '@proto-ui/modules.as-trigger';
+} from '@proto.ui/module-as-trigger';
 
 class FakeTarget implements EventTarget {
   readonly logs: string[] = [];

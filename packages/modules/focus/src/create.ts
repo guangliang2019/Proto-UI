@@ -14,12 +14,12 @@ import {
   FocusableConfigPatch,
   FocusableHandle,
   ObservedStateHandle,
-} from '@proto-ui/core';
-import { createModule, defineModule, ModuleBase } from '@proto-ui/modules.base';
-import type { ModuleFactoryArgs } from '@proto-ui/modules.base';
-import type { PropsBaseType } from '@proto-ui/types';
+} from '@proto.ui/core';
+import { createModule, defineModule, ModuleBase } from '@proto.ui/module-base';
+import type { ModuleFactoryArgs } from '@proto.ui/module-base';
+import type { PropsBaseType } from '@proto.ui/types';
 import type { FocusFacade, FocusModule, FocusPort } from './types';
-import type { StateEvent } from '@proto-ui/types';
+import type { StateEvent } from '@proto.ui/types';
 import {
   FOCUS_BLUR_CAP,
   FOCUS_INSTANCE_TOKEN_CAP,

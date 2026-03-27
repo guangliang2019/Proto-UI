@@ -1,6 +1,6 @@
 // packages/runtime/test/contract/exec-phase-guard.v0.contract.test.ts
 import { describe, it, expect } from 'vitest';
-import type { Prototype, OwnedStateHandle } from '@proto-ui/core';
+import type { Prototype, OwnedStateHandle } from '@proto.ui/core';
 import { executeWithHost, RuntimeHost } from '../../src';
 
 /**

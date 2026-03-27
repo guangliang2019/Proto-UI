@@ -6,7 +6,7 @@ import type {
   ModuleInit,
   ModuleScope,
   CapsVaultView,
-} from '@proto-ui/core';
+} from '@proto.ui/core';
 
 export type ModuleDeps = {
   /**

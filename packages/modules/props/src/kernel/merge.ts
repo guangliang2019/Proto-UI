@@ -5,7 +5,7 @@ import type {
   PropSpec,
   PropsSpecMap,
   PropType,
-} from '@proto-ui/types';
+} from '@proto.ui/types';
 
 export type MergeDiagLevel = 'warning' | 'error';
 

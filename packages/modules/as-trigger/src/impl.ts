@@ -1,7 +1,7 @@
-import type { CapsVaultView } from '@proto-ui/core';
-import { capUnavailable, illegalPhase } from '@proto-ui/core';
-import { ModuleBase } from '@proto-ui/modules.base';
-import type { EventPort } from '@proto-ui/modules.event';
+import type { CapsVaultView } from '@proto.ui/core';
+import { capUnavailable, illegalPhase } from '@proto.ui/core';
+import { ModuleBase } from '@proto.ui/module-base';
+import type { EventPort } from '@proto.ui/module-event';
 
 import {
   AS_TRIGGER_GET_PROTO_CAP,

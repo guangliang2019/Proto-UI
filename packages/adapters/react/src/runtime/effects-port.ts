@@ -1,4 +1,4 @@
-import { mergeTwTokensV0, type EffectsPort, type StyleHandle } from '@proto-ui/core';
+import { mergeTwTokensV0, type EffectsPort, type StyleHandle } from '@proto.ui/core';
 
 export function createReactEffectsPort(setHostTokens: (next: string[]) => void): EffectsPort {
   let latest: StyleHandle | null = null;

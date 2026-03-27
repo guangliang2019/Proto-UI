@@ -1,12 +1,12 @@
-import type { ProtoPhase, StyleHandle } from '@proto-ui/core';
-import { illegalPhase } from '@proto-ui/core';
-import { FeedbackStyleRecorder } from '@proto-ui/core';
+import type { ProtoPhase, StyleHandle } from '@proto.ui/core';
+import { illegalPhase } from '@proto.ui/core';
+import { FeedbackStyleRecorder } from '@proto.ui/core';
 
-import { createModule, defineModule, ModuleBase } from '@proto-ui/modules.base';
-import type { ModuleFactoryArgs } from '@proto-ui/modules.base';
+import { createModule, defineModule, ModuleBase } from '@proto.ui/module-base';
+import type { ModuleFactoryArgs } from '@proto.ui/module-base';
 
 import type { FeedbackFacade, FeedbackModule, FeedbackPort } from './types';
-import { mergeTwTokensV0 } from '@proto-ui/core';
+import { mergeTwTokensV0 } from '@proto.ui/core';
 import { EFFECTS_CAP } from './caps';
 
 export function createFeedbackModule(ctx: ModuleFactoryArgs): FeedbackModule {

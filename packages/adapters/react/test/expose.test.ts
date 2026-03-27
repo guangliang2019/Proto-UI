@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { definePrototype, type Prototype } from '@proto-ui/core';
+import { definePrototype, type Prototype } from '@proto.ui/core';
 
 import { createMountedReactAdapter } from './utils/fake-react';
 

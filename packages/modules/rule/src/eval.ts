@@ -1,6 +1,6 @@
 // packages/modules/rule/src/eval.ts
 import type { RuleIR, RulePlanV0, RuleEvalCtx, WhenExpr, WhenValue } from './types';
-import { mergeTwTokensV0 } from '@proto-ui/core';
+import { mergeTwTokensV0 } from '@proto.ui/core';
 
 function evalValue<Props extends {}>(v: WhenValue<Props>, ctx: RuleEvalCtx<Props>): any {
   switch (v.type) {

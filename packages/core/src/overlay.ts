@@ -1,4 +1,4 @@
-import type { PropsBaseType } from '@proto-ui/types';
+import type { PropsBaseType } from '@proto.ui/types';
 import type { ObservedStateHandle } from './state';
 
 export type OverlayPlacement = 'top' | 'right' | 'bottom' | 'left';

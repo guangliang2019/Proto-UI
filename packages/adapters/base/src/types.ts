@@ -1,6 +1,6 @@
 // packages/adapters/base/src/types.ts
-import { CapEntries } from '@proto-ui/core';
-import type { ModuleWiring } from '@proto-ui/runtime';
+import { CapEntries } from '@proto.ui/core';
+import type { ModuleWiring } from '@proto.ui/runtime';
 
 export type ModuleName = string;
 

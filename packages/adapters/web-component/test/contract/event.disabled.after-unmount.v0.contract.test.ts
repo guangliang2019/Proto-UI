@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import type { Prototype } from '@proto-ui/core';
-import { AdaptToWebComponent } from '@proto-ui/adapters.web-component';
+import type { Prototype } from '@proto.ui/core';
+import { AdaptToWebComponent } from '@proto.ui/adapter-web-component';
 
 describe('contract: adapter-web-component / event disabled after unmount (v0)', () => {
   it('after disconnected, native events must not invoke proto callbacks', async () => {

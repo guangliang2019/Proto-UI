@@ -7,10 +7,10 @@ import type {
   Prototype,
   ProtoPhase,
   CapsVaultView,
-} from '@proto-ui/core';
-import { illegalPhase } from '@proto-ui/core';
-import { ModuleBase } from '@proto-ui/modules.base';
-import type { ExposePort } from '@proto-ui/modules.expose';
+} from '@proto.ui/core';
+import { illegalPhase } from '@proto.ui/core';
+import { ModuleBase } from '@proto.ui/module-base';
+import type { ExposePort } from '@proto.ui/module-expose';
 
 import {
   ANATOMY_GET_PROTO_CAP,

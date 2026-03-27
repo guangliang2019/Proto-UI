@@ -1,35 +1,55 @@
 {
-  "name": "@proto-ui/runtime",
-  "version": "0.0.0",
-  "private": true,
+  "name": "@proto.ui/runtime",
+  "version": "0.0.1",
+  "private": false,
   "type": "module",
   "dependencies": {
-    "@proto-ui/core": "workspace:*",
-    "@proto-ui/types": "workspace:*",
-    "@proto-ui/modules.base": "workspace:*",
-    "@proto-ui/modules.rule": "workspace:*",
-    "@proto-ui/modules.rule-meta": "workspace:*",
-    "@proto-ui/modules.feedback": "workspace:*",
-    "@proto-ui/modules.props": "workspace:*",
-    "@proto-ui/modules.event": "workspace:*",
-    "@proto-ui/modules.expose": "workspace:*",
-    "@proto-ui/modules.expose-state": "workspace:*",
-    "@proto-ui/modules.expose-state-web": "workspace:*",
-    "@proto-ui/modules.rule-expose-state-web": "workspace:*",
-    "@proto-ui/modules.state": "workspace:*",
-    "@proto-ui/modules.state-interaction": "workspace:*",
-    "@proto-ui/modules.state-accessibility": "workspace:*",
-    "@proto-ui/modules.context": "workspace:*",
-    "@proto-ui/modules.anatomy": "workspace:*",
-    "@proto-ui/modules.as-trigger": "workspace:*",
-    "@proto-ui/modules.focus": "workspace:*",
-    "@proto-ui/modules.overlay": "workspace:*",
-    "@proto-ui/modules.test-sys": "workspace:*"
+    "@proto.ui/core": "workspace:*",
+    "@proto.ui/types": "workspace:*",
+    "@proto.ui/module-base": "workspace:*",
+    "@proto.ui/module-rule": "workspace:*",
+    "@proto.ui/module-rule-meta": "workspace:*",
+    "@proto.ui/module-feedback": "workspace:*",
+    "@proto.ui/module-props": "workspace:*",
+    "@proto.ui/module-event": "workspace:*",
+    "@proto.ui/module-expose": "workspace:*",
+    "@proto.ui/module-expose-state": "workspace:*",
+    "@proto.ui/module-expose-state-web": "workspace:*",
+    "@proto.ui/module-rule-expose-state-web": "workspace:*",
+    "@proto.ui/module-state": "workspace:*",
+    "@proto.ui/module-state-interaction": "workspace:*",
+    "@proto.ui/module-state-accessibility": "workspace:*",
+    "@proto.ui/module-context": "workspace:*",
+    "@proto.ui/module-anatomy": "workspace:*",
+    "@proto.ui/module-as-trigger": "workspace:*",
+    "@proto.ui/module-focus": "workspace:*",
+    "@proto.ui/module-overlay": "workspace:*",
+    "@proto.ui/module-test-sys": "workspace:*"
   },
   "exports": {
     ".": {
       "types": "./src/index.ts",
       "default": "./src/index.ts"
     }
-  }
+  },
+  "description": "Proto UI runtime that executes prototypes under the Proto UI contracts.",
+  "license": "MIT",
+  "homepage": "https://github.com/guangliang2019/Prototype-UI/tree/main/packages/runtime",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/guangliang2019/Prototype-UI.git",
+    "directory": "packages/runtime"
+  },
+  "bugs": {
+    "url": "https://github.com/guangliang2019/Prototype-UI/issues"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "keywords": [
+    "proto-ui",
+    "proto",
+    "ui",
+    "runtime"
+  ]
 }

@@ -1,5 +1,5 @@
 // packages/modules/event/test/utils/fake-caps.ts
-import { SYS_CAP } from '@proto-ui/modules.base';
+import { SYS_CAP } from '@proto.ui/module-base';
 import { EVENT_GLOBAL_TARGET_CAP, EVENT_ROOT_TARGET_CAP, EVENT_EMIT_CAP } from '../../src/caps';
 
 type ExecPhase = 'setup' | 'render' | 'callback' | 'unknown';

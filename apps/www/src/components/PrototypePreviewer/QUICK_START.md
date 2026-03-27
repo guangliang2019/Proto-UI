@@ -6,7 +6,7 @@
 
 ```typescript
 // src/content/docs/zh-cn/my-awesome-demo.demo.proto.ts
-import { definePrototype } from '@proto-ui/core';
+import { definePrototype } from '@proto.ui/core';
 
 const MyAwesomeDemo = definePrototype({
   name: 'my-awesome-demo',
@@ -231,7 +231,7 @@ Error: registerPrototype: invalid id
 
 ```typescript
 // your-demo.demo.proto.ts
-import { definePrototype } from '@proto-ui/core';
+import { definePrototype } from '@proto.ui/core';
 
 const YourDemo = definePrototype({
   name: 'your-demo',

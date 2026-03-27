@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import type { Prototype, TemplateChildren } from '@proto-ui/core';
+import type { Prototype, TemplateChildren } from '@proto.ui/core';
 import { executeWithHost, RuntimeHost } from '../../src';
 
 describe('contract: runtime / update strict order (v0)', () => {

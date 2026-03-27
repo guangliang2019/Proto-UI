@@ -1,5 +1,5 @@
 // packages/core/src/prototype.ts
-import type { PropsBaseType } from '@proto-ui/types';
+import type { PropsBaseType } from '@proto.ui/types';
 import type { DefHandle, RendererHandle } from './handles';
 import type { TemplateChildren } from './spec';
 import type { BorrowedStateHandle, State } from './state';
@@ -152,9 +152,9 @@ export type AsHookCaller<
   readonly definition: AsHookPrototype<Props, Exposes, ContractInput, Options>;
 };
 
-export const __AS_HOOK_RUNTIME = Symbol.for('@proto-ui/asHook/runtime');
-export const __AS_HOOK_CURRENT_DEF = Symbol.for('@proto-ui/asHook/current-def');
-export const __AS_HOOK_PRIV_FACADES = Symbol.for('@proto-ui/asHook/priv-facades');
+export const __AS_HOOK_RUNTIME = Symbol.for('@proto.ui/asHook/runtime');
+export const __AS_HOOK_CURRENT_DEF = Symbol.for('@proto.ui/asHook/current-def');
+export const __AS_HOOK_PRIV_FACADES = Symbol.for('@proto.ui/asHook/priv-facades');
 
 function normalizeAsHookRender(value: RenderFn | void): RenderFn | undefined {
   if (typeof value !== 'undefined' && typeof value !== 'function') {

@@ -1,10 +1,10 @@
 // packages/runtime/test/contract/lifecycle-with-host.v0.contract.test.ts
 import { describe, it, expect } from 'vitest';
-import type { Prototype, TemplateChildren } from '@proto-ui/core';
+import type { Prototype, TemplateChildren } from '@proto.ui/core';
 import { executeWithHost, RuntimeHost } from '../../src';
 
 // If runtime/src/index.ts does NOT re-export core types, then use:
-// import type { Prototype, TemplateChildren } from "@proto-ui/core";
+// import type { Prototype, TemplateChildren } from "@proto.ui/core";
 // but you said you'd prefer not to depend on workspace alias here.
 
 function createMockHost() {

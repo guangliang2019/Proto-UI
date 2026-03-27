@@ -2,7 +2,7 @@
 import { describe, it, expect } from 'vitest';
 import { ExposeStateModuleImpl } from '../src/impl';
 import { createSysCaps, makeCaps } from './utils/fake-caps';
-import type { StateEvent, StateSpec } from '@proto-ui/types';
+import type { StateEvent, StateSpec } from '@proto.ui/types';
 
 type FakeHandle<V> = {
   get(): V;

@@ -2,10 +2,12 @@
   "compilerOptions": {
     "baseUrl": ".",
     "paths": {
-      "@proto-ui/modules.*": ["packages/modules/*/src"],
-      "@proto-ui/adapters.*": ["packages/adapters/*/src"],
-      "@prototype-libs/*": ["packages/prototype-libs/*/src"],
-      "@proto-ui/*": [
+      "@proto.ui/module-*": ["packages/modules/*/src"],
+      "@proto.ui/adapter-*": ["packages/adapters/*/src"],
+      "@proto.ui/prototypes-base": ["packages/prototypes/base/src/index.ts"],
+      "@proto.ui/prototypes-shadcn": ["packages/prototypes/shadcn/src/index.ts"],
+      "@proto.ui/prototypes-*": ["packages/prototypes/*/src"],
+      "@proto.ui/*": [
         "packages/*/src",
         "packages/modules/*/src",
         "packages/adapters/*/src",

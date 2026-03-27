@@ -5,11 +5,11 @@ import type {
   WatchInfo,
   ProtoPhase,
   CapsVaultView,
-} from '@proto-ui/core';
-import { illegalPhase } from '@proto-ui/core';
+} from '@proto.ui/core';
+import { illegalPhase } from '@proto.ui/core';
 
-import { ModuleBase } from '@proto-ui/modules.base';
-import type { PropsBaseType, PropsSpecMap } from '@proto-ui/types';
+import { ModuleBase } from '@proto.ui/module-base';
+import type { PropsBaseType, PropsSpecMap } from '@proto.ui/types';
 
 import type {
   RawPropsSource,

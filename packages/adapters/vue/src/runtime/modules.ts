@@ -1,8 +1,8 @@
-import { createCapsWiring } from '@proto-ui/adapters.base';
-import type { EffectsPort } from '@proto-ui/core';
-import type { RawPropsSource } from '@proto-ui/modules.props';
-import type { ExposeStateWebMode } from '@proto-ui/modules.expose-state-web';
-import type { PropsBaseType } from '@proto-ui/types';
+import { createCapsWiring } from '@proto.ui/adapter-base';
+import type { EffectsPort } from '@proto.ui/core';
+import type { RawPropsSource } from '@proto.ui/module-props';
+import type { ExposeStateWebMode } from '@proto.ui/module-expose-state-web';
+import type { PropsBaseType } from '@proto.ui/types';
 
 import { createVueNameMap, vueNativeVariantPolicy } from '../platform/expose-state-web';
 import { getProtoParent, getPrototypeByInstance } from '../platform/instance-tree';

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { asPrototypeRef } from '@proto-ui/core';
+import { asPrototypeRef } from '@proto.ui/core';
 import { commitChildren, ERR_TEMPLATE_PROTOTYPE_REF_V0 } from '../../src/commit';
 
 describe('contract: adapter-web-component / template no-prototype-composition (v0)', () => {

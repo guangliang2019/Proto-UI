@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import type { Prototype } from '@proto-ui/core';
+import type { Prototype } from '@proto.ui/core';
 
 import { createMountedVueAdapter, flushVue } from './utils/vue';
 

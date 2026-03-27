@@ -1,7 +1,7 @@
 // packages/modules/props/test/contract/watch-raw.v0.contract.test.ts
 import { describe, it, expect } from 'vitest';
 import { PropsModuleImpl } from '../../src/impl';
-import type { PropsSpecMap } from '@proto-ui/types';
+import type { PropsSpecMap } from '@proto.ui/types';
 
 /**
  * Watch Raw Contract v0

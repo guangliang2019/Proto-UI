@@ -1,5 +1,5 @@
 // packages/modules/state/src/validate.ts
-import type { StateSpec } from '@proto-ui/types';
+import type { StateSpec } from '@proto.ui/types';
 
 export function validateSemantic(semantic: string): void {
   // 先做一个足够用的规则：非空，且只能 [a-z0-9-] + '.' 分段

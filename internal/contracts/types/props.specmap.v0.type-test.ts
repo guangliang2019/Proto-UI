@@ -1,4 +1,4 @@
-import type { PropsSpecMap } from '@proto-ui/types';
+import type { PropsSpecMap } from '@proto.ui/types';
 
 type P = { disabled: boolean | null; count: number };
 

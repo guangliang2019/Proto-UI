@@ -1,7 +1,7 @@
 // packages/adapters/web-component/test/slot-light-dom.test.ts
 import { describe, it, expect } from 'vitest';
-import type { Prototype } from '@proto-ui/core';
-import { AdaptToWebComponent } from '@proto-ui/adapters.web-component';
+import type { Prototype } from '@proto.ui/core';
+import { AdaptToWebComponent } from '@proto.ui/adapter-web-component';
 
 describe('adapter-web-component light DOM slot (v0)', () => {
   it('projects initial light children into slot position; <slot> must not exist in DOM', () => {

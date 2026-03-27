@@ -1,8 +1,8 @@
 // packages/runtime/src/orchestrator/module-orchestrator/runtime-module-orchestrator.ts
-import type { CapEntries, CapsVaultView, ModuleFacade, ProtoPhase } from '@proto-ui/core';
-import { SYS_CAP, type SystemCaps, type ExecPhase, CapsVault } from '@proto-ui/modules.base';
+import type { CapEntries, CapsVaultView, ModuleFacade, ProtoPhase } from '@proto.ui/core';
+import { SYS_CAP, type SystemCaps, type ExecPhase, CapsVault } from '@proto.ui/module-base';
 
-import type { ModuleDeps, ModuleDef } from '@proto-ui/modules.base';
+import type { ModuleDeps, ModuleDef } from '@proto.ui/module-base';
 import type { AnyModule, ModuleOrchestrator, ModuleWiring } from './types';
 import type { CapsController } from '../caps';
 import { buildModuleGraph, type ModuleDepsSpec } from './graph';

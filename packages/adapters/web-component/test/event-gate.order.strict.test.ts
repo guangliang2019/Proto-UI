@@ -24,8 +24,8 @@ describe('WC adapter: event binding order (strict)', () => {
 
     // 2) （可选）如果你 strict 版还 mock 了 adapter-base（createEventGate 等）
     // 强烈建议：能不 mock 就别 mock。真要 mock，也用 doMock 写在这里。
-    vi.doMock('@proto-ui/adapters.base', async () => {
-      const actual = await vi.importActual<any>('@proto-ui/adapters.base');
+    vi.doMock('@proto.ui/adapter-base', async () => {
+      const actual = await vi.importActual<any>('@proto.ui/adapter-base');
       return {
         ...actual,
         createWebProtoEventRouter: () => ({

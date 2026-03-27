@@ -2,7 +2,7 @@
 
 ## Scope
 
-This contract defines two adapter-level behaviors for `@proto-ui/adapters.web-component` v0:
+This contract defines two adapter-level behaviors for `@proto.ui/adapters.web-component` v0:
 
 - how mount/unmount reacts to DOM connectivity changes
 - how `AdaptToWebComponent(...)` handles custom-element registration

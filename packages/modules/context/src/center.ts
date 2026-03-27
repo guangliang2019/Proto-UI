@@ -1,5 +1,5 @@
 // packages/modules/context/src/center.ts
-import type { ContextKey, JsonObject } from '@proto-ui/types';
+import type { ContextKey, JsonObject } from '@proto.ui/types';
 import type { ContextCallbackTask, ContextProviderEntry, ContextSubscriptionEntry } from './types';
 import type { ContextInstanceToken, ContextParentGetter } from './caps';
 

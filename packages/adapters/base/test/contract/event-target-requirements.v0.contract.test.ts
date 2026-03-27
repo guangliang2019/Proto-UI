@@ -1,10 +1,10 @@
 // packages/runtime/test/contract/event-target-requirements.v0.contract.test.ts
 import { describe, it, expect } from 'vitest';
-import type { Prototype, TemplateChildren } from '@proto-ui/core';
-import { executeWithHost } from '@proto-ui/runtime';
-import type { RuntimeHost } from '@proto-ui/runtime';
-import { createHostWiring } from '@proto-ui/adapters.base';
-import { EVENT_GLOBAL_TARGET_CAP, EVENT_ROOT_TARGET_CAP } from '@proto-ui/modules.event';
+import type { Prototype, TemplateChildren } from '@proto.ui/core';
+import { executeWithHost } from '@proto.ui/runtime';
+import type { RuntimeHost } from '@proto.ui/runtime';
+import { createHostWiring } from '@proto.ui/adapter-base';
+import { EVENT_GLOBAL_TARGET_CAP, EVENT_ROOT_TARGET_CAP } from '@proto.ui/module-event';
 
 function createHost(
   prototypeName: string,
