@@ -147,7 +147,7 @@ export default defineConfig({
             {
               label: '原型边界',
               translations: {
-                en: 'Prototype Boundaries',
+                en: 'Prototype Boundary',
                 'zh-CN': '原型边界',
               },
               slug: 'whitepaper/prototype-boundary',
@@ -171,6 +171,11 @@ export default defineConfig({
               label: '演进路径',
               translations: { en: 'Evolution Path', 'zh-CN': '演进路径' },
               slug: 'whitepaper/evolution-path',
+            },
+            {
+              label: 'FAQ',
+              translations: { en: 'FAQ', 'zh-CN': 'FAQ' },
+              slug: 'whitepaper/faq',
             },
           ],
         },
