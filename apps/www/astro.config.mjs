@@ -99,38 +99,7 @@ export default defineConfig({
           ],
         },
 
-        // 2) 结构入口：少而精
-        {
-          label: 'Project',
-          translations: { en: 'Project', 'zh-CN': '项目' },
-          items: [
-            {
-              label: '项目介绍',
-              translations: { en: 'Project Introduction', 'zh-CN': '项目介绍' },
-              slug: 'project/introduction',
-              badge: inProgressBadge,
-            },
-            {
-              label: '为什么会有 Proto UI',
-              translations: { en: 'Why Proto UI', 'zh-CN': '为什么会有 Proto UI' },
-              slug: 'project/why',
-              badge: inProgressBadge,
-            },
-            {
-              label: 'Proto UI 不做什么',
-              translations: { en: 'What Proto UI Does Not Do', 'zh-CN': 'Proto UI 不做什么' },
-              slug: 'project/what-proto-ui-does-not-do',
-              badge: inProgressBadge,
-            },
-            {
-              label: '时间线 & 里程碑',
-              translations: { en: 'Milestones', 'zh-CN': '里程碑' },
-              slug: 'project/milestones',
-            },
-          ],
-        },
-
-        // 3) 白皮书：扁平化，不要再往下分三级
+        // 2) 白皮书：扁平化，不要再往下分三级
         {
           label: 'Whitepaper',
           translations: { en: 'Whitepaper', 'zh-CN': '白皮书' },
@@ -423,6 +392,32 @@ export default defineConfig({
               label: '核心能力',
               translations: { en: 'Core Capabilities', 'zh-CN': '核心能力' },
               slug: 'wiki/core-capabilities',
+            },
+          ],
+        },
+        {
+          label: 'Project',
+          translations: { en: 'Project', 'zh-CN': '项目' },
+          items: [
+            {
+              label: '项目介绍',
+              translations: { en: 'About', 'zh-CN': '项目介绍' },
+              slug: 'project/about',
+            },
+            {
+              label: '当前状态',
+              translations: { en: 'Status', 'zh-CN': '当前状态' },
+              slug: 'project/status',
+            },
+            {
+              label: '路线图',
+              translations: { en: 'Roadmap', 'zh-CN': '路线图' },
+              slug: 'project/roadmap',
+            },
+            {
+              label: '相关链接',
+              translations: { en: 'Links', 'zh-CN': '相关链接' },
+              slug: 'project/links',
             },
           ],
         },
