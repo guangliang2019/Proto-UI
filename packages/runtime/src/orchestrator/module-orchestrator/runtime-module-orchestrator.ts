@@ -257,6 +257,10 @@ export class RuntimeModuleOrchestrator implements ModuleOrchestrator {
     return this.facades;
   }
 
+  getPorts(): Record<string, unknown> {
+    return this.ports;
+  }
+
   // -------------------------
   // runtime -> ports
   // -------------------------

@@ -23,6 +23,7 @@ export type AnyModule = ModuleInstance<ModuleFacade> & {
 export interface ModuleOrchestratorFacadeView {
   /** runtime -> handles (facades are safe, stable, public) */
   getFacades(): Record<string, ModuleFacade>;
+  getPorts(): Record<string, unknown>;
 }
 
 export interface ModuleOrchestrator extends ModuleOrchestratorFacadeView {

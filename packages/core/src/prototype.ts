@@ -155,6 +155,7 @@ export type AsHookCaller<
 export const __AS_HOOK_RUNTIME = Symbol.for('@proto.ui/asHook/runtime');
 export const __AS_HOOK_CURRENT_DEF = Symbol.for('@proto.ui/asHook/current-def');
 export const __AS_HOOK_PRIV_FACADES = Symbol.for('@proto.ui/asHook/priv-facades');
+export const __AS_HOOK_PRIV_PORTS = Symbol.for('@proto.ui/asHook/priv-ports');
 
 function normalizeAsHookRender(value: RenderFn | void): RenderFn | undefined {
   if (typeof value !== 'undefined' && typeof value !== 'function') {

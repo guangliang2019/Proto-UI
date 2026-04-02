@@ -52,6 +52,15 @@ export type AnatomyPartView = {
   hasHook(name: string): boolean;
 };
 
+export type AnatomyOrderView = {
+  version(family: AnatomyFamily): number;
+  parts(family: AnatomyFamily): readonly AnatomyPartView[];
+  partsOf(family: AnatomyFamily, role: string): readonly AnatomyPartView[];
+  indexOfSelf(family: AnatomyFamily, role: string): number;
+  prevOfSelf(family: AnatomyFamily, role: string): AnatomyPartView | null;
+  nextOfSelf(family: AnatomyFamily, role: string): AnatomyPartView | null;
+};
+
 export function createAnatomyFamily(debugName: string): AnatomyFamily {
   if (typeof debugName !== 'string' || debugName.length === 0) {
     throw new Error(`[Anatomy] debugName must be a non-empty string.`);

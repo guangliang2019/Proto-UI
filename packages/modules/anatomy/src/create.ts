@@ -24,6 +24,14 @@ export function createAnatomyModule(ctx: ModuleFactoryArgs): AnatomyModule {
           has: (family, role) => impl.has(family, role),
           parts: (family) => impl.parts(family),
           partsOf: (family, role) => impl.partsOf(family, role),
+          order: {
+            version: (family) => impl.orderVersion(family),
+            parts: (family) => impl.orderedParts(family),
+            partsOf: (family, role) => impl.orderedPartsOf(family, role),
+            indexOfSelf: (family, role) => impl.indexOfSelf(family, role),
+            prevOfSelf: (family, role) => impl.prevOfSelf(family, role),
+            nextOfSelf: (family, role) => impl.nextOfSelf(family, role),
+          },
         },
         port: impl.port,
         hooks: {

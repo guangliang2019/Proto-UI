@@ -10,6 +10,7 @@ import {
   TemplateChildren,
   __AS_HOOK_CURRENT_DEF,
   __AS_HOOK_PRIV_FACADES,
+  __AS_HOOK_PRIV_PORTS,
 } from '@proto.ui/core';
 import { PropsBaseType } from '@proto.ui/types';
 import {
@@ -74,6 +75,12 @@ export function createKernel<P extends PropsBaseType>(
   attachAsHookRuntime(def, st, proto, opt?.asHook);
   Object.defineProperty(def as any, __AS_HOOK_PRIV_FACADES, {
     value: modules.getFacades(),
+    enumerable: false,
+    configurable: false,
+    writable: false,
+  });
+  Object.defineProperty(def as any, __AS_HOOK_PRIV_PORTS, {
+    value: modules.getPorts(),
     enumerable: false,
     configurable: false,
     writable: false,

@@ -6,6 +6,7 @@ import type {
   AnatomyPartView,
   Prototype,
   ProtoPhase,
+  Unsubscribe,
   CapsVaultView,
 } from '@proto.ui/core';
 import { illegalPhase } from '@proto.ui/core';
@@ -15,13 +16,22 @@ import type { ExposePort } from '@proto.ui/module-expose';
 import {
   ANATOMY_GET_PROTO_CAP,
   ANATOMY_INSTANCE_TOKEN_CAP,
+  ANATOMY_ORDER_OBSERVER_CAP,
   ANATOMY_PARENT_CAP,
+  ANATOMY_ROOT_TARGET_CAP,
   type AnatomyInstanceToken,
+  type AnatomyOrderObserver,
   type AnatomyParentGetter,
   type AnatomyPrototypeGetter,
+  type AnatomyRootTarget,
+  type AnatomyRootTargetGetter,
 } from './caps';
 import { ANATOMY_ERROR, anatomyError } from './error';
-import type { AnatomyDiagnostic } from './types';
+import type {
+  AnatomyDiagnostic,
+  AnatomyOrderCallbackDispatcher,
+  AnatomyOrderChangeCb,
+} from './types';
 
 type HookTraceEntry = { name?: string };
 
@@ -49,7 +59,11 @@ type ClaimRecord = {
   profile?: string;
   prototype: Prototype<any> | null;
   exposePort: ExposePort;
+  getRootTarget: AnatomyRootTargetGetter;
 };
+
+const ORDER_FOLLOWING = typeof Node !== 'undefined' ? Node.DOCUMENT_POSITION_FOLLOWING : 4;
+const ORDER_PRECEDING = typeof Node !== 'undefined' ? Node.DOCUMENT_POSITION_PRECEDING : 2;
 
 const CENTER = (() => {
   const families = new Map<AnatomyFamily, NormalizedFamily>();
@@ -185,6 +199,14 @@ export class AnatomyModuleImpl extends ModuleBase {
   private readonly exposePort: ExposePort;
   private disposed = false;
   private claimFamilies = new Set<AnatomyFamily>();
+  private orderDispatch: AnatomyOrderCallbackDispatcher = (fn) => fn(undefined);
+  private orderListeners = new Map<AnatomyFamily, Set<AnatomyOrderChangeCb>>();
+  private orderObserverOff = new Map<AnatomyFamily, Unsubscribe>();
+  private orderVersionByFamily = new Map<AnatomyFamily, number>();
+  private orderSignatureByFamily = new Map<AnatomyFamily, string>();
+  private objectIds = new WeakMap<object, number>();
+  private primitiveIds = new Map<unknown, number>();
+  private nextIdentityId = 1;
 
   constructor(caps: CapsVaultView, prototypeName: string, exposePort: ExposePort) {
     super(caps);
@@ -241,6 +263,7 @@ export class AnatomyModuleImpl extends ModuleBase {
       profile: decl.profile,
       prototype: this.getPrototypeGetter()(instance),
       exposePort: this.exposePort,
+      getRootTarget: this.getRootTargetGetter(),
     });
     this.claimFamilies.add(family);
   }
@@ -264,6 +287,36 @@ export class AnatomyModuleImpl extends ModuleBase {
       .map((claim) => this.toPartView(claim));
   }
 
+  orderedParts(family: AnatomyFamily): readonly AnatomyPartView[] {
+    this.ensureCallback('run.anatomy.order.parts');
+    return this.orderedPartsInternal(family);
+  }
+
+  orderVersion(family: AnatomyFamily): number {
+    this.ensureCallback('run.anatomy.order.version');
+    return this.getOrderVersion(family);
+  }
+
+  orderedPartsOf(family: AnatomyFamily, role: string): readonly AnatomyPartView[] {
+    this.ensureCallback('run.anatomy.order.partsOf');
+    return this.orderedPartsOfInternal(family, role);
+  }
+
+  indexOfSelf(family: AnatomyFamily, role: string): number {
+    this.ensureCallback('run.anatomy.order.indexOfSelf');
+    return this.indexOfSelfInternal(family, role);
+  }
+
+  prevOfSelf(family: AnatomyFamily, role: string): AnatomyPartView | null {
+    this.ensureCallback('run.anatomy.order.prevOfSelf');
+    return this.prevOfSelfInternal(family, role);
+  }
+
+  nextOfSelf(family: AnatomyFamily, role: string): AnatomyPartView | null {
+    this.ensureCallback('run.anatomy.order.nextOfSelf');
+    return this.nextOfSelfInternal(family, role);
+  }
+
   readonly port = {
     getDiagnostics: (): readonly AnatomyDiagnostic[] => {
       const out: AnatomyDiagnostic[] = [];
@@ -272,6 +325,19 @@ export class AnatomyModuleImpl extends ModuleBase {
       }
       return out;
     },
+    order: {
+      version: (family: AnatomyFamily) => this.getOrderVersion(family),
+      parts: (family: AnatomyFamily) => this.orderedPartsInternal(family),
+      partsOf: (family: AnatomyFamily, role: string) => this.orderedPartsOfInternal(family, role),
+      indexOfSelf: (family: AnatomyFamily, role: string) => this.indexOfSelfInternal(family, role),
+      prevOfSelf: (family: AnatomyFamily, role: string) => this.prevOfSelfInternal(family, role),
+      nextOfSelf: (family: AnatomyFamily, role: string) => this.nextOfSelfInternal(family, role),
+    },
+    setOrderCallbackDispatcher: (dispatch: AnatomyOrderCallbackDispatcher) => {
+      this.orderDispatch = dispatch;
+    },
+    subscribeOrder: (family: AnatomyFamily, cb: AnatomyOrderChangeCb) =>
+      this.subscribeOrder(family, cb),
   };
 
   override onProtoPhase(phase: ProtoPhase): void {
@@ -282,6 +348,9 @@ export class AnatomyModuleImpl extends ModuleBase {
   dispose(): void {
     if (this.disposed) return;
     this.disposed = true;
+    for (const off of this.orderObserverOff.values()) off();
+    this.orderObserverOff.clear();
+    this.orderListeners.clear();
     if (this.claimFamilies.size === 0) return;
     if (!this.caps.has(ANATOMY_INSTANCE_TOKEN_CAP)) return;
 
@@ -290,6 +359,159 @@ export class AnatomyModuleImpl extends ModuleBase {
       CENTER.deleteClaim(instance, family);
     }
     this.claimFamilies.clear();
+  }
+
+  private getOrderedClaimsOf(family: AnatomyFamily, role: string): ClaimRecord[] {
+    const domain = this.resolveCurrentDomain(family);
+    return this.sortClaims(domain.claims.filter((claim) => claim.role === role));
+  }
+
+  private orderedPartsInternal(family: AnatomyFamily): readonly AnatomyPartView[] {
+    const domain = this.resolveCurrentDomain(family);
+    return this.sortClaims(domain.claims).map((claim) => this.toPartView(claim));
+  }
+
+  private orderedPartsOfInternal(family: AnatomyFamily, role: string): readonly AnatomyPartView[] {
+    return this.getOrderedClaimsOf(family, role).map((claim) => this.toPartView(claim));
+  }
+
+  private indexOfSelfInternal(family: AnatomyFamily, role: string): number {
+    const self = this.getSelfToken();
+    const claims = this.getOrderedClaimsOf(family, role);
+    return claims.findIndex((claim) => claim.instance === self);
+  }
+
+  private prevOfSelfInternal(family: AnatomyFamily, role: string): AnatomyPartView | null {
+    const self = this.getSelfToken();
+    const claims = this.getOrderedClaimsOf(family, role);
+    const index = claims.findIndex((claim) => claim.instance === self);
+    if (index <= 0) return null;
+    return this.toPartView(claims[index - 1]!);
+  }
+
+  private nextOfSelfInternal(family: AnatomyFamily, role: string): AnatomyPartView | null {
+    const self = this.getSelfToken();
+    const claims = this.getOrderedClaimsOf(family, role);
+    const index = claims.findIndex((claim) => claim.instance === self);
+    if (index < 0 || index >= claims.length - 1) return null;
+    return this.toPartView(claims[index + 1]!);
+  }
+
+  private subscribeOrder(family: AnatomyFamily, cb: AnatomyOrderChangeCb): Unsubscribe {
+    let set = this.orderListeners.get(family);
+    if (!set) {
+      set = new Set();
+      this.orderListeners.set(family, set);
+    }
+    set.add(cb);
+    this.primeOrderSignature(family);
+    this.ensureOrderObserver(family);
+    return () => {
+      const current = this.orderListeners.get(family);
+      current?.delete(cb);
+      if (!current || current.size > 0) return;
+      this.orderListeners.delete(family);
+      this.orderObserverOff.get(family)?.();
+      this.orderObserverOff.delete(family);
+    };
+  }
+
+  private ensureOrderObserver(family: AnatomyFamily): void {
+    if (this.orderObserverOff.has(family)) return;
+    if (!this.caps.has(ANATOMY_ORDER_OBSERVER_CAP)) return;
+
+    const observer = this.caps.get(ANATOMY_ORDER_OBSERVER_CAP) as AnatomyOrderObserver;
+    const target = this.getObservedRootTarget(family);
+    if (!target) return;
+
+    const off = observer(target, () => {
+      this.emitOrderChangeIfNeeded(family);
+    });
+    this.orderObserverOff.set(family, off);
+  }
+
+  private primeOrderSignature(family: AnatomyFamily): void {
+    if (this.orderSignatureByFamily.has(family)) return;
+    const signature = this.computeOrderSignature(family);
+    this.orderSignatureByFamily.set(family, signature);
+    this.orderVersionByFamily.set(family, 0);
+  }
+
+  private getOrderVersion(family: AnatomyFamily): number {
+    this.primeOrderSignature(family);
+    return this.orderVersionByFamily.get(family) ?? 0;
+  }
+
+  private emitOrderChangeIfNeeded(family: AnatomyFamily): void {
+    const prev = this.orderSignatureByFamily.get(family);
+    const next = this.computeOrderSignature(family);
+    if (typeof prev !== 'undefined' && prev === next) return;
+
+    this.orderSignatureByFamily.set(family, next);
+    const nextVersion = (this.orderVersionByFamily.get(family) ?? 0) + 1;
+    this.orderVersionByFamily.set(family, nextVersion);
+
+    const listeners = this.orderListeners.get(family);
+    if (!listeners || listeners.size === 0) return;
+    this.orderDispatch((ctx) => {
+      for (const listener of listeners) listener(ctx);
+    });
+  }
+
+  private computeOrderSignature(family: AnatomyFamily): string {
+    const domain = this.resolveCurrentDomain(family, false);
+    if (!domain.rootInstance) return 'missing-domain';
+    const ordered = this.sortClaims(domain.claims);
+    return ordered.map((claim) => `${claim.role}:${this.getIdentityId(claim.instance)}`).join('|');
+  }
+
+  private getIdentityId(value: unknown): number {
+    if (value && typeof value === 'object') {
+      const obj = value as object;
+      const existing = this.objectIds.get(obj);
+      if (existing) return existing;
+      const next = this.nextIdentityId++;
+      this.objectIds.set(obj, next);
+      return next;
+    }
+
+    if (this.primitiveIds.has(value)) {
+      return this.primitiveIds.get(value)!;
+    }
+    const next = this.nextIdentityId++;
+    this.primitiveIds.set(value, next);
+    return next;
+  }
+
+  private getObservedRootTarget(family: AnatomyFamily): AnatomyRootTarget | null {
+    const domain = this.resolveCurrentDomain(family, false);
+    if (!domain.rootInstance) return null;
+    const rootClaim = CENTER.getClaim(domain.rootInstance, family);
+    if (!rootClaim) return null;
+    return rootClaim.getRootTarget(rootClaim.instance);
+  }
+
+  private sortClaims(claims: ClaimRecord[]): ClaimRecord[] {
+    return claims
+      .map((claim, index) => ({ claim, index }))
+      .sort((left, right) => {
+        const cmp = this.compareClaims(left.claim, right.claim);
+        if (cmp !== 0) return cmp;
+        return left.index - right.index;
+      })
+      .map((entry) => entry.claim);
+  }
+
+  private compareClaims(a: ClaimRecord, b: ClaimRecord): number {
+    const aTarget = a.getRootTarget(a.instance);
+    const bTarget = b.getRootTarget(b.instance);
+    if (!aTarget || !bTarget || aTarget === bTarget) return 0;
+    if (typeof aTarget.compareDocumentPosition !== 'function') return 0;
+
+    const pos = aTarget.compareDocumentPosition(bTarget as AnatomyRootTarget);
+    if (pos & ORDER_FOLLOWING) return -1;
+    if (pos & ORDER_PRECEDING) return 1;
+    return 0;
   }
 
   private computeDiagnostics(family: AnatomyFamily): AnatomyDiagnostic[] {
@@ -546,5 +768,12 @@ export class AnatomyModuleImpl extends ModuleBase {
       throw anatomyError(ANATOMY_ERROR.CAP, `[Anatomy] host caps missing: prototype getter`);
     }
     return this.caps.get(ANATOMY_GET_PROTO_CAP) as AnatomyPrototypeGetter;
+  }
+
+  private getRootTargetGetter(): AnatomyRootTargetGetter {
+    if (!this.caps.has(ANATOMY_ROOT_TARGET_CAP)) {
+      return () => null;
+    }
+    return this.caps.get(ANATOMY_ROOT_TARGET_CAP) as AnatomyRootTargetGetter;
   }
 }
