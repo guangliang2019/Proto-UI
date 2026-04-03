@@ -1,6 +1,7 @@
 // packages/adapters/base/src/events/web-event-router.ts
 
 type Unsub = () => void;
+const PRESS_COMMIT_EMITTED = Symbol.for('@proto.ui/router/press-commit-emitted');
 
 type Listener = {
   type: string;
@@ -25,6 +26,12 @@ export function createWebProtoEventRouter(opt: {
   function emit(target: EventTarget, type: string, native: any) {
     const ev = new CustomEvent(type, { detail: native });
     target.dispatchEvent(ev);
+  }
+
+  function emitPressCommitOnce(native: KeyboardEvent) {
+    if ((native as any)[PRESS_COMMIT_EMITTED]) return;
+    (native as any)[PRESS_COMMIT_EMITTED] = true;
+    emit(protoRootBus, 'press.commit', native);
   }
 
   // -------------------------
@@ -76,11 +83,24 @@ export function createWebProtoEventRouter(opt: {
     listen(globalEl, 'keydown', (e: KeyboardEvent) => {
       if (!opt.isEnabled()) return;
       emit(protoGlobalBus, 'key.down', e);
-
-      // minimal v0 mapping: activate keys => press.commit
-      if (e.key === 'Enter' || e.key === ' ') {
-        emit(protoRootBus, 'press.commit', e);
+      if (e.key !== 'Enter' && e.key !== ' ') return;
+      const target = e.target;
+      if (target instanceof Node && rootEl.contains(target)) {
+        emitPressCommitOnce(e);
+        return;
       }
+      const active = typeof document !== 'undefined' ? document.activeElement : null;
+      if (!(active instanceof Node)) return;
+      if (!rootEl.contains(active)) return;
+      emitPressCommitOnce(e);
+    })
+  );
+
+  unsubs.push(
+    listen(rootEl, 'keydown', (e: KeyboardEvent) => {
+      if (!opt.isEnabled()) return;
+      if (e.key !== 'Enter' && e.key !== ' ') return;
+      emitPressCommitOnce(e);
     })
   );
 

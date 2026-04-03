@@ -52,8 +52,9 @@ describe('WC router: createWebProtoEventRouter', () => {
     router.dispose();
   });
 
-  it('keydown Enter => global key.down AND root press.commit', async () => {
+  it('keydown Enter within root => global key.down AND root press.commit', async () => {
     const rootEl = document.createElement('div');
+    document.body.appendChild(rootEl);
 
     const router = createWebProtoEventRouter({
       rootEl,
@@ -68,7 +69,7 @@ describe('WC router: createWebProtoEventRouter', () => {
       key: 'Enter',
       bubbles: true,
     });
-    window.dispatchEvent(native);
+    rootEl.dispatchEvent(native);
 
     const keyDownEv = await keyDownP;
     const pressCommitEv = await pressCommitP;
@@ -77,6 +78,7 @@ describe('WC router: createWebProtoEventRouter', () => {
     expect((pressCommitEv as CustomEvent).detail).toBe(native);
 
     router.dispose();
+    rootEl.remove();
   });
 
   it('keyup => global key.up only (no press.commit)', async () => {

@@ -52,13 +52,41 @@ export type AnatomyPartView = {
   hasHook(name: string): boolean;
 };
 
+export type AnatomyQueryOptions = {
+  missing?: 'throw' | 'null' | 'empty';
+};
+
 export type AnatomyOrderView = {
   version(family: AnatomyFamily): number;
+  version(family: AnatomyFamily, options: { missing: 'null' }): number | null;
   parts(family: AnatomyFamily): readonly AnatomyPartView[];
+  parts(family: AnatomyFamily, options: { missing: 'null' }): readonly AnatomyPartView[] | null;
+  parts(family: AnatomyFamily, options: { missing: 'empty' }): readonly AnatomyPartView[];
   partsOf(family: AnatomyFamily, role: string): readonly AnatomyPartView[];
+  partsOf(
+    family: AnatomyFamily,
+    role: string,
+    options: { missing: 'null' }
+  ): readonly AnatomyPartView[] | null;
+  partsOf(
+    family: AnatomyFamily,
+    role: string,
+    options: { missing: 'empty' }
+  ): readonly AnatomyPartView[];
   indexOfSelf(family: AnatomyFamily, role: string): number;
+  indexOfSelf(family: AnatomyFamily, role: string, options: { missing: 'null' }): number | null;
   prevOfSelf(family: AnatomyFamily, role: string): AnatomyPartView | null;
+  prevOfSelf(
+    family: AnatomyFamily,
+    role: string,
+    options: { missing: 'null' }
+  ): AnatomyPartView | null;
   nextOfSelf(family: AnatomyFamily, role: string): AnatomyPartView | null;
+  nextOfSelf(
+    family: AnatomyFamily,
+    role: string,
+    options: { missing: 'null' }
+  ): AnatomyPartView | null;
 };
 
 export function createAnatomyFamily(debugName: string): AnatomyFamily {

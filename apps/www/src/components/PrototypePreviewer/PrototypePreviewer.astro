@@ -167,24 +167,29 @@ const rid = `pp-${Math.random().toString(36).slice(2)}`;
 
     .proto-previewer__preview {
       padding: 1.5rem;
-      min-height: 12rem;
+      min-height: 16rem;
       display: flex;
-      align-items: center;
+      align-items: flex-start;
       justify-content: center;
       background: var(--proto-previewer-bg);
     }
 
     .proto-previewer__preview .host {
-      min-height: 5rem;
+      min-height: 9rem;
       width: 100%;
       display: flex;
-      align-items: center;
+      align-items: flex-start;
       justify-content: center;
     }
 
     @media (max-width: 640px) {
       .proto-previewer__preview {
         padding: 1.1rem;
+        min-height: 14rem;
+      }
+
+      .proto-previewer__preview .host {
+        min-height: 8rem;
       }
     }
   </style>

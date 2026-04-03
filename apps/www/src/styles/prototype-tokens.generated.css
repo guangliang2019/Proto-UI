@@ -3,6 +3,8 @@
 
 @source inline("absolute");
 @source inline("active:bg-background");
+@source inline("active:bg-muted");
+@source inline("active:bg-muted/80");
 @source inline("active:scale-[0.98]");
 @source inline("active:scale-[0.99]");
 @source inline("active:shadow-xs");
@@ -59,6 +61,7 @@
 @source inline("border-input");
 @source inline("border-ring");
 @source inline("border-transparent");
+@source inline("cursor-default");
 @source inline("dark:aria-checked:bg-input/50");
 @source inline("dark:aria-checked:bg-primary");
 @source inline("dark:aria-invalid:border-destructive/50");
@@ -74,10 +77,13 @@
 @source inline("data-[focus-visible]:bg-background");
 @source inline("data-[focus-visible]:border-destructive/40");
 @source inline("data-[focus-visible]:border-ring");
+@source inline("data-[focus-visible]:ring-2");
 @source inline("data-[focus-visible]:ring-3");
 @source inline("data-[focus-visible]:ring-destructive/20");
+@source inline("data-[focus-visible]:ring-inset");
 @source inline("data-[focus-visible]:ring-offset-2");
 @source inline("data-[focus-visible]:ring-offset-background");
+@source inline("data-[focus-visible]:ring-ring/40");
 @source inline("data-[focus-visible]:ring-ring/50");
 @source inline("data-[focus-visible]:shadow-xs");
 @source inline("data-[focus-visible]:text-foreground");
@@ -108,6 +114,8 @@
 @source inline("hover:bg-muted");
 @source inline("hover:bg-primary/80");
 @source inline("hover:bg-secondary/80");
+@source inline("hover:data-[focus-visible]:data-[focused]:bg-muted");
+@source inline("hover:data-[focus-visible]:data-[focused]:text-foreground");
 @source inline("hover:text-foreground");
 @source inline("hover:underline");
 @source inline("inline-flex");
@@ -118,11 +126,13 @@
 @source inline("left-0");
 @source inline("min-h-28");
 @source inline("min-w-10");
+@source inline("min-w-56");
 @source inline("min-w-8");
 @source inline("min-w-9");
 @source inline("mt-2");
 @source inline("opacity-50");
 @source inline("outline-none");
+@source inline("overflow-hidden");
 @source inline("p-1");
 @source inline("p-4");
 @source inline("peer");
@@ -135,13 +145,17 @@
 @source inline("px-3");
 @source inline("px-5");
 @source inline("py-1.5");
+@source inline("py-2");
 @source inline("relative");
 @source inline("ring-0");
+@source inline("ring-2");
 @source inline("ring-3");
 @source inline("ring-destructive/20");
 @source inline("ring-destructive/40");
+@source inline("ring-inset");
 @source inline("ring-offset-2");
 @source inline("ring-offset-background");
+@source inline("ring-ring/40");
 @source inline("ring-ring/50");
 @source inline("rounded-[min(var(--radius-md),12px)]");
 @source inline("rounded-full");
@@ -160,6 +174,7 @@
 @source inline("text-accent-foreground");
 @source inline("text-destructive");
 @source inline("text-foreground");
+@source inline("text-left");
 @source inline("text-muted-foreground");
 @source inline("text-primary");
 @source inline("text-primary-foreground");

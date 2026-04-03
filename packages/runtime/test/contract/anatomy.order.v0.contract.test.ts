@@ -178,4 +178,59 @@ describe('runtime contract: anatomy.order (v0)', () => {
     expect(itemAPrevId).toBe('b');
     expect(itemANextId).toBeUndefined();
   });
+
+  it('ANATOMY-ORDER-RT-0200: run.anatomy query policies return null/empty when no valid domain exists', () => {
+    const family = createAnatomyFamily('rt-anatomy-order-policy');
+    const orphanTarget = createTarget('orphan', new Map([['orphan', 0]]));
+    let seen: Record<string, unknown> | null = null;
+
+    const Orphan = definePrototype({
+      name: 'x-rt-anatomy-order-orphan',
+      setup(def) {
+        def.anatomy.family(family, {
+          roles: {
+            root: { cardinality: { min: 1, max: 1 } },
+            item: { cardinality: { min: 0, max: 10 } },
+          },
+        });
+        def.anatomy.claim(family, { role: 'item' });
+        def.lifecycle.onUpdated((run) => {
+          seen = {
+            parts: run.anatomy.parts(family, { missing: 'null' }),
+            emptyParts: run.anatomy.parts(family, { missing: 'empty' }),
+            roleParts: run.anatomy.partsOf(family, 'item', { missing: 'null' }),
+            emptyRoleParts: run.anatomy.partsOf(family, 'item', { missing: 'empty' }),
+            version: run.anatomy.order.version(family, { missing: 'null' }),
+            ordered: run.anatomy.order.parts(family, { missing: 'null' }),
+            orderedRole: run.anatomy.order.partsOf(family, 'item', { missing: 'null' }),
+            index: run.anatomy.order.indexOfSelf(family, 'item', { missing: 'null' }),
+            prev: run.anatomy.order.prevOfSelf(family, 'item', { missing: 'null' }),
+            next: run.anatomy.order.nextOfSelf(family, 'item', { missing: 'null' }),
+          };
+        });
+        return (r) => r.el('div', r.r.slot());
+      },
+    });
+
+    const orphanCtx = createHost({
+      instance: orphanTarget,
+      getParent: () => null,
+      getPrototype: (instance) => (instance === orphanTarget ? Orphan : null),
+    });
+
+    executeWithHost(Orphan as any, orphanCtx.host as any).controller.update();
+
+    expect(seen).toEqual({
+      parts: null,
+      emptyParts: [],
+      roleParts: null,
+      emptyRoleParts: [],
+      version: null,
+      ordered: null,
+      orderedRole: null,
+      index: null,
+      prev: null,
+      next: null,
+    });
+  });
 });

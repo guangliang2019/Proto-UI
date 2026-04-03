@@ -38,38 +38,38 @@ export const createRunHandle = <P extends PropsBaseType>(
         if (!anatomy) throw new Error(`[Anatomy] module unavailable`);
         return anatomy.has(family, role);
       },
-      parts: (family) => {
+      parts: (family, options) => {
         if (!anatomy) throw new Error(`[Anatomy] module unavailable`);
-        return anatomy.parts(family);
+        return anatomy.parts(family, options as any);
       },
-      partsOf: (family, role) => {
+      partsOf: (family, role, options) => {
         if (!anatomy) throw new Error(`[Anatomy] module unavailable`);
-        return anatomy.partsOf(family, role);
+        return anatomy.partsOf(family, role, options as any);
       },
       order: {
-        version: (family) => {
+        version: (family, options) => {
           if (!anatomy) throw new Error(`[Anatomy] module unavailable`);
-          return anatomy.order.version(family);
+          return anatomy.order.version(family, options as any);
         },
-        parts: (family) => {
+        parts: (family, options) => {
           if (!anatomy) throw new Error(`[Anatomy] module unavailable`);
-          return anatomy.order.parts(family);
+          return anatomy.order.parts(family, options as any);
         },
-        partsOf: (family, role) => {
+        partsOf: (family, role, options) => {
           if (!anatomy) throw new Error(`[Anatomy] module unavailable`);
-          return anatomy.order.partsOf(family, role);
+          return anatomy.order.partsOf(family, role, options as any);
         },
-        indexOfSelf: (family, role) => {
+        indexOfSelf: (family, role, options) => {
           if (!anatomy) throw new Error(`[Anatomy] module unavailable`);
-          return anatomy.order.indexOfSelf(family, role);
+          return anatomy.order.indexOfSelf(family, role, options as any);
         },
-        prevOfSelf: (family, role) => {
+        prevOfSelf: (family, role, options) => {
           if (!anatomy) throw new Error(`[Anatomy] module unavailable`);
-          return anatomy.order.prevOfSelf(family, role);
+          return anatomy.order.prevOfSelf(family, role, options as any);
         },
-        nextOfSelf: (family, role) => {
+        nextOfSelf: (family, role, options) => {
           if (!anatomy) throw new Error(`[Anatomy] module unavailable`);
-          return anatomy.order.nextOfSelf(family, role);
+          return anatomy.order.nextOfSelf(family, role, options as any);
         },
       },
     },

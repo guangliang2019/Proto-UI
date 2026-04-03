@@ -4,7 +4,7 @@ import type { Prototype } from '@proto.ui/core';
 import { createMountedReactAdapter } from './utils/fake-react';
 
 describe('adapter-react: event routing', () => {
-  it('maps global Enter keydown to key.down and press.commit', () => {
+  it('maps Enter keydown within the adapter root to press.commit and key.down', () => {
     const calls: string[] = [];
 
     const proto: Prototype = {
@@ -18,8 +18,8 @@ describe('adapter-react: event routing', () => {
 
     const mounted = createMountedReactAdapter(proto);
 
-    window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter' }));
-    expect(calls).toEqual(['key.down', 'press.commit']);
+    mounted.root?.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
+    expect(calls).toEqual(['press.commit', 'key.down']);
 
     mounted.unmount();
   });

@@ -8,6 +8,8 @@ import type { CollectionExposes, CollectionItemExposes, CollectionItemSnapshot }
  * - item commit close behavior and open-entry behavior are exposed as narrow policy surfaces
  * - transient active navigation state remains internal unless a stable consumer emerges
  * - it does not define persistent selection, checked/radio semantics, or submenu structure
+ * - TODO: if layered submenu interaction proves reusable across dropdown-menu and context-menu,
+ *   extract a non-privileged coordination hook tentatively named `asNestedMenuLayer`
  */
 export interface DropdownRootProps {
   open?: boolean;

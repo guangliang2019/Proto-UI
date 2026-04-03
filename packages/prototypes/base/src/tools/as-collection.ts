@@ -65,7 +65,13 @@ function buildCollectionItemsFromRun(
   itemRole: string,
   itemMetaExposeKey: string
 ): readonly CollectionItemSnapshot[] {
-  return buildCollectionItems(run.anatomy.order.partsOf(family, itemRole), itemMetaExposeKey);
+  // Collection is a derived projection over anatomy order.
+  // Use tolerant reads here so transient invalid-domain windows degrade to an empty projection
+  // instead of crashing. This does NOT mean the anatomy relationship is semantically optional.
+  return buildCollectionItems(
+    run.anatomy.order.partsOf(family, itemRole, { missing: 'empty' }),
+    itemMetaExposeKey
+  );
 }
 
 function getAnatomyPort(def: unknown): AnatomyPort {
@@ -104,7 +110,8 @@ export const asCollection = defineAsHook<
     api.store.version = -1;
 
     const sync = (run: RunHandle<any>) => {
-      const version = run.anatomy.order.version(options.family);
+      const version = run.anatomy.order.version(options.family, { missing: 'null' });
+      if (version == null) return;
       if (api.store.version === version) return;
       const items = buildCollectionItemsFromRun(run, options.family, itemRole, itemMetaExposeKey);
       api.store.items = items;
@@ -115,12 +122,12 @@ export const asCollection = defineAsHook<
     def.expose.state(exposeCountStateKey as keyof CollectionExposes & string, count);
     def.expose.method(exposeItemsMethodKey as keyof CollectionExposes & string, () => {
       return buildCollectionItems(
-        anatomy.order.partsOf(options.family, itemRole),
+        anatomy.order.partsOf(options.family, itemRole, { missing: 'empty' }),
         itemMetaExposeKey
       );
     });
     def.expose.method(exposeCountMethodKey as keyof CollectionExposes & string, () => {
-      return anatomy.order.partsOf(options.family, itemRole).length;
+      return anatomy.order.partsOf(options.family, itemRole, { missing: 'empty' }).length;
     });
 
     def.lifecycle.onMounted((run) => {

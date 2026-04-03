@@ -57,13 +57,11 @@ describe('contract: adapter-web-component / event router mapping (v0)', () => {
     r.dispose();
   });
 
-  it('keydown -> key.down (globalTarget), and Enter/Space -> press.commit (rootTarget)', async () => {
+  it('keydown within root -> key.down (globalTarget), and Enter/Space -> press.commit (rootTarget)', async () => {
     const el = document.createElement('div');
-    const global = new EventTarget();
-
     const r = createWebProtoEventRouter({
       rootEl: el,
-      globalEl: global,
+      globalEl: el,
       isEnabled: () => true,
     });
 
@@ -71,7 +69,7 @@ describe('contract: adapter-web-component / event router mapping (v0)', () => {
     const pPress = once<CustomEvent>(r.rootTarget, 'press.commit');
 
     const native = new KeyboardEvent('keydown', { key: 'Enter' });
-    global.dispatchEvent(native);
+    el.dispatchEvent(native);
 
     const evKey = await pKey;
     expect((evKey as any).detail).toBe(native);

@@ -120,8 +120,19 @@ export const asCollectionItem = defineAsHook<
     };
 
     const readPositionFromPort = () => {
-      const nextIndex = anatomy.order.indexOfSelf(options.family, role);
-      const nextTotal = anatomy.order.partsOf(options.family, role).length;
+      // Item position is a derived structural snapshot. During transient invalid-domain windows,
+      // preserve the last known snapshot instead of treating the family as semantically optional.
+      const nextIndex = anatomy.order.indexOfSelf(options.family, role, { missing: 'null' });
+      const parts = anatomy.order.partsOf(options.family, role, { missing: 'null' });
+      if (nextIndex == null || parts == null) {
+        return {
+          index: api.store.snapshot.index ?? -1,
+          total: api.store.snapshot.total ?? 0,
+          first: api.store.snapshot.first ?? false,
+          last: api.store.snapshot.last ?? false,
+        };
+      }
+      const nextTotal = parts.length;
       return {
         index: nextIndex,
         total: nextTotal,
@@ -131,12 +142,22 @@ export const asCollectionItem = defineAsHook<
     };
 
     const sync = (run: RunHandle<any>, forceMeta = false) => {
-      const version = run.anatomy.order.version(options.family);
-      if (!forceMeta && api.store.version === version) return;
-      const nextIndex = run.anatomy.order.indexOfSelf(options.family, role);
-      const nextTotal = run.anatomy.order.partsOf(options.family, role).length;
       const nextMeta = options.getMeta?.(run) ?? readMetaFromSnapshot();
-      writeSnapshot(nextIndex, nextTotal, nextMeta, version);
+      const version = run.anatomy.order.version(options.family, { missing: 'null' });
+      const nextIndex = run.anatomy.order.indexOfSelf(options.family, role, { missing: 'null' });
+      const parts = run.anatomy.order.partsOf(options.family, role, { missing: 'null' });
+      if (version == null || nextIndex == null || parts == null) {
+        api.store.snapshot = {
+          ...nextMeta,
+          index: api.store.snapshot.index ?? -1,
+          total: api.store.snapshot.total ?? 0,
+          first: api.store.snapshot.first ?? false,
+          last: api.store.snapshot.last ?? false,
+        } as CollectionItemSnapshot;
+        return;
+      }
+      if (!forceMeta && api.store.version === version) return;
+      writeSnapshot(nextIndex, parts.length, nextMeta, version);
     };
 
     const wrapGetter = <T>(

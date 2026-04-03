@@ -3,6 +3,14 @@ import { createAnatomyFamily, type Prototype } from '@proto.ui/core';
 import { AnatomyModuleImpl } from '../../src/impl';
 import { makeCaps } from '../utils/fake-caps';
 
+/**
+ * Usage note:
+ * - Anatomy query policy is about tolerant structural reads, not semantic optionality.
+ * - `missing: 'null' | 'empty'` is compliant for derived/read-only projections.
+ * - It should not be used to hide required structure in interaction-critical behavior.
+ * - See `internal/contracts/anatomy/query-policy.v0.impl-notes.md`.
+ */
+
 function makeExposePort(record: Record<string, unknown> = {}) {
   return {
     get: (key: string) => record[key],

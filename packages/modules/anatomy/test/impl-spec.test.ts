@@ -328,4 +328,27 @@ describe('AnatomyModuleImpl', () => {
 
     off();
   });
+
+  it('supports null/empty query policies when current instance is outside a valid domain', () => {
+    const family = createAnatomyFamily('query-policy-outside-domain');
+    const orphan = {};
+    const caps = makeCaps({
+      instance: orphan,
+      getParent: () => null,
+      getPrototype: () => makeProto([]),
+    });
+    const impl = new AnatomyModuleImpl(caps, 'orphan', makeExposePort());
+
+    caps.__sys.__setExecPhase('callback');
+
+    expect(impl.parts(family, { missing: 'null' })).toBeNull();
+    expect(impl.parts(family, { missing: 'empty' })).toEqual([]);
+    expect(impl.orderVersion(family, { missing: 'null' })).toBeNull();
+    expect(impl.orderedParts(family, { missing: 'null' })).toBeNull();
+    expect(impl.orderedPartsOf(family, 'item', { missing: 'null' })).toBeNull();
+    expect(impl.orderedPartsOf(family, 'item', { missing: 'empty' })).toEqual([]);
+    expect(impl.indexOfSelf(family, 'item', { missing: 'null' })).toBeNull();
+    expect(impl.prevOfSelf(family, 'item', { missing: 'null' })).toBeNull();
+    expect(impl.nextOfSelf(family, 'item', { missing: 'null' })).toBeNull();
+  });
 });
