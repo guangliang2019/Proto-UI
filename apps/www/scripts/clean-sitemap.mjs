@@ -1,5 +1,4 @@
 import { readFile, writeFile } from 'node:fs/promises';
-import { join } from 'node:path';
 
 const DIST_DIR = new URL('../dist/', import.meta.url);
 const ROOT_URL = 'https://www.proto-ui.com/';

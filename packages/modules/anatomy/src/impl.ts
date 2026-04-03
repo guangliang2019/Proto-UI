@@ -225,10 +225,19 @@ export class AnatomyModuleImpl extends ModuleBase {
     CENTER.setFamily(family, normalizeFamily(decl));
   }
 
+  private ensureFamilyRegistered(family: AnatomyFamily): NormalizedFamily | null {
+    const existing = CENTER.getFamily(family);
+    if (existing) return existing;
+    if (!family.decl) return null;
+    const normalized = normalizeFamily(family.decl);
+    CENTER.setFamily(family, normalized);
+    return normalized;
+  }
+
   claim(family: AnatomyFamily, decl: AnatomyClaimDecl): void {
     this.ensureSetup('def.anatomy.claim');
 
-    const familyDef = CENTER.getFamily(family);
+    const familyDef = this.ensureFamilyRegistered(family);
     if (!familyDef) {
       throw anatomyError(
         ANATOMY_ERROR.CLAIM_INVALID,

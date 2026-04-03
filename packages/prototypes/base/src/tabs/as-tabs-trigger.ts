@@ -1,6 +1,6 @@
 import { asFocusable, defineAsHook } from '@proto.ui/core';
 import { asButton } from '../button/as-button';
-import { TABS_CONTEXT, TABS_FAMILY, TABS_FOCUS_GROUP, registerTabsFamily } from './shared';
+import { TABS_CONTEXT, TABS_FAMILY, TABS_FOCUS_GROUP } from './shared';
 import type { TabsTriggerAsHookContract, TabsTriggerExposes, TabsTriggerProps } from './types';
 
 function syncSelectedFromContext(
@@ -19,7 +19,6 @@ export const asTabsTrigger = defineAsHook<
   name: 'as-tabs-trigger',
   mode: 'once',
   setup(def) {
-    registerTabsFamily(def as any);
     def.anatomy.claim(TABS_FAMILY, { role: 'trigger' });
     asButton();
     const focusable = asFocusable({ groupKey: TABS_FOCUS_GROUP });

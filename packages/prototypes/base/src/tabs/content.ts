@@ -5,7 +5,6 @@ const tabsContent = definePrototype({
   name: 'base-tabs-content',
   setup: () => {
     asTabsContent();
-    return (r) => r.el('div', r.r.slot());
   },
 });
 

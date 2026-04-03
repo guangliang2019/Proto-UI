@@ -5,7 +5,6 @@ const switchRoot = definePrototype({
   name: 'base-switch-root',
   setup: () => {
     asSwitchRoot();
-    return (r) => r.el('button', r.r.slot());
   },
 });
 

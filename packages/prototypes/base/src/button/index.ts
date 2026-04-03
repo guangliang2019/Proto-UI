@@ -8,7 +8,6 @@ const button = definePrototype({
   name: 'base-button',
   setup: () => {
     asButton();
-    return (r) => r.el('button', r.r.slot());
   },
 });
 

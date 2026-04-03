@@ -1,12 +1,11 @@
 import { defineAsHook } from '@proto.ui/core';
-import { TABS_CONTEXT, TABS_FAMILY, registerTabsFamily } from './shared';
+import { TABS_CONTEXT, TABS_FAMILY } from './shared';
 import type { TabsRootAsHookContract, TabsRootExposes, TabsRootProps } from './types';
 
 export const asTabsRoot = defineAsHook<TabsRootProps, TabsRootExposes, TabsRootAsHookContract>({
   name: 'as-tabs-root',
   mode: 'once',
   setup(def) {
-    registerTabsFamily(def as any);
     def.anatomy.claim(TABS_FAMILY, { role: 'root' });
 
     def.props.define({

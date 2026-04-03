@@ -1,5 +1,9 @@
 import { ExposeEvent, ExposeMethod, ExposeState, FocusRequestOptions, State } from '@proto.ui/core';
-import type { CollectionExposes, CollectionItemExposes, CollectionItemSnapshot } from '../tools';
+import type {
+  CollectionExposes,
+  CollectionItemExposes,
+  CollectionItemSnapshotExposed as CollectionItemSnapshot,
+} from '@proto.ui/core';
 
 /**
  * Boundary:

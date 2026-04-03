@@ -5,7 +5,6 @@ const tabsTrigger = definePrototype({
   name: 'base-tabs-trigger',
   setup: () => {
     asTabsTrigger();
-    return (r) => r.el('button', r.r.slot());
   },
 });
 

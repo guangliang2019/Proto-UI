@@ -5,7 +5,6 @@ const switchThumb = definePrototype({
   name: 'base-switch-thumb',
   setup: () => {
     asSwitchThumb();
-    return (r) => r.el('span', r.r.slot());
   },
 });
 

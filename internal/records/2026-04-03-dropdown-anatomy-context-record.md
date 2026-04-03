@@ -203,6 +203,40 @@ If yes, some tolerant reads might later be replaced by an explicit "structure-re
 
 Likely yes.
 
+### 8.4 Is the later anatomy family-declaration issue the same problem?
+
+Current answer: no, they are related but distinct.
+
+The transient invalid-domain issue discussed in this record was about:
+
+- a valid family existing in principle
+- a claim already being part of the intended composition
+- a temporary window where domain resolution was not currently stable
+
+The later family-declaration issue was about something different:
+
+- `claim()` required the family declaration to have been registered already
+- `AnatomyFamily` itself did not carry the family declaration
+- therefore authors were pushed toward `register*Family(def)` helpers in every part
+
+That was not merely a transient-window problem.
+
+It was an API-shape limitation in anatomy:
+
+- family definition lived outside the `AnatomyFamily` value
+- claim-time behavior could not recover from declaration order
+- root-only declaration or external predeclared family usage was not first-class
+
+So the current model should distinguish these as two independent issues:
+
+1. transient invalid-domain windows  
+   solved via anatomy query policy (`missing: 'null' | 'empty'`) for tolerant read sites
+
+2. family declaration locality / claimability  
+   solved by letting `createAnatomyFamily(..., decl)` embed the family declaration and by allowing claim-time auto-registration from that embedded declaration
+
+The two issues can interact in practice because both surface as anatomy lookup pain, but they should not be collapsed into one diagnosis.
+
 ---
 
 ## 9) Promotion Candidates
@@ -211,4 +245,5 @@ If this area stabilizes, parts of this record should later move into:
 
 - engineering docs: guidance on anatomy/context usage
 - specs/contracts: exact behavior of anatomy query policies
+- specs/contracts: anatomy family declaration and claim behavior
 - asHook guidance: when privileged hooks are justified

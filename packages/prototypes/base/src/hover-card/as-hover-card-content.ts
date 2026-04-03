@@ -1,5 +1,5 @@
 import { asOverlay, defineAsHook, tw } from '@proto.ui/core';
-import { HOVER_CARD_CONTEXT, HOVER_CARD_FAMILY, registerHoverCardFamily } from './shared';
+import { HOVER_CARD_CONTEXT, HOVER_CARD_FAMILY } from './shared';
 import type {
   HoverCardContentAsHookContract,
   HoverCardContentExposes,
@@ -26,7 +26,6 @@ export const asHoverCardContent = defineAsHook<
   name: 'as-hover-card-content',
   mode: 'once',
   setup(def) {
-    registerHoverCardFamily(def as any);
     def.anatomy.claim(HOVER_CARD_FAMILY, { role: 'content' });
 
     const overlay = asOverlay({

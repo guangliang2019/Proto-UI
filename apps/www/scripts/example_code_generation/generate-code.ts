@@ -3,11 +3,7 @@
  * 将 DemoSpec 树结构转换为框架特定的代码
  */
 import prettier from 'prettier';
-import type {
-  DemoChild,
-  DemoNode,
-  DemoSpec,
-} from '../../src/components/PrototypePreviewer/demo-types';
+import type { DemoChild, DemoSpec } from '../../src/components/PrototypePreviewer/demo-types';
 import { collectPrototypeIds } from '../../src/components/PrototypePreviewer/demo-types';
 import { prototypeMappings } from './prototype-config';
 

@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { createAnatomyFamily, definePrototype, type Prototype } from '@proto.ui/core';
+import {
+  asCollection,
+  asCollectionItem,
+  createAnatomyFamily,
+  definePrototype,
+  type Prototype,
+} from '@proto.ui/core';
 import { executeWithHost, type RuntimeHost } from '@proto.ui/runtime';
 import { EXPOSE_SET_EXPOSES_CAP } from '@proto.ui/module-expose';
 import {
@@ -9,7 +15,6 @@ import {
   ANATOMY_PARENT_CAP,
   ANATOMY_ROOT_TARGET_CAP,
 } from '@proto.ui/module-anatomy';
-import { asCollection, asCollectionItem } from '../src/tools';
 
 type Target = {
   id: string;

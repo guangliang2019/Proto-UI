@@ -1,5 +1,5 @@
 import { defineAsHook, type AnatomyPartView, type RunHandle } from '@proto.ui/core';
-import { registerSwitchFamily, SWITCH_FAMILY } from './shared';
+import { SWITCH_FAMILY } from './shared';
 import type { SwitchThumbAsHookContract, SwitchThumbExposes, SwitchThumbProps } from './types';
 
 export const asSwitchThumb = defineAsHook<
@@ -10,7 +10,6 @@ export const asSwitchThumb = defineAsHook<
   name: 'as-switch-thumb',
   mode: 'once',
   setup(def) {
-    registerSwitchFamily(def as any);
     def.anatomy.claim(SWITCH_FAMILY, { role: 'thumb' });
     const checked = def.state.fromAccessibility('checked');
 

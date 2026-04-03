@@ -15,8 +15,6 @@ const hoverCardContent = definePrototype<
         'absolute left-0 top-full z-50 mt-2 block w-80 rounded-xl border border-border/60 bg-background p-4 text-sm leading-6 shadow-lg'
       )
     );
-
-    return (r) => r.el('div', r.r.slot());
   },
 });
 

@@ -1,12 +1,11 @@
 import { asFocusGroup, defineAsHook } from '@proto.ui/core';
-import { TABS_FAMILY, TABS_FOCUS_GROUP, registerTabsFamily } from './shared';
+import { TABS_FAMILY, TABS_FOCUS_GROUP } from './shared';
 import type { TabsListAsHookContract, TabsListExposes, TabsListProps } from './types';
 
 export const asTabsList = defineAsHook<TabsListProps, TabsListExposes, TabsListAsHookContract>({
   name: 'as-tabs-list',
   mode: 'once',
   setup(def) {
-    registerTabsFamily(def as any);
     def.anatomy.claim(TABS_FAMILY, { role: 'list' });
 
     def.props.define({

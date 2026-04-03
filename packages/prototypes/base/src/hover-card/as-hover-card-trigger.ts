@@ -1,6 +1,6 @@
 import { defineAsHook } from '@proto.ui/core';
 import { asButton } from '../button/as-button';
-import { HOVER_CARD_CONTEXT, HOVER_CARD_FAMILY, registerHoverCardFamily } from './shared';
+import { HOVER_CARD_CONTEXT, HOVER_CARD_FAMILY } from './shared';
 import type {
   HoverCardTriggerAsHookContract,
   HoverCardTriggerExposes,
@@ -15,7 +15,6 @@ export const asHoverCardTrigger = defineAsHook<
   name: 'as-hover-card-trigger',
   mode: 'once',
   setup(def) {
-    registerHoverCardFamily(def as any);
     def.anatomy.claim(HOVER_CARD_FAMILY, { role: 'trigger' });
     asButton();
 

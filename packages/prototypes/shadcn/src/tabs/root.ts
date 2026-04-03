@@ -7,7 +7,6 @@ const tabsRoot = definePrototype<ShadcnTabsRootProps, ShadcnTabsRootExposes>({
   setup(def) {
     asTabsRoot();
     def.feedback.style.use(tw('flex flex-col gap-3 text-foreground'));
-    return (r) => r.el('div', r.r.slot());
   },
 });
 

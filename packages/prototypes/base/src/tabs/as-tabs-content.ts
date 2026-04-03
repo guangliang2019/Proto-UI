@@ -1,5 +1,5 @@
 import { defineAsHook, tw } from '@proto.ui/core';
-import { TABS_CONTEXT, TABS_FAMILY, registerTabsFamily } from './shared';
+import { TABS_CONTEXT, TABS_FAMILY } from './shared';
 import type { TabsContentAsHookContract, TabsContentExposes, TabsContentProps } from './types';
 
 function syncCurrentFromContext(
@@ -18,7 +18,6 @@ export const asTabsContent = defineAsHook<
   name: 'as-tabs-content',
   mode: 'once',
   setup(def) {
-    registerTabsFamily(def as any);
     def.anatomy.claim(TABS_FAMILY, { role: 'content' });
     const current = def.state.fromAccessibility('current');
 

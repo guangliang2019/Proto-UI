@@ -1,6 +1,6 @@
-import { defineAsHook } from '@proto.ui/core';
-import { asCollection, asOpenState } from '../tools';
-import { DROPDOWN_CONTEXT, DROPDOWN_FAMILY, registerDropdownFamily } from './shared';
+import { asCollection, defineAsHook } from '@proto.ui/core';
+import { asOpenState } from '../tools';
+import { DROPDOWN_CONTEXT, DROPDOWN_FAMILY } from './shared';
 import type { DropdownRootAsHookContract, DropdownRootExposes, DropdownRootProps } from './types';
 
 export const asDropdownRoot = defineAsHook<
@@ -11,7 +11,6 @@ export const asDropdownRoot = defineAsHook<
   name: 'as-dropdown-root',
   mode: 'once',
   setup(def) {
-    registerDropdownFamily(def as any);
     def.anatomy.claim(DROPDOWN_FAMILY, { role: 'root' });
     asCollection({ family: DROPDOWN_FAMILY });
 

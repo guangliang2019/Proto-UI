@@ -6,9 +6,12 @@ import { makeCaps } from '../utils/fake-caps';
 /**
  * Usage note:
  * - Anatomy query policy is about tolerant structural reads, not semantic optionality.
+ * - Family declaration locality is a separate concern; prefer `createAnatomyFamily(..., decl)`
+ *   for stable shared families instead of per-part `register*Family(def)` helpers.
  * - `missing: 'null' | 'empty'` is compliant for derived/read-only projections.
  * - It should not be used to hide required structure in interaction-critical behavior.
  * - See `internal/contracts/anatomy/query-policy.v0.impl-notes.md`.
+ * - See `internal/contracts/anatomy/family-declaration.v0.impl-notes.md`.
  */
 
 function makeExposePort(record: Record<string, unknown> = {}) {
@@ -158,5 +161,49 @@ describe('anatomy-module: order contract v0', () => {
     (notifyObserver as (() => void) | null)?.();
 
     expect(seen).toBe('callback-ctx');
+  });
+
+  it('ANATOMY-ORDER-MOD-0300: embedded family declarations allow direct claims without prior family() registration', () => {
+    const family = createAnatomyFamily('contract-embedded-family', {
+      roles: {
+        root: { cardinality: { min: 1, max: 1 } },
+        item: { cardinality: { min: 0, max: 10 } },
+      },
+      relations: [{ kind: 'contains', parent: 'root', child: 'item' }],
+    });
+    const root = {};
+    const item = {};
+
+    const rootImpl = new AnatomyModuleImpl(
+      makeCaps({
+        instance: root,
+        getParent: (instance) => (instance === item ? root : null),
+        getPrototype: () => makeProto([]),
+        getRootTarget: () => ({
+          compareDocumentPosition() {
+            return 0;
+          },
+        }),
+      }),
+      'root',
+      makeExposePort()
+    );
+    const itemImpl = new AnatomyModuleImpl(
+      makeCaps({
+        instance: item,
+        getParent: (instance) => (instance === item ? root : null),
+        getPrototype: () => makeProto([]),
+        getRootTarget: () => ({
+          compareDocumentPosition() {
+            return 0;
+          },
+        }),
+      }),
+      'item',
+      makeExposePort()
+    );
+
+    expect(() => itemImpl.claim(family, { role: 'item' })).not.toThrow();
+    expect(() => rootImpl.claim(family, { role: 'root' })).not.toThrow();
   });
 });

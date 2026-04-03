@@ -1,6 +1,6 @@
 import { defineAsHook } from '@proto.ui/core';
 import { asButton } from '../button/as-button';
-import { DROPDOWN_CONTEXT, DROPDOWN_FAMILY, registerDropdownFamily } from './shared';
+import { DROPDOWN_CONTEXT, DROPDOWN_FAMILY } from './shared';
 import type {
   DropdownTriggerAsHookContract,
   DropdownTriggerExposes,
@@ -15,7 +15,6 @@ export const asDropdownTrigger = defineAsHook<
   name: 'as-dropdown-trigger',
   mode: 'once',
   setup(def) {
-    registerDropdownFamily(def as any);
     def.anatomy.claim(DROPDOWN_FAMILY, { role: 'trigger' });
     asButton();
     const focused = def.state.fromInteraction('focused');

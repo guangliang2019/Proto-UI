@@ -5,7 +5,6 @@ const dropdownRoot = definePrototype({
   name: 'base-dropdown-root',
   setup: () => {
     asDropdownRoot();
-    return (r) => r.el('div', r.r.slot());
   },
 });
 

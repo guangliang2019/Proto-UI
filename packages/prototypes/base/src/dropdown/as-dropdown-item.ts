@@ -1,12 +1,6 @@
-import { asFocusable, defineAsHook } from '@proto.ui/core';
+import { asCollectionItem, asFocusable, defineAsHook } from '@proto.ui/core';
 import { asButton } from '../button/as-button';
-import { asCollectionItem } from '../tools';
-import {
-  DROPDOWN_CONTEXT,
-  DROPDOWN_FAMILY,
-  DROPDOWN_FOCUS_GROUP,
-  registerDropdownFamily,
-} from './shared';
+import { DROPDOWN_CONTEXT, DROPDOWN_FAMILY, DROPDOWN_FOCUS_GROUP } from './shared';
 import type { DropdownItemAsHookContract, DropdownItemExposes, DropdownItemProps } from './types';
 
 export const asDropdownItem = defineAsHook<
@@ -17,7 +11,6 @@ export const asDropdownItem = defineAsHook<
   name: 'as-dropdown-item',
   mode: 'once',
   setup(def) {
-    registerDropdownFamily(def as any);
     asButton();
     const focusable = asFocusable({ groupKey: DROPDOWN_FOCUS_GROUP });
     const active = def.state.bool('active', false);

@@ -5,7 +5,6 @@ const tabsList = definePrototype({
   name: 'base-tabs-list',
   setup: () => {
     asTabsList();
-    return (r) => r.el('div', r.r.slot());
   },
 });
 

@@ -5,7 +5,6 @@ const dropdownItem = definePrototype({
   name: 'base-dropdown-item',
   setup: () => {
     asDropdownItem();
-    return (r) => r.el('button', r.r.slot());
   },
 });
 

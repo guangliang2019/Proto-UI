@@ -5,7 +5,6 @@ const hoverCardTrigger = definePrototype({
   name: 'base-hover-card-trigger',
   setup: () => {
     asHoverCardTrigger();
-    return (r) => r.el('button', r.r.slot());
   },
 });
 

@@ -1,36 +1,13 @@
 import { __AS_HOOK_PRIV_PORTS, defineAsHook } from '@proto.ui/core';
-import type { AnatomyFamily, ExposeMethod, ExposeState, RunHandle, State } from '@proto.ui/core';
+import type {
+  AnatomyFamily,
+  CollectionExposes,
+  CollectionHandles,
+  CollectionItemSnapshot,
+  CollectionOptions,
+  RunHandle,
+} from '@proto.ui/core';
 import type { AnatomyPort } from '@proto.ui/module-anatomy';
-
-export type CollectionItemSnapshot = Readonly<
-  Record<string, unknown> & {
-    index: number;
-    total: number;
-    first: boolean;
-    last: boolean;
-  }
->;
-
-export type CollectionOptions = {
-  family: AnatomyFamily;
-  itemRole?: string;
-  rootRole?: string | false;
-  itemMetaExposeKey?: string;
-  countStateKey?: string;
-  exposeCountStateKey?: string;
-  exposeItemsMethodKey?: string;
-  exposeCountMethodKey?: string;
-};
-
-export type CollectionExposes = {
-  count: ExposeState<number>;
-  getCollectionItems: ExposeMethod<() => readonly CollectionItemSnapshot[]>;
-  getCollectionCount: ExposeMethod<() => number>;
-};
-
-export type CollectionHandles = {
-  count: State<number>;
-};
 
 const DEFAULT_ITEM_ROLE = 'item';
 const DEFAULT_ITEM_META_EXPOSE_KEY = '__collectionItem';
@@ -65,9 +42,6 @@ function buildCollectionItemsFromRun(
   itemRole: string,
   itemMetaExposeKey: string
 ): readonly CollectionItemSnapshot[] {
-  // Collection is a derived projection over anatomy order.
-  // Use tolerant reads here so transient invalid-domain windows degrade to an empty projection
-  // instead of crashing. This does NOT mean the anatomy relationship is semantically optional.
   return buildCollectionItems(
     run.anatomy.order.partsOf(family, itemRole, { missing: 'empty' }),
     itemMetaExposeKey

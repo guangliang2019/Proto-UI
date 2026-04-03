@@ -5,7 +5,6 @@ const tabsRoot = definePrototype({
   name: 'base-tabs-root',
   setup: () => {
     asTabsRoot();
-    return (r) => r.el('div', r.r.slot());
   },
 });
 

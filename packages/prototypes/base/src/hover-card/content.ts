@@ -6,7 +6,6 @@ const hoverCardContent = definePrototype({
   setup: (def) => {
     asHoverCardContent();
     def.feedback.style.use(tw('absolute left-0 top-full z-50 mt-2'));
-    return (r) => r.el('div', r.r.slot());
   },
 });
 

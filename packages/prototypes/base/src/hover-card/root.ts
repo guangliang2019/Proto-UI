@@ -6,7 +6,6 @@ const hoverCardRoot = definePrototype({
   setup: (def) => {
     asHoverCardRoot();
     def.feedback.style.use(tw('relative inline-flex items-start'));
-    return (r) => r.el('div', r.r.slot());
   },
 });
 

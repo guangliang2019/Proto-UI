@@ -351,4 +351,43 @@ describe('AnatomyModuleImpl', () => {
     expect(impl.prevOfSelf(family, 'item', { missing: 'null' })).toBeNull();
     expect(impl.nextOfSelf(family, 'item', { missing: 'null' })).toBeNull();
   });
+
+  it('auto-registers embedded family declarations on first claim', () => {
+    const family = createAnatomyFamily('embedded-family-decl', {
+      roles: {
+        root: { cardinality: { min: 1, max: 1 } },
+        item: { cardinality: { min: 0, max: 10 } },
+      },
+      relations: [{ kind: 'contains', parent: 'root', child: 'item' }],
+    });
+    const root = {};
+    const item = {};
+    const parentMap = new Map<any, any>([
+      [root, null],
+      [item, root],
+    ]);
+
+    const rootCaps = makeCaps({
+      instance: root,
+      getParent: (instance) => parentMap.get(instance) ?? null,
+      getPrototype: () => makeProto([]),
+    });
+    const itemCaps = makeCaps({
+      instance: item,
+      getParent: (instance) => parentMap.get(instance) ?? null,
+      getPrototype: () => makeProto([]),
+    });
+
+    const rootImpl = new AnatomyModuleImpl(rootCaps, 'root', makeExposePort());
+    const itemImpl = new AnatomyModuleImpl(itemCaps, 'item', makeExposePort());
+
+    expect(() => itemImpl.claim(family, { role: 'item' })).not.toThrow();
+    expect(() => rootImpl.claim(family, { role: 'root' })).not.toThrow();
+
+    rootCaps.__sys.__setExecPhase('callback');
+    itemCaps.__sys.__setExecPhase('callback');
+
+    expect(rootImpl.partsOf(family, 'item')?.length).toBe(1);
+    expect(itemImpl.indexOfSelf(family, 'item')).toBe(0);
+  });
 });

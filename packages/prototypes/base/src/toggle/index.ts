@@ -8,7 +8,6 @@ const toggle = definePrototype({
   name: 'base-toggle',
   setup: () => {
     asToggle();
-    return (r) => r.el('button', r.r.slot());
   },
 });
 

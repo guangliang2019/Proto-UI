@@ -1,49 +1,15 @@
 import { __AS_HOOK_PRIV_PORTS, defineAsHook } from '@proto.ui/core';
-import type { AnatomyFamily, ExposeMethod, ExposeState, RunHandle, State } from '@proto.ui/core';
-import type { PropsBaseType } from '@proto.ui/types';
+import type {
+  AnatomyFamily,
+  CollectionItemExposes,
+  CollectionItemHandles,
+  CollectionItemMeta,
+  CollectionItemOptions,
+  CollectionItemSnapshotExposed as CollectionItemSnapshot,
+  RunHandle,
+  State,
+} from '@proto.ui/core';
 import type { AnatomyPort } from '@proto.ui/module-anatomy';
-
-export type CollectionItemMeta = Record<string, unknown>;
-
-export type CollectionItemOptions<P extends PropsBaseType = any> = {
-  family: AnatomyFamily;
-  role?: string;
-  metaExposeKey?: string;
-  indexStateKey?: string;
-  totalStateKey?: string;
-  firstStateKey?: string;
-  lastStateKey?: string;
-  exposeIndexStateKey?: string;
-  exposeTotalStateKey?: string;
-  exposeFirstStateKey?: string;
-  exposeLastStateKey?: string;
-  exposeSnapshotMethodKey?: string;
-  getMeta?: (run: RunHandle<P>) => CollectionItemMeta;
-};
-
-export type CollectionItemSnapshot = Readonly<
-  CollectionItemMeta & {
-    index: number;
-    total: number;
-    first: boolean;
-    last: boolean;
-  }
->;
-
-export type CollectionItemExposes = {
-  collectionIndex: ExposeState<number>;
-  collectionTotal: ExposeState<number>;
-  collectionFirst: ExposeState<boolean>;
-  collectionLast: ExposeState<boolean>;
-  getCollectionItem: ExposeMethod<() => CollectionItemSnapshot>;
-};
-
-export type CollectionItemHandles = {
-  collectionIndex: State<number>;
-  collectionTotal: State<number>;
-  collectionFirst: State<boolean>;
-  collectionLast: State<boolean>;
-};
 
 type CollectionItemStore = {
   snapshot: CollectionItemSnapshot;
@@ -121,8 +87,6 @@ export const asCollectionItem = defineAsHook<
     };
 
     const readPositionFromPort = () => {
-      // Item position is a derived structural snapshot. During transient invalid-domain windows,
-      // preserve the last known snapshot instead of treating the family as semantically optional.
       const nextIndex = anatomy.order.indexOfSelf(options.family, role, { missing: 'null' });
       const parts = anatomy.order.partsOf(options.family, role, { missing: 'null' });
       if (nextIndex == null || parts == null) {

@@ -1,10 +1,5 @@
 import { asFocusGroup, asOverlay, defineAsHook, tw } from '@proto.ui/core';
-import {
-  DROPDOWN_CONTEXT,
-  DROPDOWN_FAMILY,
-  DROPDOWN_FOCUS_GROUP,
-  registerDropdownFamily,
-} from './shared';
+import { DROPDOWN_CONTEXT, DROPDOWN_FAMILY, DROPDOWN_FOCUS_GROUP } from './shared';
 import type {
   DropdownContentAsHookContract,
   DropdownContentExposes,
@@ -19,7 +14,6 @@ export const asDropdownContent = defineAsHook<
   name: 'as-dropdown-content',
   mode: 'once',
   setup(def, _options, api) {
-    registerDropdownFamily(def as any);
     def.anatomy.claim(DROPDOWN_FAMILY, { role: 'content' });
     asFocusGroup({
       key: DROPDOWN_FOCUS_GROUP,

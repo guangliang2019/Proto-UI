@@ -1,11 +1,6 @@
 import { defineAsHook } from '@proto.ui/core';
 import { asOpenState } from '../tools';
-import {
-  HOVER_CARD_CONTEXT,
-  HOVER_CARD_FAMILY,
-  registerHoverCardFamily,
-  type HoverCardContextValue,
-} from './shared';
+import { HOVER_CARD_CONTEXT, HOVER_CARD_FAMILY, type HoverCardContextValue } from './shared';
 import type {
   HoverCardRootAsHookContract,
   HoverCardRootExposes,
@@ -36,7 +31,6 @@ export const asHoverCardRoot = defineAsHook<
   name: 'as-hover-card-root',
   mode: 'once',
   setup(def) {
-    registerHoverCardFamily(def as any);
     def.anatomy.claim(HOVER_CARD_FAMILY, { role: 'root' });
 
     const updateContext = def.context.provide(HOVER_CARD_CONTEXT, {
