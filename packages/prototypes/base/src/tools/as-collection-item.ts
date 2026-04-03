@@ -90,14 +90,20 @@ export const asCollectionItem = defineAsHook<
 
     def.anatomy.claim(options.family, { role });
 
-    const sync = (run: RunHandle<any>, forceMeta = false) => {
-      const version = run.anatomy.order.version(options.family);
-      if (!forceMeta && api.store.version === version) return;
-      const nextIndex = run.anatomy.order.indexOfSelf(options.family, role);
-      const nextTotal = run.anatomy.order.partsOf(options.family, role).length;
+    const readMetaFromSnapshot = (): CollectionItemMeta => {
+      const current = (api.store.snapshot ?? {}) as Record<string, unknown>;
+      const { index: _index, total: _total, first: _first, last: _last, ...meta } = current;
+      return meta;
+    };
+
+    const writeSnapshot = (
+      nextIndex: number,
+      nextTotal: number,
+      nextMeta: CollectionItemMeta,
+      version: number
+    ) => {
       const nextFirst = nextIndex === 0 && nextTotal > 0;
       const nextLast = nextIndex >= 0 && nextIndex === nextTotal - 1;
-      const nextMeta = options.getMeta?.(run) ?? {};
 
       index.set(nextIndex, 'reason: asCollectionItem.sync => index');
       total.set(nextTotal, 'reason: asCollectionItem.sync => total');
@@ -112,6 +118,44 @@ export const asCollectionItem = defineAsHook<
       } as CollectionItemSnapshot;
       api.store.version = version;
     };
+
+    const readPositionFromPort = () => {
+      const nextIndex = anatomy.order.indexOfSelf(options.family, role);
+      const nextTotal = anatomy.order.partsOf(options.family, role).length;
+      return {
+        index: nextIndex,
+        total: nextTotal,
+        first: nextIndex === 0 && nextTotal > 0,
+        last: nextIndex >= 0 && nextIndex === nextTotal - 1,
+      };
+    };
+
+    const sync = (run: RunHandle<any>, forceMeta = false) => {
+      const version = run.anatomy.order.version(options.family);
+      if (!forceMeta && api.store.version === version) return;
+      const nextIndex = run.anatomy.order.indexOfSelf(options.family, role);
+      const nextTotal = run.anatomy.order.partsOf(options.family, role).length;
+      const nextMeta = options.getMeta?.(run) ?? readMetaFromSnapshot();
+      writeSnapshot(nextIndex, nextTotal, nextMeta, version);
+    };
+
+    const wrapGetter = <T>(
+      state: State<T>,
+      select: (position: { index: number; total: number; first: boolean; last: boolean }) => T
+    ) => {
+      const get = state.get.bind(state);
+      (state as any).get = () => {
+        const position = readPositionFromPort();
+        const current = get();
+        const next = select(position);
+        return Object.is(current, next) ? current : next;
+      };
+    };
+
+    wrapGetter(index, (position) => position.index as number);
+    wrapGetter(total, (position) => position.total as number);
+    wrapGetter(first, (position) => position.first as boolean);
+    wrapGetter(last, (position) => position.last as boolean);
 
     def.expose.state(
       (options.exposeIndexStateKey ?? 'collectionIndex') as keyof CollectionItemExposes & string,
@@ -132,9 +176,19 @@ export const asCollectionItem = defineAsHook<
     def.expose.method(
       (options.exposeSnapshotMethodKey ?? 'getCollectionItem') as keyof CollectionItemExposes &
         string,
-      () => api.store.snapshot as CollectionItemSnapshot
+      () => {
+        return {
+          ...readMetaFromSnapshot(),
+          ...readPositionFromPort(),
+        } as CollectionItemSnapshot;
+      }
     );
-    def.expose.method(metaExposeKey as any, () => api.store.snapshot as CollectionItemSnapshot);
+    def.expose.method(metaExposeKey as any, () => {
+      return {
+        ...readMetaFromSnapshot(),
+        ...readPositionFromPort(),
+      } as CollectionItemSnapshot;
+    });
 
     def.lifecycle.onMounted((run) => {
       sync(run, true);

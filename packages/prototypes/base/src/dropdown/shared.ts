@@ -1,13 +1,20 @@
-import { createAnatomyFamily, type DefHandle } from '@proto.ui/core';
+import { createAnatomyFamily, createFocusGroupKey, type DefHandle } from '@proto.ui/core';
 import type { ContextKey, PropsBaseType } from '@proto.ui/types';
+import type { DropdownOpenEntry } from './types';
 
 export type DropdownContextValue = {
   open: boolean;
   controlled: boolean;
   disabled: boolean;
+  activeValue: string;
+  suppressItemNavigation: boolean;
+  closeOnItemCommit: boolean;
+  openEntry: DropdownOpenEntry;
+  openEntryValue: string;
 };
 
 export const DROPDOWN_FAMILY = createAnatomyFamily('base-dropdown');
+export const DROPDOWN_FOCUS_GROUP = createFocusGroupKey({ debugLabel: 'base-dropdown-content' });
 export const DROPDOWN_CONTEXT = {
   __brand: 'ContextKey',
   debugName: 'base-dropdown',

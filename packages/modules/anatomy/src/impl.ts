@@ -195,13 +195,18 @@ function getHookNames(proto: Prototype<any> | null): Set<string> {
 }
 
 export class AnatomyModuleImpl extends ModuleBase {
+  private static readonly sharedOrderObservers = new Map<
+    AnatomyFamily,
+    Map<AnatomyInstanceToken, { off: Unsubscribe; listeners: Set<AnatomyModuleImpl> }>
+  >();
+
   private readonly prototypeName: string;
   private readonly exposePort: ExposePort;
   private disposed = false;
   private claimFamilies = new Set<AnatomyFamily>();
   private orderDispatch: AnatomyOrderCallbackDispatcher = (fn) => fn(undefined);
   private orderListeners = new Map<AnatomyFamily, Set<AnatomyOrderChangeCb>>();
-  private orderObserverOff = new Map<AnatomyFamily, Unsubscribe>();
+  private observedOrderRoots = new Map<AnatomyFamily, AnatomyInstanceToken>();
   private orderVersionByFamily = new Map<AnatomyFamily, number>();
   private orderSignatureByFamily = new Map<AnatomyFamily, string>();
   private objectIds = new WeakMap<object, number>();
@@ -348,8 +353,10 @@ export class AnatomyModuleImpl extends ModuleBase {
   dispose(): void {
     if (this.disposed) return;
     this.disposed = true;
-    for (const off of this.orderObserverOff.values()) off();
-    this.orderObserverOff.clear();
+    for (const family of this.observedOrderRoots.keys()) {
+      this.teardownOrderObserver(family);
+    }
+    this.observedOrderRoots.clear();
     this.orderListeners.clear();
     if (this.claimFamilies.size === 0) return;
     if (!this.caps.has(ANATOMY_INSTANCE_TOKEN_CAP)) return;
@@ -411,23 +418,59 @@ export class AnatomyModuleImpl extends ModuleBase {
       current?.delete(cb);
       if (!current || current.size > 0) return;
       this.orderListeners.delete(family);
-      this.orderObserverOff.get(family)?.();
-      this.orderObserverOff.delete(family);
+      this.teardownOrderObserver(family);
     };
   }
 
   private ensureOrderObserver(family: AnatomyFamily): void {
-    if (this.orderObserverOff.has(family)) return;
+    if (this.observedOrderRoots.has(family)) return;
     if (!this.caps.has(ANATOMY_ORDER_OBSERVER_CAP)) return;
 
-    const observer = this.caps.get(ANATOMY_ORDER_OBSERVER_CAP) as AnatomyOrderObserver;
+    const domain = this.resolveCurrentDomain(family, false);
+    if (!domain.rootInstance) return;
     const target = this.getObservedRootTarget(family);
     if (!target) return;
 
-    const off = observer(target, () => {
-      this.emitOrderChangeIfNeeded(family);
-    });
-    this.orderObserverOff.set(family, off);
+    let byRoot = AnatomyModuleImpl.sharedOrderObservers.get(family);
+    if (!byRoot) {
+      byRoot = new Map();
+      AnatomyModuleImpl.sharedOrderObservers.set(family, byRoot);
+    }
+
+    let entry = byRoot.get(domain.rootInstance);
+    if (!entry) {
+      const observer = this.caps.get(ANATOMY_ORDER_OBSERVER_CAP) as AnatomyOrderObserver;
+      const listeners = new Set<AnatomyModuleImpl>();
+      const off = observer(target, () => {
+        for (const impl of listeners) {
+          impl.emitOrderChangeIfNeeded(family);
+        }
+      });
+      entry = { off, listeners };
+      byRoot.set(domain.rootInstance, entry);
+    }
+
+    entry.listeners.add(this);
+    this.observedOrderRoots.set(family, domain.rootInstance);
+  }
+
+  private teardownOrderObserver(family: AnatomyFamily): void {
+    const rootInstance = this.observedOrderRoots.get(family);
+    if (!rootInstance) return;
+    this.observedOrderRoots.delete(family);
+
+    const byRoot = AnatomyModuleImpl.sharedOrderObservers.get(family);
+    const entry = byRoot?.get(rootInstance);
+    if (!entry) return;
+
+    entry.listeners.delete(this);
+    if (entry.listeners.size > 0) return;
+
+    entry.off();
+    byRoot?.delete(rootInstance);
+    if (byRoot && byRoot.size === 0) {
+      AnatomyModuleImpl.sharedOrderObservers.delete(family);
+    }
   }
 
   private primeOrderSignature(family: AnatomyFamily): void {
