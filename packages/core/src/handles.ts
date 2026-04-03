@@ -21,6 +21,7 @@ import type {
   AnatomyClaimDecl,
   AnatomyFamily,
   AnatomyFamilyDecl,
+  AnatomyOrderView,
   AnatomyPartView,
 } from './anatomy';
 import { State, StateDefAPI } from './state';
@@ -90,6 +91,7 @@ export interface RunHandle<Props extends PropsBaseType> {
     has(family: AnatomyFamily, role: string): boolean;
     parts(family: AnatomyFamily): ReadonlyArray<AnatomyPartView>;
     partsOf(family: AnatomyFamily, role: string): ReadonlyArray<AnatomyPartView>;
+    order: AnatomyOrderView;
   };
 }
 

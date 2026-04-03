@@ -1,4 +1,4 @@
-import { createCapsWiring } from '@proto.ui/adapter-base';
+import { createCapsWiring, createDomOrderObserver } from '@proto.ui/adapter-base';
 import type { EffectsPort } from '@proto.ui/core';
 import type { RawPropsSource } from '@proto.ui/module-props';
 import type { ExposeStateWebMode } from '@proto.ui/module-expose-state-web';
@@ -62,6 +62,8 @@ export function createVueModules<Props extends PropsBaseType>(args: {
       instance: el,
       parent: (inst) => getProtoParent(inst as HTMLElement),
       getPrototype: (inst) => getPrototypeByInstance(inst as HTMLElement),
+      root: (inst) => inst as HTMLElement,
+      orderObserver: createDomOrderObserver,
     })
     .useAsTrigger({
       instance: el,

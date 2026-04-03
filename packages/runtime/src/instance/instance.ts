@@ -7,6 +7,7 @@ import { PropsModuleDef } from '@proto.ui/module-props';
 import { EventModuleDef } from '@proto.ui/module-event';
 import { ExposeModuleDef } from '@proto.ui/module-expose';
 import { AnatomyModuleDef } from '@proto.ui/module-anatomy';
+import type { AnatomyPort } from '@proto.ui/module-anatomy';
 import { ExposeStateModuleDef } from '@proto.ui/module-expose-state';
 import { ExposeStateWebModuleDef } from '@proto.ui/module-expose-state-web';
 import { RuleExposeStateWebModuleDef } from '@proto.ui/module-rule-expose-state-web';
@@ -108,6 +109,10 @@ export function createRuntimeInstance<P extends PropsBaseType>(
   );
   const contextPort = moduleHub.getPort<ContextPort>('context');
   contextPort?.setCallbackDispatcher?.((fn) => {
+    callbackScope.runNoSync(kernel.run, () => fn(kernel.run));
+  });
+  const anatomyPort = moduleHub.getPort<AnatomyPort>('anatomy');
+  anatomyPort?.setOrderCallbackDispatcher?.((fn) => {
     callbackScope.runNoSync(kernel.run, () => fn(kernel.run));
   });
 

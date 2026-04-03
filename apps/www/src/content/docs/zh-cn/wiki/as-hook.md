@@ -38,6 +38,20 @@ Proto UI 里的 prototype 负责描述交互主体。
 
 像 `switch`、`dropdown`、`hover-card` 这类原型，很多地方都依赖这种复用。
 
+随着复合原型继续变复杂，`asHook` 还可以建立在别的协议能力之上继续抽象。  
+例如：
+
+- `anatomy.order` 提供同 family part 的有序宿主视图
+- `asCollection()`、`asCollectionItem()` 则建立在这层视图上，继续抽出最小 collection 交互核
+
+这里的关键点是：
+
+- `anatomy.order` 仍然属于结构能力的增强
+- `asCollection` 才是基于这层能力组织出来的行为复用
+
+也就是说，Proto UI 不是先引入一个新的顶级 `collection` 概念，  
+而是先让 `asHook` 站在已有能力之上，逐步长出更高层语义。
+
 ## 常见误解
 
 ### asHook 不是“小一号的原型”

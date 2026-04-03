@@ -46,6 +46,32 @@ export const createRunHandle = <P extends PropsBaseType>(
         if (!anatomy) throw new Error(`[Anatomy] module unavailable`);
         return anatomy.partsOf(family, role);
       },
+      order: {
+        version: (family) => {
+          if (!anatomy) throw new Error(`[Anatomy] module unavailable`);
+          return anatomy.order.version(family);
+        },
+        parts: (family) => {
+          if (!anatomy) throw new Error(`[Anatomy] module unavailable`);
+          return anatomy.order.parts(family);
+        },
+        partsOf: (family, role) => {
+          if (!anatomy) throw new Error(`[Anatomy] module unavailable`);
+          return anatomy.order.partsOf(family, role);
+        },
+        indexOfSelf: (family, role) => {
+          if (!anatomy) throw new Error(`[Anatomy] module unavailable`);
+          return anatomy.order.indexOfSelf(family, role);
+        },
+        prevOfSelf: (family, role) => {
+          if (!anatomy) throw new Error(`[Anatomy] module unavailable`);
+          return anatomy.order.prevOfSelf(family, role);
+        },
+        nextOfSelf: (family, role) => {
+          if (!anatomy) throw new Error(`[Anatomy] module unavailable`);
+          return anatomy.order.nextOfSelf(family, role);
+        },
+      },
     },
   };
 };

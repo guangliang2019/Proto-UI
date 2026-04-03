@@ -22,10 +22,14 @@ import {
 import {
   ANATOMY_GET_PROTO_CAP,
   ANATOMY_INSTANCE_TOKEN_CAP,
+  ANATOMY_ORDER_OBSERVER_CAP,
   ANATOMY_PARENT_CAP,
+  ANATOMY_ROOT_TARGET_CAP,
   type AnatomyInstanceToken,
+  type AnatomyOrderObserver,
   type AnatomyParentGetter,
   type AnatomyPrototypeGetter,
+  type AnatomyRootTargetGetter,
 } from '@proto.ui/module-anatomy';
 import {
   CONTEXT_INSTANCE_TOKEN_CAP,
@@ -88,6 +92,8 @@ export type CapsWiringBuilder = {
     instance: AnatomyInstanceToken;
     parent: AnatomyParentGetter;
     getPrototype: AnatomyPrototypeGetter;
+    root: AnatomyRootTargetGetter;
+    orderObserver?: AnatomyOrderObserver;
   }): CapsWiringBuilder;
   useAsTrigger(args: {
     instance: AsTriggerInstanceToken;
@@ -156,11 +162,13 @@ export function createCapsWiring(): CapsWiringBuilder {
       ]);
     },
 
-    useAnatomy({ instance, parent, getPrototype }) {
+    useAnatomy({ instance, parent, getPrototype, root, orderObserver }) {
       return add('anatomy', () => [
         [ANATOMY_INSTANCE_TOKEN_CAP, instance],
         [ANATOMY_PARENT_CAP, parent],
         [ANATOMY_GET_PROTO_CAP, getPrototype],
+        [ANATOMY_ROOT_TARGET_CAP, root],
+        ...(orderObserver ? [[ANATOMY_ORDER_OBSERVER_CAP, orderObserver] as const] : []),
       ]);
     },
 

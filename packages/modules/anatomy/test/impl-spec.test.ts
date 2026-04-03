@@ -191,4 +191,141 @@ describe('AnatomyModuleImpl', () => {
     expect(diags.some((it) => it.code === 'ANATOMY_FAMILY_HOOK_REQUIRED')).toBe(true);
     expect(diags.some((it) => it.code === 'ANATOMY_FAMILY_RELATION')).toBe(true);
   });
+
+  it('provides ordered role views by host target position', () => {
+    const family = createAnatomyFamily('ordered-role-view');
+    const root = {};
+    const itemA = {};
+    const itemB = {};
+    const parentMap = new Map<any, any>([
+      [root, null],
+      [itemA, root],
+      [itemB, root],
+    ]);
+    const order = new Map<any, number>([
+      [root, 0],
+      [itemA, 2],
+      [itemB, 1],
+    ]);
+    const makeTarget = (instance: unknown) => ({
+      compareDocumentPosition(other: any) {
+        const a = order.get(instance) ?? 0;
+        const b = order.get(other.__instance) ?? 0;
+        if (a < b) return 4;
+        if (a > b) return 2;
+        return 0;
+      },
+      __instance: instance,
+    });
+
+    const rootCaps = makeCaps({
+      instance: root,
+      getParent: (instance) => parentMap.get(instance) ?? null,
+      getPrototype: () => makeProto([]),
+      getRootTarget: (instance) => makeTarget(instance),
+    });
+    const itemCapsA = makeCaps({
+      instance: itemA,
+      getParent: (instance) => parentMap.get(instance) ?? null,
+      getPrototype: () => makeProto([]),
+      getRootTarget: (instance) => makeTarget(instance),
+    });
+    const itemCapsB = makeCaps({
+      instance: itemB,
+      getParent: (instance) => parentMap.get(instance) ?? null,
+      getPrototype: () => makeProto([]),
+      getRootTarget: (instance) => makeTarget(instance),
+    });
+    const rootImpl = new AnatomyModuleImpl(rootCaps, 'root', makeExposePort());
+    const itemImplA = new AnatomyModuleImpl(itemCapsA, 'item-a', makeExposePort({ id: 'a' }));
+    const itemImplB = new AnatomyModuleImpl(itemCapsB, 'item-b', makeExposePort({ id: 'b' }));
+
+    rootImpl.family(family, {
+      roles: {
+        root: { cardinality: { min: 1, max: 1 } },
+        item: { cardinality: { min: 0, max: 10 } },
+      },
+    });
+    rootImpl.claim(family, { role: 'root' });
+    itemImplA.claim(family, { role: 'item' });
+    itemImplB.claim(family, { role: 'item' });
+
+    rootCaps.__sys.__setExecPhase('callback');
+    itemCapsA.__sys.__setExecPhase('callback');
+
+    const ordered = rootImpl.orderedPartsOf(family, 'item');
+    expect(ordered.map((part) => part.getExpose('id'))).toEqual(['b', 'a']);
+    expect(itemImplA.indexOfSelf(family, 'item')).toBe(1);
+    expect(itemImplA.prevOfSelf(family, 'item')?.getExpose('id')).toBe('b');
+    expect(itemImplA.nextOfSelf(family, 'item')).toBeNull();
+  });
+
+  it('dispatches order subscriptions through callback dispatcher', () => {
+    const family = createAnatomyFamily('ordered-subscribe');
+    const root = {};
+    const item = {};
+    const target = {
+      compareDocumentPosition() {
+        return 0;
+      },
+    };
+    let notifyObserver: (() => void) | null = null;
+    const caps = makeCaps({
+      instance: root,
+      getParent: (instance) => (instance === item ? root : null),
+      getPrototype: () => makeProto([]),
+      getRootTarget: () => target,
+      orderObserver: (_target, notify) => {
+        notifyObserver = notify;
+        return () => {
+          notifyObserver = null;
+        };
+      },
+    });
+    const impl = new AnatomyModuleImpl(caps, 'root', makeExposePort());
+    const itemImpl = new AnatomyModuleImpl(
+      makeCaps({
+        instance: item,
+        getParent: (instance) => (instance === item ? root : null),
+        getPrototype: () => makeProto([]),
+        getRootTarget: () => target,
+      }),
+      'item',
+      makeExposePort()
+    );
+
+    impl.family(family, {
+      roles: {
+        root: { cardinality: { min: 1, max: 1 } },
+        item: { cardinality: { min: 0, max: 10 } },
+      },
+    });
+    impl.claim(family, { role: 'root' });
+
+    let ctxSeen: unknown = null;
+    let calls = 0;
+    impl.port.setOrderCallbackDispatcher((fn) => fn('ctx'));
+    const off = impl.port.subscribeOrder(family, (ctx) => {
+      ctxSeen = ctx;
+      calls++;
+    });
+
+    expect(impl.port.order.version(family)).toBe(0);
+    notifyObserver?.();
+    expect(ctxSeen).toBeNull();
+    expect(calls).toBe(0);
+    expect(impl.port.order.version(family)).toBe(0);
+
+    itemImpl.claim(family, { role: 'item' });
+    notifyObserver?.();
+    expect(ctxSeen).toBe('ctx');
+    expect(calls).toBe(1);
+    expect(impl.port.order.version(family)).toBe(1);
+
+    notifyObserver?.();
+    expect(calls).toBe(1);
+    expect(impl.port.order.version(family)).toBe(1);
+
+    off();
+  });
 });

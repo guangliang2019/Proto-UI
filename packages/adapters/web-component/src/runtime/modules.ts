@@ -1,4 +1,4 @@
-import { createCapsWiring } from '@proto.ui/adapter-base';
+import { createCapsWiring, createDomOrderObserver } from '@proto.ui/adapter-base';
 import type { EffectsPort } from '@proto.ui/core';
 import { type RawPropsSource } from '@proto.ui/module-props';
 import { type PropsBaseType } from '@proto.ui/types';
@@ -64,6 +64,8 @@ export function createWebComponentModules<Props extends PropsBaseType>(args: {
       instance: el,
       parent: (inst: unknown) => getProtoParent(inst as HTMLElement),
       getPrototype: (inst: unknown) => getPrototypeByInstance(inst as HTMLElement),
+      root: (inst: unknown) => inst as HTMLElement,
+      orderObserver: createDomOrderObserver,
     })
     .useAsTrigger({
       instance: el,

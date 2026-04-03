@@ -2,7 +2,9 @@ import { SYS_CAP } from '@proto.ui/module-base';
 import {
   ANATOMY_GET_PROTO_CAP,
   ANATOMY_INSTANCE_TOKEN_CAP,
+  ANATOMY_ORDER_OBSERVER_CAP,
   ANATOMY_PARENT_CAP,
+  ANATOMY_ROOT_TARGET_CAP,
 } from '../../src/caps';
 
 type ExecPhase = 'setup' | 'render' | 'callback' | 'unknown';
@@ -44,6 +46,8 @@ export function makeCaps(args: {
   instance: unknown;
   getParent: (instance: unknown) => unknown | null;
   getPrototype: (instance: unknown) => any;
+  getRootTarget?: (instance: unknown) => unknown | null;
+  orderObserver?: (target: unknown, notify: () => void) => () => void;
 }) {
   let epoch = 0;
   const subs = new Set<(epoch: number) => void>();
@@ -54,6 +58,12 @@ export function makeCaps(args: {
   store.set(ANATOMY_INSTANCE_TOKEN_CAP.id, args.instance);
   store.set(ANATOMY_PARENT_CAP.id, args.getParent);
   store.set(ANATOMY_GET_PROTO_CAP.id, args.getPrototype);
+  if (args.getRootTarget) {
+    store.set(ANATOMY_ROOT_TARGET_CAP.id, args.getRootTarget);
+  }
+  if (args.orderObserver) {
+    store.set(ANATOMY_ORDER_OBSERVER_CAP.id, args.orderObserver);
+  }
 
   return {
     has(token: any) {

@@ -2,9 +2,11 @@ import type {
   AnatomyClaimDecl,
   AnatomyFamily,
   AnatomyFamilyDecl,
+  AnatomyOrderView,
   AnatomyPartView,
   ModuleInstance,
   ModulePort,
+  Unsubscribe,
 } from '@proto.ui/core';
 
 export type AnatomyDiagnostic = {
@@ -17,6 +19,10 @@ export type AnatomyDiagnostic = {
   profile?: string;
 };
 
+export type AnatomyOrderCallbackCtx = unknown;
+export type AnatomyOrderCallbackDispatcher = (fn: (ctx: AnatomyOrderCallbackCtx) => void) => void;
+export type AnatomyOrderChangeCb = (ctx: AnatomyOrderCallbackCtx) => void;
+
 export type AnatomyFacade = {
   family(family: AnatomyFamily, decl: AnatomyFamilyDecl): void;
   claim(family: AnatomyFamily, decl: AnatomyClaimDecl): void;
@@ -24,10 +30,14 @@ export type AnatomyFacade = {
   has(family: AnatomyFamily, role: string): boolean;
   parts(family: AnatomyFamily): readonly AnatomyPartView[];
   partsOf(family: AnatomyFamily, role: string): readonly AnatomyPartView[];
+  order: AnatomyOrderView;
 };
 
 export type AnatomyPort = ModulePort & {
   getDiagnostics(): readonly AnatomyDiagnostic[];
+  order: AnatomyOrderView;
+  setOrderCallbackDispatcher(dispatch: AnatomyOrderCallbackDispatcher): void;
+  subscribeOrder(family: AnatomyFamily, cb: AnatomyOrderChangeCb): Unsubscribe;
 };
 
 export type AnatomyModule = ModuleInstance<AnatomyFacade> & {
