@@ -1,12 +1,6 @@
 import { __AS_HOOK_PRIV_PORTS, defineAsHook } from '@proto.ui/core';
-import type {
-  AnatomyFamily,
-  ExposeMethod,
-  ExposeState,
-  RunHandle,
-  State,
-  PropsBaseType,
-} from '@proto.ui/core';
+import type { AnatomyFamily, ExposeMethod, ExposeState, RunHandle, State } from '@proto.ui/core';
+import type { PropsBaseType } from '@proto.ui/types';
 import type { AnatomyPort } from '@proto.ui/module-anatomy';
 
 export type CollectionItemMeta = Record<string, unknown>;
@@ -51,6 +45,12 @@ export type CollectionItemHandles = {
   collectionLast: State<boolean>;
 };
 
+type CollectionItemStore = {
+  snapshot: CollectionItemSnapshot;
+  version: number;
+  offOrder?: (() => void) | undefined;
+};
+
 const DEFAULT_ROLE = 'item';
 const DEFAULT_META_EXPOSE_KEY = '__collectionItem';
 
@@ -72,6 +72,7 @@ export const asCollectionItem = defineAsHook<
   name: 'asCollectionItem',
   mode: 'once',
   setup(def, options, api) {
+    const store = api.store as CollectionItemStore;
     const anatomy = getAnatomyPort(def);
     const role = options.role ?? DEFAULT_ROLE;
     const metaExposeKey = options.metaExposeKey ?? DEFAULT_META_EXPOSE_KEY;
@@ -80,18 +81,18 @@ export const asCollectionItem = defineAsHook<
     const first = def.state.bool(options.firstStateKey ?? 'collectionFirst', false);
     const last = def.state.bool(options.lastStateKey ?? 'collectionLast', false);
 
-    api.store.snapshot = {
+    store.snapshot = {
       index: -1,
       total: 0,
       first: false,
       last: false,
     } as CollectionItemSnapshot;
-    api.store.version = -1;
+    store.version = -1;
 
     def.anatomy.claim(options.family, { role });
 
     const readMetaFromSnapshot = (): CollectionItemMeta => {
-      const current = (api.store.snapshot ?? {}) as Record<string, unknown>;
+      const current = (store.snapshot ?? {}) as Record<string, unknown>;
       const { index: _index, total: _total, first: _first, last: _last, ...meta } = current;
       return meta;
     };
@@ -109,14 +110,14 @@ export const asCollectionItem = defineAsHook<
       total.set(nextTotal, 'reason: asCollectionItem.sync => total');
       first.set(nextFirst, 'reason: asCollectionItem.sync => first');
       last.set(nextLast, 'reason: asCollectionItem.sync => last');
-      api.store.snapshot = {
+      store.snapshot = {
         ...nextMeta,
         index: nextIndex,
         total: nextTotal,
         first: nextFirst,
         last: nextLast,
       } as CollectionItemSnapshot;
-      api.store.version = version;
+      store.version = version;
     };
 
     const readPositionFromPort = () => {
@@ -126,10 +127,10 @@ export const asCollectionItem = defineAsHook<
       const parts = anatomy.order.partsOf(options.family, role, { missing: 'null' });
       if (nextIndex == null || parts == null) {
         return {
-          index: api.store.snapshot.index ?? -1,
-          total: api.store.snapshot.total ?? 0,
-          first: api.store.snapshot.first ?? false,
-          last: api.store.snapshot.last ?? false,
+          index: store.snapshot.index ?? -1,
+          total: store.snapshot.total ?? 0,
+          first: store.snapshot.first ?? false,
+          last: store.snapshot.last ?? false,
         };
       }
       const nextTotal = parts.length;
@@ -149,14 +150,14 @@ export const asCollectionItem = defineAsHook<
       if (version == null || nextIndex == null || parts == null) {
         api.store.snapshot = {
           ...nextMeta,
-          index: api.store.snapshot.index ?? -1,
-          total: api.store.snapshot.total ?? 0,
-          first: api.store.snapshot.first ?? false,
-          last: api.store.snapshot.last ?? false,
+          index: store.snapshot.index ?? -1,
+          total: store.snapshot.total ?? 0,
+          first: store.snapshot.first ?? false,
+          last: store.snapshot.last ?? false,
         } as CollectionItemSnapshot;
         return;
       }
-      if (!forceMeta && api.store.version === version) return;
+      if (!forceMeta && store.version === version) return;
       writeSnapshot(nextIndex, parts.length, nextMeta, version);
     };
 
@@ -213,7 +214,7 @@ export const asCollectionItem = defineAsHook<
 
     def.lifecycle.onMounted((run) => {
       sync(run, true);
-      api.store.offOrder = anatomy.subscribeOrder(options.family, (ctx) => {
+      store.offOrder = anatomy.subscribeOrder(options.family, (ctx) => {
         sync(ctx as RunHandle<any>);
       });
     });
@@ -221,8 +222,8 @@ export const asCollectionItem = defineAsHook<
       sync(run, true);
     });
     def.lifecycle.onUnmounted(() => {
-      (api.store.offOrder as (() => void) | undefined)?.();
-      api.store.offOrder = undefined;
+      store.offOrder?.();
+      store.offOrder = undefined;
     });
   },
 });

@@ -34,16 +34,21 @@ export const asDropdownContent = defineAsHook<
       entry: 'content',
     });
     const open = def.state.bool('open', false);
-    api.store.typeahead = '';
-    api.store.typeaheadTimer = null as ReturnType<typeof setTimeout> | null;
-    api.store.run = null as any;
+    const store = api.store as {
+      typeahead: string;
+      typeaheadTimer: ReturnType<typeof globalThis.setTimeout> | null;
+      run: any;
+    };
+    store.typeahead = '';
+    store.typeaheadTimer = null;
+    store.run = null as any;
 
     const clearTypeahead = () => {
-      if (api.store.typeaheadTimer) {
-        clearTimeout(api.store.typeaheadTimer);
-        api.store.typeaheadTimer = null;
+      if (store.typeaheadTimer) {
+        clearTimeout(store.typeaheadTimer);
+        store.typeaheadTimer = null;
       }
-      api.store.typeahead = '';
+      store.typeahead = '';
     };
 
     const focusItemByValue = (run: any, value: string): boolean => {
@@ -92,7 +97,7 @@ export const asDropdownContent = defineAsHook<
     });
 
     def.lifecycle.onMounted((run) => {
-      api.store.run = run;
+      store.run = run;
       const ctx = run.context.read(DROPDOWN_CONTEXT);
       open.set(ctx.open, 'reason: lifecycle.onMounted => content open sync');
       if (ctx.open) {
@@ -105,17 +110,17 @@ export const asDropdownContent = defineAsHook<
 
     overlay.open.watch((_ctx, event) => {
       if (event.type !== 'next') return;
-      const run = api.store.run;
+      const run = store.run;
       if (!run) return;
       const ctx = run.context.read(DROPDOWN_CONTEXT);
       if (event.next) {
         if (!ctx.controlled && !ctx.open) {
-          run.context.update(DROPDOWN_CONTEXT, (prev) => ({ ...prev, open: true }));
+          run.context.update(DROPDOWN_CONTEXT, (prev: any) => ({ ...prev, open: true }));
         }
         return;
       }
       if (ctx.controlled) return;
-      run.context.update(DROPDOWN_CONTEXT, (prev) => ({
+      run.context.update(DROPDOWN_CONTEXT, (prev: any) => ({
         ...prev,
         open: false,
         activeValue: '',
@@ -130,7 +135,7 @@ export const asDropdownContent = defineAsHook<
       const key = ev?.detail?.key;
       if (key === 'Escape') {
         if (ctx.controlled) return;
-        run.context.update(DROPDOWN_CONTEXT, (prev) => ({
+        run.context.update(DROPDOWN_CONTEXT, (prev: any) => ({
           ...prev,
           open: false,
           activeValue: '',
@@ -141,14 +146,14 @@ export const asDropdownContent = defineAsHook<
       if (typeof key !== 'string' || key.length !== 1) return;
       if (ev?.detail?.ctrlKey || ev?.detail?.metaKey || ev?.detail?.altKey) return;
 
-      const nextBuffer = `${api.store.typeahead}${key}`.toLowerCase();
-      api.store.typeahead = nextBuffer;
-      if (api.store.typeaheadTimer) {
-        clearTimeout(api.store.typeaheadTimer);
+      const nextBuffer = `${store.typeahead}${key}`.toLowerCase();
+      store.typeahead = nextBuffer;
+      if (store.typeaheadTimer) {
+        clearTimeout(store.typeaheadTimer);
       }
-      api.store.typeaheadTimer = setTimeout(() => {
-        api.store.typeahead = '';
-        api.store.typeaheadTimer = null;
+      store.typeaheadTimer = globalThis.setTimeout(() => {
+        store.typeahead = '';
+        store.typeaheadTimer = null;
       }, 400);
 
       const items = run.anatomy.partsOf(DROPDOWN_FAMILY, 'item');
@@ -187,7 +192,7 @@ export const asDropdownContent = defineAsHook<
 
     def.lifecycle.onUnmounted(() => {
       clearTypeahead();
-      api.store.run = null;
+      store.run = null;
     });
 
     def.rule({

@@ -253,7 +253,7 @@ describe('AnatomyModuleImpl', () => {
     rootCaps.__sys.__setExecPhase('callback');
     itemCapsA.__sys.__setExecPhase('callback');
 
-    const ordered = rootImpl.orderedPartsOf(family, 'item');
+    const ordered = rootImpl.orderedPartsOf(family, 'item') ?? [];
     expect(ordered.map((part) => part.getExpose('id'))).toEqual(['b', 'a']);
     expect(itemImplA.indexOfSelf(family, 'item')).toBe(1);
     expect(itemImplA.prevOfSelf(family, 'item')?.getExpose('id')).toBe('b');
@@ -311,18 +311,18 @@ describe('AnatomyModuleImpl', () => {
     });
 
     expect(impl.port.order.version(family)).toBe(0);
-    notifyObserver?.();
+    (notifyObserver as (() => void) | null)?.();
     expect(ctxSeen).toBeNull();
     expect(calls).toBe(0);
     expect(impl.port.order.version(family)).toBe(0);
 
     itemImpl.claim(family, { role: 'item' });
-    notifyObserver?.();
+    (notifyObserver as (() => void) | null)?.();
     expect(ctxSeen).toBe('ctx');
     expect(calls).toBe(1);
     expect(impl.port.order.version(family)).toBe(1);
 
-    notifyObserver?.();
+    (notifyObserver as (() => void) | null)?.();
     expect(calls).toBe(1);
     expect(impl.port.order.version(family)).toBe(1);
 

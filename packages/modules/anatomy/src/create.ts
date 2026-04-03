@@ -22,18 +22,42 @@ export function createAnatomyModule(ctx: ModuleFactoryArgs): AnatomyModule {
           family: (family, decl) => impl.family(family, decl),
           claim: (family, decl) => impl.claim(family, decl),
           has: (family, role) => impl.has(family, role),
-          parts: (family, options) => impl.parts(family, options as any),
-          partsOf: (family, role, options) => impl.partsOf(family, role, options as any),
+          parts: ((family, options) =>
+            impl.parts(family, options as any)) as AnatomyFacade['parts'],
+          partsOf: ((family, role, options) =>
+            impl.partsOf(family, role, options as any)) as AnatomyFacade['partsOf'],
           order: {
-            version: (family, options) => impl.orderVersion(family, options as any),
-            parts: (family, options) => impl.orderedParts(family, options as any),
-            partsOf: (family, role, options) => impl.orderedPartsOf(family, role, options as any),
-            indexOfSelf: (family, role, options) => impl.indexOfSelf(family, role, options as any),
-            prevOfSelf: (family, role, options) => impl.prevOfSelf(family, role, options as any),
-            nextOfSelf: (family, role, options) => impl.nextOfSelf(family, role, options as any),
+            version: ((family, options) =>
+              impl.orderVersion(family, options as any)) as AnatomyFacade['order']['version'],
+            parts: ((family, options) =>
+              impl.orderedParts(family, options as any)) as AnatomyFacade['order']['parts'],
+            partsOf: ((family, role, options) =>
+              impl.orderedPartsOf(
+                family,
+                role,
+                options as any
+              )) as AnatomyFacade['order']['partsOf'],
+            indexOfSelf: ((family, role, options) =>
+              impl.indexOfSelf(
+                family,
+                role,
+                options as any
+              )) as AnatomyFacade['order']['indexOfSelf'],
+            prevOfSelf: ((family, role, options) =>
+              impl.prevOfSelf(
+                family,
+                role,
+                options as any
+              )) as AnatomyFacade['order']['prevOfSelf'],
+            nextOfSelf: ((family, role, options) =>
+              impl.nextOfSelf(
+                family,
+                role,
+                options as any
+              )) as AnatomyFacade['order']['nextOfSelf'],
           },
         },
-        port: impl.port,
+        port: impl.port as AnatomyPort,
         hooks: {
           onProtoPhase: (p) => impl.onProtoPhase(p),
           dispose: () => impl.dispose(),

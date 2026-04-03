@@ -70,7 +70,7 @@ export const asDropdownItem = defineAsHook<
     const updateActiveValue = (run: any) => {
       const ownValue = run.props.get().value ?? '';
       if (!ownValue) return;
-      run.context.update(DROPDOWN_CONTEXT, (prev) => {
+      run.context.update(DROPDOWN_CONTEXT, (prev: any) => {
         if (prev.activeValue === ownValue) return prev;
         return { ...prev, activeValue: ownValue };
       });
@@ -86,7 +86,7 @@ export const asDropdownItem = defineAsHook<
         ? !!run.props.get().closeOnCommit
         : !!ctx.closeOnItemCommit;
       if (!closeOnCommit) return;
-      run.context.update(DROPDOWN_CONTEXT, (prev) => ({
+      run.context.update(DROPDOWN_CONTEXT, (prev: any) => ({
         ...prev,
         open: false,
         activeValue: '',
@@ -113,7 +113,7 @@ export const asDropdownItem = defineAsHook<
       if (ownDisabled || ctx.disabled) return;
       if (!focusable.isFocused()) return;
       if (ctx.suppressItemNavigation) {
-        run.context.update(DROPDOWN_CONTEXT, (prev) => ({
+        run.context.update(DROPDOWN_CONTEXT, (prev: any) => ({
           ...prev,
           suppressItemNavigation: false,
         }));

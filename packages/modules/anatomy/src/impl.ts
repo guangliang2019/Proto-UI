@@ -276,7 +276,7 @@ export class AnatomyModuleImpl extends ModuleBase {
 
   has(family: AnatomyFamily, role: string): boolean {
     this.ensureCallback('run.anatomy.has');
-    return this.partsOf(family, role).length > 0;
+    return (this.partsOf(family, role) ?? []).length > 0;
   }
 
   parts(family: AnatomyFamily, options?: AnatomyQueryOptions): readonly AnatomyPartView[] | null {

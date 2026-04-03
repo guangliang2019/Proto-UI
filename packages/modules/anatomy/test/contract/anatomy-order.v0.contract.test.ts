@@ -85,16 +85,16 @@ describe('anatomy-module: order contract v0', () => {
 
     expect(rootImpl.port.order.version(family)).toBe(0);
 
-    notifyObserver?.();
+    (notifyObserver as (() => void) | null)?.();
     expect(calls).toBe(0);
     expect(rootImpl.port.order.version(family)).toBe(0);
 
     itemImpl.claim(family, { role: 'item' });
-    notifyObserver?.();
+    (notifyObserver as (() => void) | null)?.();
     expect(calls).toBe(1);
     expect(rootImpl.port.order.version(family)).toBe(1);
 
-    notifyObserver?.();
+    (notifyObserver as (() => void) | null)?.();
     expect(calls).toBe(1);
     expect(rootImpl.port.order.version(family)).toBe(1);
   });
@@ -155,7 +155,7 @@ describe('anatomy-module: order contract v0', () => {
     });
 
     itemImpl.claim(family, { role: 'item' });
-    notifyObserver?.();
+    (notifyObserver as (() => void) | null)?.();
 
     expect(seen).toBe('callback-ctx');
   });
