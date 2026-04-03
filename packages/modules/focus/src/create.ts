@@ -107,6 +107,7 @@ function pushOverrideWarning(
 
 class FocusModuleImpl extends ModuleBase {
   private focusableConfig: FocusableConfig = DEFAULT_FOCUSABLE_CONFIG;
+  private focusableDeclared = false;
   private groupConfig: FocusGroupConfig = DEFAULT_GROUP_CONFIG;
   private scopeConfig: FocusScopeConfig = DEFAULT_SCOPE_CONFIG;
   private readonly prototypeName: string;
@@ -115,7 +116,7 @@ class FocusModuleImpl extends ModuleBase {
 
   private readonly focusedState = createObservedBoolHandle(false);
   private readonly focusVisibleState = createObservedBoolHandle(false);
-  private readonly focusableState = createObservedBoolHandle(true);
+  private readonly focusableState = createObservedBoolHandle(false);
   private readonly activeState = createObservedBoolHandle(false);
   private readonly hasFocusedState = createObservedBoolHandle(false);
 
@@ -168,7 +169,7 @@ class FocusModuleImpl extends ModuleBase {
     const target = this.getRootTarget();
     if (!target) return;
 
-    const enabled = !this.focusableConfig.disabled;
+    const enabled = this.focusableDeclared && !this.focusableConfig.disabled;
     const isNative = this.caps.has(FOCUS_IS_NATIVELY_FOCUSABLE_CAP)
       ? this.caps.get(FOCUS_IS_NATIVELY_FOCUSABLE_CAP)(target)
       : false;
@@ -188,6 +189,7 @@ class FocusModuleImpl extends ModuleBase {
     focusVisible: this.focusVisibleState.handle,
     focusable: this.focusableState.handle,
     focus: (options?: FocusRequestOptions) => this.requestFocus(options),
+    focusSelf: (options?: FocusRequestOptions) => this.requestNativeFocus(options),
     blur: () => this.blur(),
     isFocused: () => this.focusedState.handle.get(),
     setDisabled: (disabled: boolean) => this.setDisabled(disabled),
@@ -232,6 +234,7 @@ class FocusModuleImpl extends ModuleBase {
 
   configureFocusable(patch: FocusableConfigPatch): void {
     this.ensureSetup('focus.configureFocusable');
+    this.focusableDeclared = true;
     if (typeof patch.autoFocus !== 'undefined') {
       pushOverrideWarning(
         this.warnings,
@@ -418,7 +421,7 @@ class FocusModuleImpl extends ModuleBase {
   }
 
   requestFocus(options?: FocusRequestOptions): void {
-    if (this.focusableConfig.disabled) return;
+    if (!this.focusableDeclared || this.focusableConfig.disabled) return;
     const target = this.getRootTarget();
     if (target && this.caps.has(FOCUS_REQUEST_FOCUS_CAP)) {
       this.caps.get(FOCUS_REQUEST_FOCUS_CAP)(target, options);
@@ -430,7 +433,7 @@ class FocusModuleImpl extends ModuleBase {
   }
 
   private requestNativeFocus(options?: FocusRequestOptions): void {
-    if (this.focusableConfig.disabled) return;
+    if (!this.focusableDeclared || this.focusableConfig.disabled) return;
     const target = this.getRootTarget();
     if (target && this.caps.has(FOCUS_REQUEST_FOCUS_CAP)) {
       this.caps.get(FOCUS_REQUEST_FOCUS_CAP)(target, options);
@@ -554,7 +557,7 @@ class FocusModuleImpl extends ModuleBase {
       ...this.focusableConfig,
       disabled,
     });
-    this.focusableState.set(!disabled, reason);
+    this.focusableState.set(this.focusableDeclared && !disabled, reason);
     if (disabled) {
       this.blur();
     }
@@ -567,7 +570,11 @@ class FocusModuleImpl extends ModuleBase {
     this.syncHostFocusable();
     if (this.didAutoFocus) return;
     this.didAutoFocus = true;
-    if (this.focusableConfig.autoFocus && !this.focusableConfig.disabled) {
+    if (
+      this.focusableDeclared &&
+      this.focusableConfig.autoFocus &&
+      !this.focusableConfig.disabled
+    ) {
       this.requestFocus({ reason: 'programmatic' });
     }
   }

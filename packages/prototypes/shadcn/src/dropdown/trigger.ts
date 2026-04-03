@@ -51,8 +51,6 @@ const dropdownTrigger = definePrototype<ShadcnDropdownTriggerProps, ShadcnDropdo
       when: (w: any) => w.state(disabled).eq(true),
       intent: (i: any) => i.feedback.style.use(tw('pointer-events-none opacity-50')),
     });
-
-    return (r) => r.el('button', r.r.slot());
   },
 });
 

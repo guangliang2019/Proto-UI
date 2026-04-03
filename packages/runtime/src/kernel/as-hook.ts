@@ -97,6 +97,17 @@ function collectEventKeys(entries: unknown[]): Record<string, string> | undefine
   return Object.keys(out).length > 0 ? out : undefined;
 }
 
+function collectExposeMethods(entries: unknown[]): Record<string, unknown> | undefined {
+  const out: Record<string, unknown> = {};
+  for (const entry of entries) {
+    if ((entry as any)?.op !== 'expose.method') continue;
+    const key = (entry as any)?.key;
+    if (typeof key !== 'string' || !key) continue;
+    out[key] = (entry as any)?.fn;
+  }
+  return Object.keys(out).length > 0 ? Object.freeze(out) : undefined;
+}
+
 function getOrCreateTrace(proto: object): TraceStore {
   const anyProto = proto as any;
   if (!anyProto[TRACE_INTERNAL]) {
@@ -288,6 +299,7 @@ export function attachAsHookRuntime<P extends PropsBaseType>(
       const event = compact(frame.effects.event);
       const feedback = compact(frame.effects.feedback);
       const stateHandles = collectNamedStateHandles(frame.effects.state);
+      const methods = collectExposeMethods(frame.effects.context);
       const propsDisposers = collectDisposers(frame.effects.props);
       const contextDisposers = collectDisposers(
         frame.effects.context,
@@ -317,10 +329,15 @@ export function attachAsHookRuntime<P extends PropsBaseType>(
         result.getState = (key: string) =>
           (projectedStateHandles as Record<string, unknown>)[key] as any;
       }
-      if (projectedStateHandles || eventKeys) {
+      if (methods) {
+        result.methods = methods;
+        result.getMethod = (key: string) => methods[key];
+      }
+      if (projectedStateHandles || eventKeys || methods) {
         const artifacts: Record<string, unknown> = {};
         if (projectedStateHandles) artifacts.stateHandles = result.stateHandles;
         if (eventKeys) artifacts.eventKeys = Object.freeze(eventKeys);
+        if (methods) artifacts.methods = methods;
         result.artifacts = Object.freeze(artifacts);
       }
       if (allDisposers.length > 0) {

@@ -90,9 +90,11 @@ describe('prototypes/base: dropdown', () => {
     expect(root.getExposes().open.get()).toBe(true);
     item.dispatchEvent(new MouseEvent('click', { bubbles: true }));
     await Promise.resolve();
+    await Promise.resolve();
 
     expect(root.getExposes().open.get()).toBe(false);
     expect(content.classList.contains('hidden')).toBe(true);
+    expect(document.activeElement).toBe(trigger);
 
     root.remove();
     await Promise.resolve();
@@ -165,6 +167,34 @@ describe('prototypes/base: dropdown', () => {
     root.remove();
     await Promise.resolve();
   });
+
+  it.each(['Enter', ' '])(
+    'trigger keyboard activation %j opens dropdown once even if host synthesizes click',
+    async (key) => {
+      const root = document.createElement('base-dropdown-root') as any;
+      const trigger = document.createElement('base-dropdown-trigger') as any;
+      const content = document.createElement('base-dropdown-content') as any;
+
+      root.appendChild(trigger);
+      root.appendChild(content);
+      document.body.appendChild(root);
+
+      await Promise.resolve();
+      await Promise.resolve();
+
+      trigger.focus();
+      window.dispatchEvent(new KeyboardEvent('keydown', { key, bubbles: true }));
+      trigger.dispatchEvent(new MouseEvent('click', { bubbles: true, detail: 0 }));
+      await Promise.resolve();
+      await Promise.resolve();
+
+      expect(root.getExposes().open.get()).toBe(true);
+      expect(content.getExposes().open.get()).toBe(true);
+
+      root.remove();
+      await Promise.resolve();
+    }
+  );
 
   it('dropdown items support roving focus with arrow and boundary keys', async () => {
     const root = document.createElement('base-dropdown-root') as any;
@@ -286,6 +316,7 @@ describe('prototypes/base: dropdown', () => {
 
   it('keyboard activation commits active item and closes uncontrolled dropdown', async () => {
     const root = document.createElement('base-dropdown-root') as any;
+    const trigger = document.createElement('base-dropdown-trigger') as any;
     const content = document.createElement('base-dropdown-content') as any;
     const itemA = document.createElement('base-dropdown-item') as any;
     const itemB = document.createElement('base-dropdown-item') as any;
@@ -296,6 +327,7 @@ describe('prototypes/base: dropdown', () => {
 
     content.appendChild(itemA);
     content.appendChild(itemB);
+    root.appendChild(trigger);
     root.appendChild(content);
     document.body.appendChild(root);
 
@@ -316,6 +348,7 @@ describe('prototypes/base: dropdown', () => {
     expect(root.getExposes().open.get()).toBe(false);
     expect(itemA.getExposes().active.get()).toBe(false);
     expect(itemB.getExposes().active.get()).toBe(false);
+    expect(document.activeElement).toBe(trigger);
 
     root.remove();
     await Promise.resolve();

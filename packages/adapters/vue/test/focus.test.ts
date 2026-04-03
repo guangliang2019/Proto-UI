@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { definePrototype } from '@proto.ui/core';
+import { asFocusScope, definePrototype } from '@proto.ui/core';
 
 import { asButton } from '../../../prototypes/base/src/button/as-button';
 import { createMountedVueAdapter, flushVue } from './utils/vue';
@@ -27,6 +27,23 @@ describe('adapter-vue: focus wiring', () => {
 
     mounted.root?.blur();
     expect(exposes.focused.get()).toBe(false);
+
+    mounted.unmount();
+  });
+
+  it('does not make focus-scope-only host focusable', async () => {
+    const proto = definePrototype({
+      name: 'vue-focus-scope-only',
+      setup() {
+        asFocusScope({ emptyPolicy: 'container' });
+        return (r) => [r.el('div', 'ok')];
+      },
+    });
+
+    const mounted = createMountedVueAdapter(proto);
+    await flushVue();
+
+    expect(mounted.root?.tabIndex).toBe(-1);
 
     mounted.unmount();
   });

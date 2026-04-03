@@ -51,6 +51,14 @@ export const asDropdownContent = defineAsHook<
       store.typeahead = '';
     };
 
+    const restoreTriggerFocus = (run: any) => {
+      const trigger = run.anatomy.partsOf(DROPDOWN_FAMILY, 'trigger')[0] ?? null;
+      const focusSelf = trigger?.getExpose('focusSelf') as
+        | ((options?: { reason?: 'programmatic' | 'keyboard' | 'pointer' }) => void)
+        | null;
+      focusSelf?.({ reason: 'programmatic' });
+    };
+
     const focusItemByValue = (run: any, value: string): boolean => {
       if (!value) return false;
       const items = run.anatomy.partsOf(DROPDOWN_FAMILY, 'item');
@@ -58,10 +66,12 @@ export const asDropdownContent = defineAsHook<
         const snapshot = item.getExpose('getCollectionItem') as
           | (() => Record<string, unknown>)
           | null;
-        const focusSelf = item.getExpose('focusSelf') as (() => void) | null;
+        const focusSelf = item.getExpose('focusSelf') as
+          | ((options?: { reason?: 'programmatic' | 'keyboard' | 'pointer' }) => void)
+          | null;
         const next = snapshot?.();
         if (!next || next.value !== value || next.disabled) continue;
-        focusSelf?.();
+        focusSelf?.({ reason: 'keyboard' });
         return true;
       }
       return false;
@@ -119,6 +129,8 @@ export const asDropdownContent = defineAsHook<
         }
         return;
       }
+      clearTypeahead();
+      restoreTriggerFocus(run);
       if (ctx.controlled) return;
       run.context.update(DROPDOWN_CONTEXT, (prev: any) => ({
         ...prev,
@@ -159,7 +171,9 @@ export const asDropdownContent = defineAsHook<
       const items = run.anatomy.partsOf(DROPDOWN_FAMILY, 'item');
       const snapshots = items
         .map((item) => ({
-          focusSelf: item.getExpose('focusSelf') as (() => void) | null,
+          focusSelf: item.getExpose('focusSelf') as
+            | ((options?: { reason?: 'programmatic' | 'keyboard' | 'pointer' }) => void)
+            | null,
           snapshot: (
             item.getExpose('getCollectionItem') as (() => Record<string, unknown>) | null
           )?.(),
@@ -186,7 +200,7 @@ export const asDropdownContent = defineAsHook<
       const match = findMatch(nextBuffer) ?? findMatch(String(key).toLowerCase());
       if (!match) return;
       queueMicrotask(() => {
-        match.focusSelf?.();
+        match.focusSelf?.({ reason: 'keyboard' });
       });
     });
 

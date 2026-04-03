@@ -88,6 +88,10 @@ export const asButton = defineAsHook<ButtonProps, ButtonExposes, ButtonAsHookCon
     });
     def.expose.state('focused', focusable.focused);
     def.expose.state('focusVisible', focusable.focusVisible);
+    def.expose.method('focusSelf', (options) => {
+      if (disabled.get()) return;
+      focusable.focusSelf(options);
+    });
 
     def.event.on('pointer.down', () => {
       if (disabled.get()) return;

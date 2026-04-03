@@ -75,6 +75,7 @@ export type AsHookArtifacts<
 > = Readonly<{
   stateHandles?: AsHookBorrowedStates<Props, AsHookStatesOf<ContractInput>>;
   eventKeys?: AsHookEventKeys<AsHookEventsOf<ContractInput>>;
+  methods?: Readonly<Record<string, unknown>>;
 }>;
 
 export type AsHookResult<Props extends PropsBaseType = PropsBaseType, ContractInput = {}> = {
@@ -84,6 +85,8 @@ export type AsHookResult<Props extends PropsBaseType = PropsBaseType, ContractIn
   getState?: <K extends keyof AsHookStatesOf<ContractInput> & string>(
     key: K
   ) => AsHookBorrowedStates<Props, AsHookStatesOf<ContractInput>>[K] | undefined;
+  methods?: Readonly<Record<string, unknown>>;
+  getMethod?: <K extends string>(key: K) => unknown;
   artifacts?: AsHookArtifacts<Props, ContractInput>;
   disposers?: AsHookDisposers;
   context?: unknown;

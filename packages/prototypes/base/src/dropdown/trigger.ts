@@ -5,7 +5,6 @@ const dropdownTrigger = definePrototype({
   name: 'base-dropdown-trigger',
   setup: () => {
     asDropdownTrigger();
-    return (r) => r.el('button', r.r.slot());
   },
 });
 

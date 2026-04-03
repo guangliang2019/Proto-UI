@@ -117,6 +117,7 @@ export interface FocusableHandle<P extends PropsBaseType = PropsBaseType> {
   focusable: ObservedStateHandle<boolean, P>;
 
   focus(options?: FocusRequestOptions): void;
+  focusSelf(options?: FocusRequestOptions): void;
   blur(): void;
   isFocused(): boolean;
   setDisabled(disabled: boolean): void;

@@ -7,7 +7,6 @@ const dropdownRoot = definePrototype<ShadcnDropdownRootProps, ShadcnDropdownRoot
   setup(def) {
     asDropdownRoot();
     def.feedback.style.use(tw('relative inline-flex items-start'));
-    return (r) => r.el('div', r.r.slot());
   },
 });
 

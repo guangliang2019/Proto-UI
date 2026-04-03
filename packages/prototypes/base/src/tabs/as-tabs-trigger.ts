@@ -38,10 +38,6 @@ export const asTabsTrigger = defineAsHook<
     const disabled = def.state.fromInteraction('disabled');
     let ownValue = '';
     def.expose.state('selected', selected);
-    const focusSelf = () => {
-      focusable.focus({ reason: 'keyboard' });
-    };
-    def.expose.method('focusSelf', focusSelf);
 
     def.context.subscribe(TABS_CONTEXT, (_run, next) => {
       syncSelectedFromContext(next.value, ownValue, selected);

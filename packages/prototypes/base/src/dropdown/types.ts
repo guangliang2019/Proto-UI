@@ -1,4 +1,4 @@
-import { ExposeEvent, ExposeMethod, ExposeState, State } from '@proto.ui/core';
+import { ExposeEvent, ExposeMethod, ExposeState, FocusRequestOptions, State } from '@proto.ui/core';
 import type { CollectionExposes, CollectionItemExposes, CollectionItemSnapshot } from '../tools';
 
 /**
@@ -45,6 +45,7 @@ export type DropdownTriggerExposes = {
   focused: ExposeState<boolean>;
   focusVisible: ExposeState<boolean>;
   pressed: ExposeState<boolean>;
+  focusSelf: ExposeMethod<(options?: FocusRequestOptions) => void>;
   click: ExposeEvent<void>;
 };
 
@@ -86,7 +87,7 @@ export type DropdownItemExposes = {
   focusVisible: ExposeState<boolean>;
   pressed: ExposeState<boolean>;
   active: ExposeState<boolean>;
-  focusSelf: ExposeMethod<() => void>;
+  focusSelf: ExposeMethod<(options?: FocusRequestOptions) => void>;
   click: ExposeEvent<void>;
 } & CollectionItemExposes;
 

@@ -226,7 +226,7 @@ describe('runtime contract: focus (v0)', () => {
     expect(port?.getFacts()).toEqual({
       focused: false,
       focusVisible: false,
-      focusable: true,
+      focusable: false,
       active: true,
       hasFocused: false,
     });

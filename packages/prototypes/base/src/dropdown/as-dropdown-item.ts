@@ -56,9 +56,6 @@ export const asDropdownItem = defineAsHook<
     def.context.subscribe(DROPDOWN_CONTEXT, (run, next) => {
       syncActive(next, run.props.get().value ?? '');
     });
-    def.expose.method('focusSelf', () => {
-      focusable.focus({ reason: 'keyboard' });
-    });
 
     def.lifecycle.onMounted((run) => {
       syncActive(run.context.read(DROPDOWN_CONTEXT), run.props.get().value ?? '');
