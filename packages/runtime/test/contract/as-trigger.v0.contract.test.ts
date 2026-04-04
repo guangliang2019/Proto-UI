@@ -1,6 +1,7 @@
 // packages/runtime/test/contract/as-trigger.v0.contract.test.ts
 import { describe, it, expect } from 'vitest';
-import { definePrototype, asTrigger } from '@proto.ui/core';
+import { definePrototype } from '@proto.ui/core';
+import { asTrigger } from '@proto.ui/hooks';
 import type { Prototype } from '@proto.ui/core';
 import type { RuntimeHost } from '../../src';
 import { executeWithHost } from '../../src';
@@ -43,6 +44,36 @@ const createHost = <P extends PropsBaseType>(name: string) => {
 };
 
 describe('runtime contract: asTrigger (v0)', () => {
+  it('AS-TRIGGER-0050: apply() marks self as confirm owner', () => {
+    const childTarget = new FakeTarget() as any;
+
+    const P = definePrototype({
+      name: 'x-as-trigger-0050',
+      setup(def) {
+        asTrigger();
+        return (r) => r.el('div', 'ok');
+      },
+    });
+
+    const { host } = createHost(P.name);
+    host.onRuntimeReady = (wiring) => {
+      wiring.attach('event', [
+        [EVENT_ROOT_TARGET_CAP, () => childTarget],
+        [EVENT_GLOBAL_TARGET_CAP, () => childTarget],
+      ]);
+
+      wiring.attach('as-trigger', [
+        [AS_TRIGGER_INSTANCE_CAP, childTarget],
+        [AS_TRIGGER_PARENT_CAP, () => null],
+        [AS_TRIGGER_GET_PROTO_CAP, () => null],
+      ]);
+    };
+
+    executeWithHost(P as any, host as any);
+
+    expect(childTarget[Symbol.for('@proto.ui/as-trigger/confirm-owner')]).toBe(true);
+  });
+
   it('AS-TRIGGER-0100: when parent is trigger, redirect root target to parent', () => {
     const parentTarget = new FakeTarget();
     const childTarget = new FakeTarget();

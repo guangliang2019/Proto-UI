@@ -15,7 +15,7 @@ import {
 } from '@proto.ui/module-as-trigger';
 import { EXPOSE_SET_EXPOSES_CAP } from '@proto.ui/module-expose';
 import toggle from '../src/toggle';
-import { asToggle } from '../src/toggle/as-toggle';
+import { asToggle } from '../src/toggle';
 
 function createHost(initialRaw: Record<string, unknown> = {}) {
   let raw = { ...initialRaw };

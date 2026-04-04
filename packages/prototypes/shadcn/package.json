@@ -5,10 +5,13 @@
   "type": "module",
   "dependencies": {
     "@proto.ui/core": "workspace:*",
+    "@proto.ui/prototypes-base": "workspace:*"
+  },
+  "devDependencies": {
     "@proto.ui/module-as-trigger": "workspace:*",
     "@proto.ui/module-event": "workspace:*",
     "@proto.ui/module-rule-meta": "workspace:*",
-    "@proto.ui/prototypes-base": "workspace:*"
+    "@proto.ui/runtime": "workspace:*"
   },
   "exports": {
     ".": {

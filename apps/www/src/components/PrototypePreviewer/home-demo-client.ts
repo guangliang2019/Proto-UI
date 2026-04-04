@@ -39,6 +39,9 @@ export function initHomeDemoPreviewer(root: HTMLElement) {
     console.error('[HomeDemoPreviewer] missing required elements.');
     return;
   }
+  const hostEl = host;
+  const runtimeSelectEl = runtimeSelect;
+  const demoSelectEl = demoSelect;
 
   const demoOptions = JSON.parse(root.dataset.homeDemoOptions || '[]') as DemoOption[];
   const runtimeOptions = root.dataset.runtimeOptions
@@ -55,22 +58,22 @@ export function initHomeDemoPreviewer(root: HTMLElement) {
     return;
   }
 
-  demoSelect.innerHTML = '';
+  demoSelectEl.innerHTML = '';
   for (const option of demoOptions) {
     const el = document.createElement('option');
     el.value = option.id;
     el.textContent = option.label;
     if (option.id === initialDemoId) el.selected = true;
-    demoSelect.appendChild(el);
+    demoSelectEl.appendChild(el);
   }
 
-  runtimeSelect.innerHTML = '';
+  runtimeSelectEl.innerHTML = '';
   for (const option of runtimeOptions) {
     const el = document.createElement('option');
     el.value = option.id;
     el.textContent = option.label;
     if (option.id === initialRuntime) el.selected = true;
-    runtimeSelect.appendChild(el);
+    runtimeSelectEl.appendChild(el);
   }
 
   let active: ActiveRender | null = null;
@@ -80,8 +83,8 @@ export function initHomeDemoPreviewer(root: HTMLElement) {
   async function renderCurrent(runtime: RuntimeId, demoId: string) {
     if (destroyed) return;
     const currentVersion = ++version;
-    runtimeSelect.disabled = true;
-    demoSelect.disabled = true;
+    runtimeSelectEl.disabled = true;
+    demoSelectEl.disabled = true;
 
     try {
       if (active) {
@@ -99,32 +102,33 @@ export function initHomeDemoPreviewer(root: HTMLElement) {
       const { destroy } = await renderDemo({
         runtime,
         demo,
-        host,
+        host: hostEl,
       });
 
       active = { runtime, demoId, destroy };
     } catch (error) {
-      host.innerHTML = '';
+      hostEl.innerHTML = '';
       const pre = document.createElement('pre');
       pre.textContent =
         '[Home Demo Error]\n' +
         (error && ((error as Error).stack || (error as Error).message || String(error)));
       pre.style.whiteSpace = 'pre-wrap';
       pre.style.color = 'crimson';
-      host.appendChild(pre);
+      hostEl.appendChild(pre);
       console.error(error);
     } finally {
       if (!destroyed && currentVersion === version) {
-        runtimeSelect.disabled = false;
-        demoSelect.disabled = false;
+        runtimeSelectEl.disabled = false;
+        demoSelectEl.disabled = false;
       }
     }
   }
 
-  const renderFromInputs = () => renderCurrent(runtimeSelect.value as RuntimeId, demoSelect.value);
+  const renderFromInputs = () =>
+    renderCurrent(runtimeSelectEl.value as RuntimeId, demoSelectEl.value);
 
-  demoSelect.addEventListener('change', renderFromInputs);
-  runtimeSelect.addEventListener('change', renderFromInputs);
+  demoSelectEl.addEventListener('change', renderFromInputs);
+  runtimeSelectEl.addEventListener('change', renderFromInputs);
 
   renderCurrent(initialRuntime, initialDemoId);
 

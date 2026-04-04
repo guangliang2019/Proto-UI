@@ -30,10 +30,7 @@ npm install @proto.ui/prototypes-base@0.0.1
 ## Related Internal Packages
 
 - `@proto.ui/core`
-- `@proto.ui/module-as-trigger`
-- `@proto.ui/module-event`
-- `@proto.ui/module-expose`
-- `@proto.ui/module-focus`
+- `@proto.ui/hooks`
 
 ## License
 

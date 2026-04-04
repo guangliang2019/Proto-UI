@@ -89,8 +89,8 @@ export interface RunHandle<Props extends PropsBaseType> {
 
   anatomy: {
     has(family: AnatomyFamily, role: string): boolean;
-    parts(family: AnatomyFamily): ReadonlyArray<AnatomyPartView>;
-    partsOf(family: AnatomyFamily, role: string): ReadonlyArray<AnatomyPartView>;
+    parts: AnatomyOrderView['parts'];
+    partsOf: AnatomyOrderView['partsOf'];
     order: AnatomyOrderView;
   };
 }

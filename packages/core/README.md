@@ -19,11 +19,6 @@ npm install @proto.ui/core@0.0.1
 ## Internal Structure
 
 - `src/anatomy.ts`
-- `src/as-focus-group.ts`
-- `src/as-focus-scope.ts`
-- `src/as-focusable.ts`
-- `src/as-overlay.ts`
-- `src/as-trigger.ts`
 - `src/caps/`
 - `src/effects/`
 - `src/errors/`

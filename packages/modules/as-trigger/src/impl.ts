@@ -11,6 +11,8 @@ import {
   type AsTriggerPrototypeGetter,
 } from './caps';
 
+const TRIGGER_OWNER_MARK = Symbol.for('@proto.ui/as-trigger/confirm-owner');
+
 export class AsTriggerModuleImpl extends ModuleBase {
   private readonly prototypeName: string;
   private readonly eventPort: EventPort;
@@ -79,6 +81,10 @@ export class AsTriggerModuleImpl extends ModuleBase {
 
       lastTrigger = cur;
       cur = getParent(cur);
+    }
+
+    if (self && (typeof self === 'object' || typeof self === 'function')) {
+      (self as any)[TRIGGER_OWNER_MARK] = true;
     }
 
     if (!lastTrigger) return;

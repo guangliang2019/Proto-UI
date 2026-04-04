@@ -24,7 +24,7 @@ describe('adapter-vue: event routing', () => {
     mounted.unmount();
   });
 
-  it('maps global Enter keydown to key.down and press.commit', async () => {
+  it('maps Enter keydown within the adapter root to press.commit and key.down', async () => {
     const calls: string[] = [];
 
     const proto: Prototype = {
@@ -39,8 +39,8 @@ describe('adapter-vue: event routing', () => {
     const mounted = createMountedVueAdapter(proto);
     await flushVue();
 
-    window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter' }));
-    expect(calls).toEqual(['key.down', 'press.commit']);
+    mounted.root?.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
+    expect(calls).toEqual(['press.commit', 'key.down']);
 
     mounted.unmount();
   });

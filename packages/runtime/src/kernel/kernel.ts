@@ -8,9 +8,7 @@ import {
   RenderReadHandle,
   RunHandle,
   TemplateChildren,
-  __AS_HOOK_CURRENT_DEF,
-  __AS_HOOK_PRIV_FACADES,
-  __AS_HOOK_PRIV_PORTS,
+  type AsHookRuntime,
 } from '@proto.ui/core';
 import { PropsBaseType } from '@proto.ui/types';
 import {
@@ -47,7 +45,11 @@ export type Kernel<P extends PropsBaseType> = {
 export type CreateKernelOptions = {
   allowRunUpdate?: boolean;
   onPhaseChange?: (p: ExecPhase) => void;
-  asHook?: { projectState?: <T>(state: T) => T };
+  asHook?: {
+    projectState?: <T>(state: T) => T;
+    enterSetup?: (ctx: { def: object; rt: AsHookRuntime }) => void;
+    exitSetup?: () => void;
+  };
 };
 
 export function createKernel<P extends PropsBaseType>(
@@ -72,30 +74,18 @@ export function createKernel<P extends PropsBaseType>(
   const rules = modules.getFacades()['rule'] as RuleFacade<P>;
 
   const def = createDefHandle<P>(st, lifecycle, rules, modules, opt?.eventSink);
-  attachAsHookRuntime(def, st, proto, opt?.asHook);
-  Object.defineProperty(def as any, __AS_HOOK_PRIV_FACADES, {
-    value: modules.getFacades(),
-    enumerable: false,
-    configurable: false,
-    writable: false,
-  });
-  Object.defineProperty(def as any, __AS_HOOK_PRIV_PORTS, {
-    value: modules.getPorts(),
-    enumerable: false,
-    configurable: false,
-    writable: false,
-  });
+  const asHookRuntime = attachAsHookRuntime(def, st, proto, opt?.asHook);
 
   // ----------------
   // setup
   // ----------------
   setPhase('setup');
-  (globalThis as any)[__AS_HOOK_CURRENT_DEF] = def;
+  opt?.asHook?.enterSetup?.({ def, rt: asHookRuntime });
   let maybeRender: RenderFn | void;
   try {
     maybeRender = proto.setup(def);
   } finally {
-    (globalThis as any)[__AS_HOOK_CURRENT_DEF] = undefined;
+    opt?.asHook?.exitSetup?.();
   }
   const defaultRender: RenderFn = (renderer) => [renderer.r.slot()];
   let renderFn: RenderFn = defaultRender;

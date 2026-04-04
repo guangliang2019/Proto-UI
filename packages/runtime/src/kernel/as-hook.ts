@@ -10,7 +10,7 @@ import type {
   RenderFn,
   RunHandle,
 } from '@proto.ui/core';
-import { __AS_HOOK_RUNTIME as AS_HOOK_RT } from '@proto.ui/core';
+import { bindAsHookRuntime } from '@proto.ui/core/internal';
 import type { PropsBaseType } from '@proto.ui/types';
 import type { StatePort } from '@proto.ui/module-state';
 import { illegalPhase } from './guard';
@@ -95,6 +95,17 @@ function collectEventKeys(entries: unknown[]): Record<string, string> | undefine
     out[key] = key;
   }
   return Object.keys(out).length > 0 ? out : undefined;
+}
+
+function collectExposeMethods(entries: unknown[]): Record<string, unknown> | undefined {
+  const out: Record<string, unknown> = {};
+  for (const entry of entries) {
+    if ((entry as any)?.op !== 'expose.method') continue;
+    const key = (entry as any)?.key;
+    if (typeof key !== 'string' || !key) continue;
+    out[key] = (entry as any)?.fn;
+  }
+  return Object.keys(out).length > 0 ? Object.freeze(out) : undefined;
 }
 
 function getOrCreateTrace(proto: object): TraceStore {
@@ -182,7 +193,7 @@ export function attachAsHookRuntime<P extends PropsBaseType>(
   st: DefRuntimeState,
   proto: object,
   opt?: { projectState?: <T>(state: T) => T }
-): void {
+): AsHookRuntime {
   const trace = getOrCreateTrace(proto);
   const instances = new Map<
     string,
@@ -288,6 +299,7 @@ export function attachAsHookRuntime<P extends PropsBaseType>(
       const event = compact(frame.effects.event);
       const feedback = compact(frame.effects.feedback);
       const stateHandles = collectNamedStateHandles(frame.effects.state);
+      const methods = collectExposeMethods(frame.effects.context);
       const propsDisposers = collectDisposers(frame.effects.props);
       const contextDisposers = collectDisposers(
         frame.effects.context,
@@ -317,10 +329,15 @@ export function attachAsHookRuntime<P extends PropsBaseType>(
         result.getState = (key: string) =>
           (projectedStateHandles as Record<string, unknown>)[key] as any;
       }
-      if (projectedStateHandles || eventKeys) {
+      if (methods) {
+        result.methods = methods;
+        result.getMethod = (key: string) => methods[key];
+      }
+      if (projectedStateHandles || eventKeys || methods) {
         const artifacts: Record<string, unknown> = {};
         if (projectedStateHandles) artifacts.stateHandles = result.stateHandles;
         if (eventKeys) artifacts.eventKeys = Object.freeze(eventKeys);
+        if (methods) artifacts.methods = methods;
         result.artifacts = Object.freeze(artifacts);
       }
       if (allDisposers.length > 0) {
@@ -355,10 +372,6 @@ export function attachAsHookRuntime<P extends PropsBaseType>(
     getTrace: () => trace.entries.slice(),
   };
 
-  Object.defineProperty(def as any, AS_HOOK_RT, {
-    value: runtime,
-    enumerable: false,
-    configurable: false,
-    writable: false,
-  });
+  bindAsHookRuntime(def as object, runtime);
+  return runtime;
 }

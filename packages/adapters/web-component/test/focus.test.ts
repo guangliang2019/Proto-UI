@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { definePrototype } from '@proto.ui/core';
+import { asFocusScope } from '@proto.ui/hooks';
 import { AdaptToWebComponent } from '@proto.ui/adapter-web-component';
-import { asButton } from '../../../prototypes/base/src/button/as-button';
+import { asButton } from '../../../prototypes/base/src/button';
 
 describe('adapter-web-component focus wiring', () => {
   it('makes asButton host focusable and syncs focus/blur to exposes', () => {
@@ -28,5 +29,23 @@ describe('adapter-web-component focus wiring', () => {
 
     el.blur();
     expect(exposes.focused.get()).toBe(false);
+  });
+
+  it('does not make focus-scope-only host focusable', () => {
+    const P = definePrototype({
+      name: 'x-focus-scope-only',
+      setup() {
+        asFocusScope({ emptyPolicy: 'container' });
+        return (r) => [r.el('div', 'ok')];
+      },
+    });
+
+    AdaptToWebComponent(P as any);
+
+    const el = document.createElement('x-focus-scope-only') as any;
+    document.body.appendChild(el);
+
+    expect(el.tabIndex).toBe(-1);
+    expect(document.activeElement).not.toBe(el);
   });
 });

@@ -19,6 +19,7 @@ description: '如何阅读 Proto UI 的工程实现章节'
 - 不负责项目动机与哲学论证，那是 `Whitepaper` 的职责。
 - 不负责正式语义裁决，那是 `Specifications` 的职责。
 - 不负责安装、使用、贡献流程，那些更适合 `Start Here` 或 `Ecosystem`。
+- 不负责保存零散的内部踩坑记录；这类事实记录现阶段先放在仓库内的 `internal/records/`，后续成熟后再整理进工程文、规范或契约。
 
 ## 这一章负责什么？
 

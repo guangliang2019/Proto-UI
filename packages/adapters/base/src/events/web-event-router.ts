@@ -1,6 +1,13 @@
 // packages/adapters/base/src/events/web-event-router.ts
 
 type Unsub = () => void;
+const PRESS_COMMIT_EMITTED_ROOTS = Symbol.for('@proto.ui/router/press-commit-emitted-roots');
+const PROTO_INSTANCE_MARKS = [
+  Symbol.for('@proto.ui/adapter-web-component/__proto_instance'),
+  Symbol.for('@proto.ui/adapter-react/__proto_instance'),
+  Symbol.for('@proto.ui/adapter-vue/__proto_instance'),
+] as const;
+const TRIGGER_OWNER_MARK = Symbol.for('@proto.ui/as-trigger/confirm-owner');
 
 type Listener = {
   type: string;
@@ -20,11 +27,135 @@ export function createWebProtoEventRouter(opt: {
 
   const rootEl = opt.rootEl;
   const globalEl = opt.globalEl ?? window;
+  let suppressFollowupDirectClick = false;
 
   // --- helper: emit proto event to proto bus ---
   function emit(target: EventTarget, type: string, native: any) {
     const ev = new CustomEvent(type, { detail: native });
     target.dispatchEvent(ev);
+  }
+
+  function emitPressCommitOnce(native: KeyboardEvent) {
+    if (hasPressCommitBeenEmittedForRoot(native)) return;
+    markPressCommitEmittedForRoot(native);
+    suppressFollowupDirectClick = true;
+    emit(protoRootBus, 'press.commit', native);
+  }
+
+  function isCommitKey(key: string) {
+    return key === 'Enter' || key === ' ';
+  }
+
+  function isWithinRoot(target: EventTarget | null) {
+    return target === rootEl || (target instanceof Node && rootEl.contains(target));
+  }
+
+  function isProtoInstanceNode(target: EventTarget | null): target is HTMLElement {
+    if (!(target instanceof HTMLElement)) return false;
+    return PROTO_INSTANCE_MARKS.some((mark) => (target as any)[mark] === true);
+  }
+
+  function isTriggerOwnerNode(target: EventTarget | null): target is HTMLElement {
+    return target instanceof HTMLElement && (target as any)[TRIGGER_OWNER_MARK] === true;
+  }
+
+  function getNearestProtoInstance(target: EventTarget | null): HTMLElement | null {
+    let cur: Node | null = target instanceof Node ? target : null;
+    while (cur) {
+      if (typeof ShadowRoot !== 'undefined' && cur instanceof ShadowRoot) {
+        cur = cur.host;
+        continue;
+      }
+      if (isProtoInstanceNode(cur)) return cur;
+      cur = cur.parentNode;
+    }
+    return null;
+  }
+
+  function getNearestTriggerOwner(target: EventTarget | null): HTMLElement | null {
+    let cur: Node | null = target instanceof Node ? target : null;
+    while (cur) {
+      if (typeof ShadowRoot !== 'undefined' && cur instanceof ShadowRoot) {
+        cur = cur.host;
+        continue;
+      }
+      if (isTriggerOwnerNode(cur)) return cur;
+      cur = cur.parentNode;
+    }
+    return null;
+  }
+
+  function resolveOwningTrigger(native: Event) {
+    if (typeof native.composedPath === 'function') {
+      for (const entry of native.composedPath()) {
+        const owner = getNearestTriggerOwner(entry);
+        if (owner) return owner;
+      }
+    }
+    const targetOwner = getNearestTriggerOwner(native.target);
+    if (targetOwner) return targetOwner;
+    const active = typeof document !== 'undefined' ? document.activeElement : null;
+    return getNearestTriggerOwner(active);
+  }
+
+  function resolveOwningProtoInstance(native: Event) {
+    if (typeof native.composedPath === 'function') {
+      for (const entry of native.composedPath()) {
+        const owner = getNearestProtoInstance(entry);
+        if (owner) return owner;
+      }
+    }
+    const targetOwner = getNearestProtoInstance(native.target);
+    if (targetOwner) return targetOwner;
+    const active = typeof document !== 'undefined' ? document.activeElement : null;
+    return getNearestProtoInstance(active);
+  }
+
+  function isOwnedByCurrentRoot(native: Event) {
+    return resolveOwningProtoInstance(native) === rootEl;
+  }
+
+  function shouldRouteToCurrentRoot(native: Event) {
+    const triggerOwner = resolveOwningTrigger(native);
+    if (triggerOwner) return triggerOwner === rootEl;
+
+    const owner = resolveOwningProtoInstance(native);
+    if (owner) return owner === rootEl;
+    return isWithinRoot(native.target);
+  }
+
+  function getPressCommitEmittedRoots(native: KeyboardEvent): Set<EventTarget> {
+    const seen = (native as any)[PRESS_COMMIT_EMITTED_ROOTS];
+    if (seen instanceof Set) return seen;
+    const next = new Set<EventTarget>();
+    (native as any)[PRESS_COMMIT_EMITTED_ROOTS] = next;
+    return next;
+  }
+
+  function hasPressCommitBeenEmittedForRoot(native: KeyboardEvent) {
+    return getPressCommitEmittedRoots(native).has(rootEl);
+  }
+
+  function markPressCommitEmittedForRoot(native: KeyboardEvent) {
+    getPressCommitEmittedRoots(native).add(rootEl);
+  }
+
+  function hasFocusedDescendant() {
+    const active = typeof document !== 'undefined' ? document.activeElement : null;
+    return active instanceof Node && rootEl.contains(active);
+  }
+
+  function shouldSuppressFollowupClick(native: MouseEvent) {
+    // Keyboard direct activation of a native descendant button often synthesizes
+    // a follow-up click with detail===0. The semantic keyboard commit has already
+    // been emitted on keydown, so suppress the zero-detail click once here.
+    if (!suppressFollowupDirectClick) return false;
+    if (native.detail !== 0) {
+      suppressFollowupDirectClick = false;
+      return false;
+    }
+    suppressFollowupDirectClick = false;
+    return true;
   }
 
   // -------------------------
@@ -37,6 +168,7 @@ export function createWebProtoEventRouter(opt: {
   unsubs.push(
     listen(rootEl, 'pointerdown', (e) => {
       if (!opt.isEnabled()) return;
+      suppressFollowupDirectClick = false;
       emit(protoRootBus, 'pointer.down', e);
     })
   );
@@ -76,11 +208,25 @@ export function createWebProtoEventRouter(opt: {
     listen(globalEl, 'keydown', (e: KeyboardEvent) => {
       if (!opt.isEnabled()) return;
       emit(protoGlobalBus, 'key.down', e);
-
-      // minimal v0 mapping: activate keys => press.commit
-      if (e.key === 'Enter' || e.key === ' ') {
-        emit(protoRootBus, 'press.commit', e);
+      if (!isCommitKey(e.key)) {
+        suppressFollowupDirectClick = false;
+        return;
       }
+      if (shouldRouteToCurrentRoot(e)) {
+        emitPressCommitOnce(e);
+        return;
+      }
+      if (!isWithinRoot(e.target)) return;
+      if (!hasFocusedDescendant()) return;
+      emitPressCommitOnce(e);
+    })
+  );
+
+  unsubs.push(
+    listen(rootEl, 'keydown', (e: KeyboardEvent) => {
+      if (!opt.isEnabled()) return;
+      if (!isCommitKey(e.key)) return;
+      emitPressCommitOnce(e);
     })
   );
 
@@ -95,6 +241,9 @@ export function createWebProtoEventRouter(opt: {
   unsubs.push(
     listen(rootEl, 'click', (e) => {
       if (!opt.isEnabled()) return;
+      if (!shouldRouteToCurrentRoot(e)) return;
+      if (e instanceof MouseEvent && shouldSuppressFollowupClick(e)) return;
+      suppressFollowupDirectClick = false;
       emit(protoRootBus, 'press.commit', e);
     })
   );

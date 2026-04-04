@@ -178,4 +178,132 @@ describe('runtime contract: anatomy.order (v0)', () => {
     expect(itemAPrevId).toBe('b');
     expect(itemANextId).toBeUndefined();
   });
+
+  it('ANATOMY-ORDER-RT-0200: run.anatomy query policies return null/empty when no valid domain exists', () => {
+    const family = createAnatomyFamily('rt-anatomy-order-policy');
+    const orphanTarget = createTarget('orphan', new Map([['orphan', 0]]));
+    let seen: Record<string, unknown> | null = null;
+
+    const Orphan = definePrototype({
+      name: 'x-rt-anatomy-order-orphan',
+      setup(def) {
+        def.anatomy.family(family, {
+          roles: {
+            root: { cardinality: { min: 1, max: 1 } },
+            item: { cardinality: { min: 0, max: 10 } },
+          },
+        });
+        def.anatomy.claim(family, { role: 'item' });
+        def.lifecycle.onUpdated((run) => {
+          seen = {
+            parts: run.anatomy.parts(family, { missing: 'null' }),
+            emptyParts: run.anatomy.parts(family, { missing: 'empty' }),
+            roleParts: run.anatomy.partsOf(family, 'item', { missing: 'null' }),
+            emptyRoleParts: run.anatomy.partsOf(family, 'item', { missing: 'empty' }),
+            version: run.anatomy.order.version(family, { missing: 'null' }),
+            ordered: run.anatomy.order.parts(family, { missing: 'null' }),
+            orderedRole: run.anatomy.order.partsOf(family, 'item', { missing: 'null' }),
+            index: run.anatomy.order.indexOfSelf(family, 'item', { missing: 'null' }),
+            prev: run.anatomy.order.prevOfSelf(family, 'item', { missing: 'null' }),
+            next: run.anatomy.order.nextOfSelf(family, 'item', { missing: 'null' }),
+          };
+        });
+        return (r) => r.el('div', r.r.slot());
+      },
+    });
+
+    const orphanCtx = createHost({
+      instance: orphanTarget,
+      getParent: () => null,
+      getPrototype: (instance) => (instance === orphanTarget ? Orphan : null),
+    });
+
+    executeWithHost(Orphan as any, orphanCtx.host as any).controller.update();
+
+    expect(seen).toEqual({
+      parts: null,
+      emptyParts: [],
+      roleParts: null,
+      emptyRoleParts: [],
+      version: null,
+      ordered: null,
+      orderedRole: null,
+      index: null,
+      prev: null,
+      next: null,
+    });
+  });
+
+  it('ANATOMY-ORDER-RT-0300: embedded family declarations allow parts to claim before root setup', () => {
+    const family = createAnatomyFamily('rt-anatomy-embedded-family', {
+      roles: {
+        root: { cardinality: { min: 1, max: 1 } },
+        item: { cardinality: { min: 0, max: 10 } },
+      },
+      relations: [{ kind: 'contains', parent: 'root', child: 'item' }],
+    });
+    const orderMap = new Map<string, number>([
+      ['root', 0],
+      ['item-a', 1],
+    ]);
+    const rootTarget = createTarget('root', orderMap);
+    const itemTarget = createTarget('item-a', orderMap);
+    const parents = new Map<unknown, unknown | null>([
+      [rootTarget, null],
+      [itemTarget, rootTarget],
+    ]);
+
+    let beforeRoot: readonly unknown[] | null = [];
+    let afterRoot: readonly unknown[] = [];
+
+    const Root = definePrototype({
+      name: 'x-rt-anatomy-embedded-root',
+      setup(def) {
+        def.anatomy.claim(family, { role: 'root' });
+      },
+    });
+
+    const Item = definePrototype({
+      name: 'x-rt-anatomy-embedded-item',
+      setup(def) {
+        def.anatomy.claim(family, { role: 'item' });
+        def.expose.value('id' as any, 'a');
+        def.lifecycle.onUpdated((run) => {
+          const parts = run.anatomy.order.partsOf(family, 'item', { missing: 'null' });
+          if (parts === null) {
+            beforeRoot = null;
+            return;
+          }
+          afterRoot = parts.map((part) => part.getExpose('id'));
+        });
+      },
+    });
+
+    const getPrototype = (instance: unknown) => {
+      if (instance === rootTarget) return Root;
+      if (instance === itemTarget) return Item;
+      return null;
+    };
+
+    const rootCtx = createHost({
+      instance: rootTarget,
+      getParent: (instance) => parents.get(instance) ?? null,
+      getPrototype,
+    });
+    const itemCtx = createHost({
+      instance: itemTarget,
+      getParent: (instance) => parents.get(instance) ?? null,
+      getPrototype,
+    });
+
+    const itemExec = executeWithHost(Item as any, itemCtx.host as any);
+    itemExec.controller.update();
+    expect(beforeRoot).toBeNull();
+
+    const rootExec = executeWithHost(Root as any, rootCtx.host as any);
+    rootExec.controller.update();
+    itemExec.controller.update();
+
+    expect(afterRoot).toEqual(['a']);
+  });
 });

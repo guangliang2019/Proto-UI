@@ -1,4 +1,4 @@
-import { ExposeState, ExposeEvent, State } from '@proto.ui/core';
+import { ExposeEvent, ExposeMethod, ExposeState, FocusRequestOptions, State } from '@proto.ui/core';
 
 export interface ButtonProps {
   disabled?: boolean;
@@ -10,6 +10,7 @@ export type ButtonExposes = {
   focused: ExposeState<boolean>;
   focusVisible: ExposeState<boolean>;
   pressed: ExposeState<boolean>;
+  focusSelf: ExposeMethod<(options?: FocusRequestOptions) => void>;
   click: ExposeEvent<void>;
 };
 

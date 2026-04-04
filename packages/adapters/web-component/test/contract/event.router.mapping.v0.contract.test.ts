@@ -57,13 +57,11 @@ describe('contract: adapter-web-component / event router mapping (v0)', () => {
     r.dispose();
   });
 
-  it('keydown -> key.down (globalTarget), and Enter/Space -> press.commit (rootTarget)', async () => {
+  it('keydown within root -> key.down (globalTarget), and Enter/Space -> press.commit (rootTarget)', async () => {
     const el = document.createElement('div');
-    const global = new EventTarget();
-
     const r = createWebProtoEventRouter({
       rootEl: el,
-      globalEl: global,
+      globalEl: el,
       isEnabled: () => true,
     });
 
@@ -71,7 +69,7 @@ describe('contract: adapter-web-component / event router mapping (v0)', () => {
     const pPress = once<CustomEvent>(r.rootTarget, 'press.commit');
 
     const native = new KeyboardEvent('keydown', { key: 'Enter' });
-    global.dispatchEvent(native);
+    el.dispatchEvent(native);
 
     const evKey = await pKey;
     expect((evKey as any).detail).toBe(native);
@@ -80,6 +78,104 @@ describe('contract: adapter-web-component / event router mapping (v0)', () => {
     expect((evPress as any).detail).toBe(native);
 
     r.dispose();
+  });
+
+  it.each(['Enter', ' '])(
+    'keyboard commit %j followed by zero-detail synthetic click -> emits press.commit once',
+    (key) => {
+      const el = document.createElement('div');
+      const button = document.createElement('button');
+      el.appendChild(button);
+      document.body.appendChild(el);
+
+      const r = createWebProtoEventRouter({
+        rootEl: el,
+        globalEl: window,
+        isEnabled: () => true,
+      });
+
+      const calls: Event[] = [];
+      r.rootTarget.addEventListener('press.commit', (ev) => calls.push(ev));
+
+      button.focus();
+      button.dispatchEvent(new KeyboardEvent('keydown', { key, bubbles: true }));
+      button.dispatchEvent(new MouseEvent('click', { bubbles: true, detail: 0 }));
+
+      expect(calls).toHaveLength(1);
+      expect((calls[0] as CustomEvent).detail).toBeInstanceOf(KeyboardEvent);
+
+      r.dispose();
+      el.remove();
+    }
+  );
+
+  it('keydown on global target uses composedPath to map press.commit back to the adapter root', async () => {
+    const el = document.createElement('div');
+    const button = document.createElement('button');
+    el.appendChild(button);
+    document.body.appendChild(el);
+
+    const r = createWebProtoEventRouter({
+      rootEl: el,
+      globalEl: window,
+      isEnabled: () => true,
+    });
+
+    const pPress = once<CustomEvent>(r.rootTarget, 'press.commit');
+    const native = new KeyboardEvent('keydown', { key: 'Enter', bubbles: true });
+    Object.defineProperty(native, 'composedPath', {
+      value: () => [button, el, document.body, document, window],
+    });
+
+    window.dispatchEvent(native);
+
+    const evPress = await pPress;
+    expect((evPress as any).detail).toBe(native);
+
+    r.dispose();
+    el.remove();
+  });
+
+  it('nested proto roots route keyboard press.commit to the nearest owner only', () => {
+    const parent = document.createElement('div');
+    const child = document.createElement('button');
+    const triggerMark = Symbol.for('@proto.ui/as-trigger/confirm-owner');
+
+    (parent as any)[triggerMark] = true;
+    (child as any)[triggerMark] = true;
+    parent.appendChild(child);
+    document.body.appendChild(parent);
+
+    const parentRouter = createWebProtoEventRouter({
+      rootEl: parent,
+      globalEl: window,
+      isEnabled: () => true,
+    });
+    const childRouter = createWebProtoEventRouter({
+      rootEl: child,
+      globalEl: window,
+      isEnabled: () => true,
+    });
+
+    let parentCalls = 0;
+    let childCalls = 0;
+    parentRouter.rootTarget.addEventListener('press.commit', () => parentCalls++);
+    childRouter.rootTarget.addEventListener('press.commit', () => childCalls++);
+
+    child.focus();
+    window.dispatchEvent(
+      new KeyboardEvent('keydown', {
+        key: 'Enter',
+        bubbles: true,
+      })
+    );
+
+    expect(parentCalls).toBe(0);
+    expect(childCalls).toBe(1);
+
+    parentRouter.dispose();
+    childRouter.dispose();
+    parent.remove();
   });
 
   it('isEnabled gate: disabled => MUST NOT emit', async () => {

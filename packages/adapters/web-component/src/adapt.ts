@@ -20,6 +20,7 @@ import { markProtoInstance } from './platform/instance-tree';
 import { createWebEffectsPort } from './runtime/effects-port';
 import { createWebComponentModules } from './runtime/modules';
 import { createWebComponentHostSession } from './runtime/session';
+import type { RuntimeController } from '@proto.ui/runtime';
 
 export { __WC_DEBUG_SYS } from './debug/hooks';
 
@@ -73,6 +74,7 @@ export function AdaptToWebComponent<Props extends PropsBaseType>(
     private _invokeUnmounted: (() => void) | null = null;
     private _disconnectVersion = 0;
     private _pendingOwnedTokens: string[] | null = null;
+    private _controller: RuntimeController | null = null;
 
     private _root: Element | ShadowRoot;
     private _slotProjector: SlotProjector | null = null;
@@ -95,6 +97,7 @@ export function AdaptToWebComponent<Props extends PropsBaseType>(
         }
         this._hostDisplay?.sync();
         this._pendingOwnedTokens = null;
+        this._controller?.update();
         return;
       }
       this._mountedOnce = true;
@@ -203,6 +206,7 @@ export function AdaptToWebComponent<Props extends PropsBaseType>(
         return { ...(this._exposes ?? {}) };
       };
 
+      this._controller = controller;
       bindController(this, controller);
 
       // Teardown must keep caps alive until unmounted callbacks finish.
@@ -228,6 +232,7 @@ export function AdaptToWebComponent<Props extends PropsBaseType>(
 
         this._invokeUnmounted?.();
         this._invokeUnmounted = null;
+        this._controller = null;
         this._mountedOnce = false;
         this._pendingOwnedTokens = null;
       });

@@ -83,6 +83,22 @@ const manualPrototypeModules: Record<string, PrototypeModuleLoader> = {
     const mod = await import('../../../../../packages/prototypes/shadcn/src/hover-card/content');
     registerPrototype('shadcn-hover-card-content', mod.default);
   },
+  'shadcn-dropdown-root': async () => {
+    const mod = await import('../../../../../packages/prototypes/shadcn/src/dropdown/root');
+    registerPrototype('shadcn-dropdown-root', mod.default);
+  },
+  'shadcn-dropdown-trigger': async () => {
+    const mod = await import('../../../../../packages/prototypes/shadcn/src/dropdown/trigger');
+    registerPrototype('shadcn-dropdown-trigger', mod.default);
+  },
+  'shadcn-dropdown-content': async () => {
+    const mod = await import('../../../../../packages/prototypes/shadcn/src/dropdown/content');
+    registerPrototype('shadcn-dropdown-content', mod.default);
+  },
+  'shadcn-dropdown-item': async () => {
+    const mod = await import('../../../../../packages/prototypes/shadcn/src/dropdown/item');
+    registerPrototype('shadcn-dropdown-item', mod.default);
+  },
 };
 
 /**

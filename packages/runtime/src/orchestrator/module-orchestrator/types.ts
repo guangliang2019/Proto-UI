@@ -23,10 +23,18 @@ export type AnyModule = ModuleInstance<ModuleFacade> & {
 export interface ModuleOrchestratorFacadeView {
   /** runtime -> handles (facades are safe, stable, public) */
   getFacades(): Record<string, ModuleFacade>;
+}
+
+/**
+ * Privileged runtime-only view.
+ * Instance may use this when it needs to bridge private runtime data into
+ * author-facing setup helpers, but Kernel must not depend on it directly.
+ */
+export interface ModuleOrchestratorPrivilegedView extends ModuleOrchestratorFacadeView {
   getPorts(): Record<string, unknown>;
 }
 
-export interface ModuleOrchestrator extends ModuleOrchestratorFacadeView {
+export interface ModuleOrchestrator extends ModuleOrchestratorPrivilegedView {
   /** runtime -> modules */
   setProtoPhase(phase: ProtoPhase): void;
   afterRenderCommit(): void;

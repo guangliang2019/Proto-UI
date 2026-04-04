@@ -16,7 +16,6 @@ const tabsContent = definePrototype<ShadcnTabsContentProps, ShadcnTabsContentExp
       when: (w: any) => w.state(current).eq(false),
       intent: (i: any) => i.feedback.style.use(tw('hidden')),
     });
-    return (r) => r.el('div', r.r.slot());
   },
 });
 

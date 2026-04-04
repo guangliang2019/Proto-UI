@@ -316,6 +316,43 @@ describe('runtime contract: asHook (v0)', () => {
     expect(artifacts?.eventKeys).toEqual({ ready: 'ready' });
   });
 
+  it('AS-HOOK-0475: expose.method is captured as callable methods on result', () => {
+    let methods: any;
+    let focusSelf: any;
+    let artifacts: any;
+    let called = 0;
+
+    const asExposeMethod = defineAsHook({
+      name: 'asExposeMethod',
+      setup(def) {
+        def.expose.method('focusSelf', () => {
+          called += 1;
+        });
+      },
+    });
+
+    const P: Prototype = definePrototype({
+      name: 'x-as-hook-0475',
+      setup() {
+        const res = asExposeMethod();
+        methods = res.methods;
+        focusSelf = res.getMethod?.('focusSelf');
+        artifacts = res.artifacts;
+        return (r) => r.el('div', 'ok');
+      },
+    });
+
+    const { host } = createHost(P.name);
+    executeWithHost(P as any, host as any);
+
+    expect(typeof methods?.focusSelf).toBe('function');
+    expect(methods?.focusSelf).toBe(focusSelf);
+    expect(artifacts?.methods).toBe(methods);
+
+    focusSelf?.();
+    expect(called).toBe(1);
+  });
+
   it('AS-HOOK-0480: rule disposers remove captured rules from evaluation', () => {
     let res: any;
 

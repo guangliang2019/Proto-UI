@@ -1,36 +1,14 @@
-import { __AS_HOOK_PRIV_PORTS, defineAsHook } from '@proto.ui/core';
-import type { AnatomyFamily, ExposeMethod, ExposeState, RunHandle, State } from '@proto.ui/core';
+import { defineAsHook } from '@proto.ui/core';
+import type {
+  AnatomyFamily,
+  CollectionExposes,
+  CollectionHandles,
+  CollectionItemSnapshot,
+  CollectionOptions,
+  RunHandle,
+} from '@proto.ui/core';
 import type { AnatomyPort } from '@proto.ui/module-anatomy';
-
-export type CollectionItemSnapshot = Readonly<
-  Record<string, unknown> & {
-    index: number;
-    total: number;
-    first: boolean;
-    last: boolean;
-  }
->;
-
-export type CollectionOptions = {
-  family: AnatomyFamily;
-  itemRole?: string;
-  rootRole?: string | false;
-  itemMetaExposeKey?: string;
-  countStateKey?: string;
-  exposeCountStateKey?: string;
-  exposeItemsMethodKey?: string;
-  exposeCountMethodKey?: string;
-};
-
-export type CollectionExposes = {
-  count: ExposeState<number>;
-  getCollectionItems: ExposeMethod<() => readonly CollectionItemSnapshot[]>;
-  getCollectionCount: ExposeMethod<() => number>;
-};
-
-export type CollectionHandles = {
-  count: State<number>;
-};
+import { getActiveAsHookContext } from '@proto.ui/core/internal';
 
 const DEFAULT_ITEM_ROLE = 'item';
 const DEFAULT_ITEM_META_EXPOSE_KEY = '__collectionItem';
@@ -65,12 +43,15 @@ function buildCollectionItemsFromRun(
   itemRole: string,
   itemMetaExposeKey: string
 ): readonly CollectionItemSnapshot[] {
-  return buildCollectionItems(run.anatomy.order.partsOf(family, itemRole), itemMetaExposeKey);
+  return buildCollectionItems(
+    run.anatomy.order.partsOf(family, itemRole, { missing: 'empty' }),
+    itemMetaExposeKey
+  );
 }
 
-function getAnatomyPort(def: unknown): AnatomyPort {
-  const ports = (def as any)?.[__AS_HOOK_PRIV_PORTS] as Record<string, unknown> | undefined;
-  const anatomy = ports?.anatomy as AnatomyPort | undefined;
+function getAnatomyPort(): AnatomyPort {
+  const { ports } = getActiveAsHookContext('asCollection');
+  const anatomy = ports.anatomy as AnatomyPort | undefined;
   if (!anatomy?.order) {
     throw new Error('[AsHook:asCollection] anatomy port unavailable.');
   }
@@ -93,7 +74,7 @@ export const asCollection = defineAsHook<
     const exposeCountStateKey = options.exposeCountStateKey ?? 'count';
     const exposeItemsMethodKey = options.exposeItemsMethodKey ?? 'getCollectionItems';
     const exposeCountMethodKey = options.exposeCountMethodKey ?? 'getCollectionCount';
-    const anatomy = getAnatomyPort(def);
+    const anatomy = getAnatomyPort();
 
     if (rootRole) {
       def.anatomy.claim(options.family, { role: rootRole });
@@ -104,7 +85,8 @@ export const asCollection = defineAsHook<
     api.store.version = -1;
 
     const sync = (run: RunHandle<any>) => {
-      const version = run.anatomy.order.version(options.family);
+      const version = run.anatomy.order.version(options.family, { missing: 'null' });
+      if (version == null) return;
       if (api.store.version === version) return;
       const items = buildCollectionItemsFromRun(run, options.family, itemRole, itemMetaExposeKey);
       api.store.items = items;
@@ -115,12 +97,12 @@ export const asCollection = defineAsHook<
     def.expose.state(exposeCountStateKey as keyof CollectionExposes & string, count);
     def.expose.method(exposeItemsMethodKey as keyof CollectionExposes & string, () => {
       return buildCollectionItems(
-        anatomy.order.partsOf(options.family, itemRole),
+        anatomy.order.partsOf(options.family, itemRole, { missing: 'empty' }),
         itemMetaExposeKey
       );
     });
     def.expose.method(exposeCountMethodKey as keyof CollectionExposes & string, () => {
-      return anatomy.order.partsOf(options.family, itemRole).length;
+      return anatomy.order.partsOf(options.family, itemRole, { missing: 'empty' }).length;
     });
 
     def.lifecycle.onMounted((run) => {

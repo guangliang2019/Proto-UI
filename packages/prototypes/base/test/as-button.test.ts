@@ -15,7 +15,7 @@ import {
   AS_TRIGGER_PARENT_CAP,
 } from '@proto.ui/module-as-trigger';
 import { EXPOSE_SET_EXPOSES_CAP } from '@proto.ui/module-expose';
-import { asButton } from '../src/button/as-button';
+import { asButton } from '../src/button';
 
 function createHost(initialRaw: Record<string, unknown> = {}) {
   let raw = { ...initialRaw };

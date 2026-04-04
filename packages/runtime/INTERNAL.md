@@ -89,6 +89,12 @@
 - 模块接口拆分：ModuleOrchestrator 返回的 port 聚合只进入 Instance
 - 代码结构隔离：Kernel 与 Orchestrator/Instance 分目录，避免误用
 
+### 3.1 AsHook 特权桥接
+
+`as-hook` 的少数 runtime backend 需要读取 facade/port 时，应由 **Instance** 在创建 `def` 后做一次特权注入；Kernel 只负责 setup/render/callback phase 与 handle 语义，不直接从 `ModuleOrchestrator` 读取 port。
+
+这条规则的目的不是否认 privileged backend 的存在，而是把“特权入口”固定在边界层，避免 Kernel 自身退化成对 module internals 有感知的组织层。
+
 ---
 
 ## 4. Adapter 入口规则

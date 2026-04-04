@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { definePrototype } from '@proto.ui/core';
+import { asFocusScope } from '@proto.ui/hooks';
 
-import { asButton } from '../../../prototypes/base/src/button/as-button';
+import { asButton } from '../../../prototypes/base/src/button';
 import { createMountedReactAdapter } from './utils/fake-react';
 
 describe('adapter-react: focus wiring', () => {
@@ -26,6 +27,22 @@ describe('adapter-react: focus wiring', () => {
 
     mounted.root?.blur();
     expect(exposes.focused.get()).toBe(false);
+
+    mounted.unmount();
+  });
+
+  it('does not make focus-scope-only host focusable', () => {
+    const proto = definePrototype({
+      name: 'react-focus-scope-only',
+      setup() {
+        asFocusScope({ emptyPolicy: 'container' });
+        return (r) => [r.el('div', 'ok')];
+      },
+    });
+
+    const mounted = createMountedReactAdapter(proto);
+
+    expect(mounted.root?.tabIndex).toBe(-1);
 
     mounted.unmount();
   });

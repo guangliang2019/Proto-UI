@@ -28,13 +28,14 @@ export type AnatomyFacade = {
   claim(family: AnatomyFamily, decl: AnatomyClaimDecl): void;
 
   has(family: AnatomyFamily, role: string): boolean;
-  parts(family: AnatomyFamily): readonly AnatomyPartView[];
-  partsOf(family: AnatomyFamily, role: string): readonly AnatomyPartView[];
+  parts: AnatomyOrderView['parts'];
+  partsOf: AnatomyOrderView['partsOf'];
   order: AnatomyOrderView;
 };
 
 export type AnatomyPort = ModulePort & {
   getDiagnostics(): readonly AnatomyDiagnostic[];
+  parts: AnatomyOrderView['parts'];
   order: AnatomyOrderView;
   setOrderCallbackDispatcher(dispatch: AnatomyOrderCallbackDispatcher): void;
   subscribeOrder(family: AnatomyFamily, cb: AnatomyOrderChangeCb): Unsubscribe;

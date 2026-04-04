@@ -253,7 +253,7 @@ describe('AnatomyModuleImpl', () => {
     rootCaps.__sys.__setExecPhase('callback');
     itemCapsA.__sys.__setExecPhase('callback');
 
-    const ordered = rootImpl.orderedPartsOf(family, 'item');
+    const ordered = rootImpl.orderedPartsOf(family, 'item') ?? [];
     expect(ordered.map((part) => part.getExpose('id'))).toEqual(['b', 'a']);
     expect(itemImplA.indexOfSelf(family, 'item')).toBe(1);
     expect(itemImplA.prevOfSelf(family, 'item')?.getExpose('id')).toBe('b');
@@ -311,21 +311,83 @@ describe('AnatomyModuleImpl', () => {
     });
 
     expect(impl.port.order.version(family)).toBe(0);
-    notifyObserver?.();
+    (notifyObserver as (() => void) | null)?.();
     expect(ctxSeen).toBeNull();
     expect(calls).toBe(0);
     expect(impl.port.order.version(family)).toBe(0);
 
     itemImpl.claim(family, { role: 'item' });
-    notifyObserver?.();
+    (notifyObserver as (() => void) | null)?.();
     expect(ctxSeen).toBe('ctx');
     expect(calls).toBe(1);
     expect(impl.port.order.version(family)).toBe(1);
 
-    notifyObserver?.();
+    (notifyObserver as (() => void) | null)?.();
     expect(calls).toBe(1);
     expect(impl.port.order.version(family)).toBe(1);
 
     off();
+  });
+
+  it('supports null/empty query policies when current instance is outside a valid domain', () => {
+    const family = createAnatomyFamily('query-policy-outside-domain');
+    const orphan = {};
+    const caps = makeCaps({
+      instance: orphan,
+      getParent: () => null,
+      getPrototype: () => makeProto([]),
+    });
+    const impl = new AnatomyModuleImpl(caps, 'orphan', makeExposePort());
+
+    caps.__sys.__setExecPhase('callback');
+
+    expect(impl.parts(family, { missing: 'null' })).toBeNull();
+    expect(impl.parts(family, { missing: 'empty' })).toEqual([]);
+    expect(impl.orderVersion(family, { missing: 'null' })).toBeNull();
+    expect(impl.orderedParts(family, { missing: 'null' })).toBeNull();
+    expect(impl.orderedPartsOf(family, 'item', { missing: 'null' })).toBeNull();
+    expect(impl.orderedPartsOf(family, 'item', { missing: 'empty' })).toEqual([]);
+    expect(impl.indexOfSelf(family, 'item', { missing: 'null' })).toBeNull();
+    expect(impl.prevOfSelf(family, 'item', { missing: 'null' })).toBeNull();
+    expect(impl.nextOfSelf(family, 'item', { missing: 'null' })).toBeNull();
+  });
+
+  it('auto-registers embedded family declarations on first claim', () => {
+    const family = createAnatomyFamily('embedded-family-decl', {
+      roles: {
+        root: { cardinality: { min: 1, max: 1 } },
+        item: { cardinality: { min: 0, max: 10 } },
+      },
+      relations: [{ kind: 'contains', parent: 'root', child: 'item' }],
+    });
+    const root = {};
+    const item = {};
+    const parentMap = new Map<any, any>([
+      [root, null],
+      [item, root],
+    ]);
+
+    const rootCaps = makeCaps({
+      instance: root,
+      getParent: (instance) => parentMap.get(instance) ?? null,
+      getPrototype: () => makeProto([]),
+    });
+    const itemCaps = makeCaps({
+      instance: item,
+      getParent: (instance) => parentMap.get(instance) ?? null,
+      getPrototype: () => makeProto([]),
+    });
+
+    const rootImpl = new AnatomyModuleImpl(rootCaps, 'root', makeExposePort());
+    const itemImpl = new AnatomyModuleImpl(itemCaps, 'item', makeExposePort());
+
+    expect(() => itemImpl.claim(family, { role: 'item' })).not.toThrow();
+    expect(() => rootImpl.claim(family, { role: 'root' })).not.toThrow();
+
+    rootCaps.__sys.__setExecPhase('callback');
+    itemCaps.__sys.__setExecPhase('callback');
+
+    expect(rootImpl.partsOf(family, 'item')?.length).toBe(1);
+    expect(itemImpl.indexOfSelf(family, 'item')).toBe(0);
   });
 });

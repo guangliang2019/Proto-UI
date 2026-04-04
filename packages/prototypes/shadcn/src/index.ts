@@ -7,6 +7,7 @@ export { default as shadcnSwitchRoot } from './switch/root';
 export { default as shadcnSwitchThumb } from './switch/thumb';
 export { tabsRoot, tabsList, tabsTrigger, tabsContent } from './tabs';
 export { hoverCardRoot, hoverCardTrigger, hoverCardContent } from './hover-card';
+export { dropdownRoot, dropdownTrigger, dropdownContent, dropdownItem } from './dropdown';
 export { default as shadcnTabsRoot } from './tabs/root';
 export { default as shadcnTabsList } from './tabs/list';
 export { default as shadcnTabsTrigger } from './tabs/trigger';
@@ -14,6 +15,10 @@ export { default as shadcnTabsContent } from './tabs/content';
 export { default as shadcnHoverCardRoot } from './hover-card/root';
 export { default as shadcnHoverCardTrigger } from './hover-card/trigger';
 export { default as shadcnHoverCardContent } from './hover-card/content';
+export { default as shadcnDropdownRoot } from './dropdown/root';
+export { default as shadcnDropdownTrigger } from './dropdown/trigger';
+export { default as shadcnDropdownContent } from './dropdown/content';
+export { default as shadcnDropdownItem } from './dropdown/item';
 export type {
   ShadcnButtonProps,
   ShadcnButtonExposes,
@@ -61,3 +66,17 @@ export type {
   ShadcnHoverCardContentExposes,
   ShadcnHoverCardContentAsHookContract,
 } from './hover-card/types';
+export type {
+  ShadcnDropdownRootProps,
+  ShadcnDropdownRootExposes,
+  ShadcnDropdownRootAsHookContract,
+  ShadcnDropdownTriggerProps,
+  ShadcnDropdownTriggerExposes,
+  ShadcnDropdownTriggerAsHookContract,
+  ShadcnDropdownContentProps,
+  ShadcnDropdownContentExposes,
+  ShadcnDropdownContentAsHookContract,
+  ShadcnDropdownItemProps,
+  ShadcnDropdownItemExposes,
+  ShadcnDropdownItemAsHookContract,
+} from './dropdown/types';
