@@ -33,4 +33,7 @@ export interface ExecuteWithHostResult {
 
   /** expose module host for adapter caps injection (temporary but effective) */
   caps: ModuleOrchestrator;
+
+  /** invoke a function inside the runtime callback scope (for adapter expose method wrapping) */
+  invokeInCallbackScope(fn: () => void): void;
 }

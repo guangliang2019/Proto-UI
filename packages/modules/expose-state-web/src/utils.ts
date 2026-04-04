@@ -25,7 +25,7 @@ function mapOfficialSemanticName(semantic: string): string | null {
   }
 }
 
-export function createVueNameMap(semantic: string) {
+export function createExposeStateWebNameMap(semantic: string) {
   const official = mapOfficialSemanticName(semantic);
   if (official) {
     return {
@@ -38,6 +38,7 @@ export function createVueNameMap(semantic: string) {
     .trim()
     .replace(/\s+/g, '-')
     .replace(/\./g, '-')
+    .replace(/([a-z0-9])([A-Z])/g, '$1-$2')
     .replace(/[^a-zA-Z0-9\-]/g, '-')
     .replace(/-+/g, '-')
     .replace(/^-+|-+$/g, '')
@@ -49,7 +50,7 @@ export function createVueNameMap(semantic: string) {
   };
 }
 
-export function vueNativeVariantPolicy({ semantic }: { semantic?: string }) {
+export function createExposeStateWebNativeVariantPolicy({ semantic }: { semantic?: string }) {
   switch (semantic) {
     case '@interaction/hovered':
     case '@interaction/pressed':

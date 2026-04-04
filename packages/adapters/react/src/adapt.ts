@@ -31,6 +31,7 @@ export type ReactRuntime = ReactRenderRuntime & {
 export type ReactAdapterHandle = {
   update(): void;
   getExposes(): Record<string, unknown>;
+  invokeInCallbackScope?(fn: () => void): void;
 };
 
 export type ReactAdapterProps<Props extends PropsBaseType> = Props &
@@ -86,6 +87,7 @@ export function createReactAdapter(runtimeInput: ReactRuntimeInput) {
       const controllerRef = runtime.useRef<RuntimeController | null>(null);
       const eventGateRef = runtime.useRef<ReturnType<typeof createEventGate> | null>(null);
       const exposesRef = runtime.useRef<Record<string, unknown>>({});
+      const invokeInCallbackScopeRef = runtime.useRef<((fn: () => void) => void) | null>(null);
 
       const propsRef = runtime.useRef<ReactAdapterProps<Props>>(props);
       propsRef.current = props;
@@ -117,6 +119,7 @@ export function createReactAdapter(runtimeInput: ReactRuntimeInput) {
         () => ({
           update: () => controllerRef.current?.update(),
           getExposes: () => ({ ...(exposesRef.current ?? {}) }),
+          invokeInCallbackScope: (fn: () => void) => invokeInCallbackScopeRef.current?.(fn),
         }),
         []
       );
@@ -184,6 +187,7 @@ export function createReactAdapter(runtimeInput: ReactRuntimeInput) {
         });
 
         controllerRef.current = hostSession.controller as RuntimeController;
+        invokeInCallbackScopeRef.current = hostSession.invokeInCallbackScope;
 
         return () => {
           hostSession.dispose();
@@ -209,6 +213,7 @@ export function createReactAdapter(runtimeInput: ReactRuntimeInput) {
           ref: rootRef as any,
           className: mergeHostClassName(props.hostClassName, hostTokens),
           style: props.hostStyle,
+          'data-demo-ref': props['data-demo-ref' as keyof typeof props] as any,
         },
         rendered
       );

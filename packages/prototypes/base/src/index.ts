@@ -2,6 +2,8 @@ export * from './button';
 export { default as button } from './button';
 export * from './toggle';
 export { default as toggle } from './toggle';
+export * from './transition';
+export { default as transition } from './transition';
 export * from './switch';
 export * from './tabs';
 export * from './dropdown';

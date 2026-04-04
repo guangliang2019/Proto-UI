@@ -1,10 +1,13 @@
 import { createCapsWiring, createDomOrderObserver } from '@proto.ui/adapter-base';
 import type { EffectsPort } from '@proto.ui/core';
 import type { RawPropsSource } from '@proto.ui/module-props';
-import type { ExposeStateWebMode } from '@proto.ui/module-expose-state-web';
+import {
+  createExposeStateWebNameMap,
+  createExposeStateWebNativeVariantPolicy,
+  type ExposeStateWebMode,
+} from '@proto.ui/module-expose-state-web';
 import type { PropsBaseType } from '@proto.ui/types';
 
-import { createReactNameMap, reactNativeVariantPolicy } from '../platform/expose-state-web';
 import { getProtoParent, getPrototypeByInstance } from '../platform/instance-tree';
 
 export function createReactModules<Props extends PropsBaseType>(args: {
@@ -51,7 +54,7 @@ export function createReactModules<Props extends PropsBaseType>(args: {
     })
     .useExposeStateWeb({
       host: el,
-      nameMap: createReactNameMap,
+      nameMap: createExposeStateWebNameMap,
       mode: exposeStateWebMode,
     })
     .useContext({
@@ -72,7 +75,7 @@ export function createReactModules<Props extends PropsBaseType>(args: {
     })
     .useRuleMeta((key) => getMeta(key))
     .useRuleExposeStateWeb({
-      nativeVariantPolicy: reactNativeVariantPolicy,
+      nativeVariantPolicy: createExposeStateWebNativeVariantPolicy,
     })
     .build();
 }

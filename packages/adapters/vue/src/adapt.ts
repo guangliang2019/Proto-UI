@@ -32,6 +32,7 @@ export type VueRuntime = VueRenderRuntime & {
 export type VueAdapterHandle = {
   update(): void;
   getExposes(): Record<string, unknown>;
+  invokeInCallbackScope?(fn: () => void): void;
 };
 
 export type VueAdapterProps<Props extends PropsBaseType> = Props &
@@ -88,6 +89,7 @@ export function createVueAdapter(runtime: VueRuntime) {
         const controllerRef = runtime.ref<RuntimeController | null>(null);
         const eventGateRef = runtime.ref<ReturnType<typeof createEventGate> | null>(null);
         const exposesRef = runtime.ref<Record<string, unknown>>({});
+        const invokeRef = runtime.ref<((fn: () => void) => void) | null>(null);
 
         const subs = new Set<() => void>();
         const rawPropsSource: RawPropsSource<Props> = {
@@ -112,16 +114,16 @@ export function createVueAdapter(runtime: VueRuntime) {
         ctx.expose({
           update: () => controllerRef.value?.update(),
           getExposes: () => ({ ...(exposesRef.value ?? {}) }),
+          invokeInCallbackScope: (fn: () => void) => invokeRef.value?.(fn),
         } satisfies VueAdapterHandle);
 
-        runtime.watch(
-          props as any,
-          () => {
-            for (const cb of subs) cb();
-            if (autoUpdate) controllerRef.value?.update();
-          },
-          { deep: true }
-        );
+        const notifyPropsChange = () => {
+          for (const cb of subs) cb();
+          if (autoUpdate) controllerRef.value?.update();
+        };
+
+        runtime.watch(props as any, notifyPropsChange, { deep: true });
+        runtime.watch(() => ctx.attrs, notifyPropsChange, { deep: true });
 
         runtime.watch(
           renderChildren,
@@ -193,6 +195,7 @@ export function createVueAdapter(runtime: VueRuntime) {
           });
 
           controllerRef.value = hostSession.controller as RuntimeController;
+          invokeRef.value = hostSession.invokeInCallbackScope;
         });
 
         runtime.onBeforeUnmount(() => {
@@ -212,6 +215,7 @@ export function createVueAdapter(runtime: VueRuntime) {
               ref: rootRef,
               class: mergeHostClass(props.hostClass, hostTokens.value),
               style: props.hostStyle,
+              'data-demo-ref': ctx.attrs['data-demo-ref'] as string | undefined,
             },
             rendered as any
           );

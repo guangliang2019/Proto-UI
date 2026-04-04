@@ -10,7 +10,7 @@ import {
   createWebProtoEventRouter,
 } from '@proto.ui/adapter-base';
 
-import { bindController, getElementProps, unbindController } from './props';
+import { bindController, getElementProps, setElementProps, unbindController } from './props';
 import { SlotProjector } from './slot-projector';
 import { createOwnedTwTokenApplier } from './feedback-style';
 import { installDebugHooks, removeDebugHooks } from './debug/hooks';
@@ -82,6 +82,8 @@ export function AdaptToWebComponent<Props extends PropsBaseType>(
 
     private _applier: ReturnType<typeof createOwnedTwTokenApplier> | null = null;
     private _exposes: Record<string, unknown> = {};
+    private _wrappedExposes: Record<string, unknown> = {};
+    private _lastWrappedRaw: Record<string, unknown> | null = null;
 
     constructor() {
       super();
@@ -187,6 +189,8 @@ export function AdaptToWebComponent<Props extends PropsBaseType>(
         },
         onAfterUnmount: () => {
           this._exposes = {};
+          this._wrappedExposes = {};
+          this._lastWrappedRaw = null;
           this._applier?.clear();
           this._applier = null;
           this._hostDisplay?.disconnect();
@@ -201,9 +205,41 @@ export function AdaptToWebComponent<Props extends PropsBaseType>(
 
       // expose update for convenience (existing behavior)
       (this as any).update = () => controller.update();
+      const wrapExposes = (record: Record<string, unknown>): Record<string, unknown> => {
+        const out: Record<string, unknown> = {};
+        for (const [key, value] of Object.entries(record)) {
+          if (typeof value === 'function') {
+            out[key] = (...args: any[]) => {
+              let result: any;
+              hostSession.invokeInCallbackScope(() => {
+                result = value(...args);
+              });
+              return result;
+            };
+          } else if (value !== null && typeof value === 'object' && !Array.isArray(value)) {
+            out[key] = wrapExposes(value as Record<string, unknown>);
+          } else {
+            out[key] = value;
+          }
+        }
+        return out;
+      };
+
       (this as any).getExposes = () => {
         if (!this.isConnected) return {};
-        return { ...(this._exposes ?? {}) };
+        const raw = this._exposes ?? {};
+        if (this._lastWrappedRaw !== raw) {
+          this._lastWrappedRaw = raw;
+          this._wrappedExposes = wrapExposes(raw);
+        }
+        // 防御性浅拷贝，保持"每次 getExposes 返回独立快照"的契约
+        return { ...this._wrappedExposes };
+      };
+
+      // 对外暴露 props 设置入口（DevTools / 脚本测试用）
+      (this as any).setProps = (next: Record<string, any>) => {
+        setElementProps(thisEl, next);
+        controller.update();
       };
 
       this._controller = controller;

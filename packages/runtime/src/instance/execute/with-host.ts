@@ -166,5 +166,11 @@ export function executeWithHost<P extends PropsBaseType>(
     timeline.mark('dispose:done');
   };
 
-  return { children, controller, invokeUnmounted, caps: moduleHub };
+  return {
+    children,
+    controller,
+    invokeUnmounted,
+    caps: moduleHub,
+    invokeInCallbackScope: (fn) => callbackScope.run(run, fn),
+  };
 }
