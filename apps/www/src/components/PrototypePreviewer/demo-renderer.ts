@@ -8,8 +8,20 @@ import type { DemoChild, DemoRenderOptions, DemoRenderResult, DemoRuntimeApi } f
 import { ensurePreviewWcRegistered } from './wc-registry';
 
 const reactRoots = new WeakMap<HTMLElement, { unmount: () => void; render: (el: any) => void }>();
-const reactComponentCache = new Map<string, any>();
-const vueComponentCache = new Map<string, any>();
+const reactComponentCache = new WeakMap<object, Map<string, any>>();
+const vueComponentCache = new WeakMap<object, Map<string, any>>();
+
+function getScopedComponentCache(
+  cache: WeakMap<object, Map<string, any>>,
+  adapter: object
+): Map<string, any> {
+  let scopedCache = cache.get(adapter);
+  if (!scopedCache) {
+    scopedCache = new Map<string, any>();
+    cache.set(adapter, scopedCache);
+  }
+  return scopedCache;
+}
 
 function callInScope(inst: any, fn: () => void) {
   if (typeof inst?.invokeInCallbackScope === 'function') {
@@ -141,10 +153,11 @@ async function renderDemoReact(opt: DemoRenderOptions): Promise<DemoRenderResult
     }
 
     const proto = getPrototype(node.prototypeId);
-    let Component = reactComponentCache.get(node.prototypeId);
+    const scopedCache = getScopedComponentCache(reactComponentCache, adapter);
+    let Component = scopedCache.get(node.prototypeId);
     if (!Component) {
       Component = adapter(proto as any);
-      reactComponentCache.set(node.prototypeId, Component);
+      scopedCache.set(node.prototypeId, Component);
     }
     const kids = (node.children ?? []).map((child) => renderNode(child));
     const mergedProps: Record<string, unknown> = { ...(node.props ?? {}) };
@@ -256,10 +269,11 @@ async function renderDemoVue(opt: DemoRenderOptions): Promise<DemoRenderResult> 
     }
 
     const proto = getPrototype(node.prototypeId);
-    let Component = vueComponentCache.get(node.prototypeId);
+    const scopedCache = getScopedComponentCache(vueComponentCache, adapter);
+    let Component = scopedCache.get(node.prototypeId);
     if (!Component) {
       Component = adapter(proto as any);
-      vueComponentCache.set(node.prototypeId, Component);
+      scopedCache.set(node.prototypeId, Component);
     }
     const kids = (node.children ?? []).map((child) => renderNode(child));
     const mergedProps: Record<string, unknown> = { ...(node.props ?? {}) };

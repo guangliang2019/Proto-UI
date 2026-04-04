@@ -126,6 +126,7 @@ export const asTransition = defineAsHook<
     // parent-child 协调：已注册的子节点
     const registeredChildren: Array<{ getState: () => TransitionState }> = [];
     let parentCtxRef: object | undefined;
+    let unregisterChild: (() => void) | undefined;
 
     const tryCompleteLeave = () => {
       if (transitionState.get() !== 'leaving') return;
@@ -351,10 +352,20 @@ export const asTransition = defineAsHook<
           parentCtxRef = parentCtx.parentRef;
           const registry = transitionParentRegistries.get(parentCtxRef);
           if (registry) {
-            registry.children.push({ getState: () => transitionState.get() });
+            const child = { getState: () => transitionState.get() };
+            registry.children.push(child);
+            unregisterChild = () => {
+              const idx = registeredChildren.indexOf(child);
+              if (idx !== -1) registeredChildren.splice(idx, 1);
+            };
           }
         }
       }
+    });
+
+    def.lifecycle.onUnmounted(() => {
+      unregisterChild?.();
+      unregisterChild = undefined;
     });
 
     def.props.watch(['open'] as any, (run, next) => {
