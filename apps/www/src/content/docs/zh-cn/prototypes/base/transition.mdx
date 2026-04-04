@@ -4,43 +4,16 @@ desp: 'Transition'
 description: 'Transition 基础原型'
 ---
 
-import AdapterPanelScript from '@/components/PrototypePreviewer/AdapterPanelScript.astro';
 import PrototypePreviewer from '@/components/PrototypePreviewer/PrototypePreviewer.astro';
-import { codeMap } from '@/content/docs/demo_components/base-transition/baseTransitionCode';
-import { getCode } from '@/utils/conversionUtils';
 
 ### 命令式控制
 
-<div class="transition-demo-container" data-adapter-panel="wc">
+<div class="transition-demo-container">
   <PrototypePreviewer
     demoId="demo-base-transition-command"
     initialRuntime="wc"
-    toolbar={false}
-    runtimes={['wc']}
+    runtimes={['wc', 'react', 'vue']}
     hasCode={true}
-    code={getCode('wc', 'demo-base-transition-command', codeMap)}
-  />
-</div>
-
-<div class="transition-demo-container" data-adapter-panel="react" style="display:none;">
-  <PrototypePreviewer
-    demoId="demo-base-transition-command"
-    initialRuntime="react"
-    toolbar={false}
-    runtimes={['react']}
-    hasCode={true}
-    code={getCode('react', 'demo-base-transition-command', codeMap)}
-  />
-</div>
-
-<div class="transition-demo-container" data-adapter-panel="vue" style="display:none;">
-  <PrototypePreviewer
-    demoId="demo-base-transition-command"
-    initialRuntime="vue"
-    toolbar={false}
-    runtimes={['vue']}
-    hasCode={true}
-    code={getCode('vue', 'demo-base-transition-command', codeMap)}
   />
 </div>
 
@@ -58,36 +31,12 @@ Enter → Complete → Leave → Complete
 
 ### 受控模式
 
-<div class="transition-demo-container" data-adapter-panel="wc">
+<div class="transition-demo-container">
   <PrototypePreviewer
     demoId="demo-base-transition-controlled"
     initialRuntime="wc"
-    toolbar={false}
-    runtimes={['wc']}
+    runtimes={['wc', 'react', 'vue']}
     hasCode={true}
-    code={getCode('wc', 'demo-base-transition-controlled', codeMap)}
-  />
-</div>
-
-<div class="transition-demo-container" data-adapter-panel="react" style="display:none;">
-  <PrototypePreviewer
-    demoId="demo-base-transition-controlled"
-    initialRuntime="react"
-    toolbar={false}
-    runtimes={['react']}
-    hasCode={true}
-    code={getCode('react', 'demo-base-transition-controlled', codeMap)}
-  />
-</div>
-
-<div class="transition-demo-container" data-adapter-panel="vue" style="display:none;">
-  <PrototypePreviewer
-    demoId="demo-base-transition-controlled"
-    initialRuntime="vue"
-    toolbar={false}
-    runtimes={['vue']}
-    hasCode={true}
-    code={getCode('vue', 'demo-base-transition-controlled', codeMap)}
   />
 </div>
 
@@ -183,5 +132,3 @@ closed → entering → entered → leaving → closed
 - `enter()`: 触发进入
 - `leave()`: 触发离开
 - `complete()`: 标记当前过渡完成，推进到下一状态
-
-<AdapterPanelScript />

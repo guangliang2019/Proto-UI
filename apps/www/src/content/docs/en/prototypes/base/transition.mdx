@@ -4,43 +4,16 @@ desp: 'Transition'
 description: 'Transition base prototype'
 ---
 
-import AdapterPanelScript from '@/components/PrototypePreviewer/AdapterPanelScript.astro';
 import PrototypePreviewer from '@/components/PrototypePreviewer/PrototypePreviewer.astro';
-import { codeMap } from '@/content/docs/demo_components/base-transition/baseTransitionCode';
-import { getCode } from '@/utils/conversionUtils';
 
 ### Imperative Control
 
-<div class="transition-demo-container" data-adapter-panel="wc">
+<div class="transition-demo-container">
   <PrototypePreviewer
     demoId="demo-base-transition-command"
     initialRuntime="wc"
-    toolbar={false}
-    runtimes={['wc']}
+    runtimes={['wc', 'react', 'vue']}
     hasCode={true}
-    code={getCode('wc', 'demo-base-transition-command', codeMap)}
-  />
-</div>
-
-<div class="transition-demo-container" data-adapter-panel="react" style="display:none;">
-  <PrototypePreviewer
-    demoId="demo-base-transition-command"
-    initialRuntime="react"
-    toolbar={false}
-    runtimes={['react']}
-    hasCode={true}
-    code={getCode('react', 'demo-base-transition-command', codeMap)}
-  />
-</div>
-
-<div class="transition-demo-container" data-adapter-panel="vue" style="display:none;">
-  <PrototypePreviewer
-    demoId="demo-base-transition-command"
-    initialRuntime="vue"
-    toolbar={false}
-    runtimes={['vue']}
-    hasCode={true}
-    code={getCode('vue', 'demo-base-transition-command', codeMap)}
   />
 </div>
 
@@ -58,36 +31,12 @@ Enter → Complete → Leave → Complete
 
 ### Controlled Mode
 
-<div class="transition-demo-container" data-adapter-panel="wc">
+<div class="transition-demo-container">
   <PrototypePreviewer
     demoId="demo-base-transition-controlled"
     initialRuntime="wc"
-    toolbar={false}
-    runtimes={['wc']}
+    runtimes={['wc', 'react', 'vue']}
     hasCode={true}
-    code={getCode('wc', 'demo-base-transition-controlled', codeMap)}
-  />
-</div>
-
-<div class="transition-demo-container" data-adapter-panel="react" style="display:none;">
-  <PrototypePreviewer
-    demoId="demo-base-transition-controlled"
-    initialRuntime="react"
-    toolbar={false}
-    runtimes={['react']}
-    hasCode={true}
-    code={getCode('react', 'demo-base-transition-controlled', codeMap)}
-  />
-</div>
-
-<div class="transition-demo-container" data-adapter-panel="vue" style="display:none;">
-  <PrototypePreviewer
-    demoId="demo-base-transition-controlled"
-    initialRuntime="vue"
-    toolbar={false}
-    runtimes={['vue']}
-    hasCode={true}
-    code={getCode('vue', 'demo-base-transition-controlled', codeMap)}
   />
 </div>
 
@@ -183,5 +132,3 @@ Accessed via the `controls` expose:
 - `enter()`: Trigger enter
 - `leave()`: Trigger leave
 - `complete()`: Mark current transition complete, advance to next state
-
-<AdapterPanelScript />

@@ -35,6 +35,20 @@ export function initPreviewer(options: PreviewerOptions) {
   let version = 0;
   let destroyed = false;
 
+  const codeHighlights: Record<string, string> = root.dataset.codeHighlights
+    ? JSON.parse(root.dataset.codeHighlights)
+    : {};
+
+  function updateCodePanel(runtime: RuntimeId) {
+    const codeContent = root.querySelector('[data-code-content]') as HTMLElement | null;
+    if (!codeContent) return;
+    const html = codeHighlights[runtime];
+    if (!html) return;
+    codeContent.innerHTML = html;
+    // 通知 CodePanel 重新计算折叠/展开状态
+    document.dispatchEvent(new CustomEvent('proto-adapter:change'));
+  }
+
   // 初始化下拉
   if (select) {
     select.innerHTML = '';
@@ -113,6 +127,7 @@ export function initPreviewer(options: PreviewerOptions) {
           host,
         });
         currentDemo = { id, destroy };
+        updateCodePanel(id as RuntimeId);
         dispatch('runtime:changed', { id });
         return;
       }
@@ -135,6 +150,7 @@ export function initPreviewer(options: PreviewerOptions) {
 
       await api.mount(host, proto, { props: demoProps });
       current = { id, api };
+      updateCodePanel(id as RuntimeId);
       dispatch('runtime:changed', { id });
     } catch (err) {
       // 如果是原型未找到的错误，不需要重试（动态加载应该已经处理了）

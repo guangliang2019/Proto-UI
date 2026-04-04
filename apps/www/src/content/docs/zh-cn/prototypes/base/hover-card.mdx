@@ -4,42 +4,13 @@ desp: 'Hover Card'
 description: 'Hover Card 基础原型'
 ---
 
-import AdapterPanelScript from '@/components/PrototypePreviewer/AdapterPanelScript.astro';
 import PrototypePreviewer from '@/components/PrototypePreviewer/PrototypePreviewer.astro';
-import { codeMap } from '@/content/docs/demo_components/base-hover-card/baseHoverCardCode';
-import { getCode } from '@/utils/conversionUtils';
 
-<div data-adapter-panel="wc">
+<div>
   <PrototypePreviewer
     demoId="demo-base-hover-card"
     initialRuntime="wc"
-    toolbar={false}
-    runtimes={['wc']}
+    runtimes={['wc', 'react', 'vue']}
     hasCode={true}
-    code={getCode('wc', 'demo-base-hover-card', codeMap)}
   />
 </div>
-
-<div data-adapter-panel="react" style="display:none;">
-  <PrototypePreviewer
-    demoId="demo-base-hover-card"
-    initialRuntime="react"
-    toolbar={false}
-    runtimes={['react']}
-    hasCode={true}
-    code={getCode('react', 'demo-base-hover-card', codeMap)}
-  />
-</div>
-
-<div data-adapter-panel="vue" style="display:none;">
-  <PrototypePreviewer
-    demoId="demo-base-hover-card"
-    initialRuntime="vue"
-    toolbar={false}
-    runtimes={['vue']}
-    hasCode={true}
-    code={getCode('vue', 'demo-base-hover-card', codeMap)}
-  />
-</div>
-
-<AdapterPanelScript />
