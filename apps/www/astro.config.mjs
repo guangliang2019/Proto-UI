@@ -283,6 +283,11 @@ export default defineConfig({
                   slug: 'prototypes/base',
                 },
                 {
+                  label: 'Hover Card',
+                  translations: { en: 'Hover Card', 'zh-CN': 'Hover Card' },
+                  slug: 'prototypes/base/hover-card',
+                },
+                {
                   label: 'Transition',
                   translations: { en: 'Transition', 'zh-CN': 'Transition' },
                   slug: 'prototypes/base/transition',
@@ -292,7 +297,18 @@ export default defineConfig({
             {
               label: 'Shadcn Library',
               translations: { en: 'Shadcn Library', 'zh-CN': 'Shadcn 原型库' },
-              slug: 'prototypes/shadcn',
+              items: [
+                {
+                  label: 'Overview',
+                  translations: { en: 'Overview', 'zh-CN': '概览' },
+                  slug: 'prototypes/shadcn',
+                },
+                {
+                  label: 'Hover Card',
+                  translations: { en: 'Hover Card', 'zh-CN': 'Hover Card' },
+                  slug: 'prototypes/shadcn/hover-card',
+                },
+              ],
             },
             {
               label: 'Advanced Examples',

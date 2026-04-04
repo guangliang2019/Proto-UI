@@ -16,9 +16,3 @@ import { PrototypePreviewer } from '@/components/PrototypePreviewer';
 - 收敛的 commit-close 与 open-entry 策略面（`closeOnItemCommit` / `closeOnCommit`、`openEntry` / `openEntryValue`）
 
 它在这一层不定义持久 selection，不内建 checkbox/radio item 语义，也不预先承诺 submenu anatomy。瞬时的 active 导航状态目前保持为内部实现，不作为 root 的正式公开 API。这些应当由上层原型库通过组合来补，而不是在 base 中先行固化。
-
-## Hover Card
-
-<div>
-  <PrototypePreviewer demoId="demo-base-hover-card" initialRuntime="wc" />
-</div>
