@@ -169,7 +169,7 @@ async function renderDemoReact(opt: DemoRenderOptions): Promise<DemoRenderResult
 
   root.render(renderTree());
 
-  await new Promise((resolve) => requestAnimationFrame(resolve));
+  await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
   const refs = collectDemoRefs(host);
 
   const api: DemoRuntimeApi = {
