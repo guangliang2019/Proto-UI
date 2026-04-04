@@ -238,11 +238,14 @@ export function createWebProtoEventRouter(opt: {
   );
 
   // click -> press.commit (root)
+  // 只响应真实的 MouseEvent；由 event.emit() 分发的 CustomEvent 不触发 press.commit，
+  // 避免组件暴露的合成 click 事件（如 asButton）导致重复 toggle。
   unsubs.push(
     listen(rootEl, 'click', (e) => {
       if (!opt.isEnabled()) return;
+      if (!(e instanceof MouseEvent)) return;
       if (!shouldRouteToCurrentRoot(e)) return;
-      if (e instanceof MouseEvent && shouldSuppressFollowupClick(e)) return;
+      if (shouldSuppressFollowupClick(e)) return;
       suppressFollowupDirectClick = false;
       emit(protoRootBus, 'press.commit', e);
     })
