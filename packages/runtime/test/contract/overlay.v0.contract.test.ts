@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { asOverlay, definePrototype, type OverlayHandle } from '@proto.ui/core';
+import { definePrototype, type OverlayHandle } from '@proto.ui/core';
+import { asOverlay } from '@proto.ui/hooks';
 import type { RuntimeHost } from '../../src';
 import { executeWithHost } from '../../src';
 import type { OverlayPort } from '@proto.ui/module-overlay';

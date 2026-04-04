@@ -1,4 +1,4 @@
-import { __AS_HOOK_PRIV_PORTS, defineAsHook } from '@proto.ui/core';
+import { defineAsHook } from '@proto.ui/core';
 import type {
   AnatomyFamily,
   CollectionExposes,
@@ -8,6 +8,7 @@ import type {
   RunHandle,
 } from '@proto.ui/core';
 import type { AnatomyPort } from '@proto.ui/module-anatomy';
+import { getActiveAsHookContext } from '@proto.ui/core/internal';
 
 const DEFAULT_ITEM_ROLE = 'item';
 const DEFAULT_ITEM_META_EXPOSE_KEY = '__collectionItem';
@@ -48,9 +49,9 @@ function buildCollectionItemsFromRun(
   );
 }
 
-function getAnatomyPort(def: unknown): AnatomyPort {
-  const ports = (def as any)?.[__AS_HOOK_PRIV_PORTS] as Record<string, unknown> | undefined;
-  const anatomy = ports?.anatomy as AnatomyPort | undefined;
+function getAnatomyPort(): AnatomyPort {
+  const { ports } = getActiveAsHookContext('asCollection');
+  const anatomy = ports.anatomy as AnatomyPort | undefined;
   if (!anatomy?.order) {
     throw new Error('[AsHook:asCollection] anatomy port unavailable.');
   }
@@ -73,7 +74,7 @@ export const asCollection = defineAsHook<
     const exposeCountStateKey = options.exposeCountStateKey ?? 'count';
     const exposeItemsMethodKey = options.exposeItemsMethodKey ?? 'getCollectionItems';
     const exposeCountMethodKey = options.exposeCountMethodKey ?? 'getCollectionCount';
-    const anatomy = getAnatomyPort(def);
+    const anatomy = getAnatomyPort();
 
     if (rootRole) {
       def.anatomy.claim(options.family, { role: rootRole });

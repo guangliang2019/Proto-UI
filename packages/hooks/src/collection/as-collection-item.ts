@@ -1,6 +1,5 @@
-import { __AS_HOOK_PRIV_PORTS, defineAsHook } from '@proto.ui/core';
+import { defineAsHook } from '@proto.ui/core';
 import type {
-  AnatomyFamily,
   CollectionItemExposes,
   CollectionItemHandles,
   CollectionItemMeta,
@@ -10,6 +9,7 @@ import type {
   State,
 } from '@proto.ui/core';
 import type { AnatomyPort } from '@proto.ui/module-anatomy';
+import { getActiveAsHookContext } from '@proto.ui/core/internal';
 
 type CollectionItemStore = {
   snapshot: CollectionItemSnapshot;
@@ -20,9 +20,9 @@ type CollectionItemStore = {
 const DEFAULT_ROLE = 'item';
 const DEFAULT_META_EXPOSE_KEY = '__collectionItem';
 
-function getAnatomyPort(def: unknown): AnatomyPort {
-  const ports = (def as any)?.[__AS_HOOK_PRIV_PORTS] as Record<string, unknown> | undefined;
-  const anatomy = ports?.anatomy as AnatomyPort | undefined;
+function getAnatomyPort(): AnatomyPort {
+  const { ports } = getActiveAsHookContext('asCollectionItem');
+  const anatomy = ports.anatomy as AnatomyPort | undefined;
   if (!anatomy?.order || typeof anatomy.subscribeOrder !== 'function') {
     throw new Error('[AsHook:asCollectionItem] anatomy port unavailable.');
   }
@@ -39,7 +39,7 @@ export const asCollectionItem = defineAsHook<
   mode: 'once',
   setup(def, options, api) {
     const store = api.store as CollectionItemStore;
-    const anatomy = getAnatomyPort(def);
+    const anatomy = getAnatomyPort();
     const role = options.role ?? DEFAULT_ROLE;
     const metaExposeKey = options.metaExposeKey ?? DEFAULT_META_EXPOSE_KEY;
     const index = def.state.numberDiscrete(options.indexStateKey ?? 'collectionIndex', -1);

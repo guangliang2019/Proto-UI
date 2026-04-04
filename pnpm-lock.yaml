@@ -167,6 +167,9 @@ importers:
       '@proto.ui/core':
         specifier: workspace:*
         version: link:../../core
+      '@proto.ui/hooks':
+        specifier: workspace:*
+        version: link:../../hooks
       '@proto.ui/module-anatomy':
         specifier: workspace:*
         version: link:../../modules/anatomy
@@ -218,6 +221,9 @@ importers:
       '@proto.ui/core':
         specifier: workspace:*
         version: link:../../core
+      '@proto.ui/hooks':
+        specifier: workspace:*
+        version: link:../../hooks
       '@proto.ui/module-anatomy':
         specifier: workspace:*
         version: link:../../modules/anatomy
@@ -269,6 +275,9 @@ importers:
       '@proto.ui/core':
         specifier: workspace:*
         version: link:../../core
+      '@proto.ui/hooks':
+        specifier: workspace:*
+        version: link:../../hooks
       '@proto.ui/module-context':
         specifier: workspace:*
         version: link:../../modules/context
@@ -302,6 +311,18 @@ importers:
 
   packages/core:
     devDependencies:
+      '@proto.ui/types':
+        specifier: workspace:*
+        version: link:../types
+
+  packages/hooks:
+    dependencies:
+      '@proto.ui/core':
+        specifier: workspace:*
+        version: link:../core
+      '@proto.ui/module-anatomy':
+        specifier: workspace:*
+        version: link:../modules/anatomy
       '@proto.ui/types':
         specifier: workspace:*
         version: link:../types
@@ -557,6 +578,9 @@ importers:
       '@proto.ui/core':
         specifier: workspace:*
         version: link:../../core
+      '@proto.ui/hooks':
+        specifier: workspace:*
+        version: link:../../hooks
       '@proto.ui/module-as-trigger':
         specifier: workspace:*
         version: link:../../modules/as-trigger
@@ -593,6 +617,9 @@ importers:
       '@proto.ui/core':
         specifier: workspace:*
         version: link:../core
+      '@proto.ui/hooks':
+        specifier: workspace:*
+        version: link:../hooks
       '@proto.ui/module-anatomy':
         specifier: workspace:*
         version: link:../modules/anatomy

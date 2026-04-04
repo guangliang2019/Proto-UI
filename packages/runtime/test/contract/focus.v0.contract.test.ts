@@ -1,12 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import {
-  asFocusable,
-  asFocusScope,
   createFocusScopeKey,
   definePrototype,
   type FocusScopeHandle,
   type FocusableHandle,
 } from '@proto.ui/core';
+import { asFocusable, asFocusScope } from '@proto.ui/hooks';
 import type { RuntimeHost } from '../../src';
 import { executeWithHost } from '../../src';
 import type { FocusPort } from '@proto.ui/module-focus';

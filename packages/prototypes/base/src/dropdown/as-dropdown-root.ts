@@ -1,4 +1,5 @@
-import { asCollection, defineAsHook } from '@proto.ui/core';
+import { defineAsHook } from '@proto.ui/core';
+import { asCollection } from '@proto.ui/hooks';
 import { asOpenState } from '../tools';
 import { DROPDOWN_CONTEXT, DROPDOWN_FAMILY } from './shared';
 import type { DropdownRootAsHookContract, DropdownRootExposes, DropdownRootProps } from './types';

@@ -1,4 +1,5 @@
-import { asFocusGroup, asOverlay, defineAsHook, tw } from '@proto.ui/core';
+import { defineAsHook, tw } from '@proto.ui/core';
+import { asFocusGroup, asOverlay } from '@proto.ui/hooks';
 import { DROPDOWN_CONTEXT, DROPDOWN_FAMILY, DROPDOWN_FOCUS_GROUP } from './shared';
 import type {
   DropdownContentAsHookContract,

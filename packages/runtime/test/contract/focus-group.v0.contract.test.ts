@@ -1,11 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import {
-  asFocusGroup,
-  asFocusScope,
-  createFocusGroupKey,
-  definePrototype,
-  type FocusGroupHandle,
-} from '@proto.ui/core';
+import { createFocusGroupKey, definePrototype, type FocusGroupHandle } from '@proto.ui/core';
+import { asFocusGroup, asFocusScope } from '@proto.ui/hooks';
 import type { RuntimeHost } from '../../src';
 import { executeWithHost } from '../../src';
 import type { FocusPort } from '@proto.ui/module-focus';

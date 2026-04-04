@@ -1,4 +1,5 @@
-import { asFocusable, defineAsHook } from '@proto.ui/core';
+import { defineAsHook } from '@proto.ui/core';
+import { asFocusable } from '@proto.ui/hooks';
 import { asButton } from '../button/as-button';
 import { TABS_CONTEXT, TABS_FAMILY, TABS_FOCUS_GROUP } from './shared';
 import type { TabsTriggerAsHookContract, TabsTriggerExposes, TabsTriggerProps } from './types';

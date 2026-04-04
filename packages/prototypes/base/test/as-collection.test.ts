@@ -1,11 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import {
-  asCollection,
-  asCollectionItem,
-  createAnatomyFamily,
-  definePrototype,
-  type Prototype,
-} from '@proto.ui/core';
+import { createAnatomyFamily, definePrototype, type Prototype } from '@proto.ui/core';
+import { asCollection, asCollectionItem } from '@proto.ui/hooks';
 import { executeWithHost, type RuntimeHost } from '@proto.ui/runtime';
 import { EXPOSE_SET_EXPOSES_CAP } from '@proto.ui/module-expose';
 import {

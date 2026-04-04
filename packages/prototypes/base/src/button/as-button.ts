@@ -1,4 +1,5 @@
-import { asFocusable, asTrigger, defineAsHook } from '@proto.ui/core';
+import { defineAsHook } from '@proto.ui/core';
+import { asFocusable, asTrigger } from '@proto.ui/hooks';
 import { ButtonAsHookContract, ButtonExposes, ButtonProps } from './types';
 
 export const asButton = defineAsHook<ButtonProps, ButtonExposes, ButtonAsHookContract>({

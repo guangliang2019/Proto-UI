@@ -1,4 +1,5 @@
-import { asCollectionItem, asFocusable, defineAsHook } from '@proto.ui/core';
+import { defineAsHook } from '@proto.ui/core';
+import { asCollectionItem, asFocusable } from '@proto.ui/hooks';
 import { asButton } from '../button/as-button';
 import { DROPDOWN_CONTEXT, DROPDOWN_FAMILY, DROPDOWN_FOCUS_GROUP } from './shared';
 import type { DropdownItemAsHookContract, DropdownItemExposes, DropdownItemProps } from './types';

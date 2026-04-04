@@ -1,6 +1,7 @@
 // packages/runtime/test/contract/as-trigger.v0.contract.test.ts
 import { describe, it, expect } from 'vitest';
-import { definePrototype, asTrigger } from '@proto.ui/core';
+import { definePrototype } from '@proto.ui/core';
+import { asTrigger } from '@proto.ui/hooks';
 import type { Prototype } from '@proto.ui/core';
 import type { RuntimeHost } from '../../src';
 import { executeWithHost } from '../../src';

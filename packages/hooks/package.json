@@ -1,15 +1,12 @@
 {
-  "name": "@proto.ui/prototypes-base",
+  "name": "@proto.ui/hooks",
   "version": "0.0.1",
   "private": false,
   "type": "module",
   "dependencies": {
     "@proto.ui/core": "workspace:*",
-    "@proto.ui/hooks": "workspace:*",
-    "@proto.ui/module-as-trigger": "workspace:*",
-    "@proto.ui/module-event": "workspace:*",
-    "@proto.ui/module-expose": "workspace:*",
-    "@proto.ui/module-focus": "workspace:*"
+    "@proto.ui/module-anatomy": "workspace:*",
+    "@proto.ui/types": "workspace:*"
   },
   "exports": {
     ".": {
@@ -17,13 +14,13 @@
       "default": "./src/index.ts"
     }
   },
-  "description": "Base Proto UI prototype library for reusable interaction prototypes.",
+  "description": "Proto UI built-in author-facing hooks powered by the runtime bridge.",
   "license": "MIT",
-  "homepage": "https://github.com/guangliang2019/Prototype-UI/tree/main/packages/prototypes/base",
+  "homepage": "https://github.com/guangliang2019/Prototype-UI/tree/main/packages/hooks",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/guangliang2019/Prototype-UI.git",
-    "directory": "packages/prototypes/base"
+    "directory": "packages/hooks"
   },
   "bugs": {
     "url": "https://github.com/guangliang2019/Prototype-UI/issues"
@@ -35,8 +32,6 @@
     "proto-ui",
     "proto",
     "ui",
-    "prototypes",
-    "base",
-    "prototype-library"
+    "hooks"
   ]
 }

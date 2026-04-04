@@ -1,4 +1,5 @@
-import { asOverlay, defineAsHook, tw } from '@proto.ui/core';
+import { defineAsHook, tw } from '@proto.ui/core';
+import { asOverlay } from '@proto.ui/hooks';
 import { HOVER_CARD_CONTEXT, HOVER_CARD_FAMILY } from './shared';
 import type {
   HoverCardContentAsHookContract,

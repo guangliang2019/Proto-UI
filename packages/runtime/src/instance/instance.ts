@@ -1,5 +1,6 @@
 // packages/runtime/src/instance/instance.ts
 import type { Prototype, RunHandle, TemplateChildren } from '@proto.ui/core';
+import { enterActiveAsHookContext, exitActiveAsHookContext } from '@proto.ui/core/internal';
 import type { PropsBaseType } from '@proto.ui/types';
 
 import { FeedbackModuleDef } from '@proto.ui/module-feedback';
@@ -91,6 +92,17 @@ export function createRuntimeInstance<P extends PropsBaseType>(
     },
     asHook: {
       projectState: createAsHookStateProjector<P>(moduleHub.getPort('state')),
+      enterSetup: ({ def, rt }) => {
+        enterActiveAsHookContext({
+          def: def as any,
+          rt,
+          facades: moduleHub.getFacades(),
+          ports: moduleHub.getPorts(),
+        });
+      },
+      exitSetup: () => {
+        exitActiveAsHookContext();
+      },
     },
     eventSink: {
       setEventCallbacks: (callbacks) => {

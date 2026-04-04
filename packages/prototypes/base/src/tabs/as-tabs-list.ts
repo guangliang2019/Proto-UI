@@ -1,4 +1,5 @@
-import { asFocusGroup, defineAsHook } from '@proto.ui/core';
+import { defineAsHook } from '@proto.ui/core';
+import { asFocusGroup } from '@proto.ui/hooks';
 import { TABS_FAMILY, TABS_FOCUS_GROUP } from './shared';
 import type { TabsListAsHookContract, TabsListExposes, TabsListProps } from './types';
 

@@ -10,7 +10,7 @@ import type {
   RenderFn,
   RunHandle,
 } from '@proto.ui/core';
-import { __AS_HOOK_RUNTIME as AS_HOOK_RT } from '@proto.ui/core';
+import { bindAsHookRuntime } from '@proto.ui/core/internal';
 import type { PropsBaseType } from '@proto.ui/types';
 import type { StatePort } from '@proto.ui/module-state';
 import { illegalPhase } from './guard';
@@ -193,7 +193,7 @@ export function attachAsHookRuntime<P extends PropsBaseType>(
   st: DefRuntimeState,
   proto: object,
   opt?: { projectState?: <T>(state: T) => T }
-): void {
+): AsHookRuntime {
   const trace = getOrCreateTrace(proto);
   const instances = new Map<
     string,
@@ -372,10 +372,6 @@ export function attachAsHookRuntime<P extends PropsBaseType>(
     getTrace: () => trace.entries.slice(),
   };
 
-  Object.defineProperty(def as any, AS_HOOK_RT, {
-    value: runtime,
-    enumerable: false,
-    configurable: false,
-    writable: false,
-  });
+  bindAsHookRuntime(def as object, runtime);
+  return runtime;
 }

@@ -2,6 +2,7 @@
   "compilerOptions": {
     "baseUrl": ".",
     "paths": {
+      "@proto.ui/core/internal": ["packages/core/src/internal.ts"],
       "@proto.ui/module-*": ["packages/modules/*/src"],
       "@proto.ui/adapter-*": ["packages/adapters/*/src"],
       "@proto.ui/prototypes-base": ["packages/prototypes/base/src/index.ts"],

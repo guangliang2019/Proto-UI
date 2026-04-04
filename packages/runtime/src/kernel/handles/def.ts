@@ -1,11 +1,6 @@
 // packages/runtime/src/kernel/handles/def.ts
-import {
-  __AS_HOOK_RUNTIME,
-  type AsHookRuntime,
-  type DefHandle,
-  type RunHandle,
-  type StyleHandle,
-} from '@proto.ui/core';
+import { type DefHandle, type RunHandle, type StyleHandle } from '@proto.ui/core';
+import { getAsHookRuntime } from '@proto.ui/core/internal';
 import { illegalPhase } from '../guard';
 import type { RuleSpec, RuleFacade } from '@proto.ui/module-rule';
 import type { ExposeEventSpec, PropsBaseType } from '@proto.ui/types';
@@ -55,7 +50,7 @@ export const createDefHandle = <P extends PropsBaseType, E = Record<string, unkn
     kind: 'props' | 'state' | 'context' | 'event' | 'feedback',
     entry: unknown
   ) => {
-    const rt = (def as any)[__AS_HOOK_RUNTIME] as AsHookRuntime | undefined;
+    const rt = getAsHookRuntime(def as object);
     rt?.recordCaptured(kind, entry);
   };
 
