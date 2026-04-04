@@ -276,7 +276,18 @@ export default defineConfig({
             {
               label: 'Base Library',
               translations: { en: 'Base Library', 'zh-CN': '基础原型库' },
-              slug: 'prototypes/base',
+              items: [
+                {
+                  label: 'Overview',
+                  translations: { en: 'Overview', 'zh-CN': '概览' },
+                  slug: 'prototypes/base',
+                },
+                {
+                  label: 'Transition',
+                  translations: { en: 'Transition', 'zh-CN': 'Transition' },
+                  slug: 'prototypes/base/transition',
+                },
+              ],
             },
             {
               label: 'Shadcn Library',

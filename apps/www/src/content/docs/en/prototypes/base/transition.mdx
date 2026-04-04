@@ -1,0 +1,124 @@
+---
+title: 'Transition'
+desp: 'Transition'
+description: 'Transition base prototype'
+---
+
+import { PrototypePreviewer } from '@/components/PrototypePreviewer';
+
+### Imperative Control
+
+<div class="transition-demo-container">
+  <PrototypePreviewer demoId="demo-base-transition-command" initialRuntime="wc" />
+</div>
+
+This demo shows **imperative** state-machine control.
+
+- **Enter**: Moves into `entering` from any valid state (`closed → entering` or `leaving → entering`). Ignored if already entering or entered.
+- **Leave**: Moves into `leaving` from any valid state (`entered → leaving` or `entering → leaving`). Ignored if already leaving or closed.
+- **Complete**: Advances `entering` to `entered`, or `leaving` to `closed`.
+
+Typical full flow:
+
+```
+Enter → Complete → Leave → Complete
+```
+
+### Controlled Mode
+
+<div class="transition-demo-container">
+  <PrototypePreviewer demoId="demo-base-transition-controlled" initialRuntime="wc" />
+</div>
+
+This demo shows the state machine driven by the **`open` prop**. **The host platform calls `complete()` after the CSS transition ends to advance the state automatically**.
+
+- **Toggle Open**: Flips the `open` value.
+  - If currently `closed` / `leaving`, setting `open=true` triggers `entering → entered`.
+  - If currently `entered` / `entering`, setting `open=false` triggers `leaving → closed`.
+- **Click Me**: Clicking the box itself also toggles `open`, behaving the same as the button.
+
+Typical flow:
+
+```
+Toggle Open (show) → Toggle Open (hide)
+```
+
+In this demo the CSS transition is set to 0.3s, so `entering` and `leaving` will auto-`complete` after that duration.
+
+<style>{`
+  .transition-demo-container {
+    --transition-duration: 0.3s;
+  }
+
+  .transition-demo-container .transition-wrapper[data-transition-state="closed"] .transition-box {
+    opacity: 0;
+    transform: scale(0.95) translateY(-10px);
+    background: linear-gradient(135deg, #9ca3af 0%, #6b7280 100%);
+  }
+
+  .transition-demo-container .transition-wrapper[data-transition-state="entering"] .transition-box {
+    opacity: 0.7;
+    transform: scale(0.98) translateY(-2px);
+    background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .transition-demo-container .transition-wrapper[data-transition-state="entered"] .transition-box {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+    background: linear-gradient(135deg, #34d399 0%, #10b981 100%);
+  }
+
+  .transition-demo-container .transition-wrapper[data-transition-state="leaving"] .transition-box {
+    opacity: 0.5;
+    transform: scale(0.98) translateY(2px);
+    background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .transition-demo-container .transition-box {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+`}</style>
+
+Transition is a **low-level foundational component** for managing the presence lifecycle of elements. It does not render visible content itself; instead, it provides state machine governance, allowing the host platform (CSS, React, Vue, etc.) to drive actual animations based on the state.
+
+### State Machine
+
+```
+closed → entering → entered → leaving → closed
+```
+
+- **closed**: Invisible, typically `display: none` or removed from DOM
+- **entering**: Entering animation in progress, DOM exists, entering styles applied
+- **entered**: Fully visible, stable state
+- **leaving**: Leaving animation in progress, DOM still exists, leaving styles applied
+
+### Usage
+
+```jsx
+<base-transition open={isOpen} appear>
+  <div className="transition-all duration-300" data-transition-state={transitionState}>
+    Content
+  </div>
+</base-transition>
+```
+
+### Props
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `open` | `boolean` | - | Controlled mode: target presence state |
+| `defaultOpen` | `boolean` | `false` | Uncontrolled mode: initial state |
+| `appear` | `boolean` | `false` | Whether to play enter animation on mount |
+| `enterDuration` | `number` | `300` | Expected enter animation duration (ms) |
+| `leaveDuration` | `number` | `200` | Expected leave animation duration (ms) |
+| `interrupt` | `'reverse' \| 'wait' \| 'immediate'` | `'reverse'` | Interruption strategy |
+
+### Imperative API
+
+Accessed via the `controls` expose:
+
+- `enter()`: Trigger enter
+- `leave()`: Trigger leave
+- `complete()`: Mark current transition complete, advance to next state

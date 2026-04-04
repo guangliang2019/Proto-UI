@@ -1,0 +1,124 @@
+---
+title: 'Transition'
+desp: 'Transition'
+description: 'Transition 基础原型'
+---
+
+import { PrototypePreviewer } from '@/components/PrototypePreviewer';
+
+### 命令式控制
+
+<div class="transition-demo-container">
+  <PrototypePreviewer demoId="demo-base-transition-command" initialRuntime="wc" />
+</div>
+
+这段 Demo 展示**纯命令式**控制状态机。
+
+- **Enter**：从任意状态进入 `entering`（合法路径为 `closed → entering` 或 `leaving → entering`）；若已在进入中则忽略。
+- **Leave**：从任意状态进入 `leaving`（合法路径为 `entered → leaving` 或 `entering → leaving`）；若已在离开中则忽略。
+- **Complete**：将 `entering` 推进到 `entered`，或将 `leaving` 推进到 `closed`。
+
+典型完整操作链路：
+
+```
+Enter → Complete → Leave → Complete
+```
+
+### 受控模式
+
+<div class="transition-demo-container">
+  <PrototypePreviewer demoId="demo-base-transition-controlled" initialRuntime="wc" />
+</div>
+
+这段 Demo 展示通过 **`open` prop** 受控驱动状态机。**宿主平台在 CSS 过渡结束后会调用 `complete()` 来自动推进状态**。
+
+- **Toggle Open**：翻转 `open` 值。
+  - 若当前是 `closed` / `leaving`，切到 `open=true` 会进入 `entering → entered`。
+  - 若当前是 `entered` / `entering`，切到 `open=false` 会进入 `leaving → closed`。
+- **Click Me**：点击 Box 本身也能触发 Toggle Open，与按钮行为一致。
+
+典型操作链路：
+
+```
+Toggle Open（显示）→ Toggle Open（隐藏）
+```
+
+在 Demo 中 CSS 设置了 0.3s 过渡，因此 `entering` 和 `leaving` 状态会在对应时长后自动 `complete`。
+
+<style>{`
+  .transition-demo-container {
+    --transition-duration: 0.3s;
+  }
+
+  .transition-demo-container .transition-wrapper[data-transition-state="closed"] .transition-box {
+    opacity: 0;
+    transform: scale(0.95) translateY(-10px);
+    background: linear-gradient(135deg, #9ca3af 0%, #6b7280 100%);
+  }
+
+  .transition-demo-container .transition-wrapper[data-transition-state="entering"] .transition-box {
+    opacity: 0.7;
+    transform: scale(0.98) translateY(-2px);
+    background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .transition-demo-container .transition-wrapper[data-transition-state="entered"] .transition-box {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+    background: linear-gradient(135deg, #34d399 0%, #10b981 100%);
+  }
+
+  .transition-demo-container .transition-wrapper[data-transition-state="leaving"] .transition-box {
+    opacity: 0.5;
+    transform: scale(0.98) translateY(2px);
+    background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .transition-demo-container .transition-box {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+`}</style>
+
+Transition 是一个**底层基础组件**，用于管理元素的存在状态生命周期。它本身不渲染可见内容，而是提供状态机治理，让宿主平台（CSS、React、Vue 等）根据状态驱动实际动画。
+
+### 状态机
+
+```
+closed → entering → entered → leaving → closed
+```
+
+- **closed**: 不可见，通常 `display: none` 或从 DOM 移除
+- **entering**: 进入动画中，DOM 存在，应用进入样式
+- **entered**: 完全可见，稳定状态
+- **leaving**: 离开动画中，DOM 仍存在，应用离开样式
+
+### 使用方式
+
+```jsx
+<base-transition open={isOpen} appear>
+  <div className="transition-all duration-300" data-transition-state={transitionState}>
+    内容
+  </div>
+</base-transition>
+```
+
+### Props
+
+| Prop            | 类型                                 | 默认值      | 说明                     |
+| --------------- | ------------------------------------ | ----------- | ------------------------ |
+| `open`          | `boolean`                            | -           | 受控模式：目标存在状态   |
+| `defaultOpen`   | `boolean`                            | `false`     | 非受控模式：初始状态     |
+| `appear`        | `boolean`                            | `false`     | 是否在挂载时播放进入动画 |
+| `enterDuration` | `number`                             | `300`       | 进入动画预期时长（ms）   |
+| `leaveDuration` | `number`                             | `200`       | 离开动画预期时长（ms）   |
+| `interrupt`     | `'reverse' \| 'wait' \| 'immediate'` | `'reverse'` | 中断策略                 |
+
+### 命令式 API
+
+通过 `controls` expose 访问：
+
+- `enter()`: 触发进入
+- `leave()`: 触发离开
+- `complete()`: 标记当前过渡完成，推进到下一状态

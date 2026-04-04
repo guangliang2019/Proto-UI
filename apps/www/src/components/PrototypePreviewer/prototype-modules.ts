@@ -71,6 +71,10 @@ const manualPrototypeModules: Record<string, PrototypeModuleLoader> = {
     const mod = await import('../../../../../packages/prototypes/base/src/hover-card/content');
     registerPrototype('base-hover-card-content', mod.default);
   },
+  'base-transition': async () => {
+    const mod = await import('../../../../../packages/prototypes/base/src/transition/transition');
+    registerPrototype('base-transition', mod.default);
+  },
   'shadcn-hover-card-root': async () => {
     const mod = await import('../../../../../packages/prototypes/shadcn/src/hover-card/root');
     registerPrototype('shadcn-hover-card-root', mod.default);
