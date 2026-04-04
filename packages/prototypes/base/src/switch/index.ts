@@ -1,6 +1,3 @@
-import switchRoot from './root';
-import switchThumb from './thumb';
-
 export type {
   SwitchRootProps,
   SwitchRootExposes,
@@ -13,6 +10,5 @@ export type {
 } from './types';
 
 export { SWITCH_FAMILY } from './shared';
-export { asSwitchRoot } from './as-switch-root';
-export { asSwitchThumb } from './as-switch-thumb';
-export { switchRoot, switchThumb };
+export { asSwitchRoot, default as switchRoot } from './root';
+export { asSwitchThumb, default as switchThumb } from './thumb';

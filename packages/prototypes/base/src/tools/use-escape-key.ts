@@ -1,4 +1,4 @@
-import { defineAsHook } from '@proto.ui/core';
+import { defineHook } from '@proto.ui/core';
 import type { RunHandle } from '@proto.ui/core';
 
 export type EscapeKeyOptions = {
@@ -6,13 +6,13 @@ export type EscapeKeyOptions = {
   onEscape?: (run: RunHandle<any>, event?: any) => void;
 };
 
-export const asEscapeKey = defineAsHook<
+export const useEscapeKey = defineHook<
   any,
   Record<string, never>,
   {},
   EscapeKeyOptions | undefined
 >({
-  name: 'asEscapeKey',
+  name: 'useEscapeKey',
   mode: 'configurable',
   setup(def, options, api) {
     api.store.enabled = options?.enabled ?? true;

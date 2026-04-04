@@ -5,11 +5,15 @@
   "type": "module",
   "dependencies": {
     "@proto.ui/core": "workspace:*",
-    "@proto.ui/hooks": "workspace:*",
+    "@proto.ui/hooks": "workspace:*"
+  },
+  "devDependencies": {
+    "@proto.ui/module-anatomy": "workspace:*",
     "@proto.ui/module-as-trigger": "workspace:*",
     "@proto.ui/module-event": "workspace:*",
     "@proto.ui/module-expose": "workspace:*",
-    "@proto.ui/module-focus": "workspace:*"
+    "@proto.ui/module-focus": "workspace:*",
+    "@proto.ui/runtime": "workspace:*"
   },
   "exports": {
     ".": {

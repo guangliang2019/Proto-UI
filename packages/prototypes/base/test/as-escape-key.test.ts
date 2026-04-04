@@ -3,7 +3,7 @@ import { definePrototype, type Prototype } from '@proto.ui/core';
 import type { RuntimeHost } from '@proto.ui/runtime';
 import { executeWithHost } from '@proto.ui/runtime';
 import { EVENT_GLOBAL_TARGET_CAP, EVENT_ROOT_TARGET_CAP } from '@proto.ui/module-event';
-import { asEscapeKey } from '../src/tools';
+import { useEscapeKey } from '../src/tools';
 
 function createHost() {
   const rootTarget = new EventTarget();
@@ -29,14 +29,14 @@ function createHost() {
   return { host, rootTarget, globalTarget };
 }
 
-describe('prototypes/base: asEscapeKey', () => {
+describe('prototypes/base: useEscapeKey', () => {
   it('runs callback on Escape and ignores other keys', () => {
     const calls: string[] = [];
 
     const P: Prototype = definePrototype({
       name: 'x-as-escape-key-0100',
       setup() {
-        asEscapeKey({
+        useEscapeKey({
           onEscape: () => {
             calls.push('escape');
           },
@@ -60,12 +60,12 @@ describe('prototypes/base: asEscapeKey', () => {
     const P: Prototype = definePrototype({
       name: 'x-as-escape-key-0200',
       setup() {
-        asEscapeKey({
+        useEscapeKey({
           onEscape: () => {
             calls.push('first');
           },
         });
-        asEscapeKey({
+        useEscapeKey({
           onEscape: () => {
             calls.push('second');
           },
@@ -88,12 +88,12 @@ describe('prototypes/base: asEscapeKey', () => {
     const P: Prototype = definePrototype({
       name: 'x-as-escape-key-0300',
       setup() {
-        asEscapeKey({
+        useEscapeKey({
           onEscape: () => {
             calls.push('escape');
           },
         });
-        asEscapeKey({
+        useEscapeKey({
           enabled: false,
         });
         return (r) => r.el('div', 'ok');

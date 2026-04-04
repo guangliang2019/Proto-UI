@@ -1,4 +1,4 @@
-import { defineAsHook } from '@proto.ui/core';
+import { defineHook } from '@proto.ui/core';
 import type { ExposeMethod, ExposeState, RunHandle, State } from '@proto.ui/core';
 
 export type OpenStateOptions = {
@@ -23,13 +23,13 @@ export type OpenStateHandles = {
   open: State<boolean>;
 };
 
-export const asOpenState = defineAsHook<
+export const useOpenState = defineHook<
   any,
   OpenStateExposes,
   OpenStateHandles,
   OpenStateOptions | undefined
 >({
-  name: 'asOpenState',
+  name: 'useOpenState',
   mode: 'configurable',
   setup(def, options, api) {
     const prop = options?.prop ?? 'open';
@@ -66,18 +66,18 @@ export const asOpenState = defineAsHook<
       const nextOpen = controlled
         ? !!run.props.get()[prop as any]
         : !!run.props.get()[defaultProp as any];
-      open.set(nextOpen, 'reason: asOpenState.syncFromProps => initialize');
+      open.set(nextOpen, 'reason: useOpenState.syncFromProps => initialize');
     };
 
     const syncControlled = (run: RunHandle<any>, nextOpen: boolean) => {
       api.store.controlled = run.props.isProvided(prop as any);
       api.store.disabled = !!run.props.get()[disabledProp as any];
       if (!api.store.controlled) return;
-      open.set(nextOpen, 'reason: asOpenState.syncControlled => controlled sync');
+      open.set(nextOpen, 'reason: useOpenState.syncControlled => controlled sync');
     };
 
     const setOpen = (next: boolean, reason?: string) => {
-      open.set(next, reason ?? 'reason: asOpenState.setOpen');
+      open.set(next, reason ?? 'reason: useOpenState.setOpen');
     };
 
     api.store.syncFromProps = syncFromProps;
@@ -86,18 +86,18 @@ export const asOpenState = defineAsHook<
 
     def.expose.state(exposeStateKey as keyof OpenStateExposes & string, open);
     def.expose.method(exposeOpenMethodKey as keyof OpenStateExposes & string, (reason?: string) => {
-      setOpen(true, reason ?? 'reason: asOpenState.openNow');
+      setOpen(true, reason ?? 'reason: useOpenState.openNow');
     });
     def.expose.method(
       exposeCloseMethodKey as keyof OpenStateExposes & string,
       (reason?: string) => {
-        setOpen(false, reason ?? 'reason: asOpenState.close');
+        setOpen(false, reason ?? 'reason: useOpenState.close');
       }
     );
     def.expose.method(
       exposeToggleMethodKey as keyof OpenStateExposes & string,
       (reason?: string) => {
-        setOpen(!open.get(), reason ?? 'reason: asOpenState.toggle');
+        setOpen(!open.get(), reason ?? 'reason: useOpenState.toggle');
       }
     );
 

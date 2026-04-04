@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { definePrototype } from '@proto.ui/core';
 import { asFocusScope } from '@proto.ui/hooks';
 
-import { asButton } from '../../../prototypes/base/src/button/as-button';
+import { asButton } from '../../../prototypes/base/src/button';
 import { createMountedVueAdapter, flushVue } from './utils/vue';
 
 describe('adapter-vue: focus wiring', () => {

@@ -156,6 +156,44 @@ export type AsHookCaller<
   readonly definition: AsHookPrototype<Props, Exposes, ContractInput, Options>;
 };
 
+export type HookContract = AsHookContract;
+export type HookStateMap = AsHookStateMap;
+export type HookEventMap = AsHookEventMap;
+export type HookDisposer = AsHookDisposer;
+export type HookDisposers = AsHookDisposers;
+export type HookBorrowedStates<
+  Props extends PropsBaseType,
+  States extends HookStateMap,
+> = AsHookBorrowedStates<Props, States>;
+export type HookEventKeys<Events extends HookEventMap> = AsHookEventKeys<Events>;
+export type HookArtifacts<
+  Props extends PropsBaseType = PropsBaseType,
+  ContractInput = {},
+> = AsHookArtifacts<Props, ContractInput>;
+export type HookResult<
+  Props extends PropsBaseType = PropsBaseType,
+  ContractInput = {},
+> = AsHookResult<Props, ContractInput>;
+export type HookInstanceState = AsHookInstanceState;
+export type HookConfigApi = AsHookConfigApi;
+export type HookConfigureTools = AsHookConfigureTools;
+export type HookPrototype<
+  Props extends PropsBaseType = PropsBaseType,
+  Exposes = Record<string, unknown>,
+  ContractInput = {},
+  Options = void,
+> = AsHookPrototype<Props, Exposes, ContractInput, Options>;
+export type HookRuntime = AsHookRuntime;
+export type HookCaller<
+  Props extends PropsBaseType = PropsBaseType,
+  Exposes = Record<string, unknown>,
+  ContractInput = {},
+  Options = void,
+> = ((options?: Options) => HookResult<Props, ContractInput>) & {
+  readonly kind: 'hook';
+  readonly definition: HookPrototype<Props, Exposes, ContractInput, Options>;
+};
+
 function normalizeAsHookRender(value: RenderFn | void): RenderFn | undefined {
   if (typeof value !== 'undefined' && typeof value !== 'function') {
     throw new Error(`[AsHook] setup() must return render function or void, got: ${typeof value}.`);
@@ -195,14 +233,21 @@ export function defineAsHook<
   C = {},
   O = void,
 >(proto: AsHookPrototype<P, E, C, O>): AsHookCaller<P, E, C, O> {
+  return createHookCaller(proto, 'asHook') as AsHookCaller<P, E, C, O>;
+}
+
+function createHookCaller<P extends PropsBaseType, E = Record<string, unknown>, C = {}, O = void>(
+  proto: AsHookPrototype<P, E, C, O>,
+  kind: 'asHook' | 'hook'
+) {
   if (!proto || typeof proto !== 'object') {
-    throw new Error(`[AsHook] defineAsHook() expects an object.`);
+    throw new Error(`[${kind === 'hook' ? 'Hook' : 'AsHook'}] define expects an object.`);
   }
   if (!proto.name || typeof proto.name !== 'string') {
-    throw new Error(`[AsHook] illegal name.`);
+    throw new Error(`[${kind === 'hook' ? 'Hook' : 'AsHook'}] illegal name.`);
   }
   if (typeof proto.setup !== 'function') {
-    throw new Error(`[AsHook] setup must be a function.`);
+    throw new Error(`[${kind === 'hook' ? 'Hook' : 'AsHook'}] setup must be a function.`);
   }
   // TODO: 寻找更可靠的验证函数名
   // if (!/^as[A-Z]/.test(proto.name)) {
@@ -270,10 +315,10 @@ export function defineAsHook<
       proto.configure(api, options as O, tools);
     }
     return reg.state.result ?? {};
-  }) as AsHookCaller<P, E, C, O>;
+  }) as AsHookCaller<P, E, C, O> | HookCaller<P, E, C, O>;
 
   Object.defineProperty(caller, 'kind', {
-    value: 'asHook',
+    value: kind,
     enumerable: false,
     configurable: false,
     writable: false,
@@ -286,4 +331,10 @@ export function defineAsHook<
   });
 
   return caller;
+}
+
+export function defineHook<P extends PropsBaseType, E = Record<string, unknown>, C = {}, O = void>(
+  proto: HookPrototype<P, E, C, O>
+): HookCaller<P, E, C, O> {
+  return createHookCaller(proto as AsHookPrototype<P, E, C, O>, 'hook') as HookCaller<P, E, C, O>;
 }

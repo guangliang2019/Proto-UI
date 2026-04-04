@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { definePrototype } from '@proto.ui/core';
 import { asFocusScope } from '@proto.ui/hooks';
 
-import { asButton } from '../../../prototypes/base/src/button/as-button';
+import { asButton } from '../../../prototypes/base/src/button';
 import { createMountedReactAdapter } from './utils/fake-react';
 
 describe('adapter-react: focus wiring', () => {
