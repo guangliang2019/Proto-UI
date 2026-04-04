@@ -298,7 +298,7 @@ Proto UI 当然可以在未来逐步放宽某些约束，
 - 宿主能力矩阵
 - 具体版本的里程碑计划
 
-这些内容会在 `Specifications` 与 `Engineering` 章节中继续展开。
+这些内容会在 `Specifications` 与 `Build` 章节中继续展开。
 
 ---
 
@@ -315,6 +315,6 @@ Proto UI 当然可以在未来逐步放宽某些约束，
 你可以按自己的目标继续往下读：
 
 - 如果你想继续澄清边界与常见疑问：前往 [FAQ](/zh-cn/whitepaper/faq/)
-- 如果你想查阅正式契约：前往 [Specifications / 规范导读](/zh-cn/specs/introduction/)
-- 如果你想理解实现层如何承接这些原则：前往 [Engineering / 工程导读](/zh-cn/engineering/introduction/)
-- 如果你已经想尝试参与原型或适配器建设：前往 [Ecosystem / 生态导读](/zh-cn/ecosystem/)
+- 如果你想查阅正式契约：前往 [Specifications / 规范导读](/zh-cn/specifications/introduction/)
+- 如果你想理解实现层如何承接这些原则：前往 [Build / 概览](/zh-cn/build/)
+- 如果你已经想尝试参与原型或适配器建设：前往 [Build / 参与贡献](/zh-cn/build/contribute/)

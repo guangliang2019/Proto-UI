@@ -193,6 +193,6 @@ Proto UI 的配套工具链也会逐渐出现。
 你可以按自己的关注点继续往下读：
 
 - 如果你想继续了解 Proto UI 的边界与常见问题：前往 [FAQ](/zh-cn/whitepaper/faq/)
-- 如果你更关心这些原则如何落成正式契约：前往 [Specifications / 规范导读](/zh-cn/specs/introduction/)
-- 如果你更关心这些原则在代码与运行时里如何成立：前往 [Engineering / 工程导读](/zh-cn/engineering/introduction/)
-- 如果你读完白皮书之后已经想尝试参与生态建设：前往 [Ecosystem / 生态导读](/zh-cn/ecosystem/)
+- 如果你更关心这些原则如何落成正式契约：前往 [Specifications / 规范导读](/zh-cn/specifications/introduction/)
+- 如果你更关心这些原则在代码与运行时里如何成立：前往 [Build / 概览](/zh-cn/build/)
+- 如果你读完白皮书之后已经想尝试参与生态建设：前往 [Build / 参与贡献](/zh-cn/build/contribute/)

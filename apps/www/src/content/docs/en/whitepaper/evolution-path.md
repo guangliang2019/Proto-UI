@@ -194,6 +194,6 @@ These are better placed in milestone documents, FAQ, or product explanations.
 You can keep reading according to your own focus:
 
 - If you want to continue clarifying Proto UI's boundaries and common questions, go to [FAQ](/en/whitepaper/faq/)
-- If you care more about how these principles become formal contracts, go to [Specifications / Introduction](/en/specs/introduction/)
-- If you care more about how these principles stand in code and runtime, go to [Engineering / Introduction](/en/engineering/introduction/)
-- If, after finishing the whitepaper, you already want to participate in ecosystem building, go to [Ecosystem / Introduction](/en/ecosystem/)
+- If you care more about how these principles become formal contracts, go to [Specifications / Introduction](/en/specifications/introduction/)
+- If you care more about how these principles stand in code and runtime, go to [Build / Overview](/en/build/)
+- If, after finishing the whitepaper, you already want to participate in ecosystem building, go to [Build / Contribute](/en/build/contribute/)
