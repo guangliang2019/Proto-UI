@@ -25,10 +25,10 @@ export const createRunHandle = <P extends PropsBaseType>(
       isProvided: (k: string) => props.isProvided(k),
     },
     context: {
-      read: (key) => context.read(key),
-      tryRead: (key) => context.tryRead(key),
-      update: (key, next) => context.update(key, next),
-      tryUpdate: (key, next) => context.tryUpdate(key, next),
+      read: (key, options) => context.read(key, options),
+      tryRead: (key, options) => context.tryRead(key, options),
+      update: (key, next, options) => context.update(key, next, options),
+      tryUpdate: (key, next, options) => context.tryUpdate(key, next, options),
     },
     event: {
       emit: (key, payload, options) => event.emit(key, payload, options),

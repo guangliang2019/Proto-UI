@@ -16,6 +16,14 @@ export const TRANSITION_CONTEXT: ContextKey<TransitionContextValue> = {
   debugName: 'base-transition',
 } as ContextKey<TransitionContextValue>;
 
+interface TransitionParentRegistry {
+  children: Array<{ getState: () => TransitionState }>;
+  tryCompleteLeave: () => void;
+}
+
+// 模块级 WeakMap：用 parentRef 对象作为 key，避免在 Context 中传递函数
+const transitionParentRegistries = new WeakMap<object, TransitionParentRegistry>();
+
 /**
  * Transition 状态机治理
  *
@@ -81,6 +89,7 @@ export const asTransition = defineAsHook<
     // 将引用存入 store，支持 configurable 模式多次调用共享
     api.store.transitionState = transitionState;
     api.store.isPresent = isPresent;
+    api.store.pendingQueue = [] as Array<'enter' | 'leave'>;
 
     // 闭包变量：生命周期回调（在 onCreated / watch 中刷新）
     let onBeforeEnter: (() => void) | undefined;
@@ -114,10 +123,44 @@ export const asTransition = defineAsHook<
       config.leaveDuration = props.leaveDuration ?? 200;
     };
 
+    // parent-child 协调：已注册的子节点
+    const registeredChildren: Array<{ getState: () => TransitionState }> = [];
+    let parentCtxRef: object | undefined;
+
+    const tryCompleteLeave = () => {
+      if (transitionState.get() !== 'leaving') return;
+      if (registeredChildren.some((c) => c.getState() !== 'closed')) return;
+      transitionTo('closed');
+      processPendingQueue();
+    };
+
+    // 创建 parentRef 并在模块级 WeakMap 注册，避免 Context 传递函数
+    const parentRef = api.store.parentRef ?? { __kind: 'transition-parent' as const };
+    api.store.parentRef = parentRef;
+    transitionParentRegistries.set(parentRef, {
+      children: registeredChildren,
+      tryCompleteLeave,
+    });
+
     const updateContext = def.context.provide(TRANSITION_CONTEXT, {
       transitionState: 'closed',
       enterDuration: config.enterDuration,
       leaveDuration: config.leaveDuration,
+      parentRef,
+    });
+
+    // 订阅 context 变化，满足 tryRead/tryUpdate 的订阅要求；
+    // 仅当 child 通过 tryUpdate 触发且 transitionState 未改变时（next.transitionState === prev.transitionState），
+    // 才安全重试 tryCompleteLeave，避免 parent 自身状态同步时提前关闭
+    def.context.trySubscribe(TRANSITION_CONTEXT, (ctx, next, prev) => {
+      if (
+        next &&
+        prev &&
+        (next as TransitionContextValue).transitionState ===
+          (prev as TransitionContextValue).transitionState
+      ) {
+        tryCompleteLeave();
+      }
     });
 
     const syncContext = () => {
@@ -125,11 +168,21 @@ export const asTransition = defineAsHook<
         transitionState: transitionState.get(),
         enterDuration: config.enterDuration,
         leaveDuration: config.leaveDuration,
+        parentRef,
       });
     };
 
     const callIfFn = (fn: (() => void) | undefined) => {
       if (typeof fn === 'function') fn();
+    };
+
+    const processPendingQueue = () => {
+      const next = api.store.pendingQueue.shift();
+      if (next === 'enter') {
+        handleEnter();
+      } else if (next === 'leave') {
+        handleLeave();
+      }
     };
 
     // 核心状态机迁移函数
@@ -167,13 +220,19 @@ export const asTransition = defineAsHook<
     const handleEnter = () => {
       api.store.intendedOpen = true;
       const current = transitionState.get();
-      if (current === 'entered' || current === 'entering') return;
+      if (current === 'entered') return;
+      if (current === 'entering') {
+        if (config.interrupt === 'wait') {
+          api.store.pendingQueue.push('enter');
+        }
+        return;
+      }
 
       if (current === 'leaving') {
         if (config.interrupt === 'reverse') {
           transitionTo('entering');
         } else if (config.interrupt === 'wait') {
-          api.store.pendingTarget = true;
+          api.store.pendingQueue.push('enter');
         } else if (config.interrupt === 'immediate') {
           transitionTo('closed');
           transitionTo('entering');
@@ -187,13 +246,19 @@ export const asTransition = defineAsHook<
     const handleLeave = () => {
       api.store.intendedOpen = false;
       const current = transitionState.get();
-      if (current === 'closed' || current === 'leaving') return;
+      if (current === 'closed') return;
+      if (current === 'leaving') {
+        if (config.interrupt === 'wait') {
+          api.store.pendingQueue.push('leave');
+        }
+        return;
+      }
 
       if (current === 'entering') {
         if (config.interrupt === 'reverse') {
           transitionTo('leaving');
         } else if (config.interrupt === 'wait') {
-          api.store.pendingTarget = false;
+          api.store.pendingQueue.push('leave');
         } else if (config.interrupt === 'immediate') {
           transitionTo('entered');
           transitionTo('leaving');
@@ -209,18 +274,19 @@ export const asTransition = defineAsHook<
 
       if (current === 'entering') {
         transitionTo('entered');
-        const pending = api.store.pendingTarget;
-        if (pending === false) {
-          api.store.pendingTarget = null;
-          handleLeave();
-        }
+        processPendingQueue();
       } else if (current === 'leaving') {
-        transitionTo('closed');
-        const pending = api.store.pendingTarget;
-        if (pending === true) {
-          api.store.pendingTarget = null;
-          handleEnter();
-        }
+        tryCompleteLeave();
+      }
+
+      // 若当前组件依赖 parent transition，在完成时通过 tryUpdate 触发 parent 的订阅回调，
+      // 使 parent 在自身的 callback scope 内安全重试 tryCompleteLeave
+      if (api.store.dependsOnParentTransition && parentCtxRef && api.store.run) {
+        (api.store.run as RunHandle<TransitionProps>).context.tryUpdate(
+          TRANSITION_CONTEXT,
+          (prev) => prev,
+          { skipSelf: true }
+        );
       }
     };
 
@@ -244,6 +310,8 @@ export const asTransition = defineAsHook<
         if (appear) {
           transitionTo('entering');
         } else {
+          // 即使 appear=false 也先 entering 再 entered，
+          // 以保留生命周期副作用与状态检查的一致性
           transitionTo('entering');
           transitionTo('entered');
         }
@@ -269,7 +337,24 @@ export const asTransition = defineAsHook<
     };
 
     def.lifecycle.onCreated((run) => {
+      // 缓存 run 供 handleComplete 等运行时方法使用
+      api.store.run = run;
+
       syncFromProps(run);
+
+      const props = run.props.get();
+      api.store.dependsOnParentTransition = !!props.dependsOnParentTransition;
+
+      if (props.dependsOnParentTransition) {
+        const parentCtx = run.context.tryRead(TRANSITION_CONTEXT, { skipSelf: true });
+        if (parentCtx?.parentRef) {
+          parentCtxRef = parentCtx.parentRef;
+          const registry = transitionParentRegistries.get(parentCtxRef);
+          if (registry) {
+            registry.children.push({ getState: () => transitionState.get() });
+          }
+        }
+      }
     });
 
     def.props.watch(['open'] as any, (run, next) => {

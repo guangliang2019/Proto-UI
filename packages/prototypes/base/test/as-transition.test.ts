@@ -285,6 +285,152 @@ describe('prototypes/base: asTransition', () => {
     expect(ctx.getExposes().isPresent.get()).toBe(true);
   });
 
+  it('AS-TRANSITION-1900: wait interrupt queues multiple state changes', () => {
+    const steps: string[] = [];
+    const ctx = createHost({ interrupt: 'wait' });
+    const P = createTransitionProto('x-as-transition-1900', (def) => {
+      def.lifecycle.onMounted(() => {
+        const exposes = ctx.getExposes();
+        exposes.controls.enter();
+        steps.push(`after-enter:${exposes.transitionState.get()}`);
+
+        exposes.controls.leave();
+        steps.push(`after-leave1:${exposes.transitionState.get()}`);
+
+        exposes.controls.enter();
+        steps.push(`after-enter2:${exposes.transitionState.get()}`);
+
+        exposes.controls.leave();
+        steps.push(`after-leave2:${exposes.transitionState.get()}`);
+
+        exposes.controls.complete();
+        steps.push(`after-complete1:${exposes.transitionState.get()}`);
+
+        exposes.controls.complete();
+        steps.push(`after-complete2:${exposes.transitionState.get()}`);
+
+        exposes.controls.complete();
+        steps.push(`after-complete3:${exposes.transitionState.get()}`);
+      });
+    });
+
+    mountTransition(P, ctx);
+
+    expect(steps).toEqual([
+      'after-enter:entering',
+      'after-leave1:entering',
+      'after-enter2:entering',
+      'after-leave2:entering',
+      'after-complete1:leaving',
+      'after-complete2:entering',
+      'after-complete3:leaving',
+    ]);
+  });
+
+  it('AS-TRANSITION-2000: dependsOnParentTransition delays parent leaving→closed until child closed', () => {
+    let parentToken: { id: string } | null = null;
+    let parentExposes: TransitionExposes | null = null;
+    const parentHost: RuntimeHost<TransitionProps> = {
+      prototypeName: 'parent-transition',
+      getRawProps: () => ({ open: true, appear: false }),
+      commit(_children, signal) {
+        signal?.done();
+      },
+      schedule(task) {
+        task();
+      },
+      onRuntimeReady(wiring) {
+        const token = { id: 'parent-' + Math.random().toString(36).slice(2) };
+        parentToken = token;
+        wiring.attach('expose', [
+          [
+            EXPOSE_SET_EXPOSES_CAP,
+            (next: Record<string, unknown>) => (parentExposes = next as TransitionExposes),
+          ],
+        ]);
+        wiring.attach('context', [
+          [CONTEXT_INSTANCE_TOKEN_CAP, token],
+          [CONTEXT_PARENT_CAP, () => null],
+        ]);
+      },
+    };
+
+    const ParentProto = definePrototype<TransitionProps>({
+      name: 'x-parent-transition-2000',
+      setup() {
+        asTransition();
+        return (r) => r.el('div', 'parent');
+      },
+    });
+
+    const parentRuntime = mountTransition(ParentProto, {
+      host: parentHost,
+      applyRawProps: () => {},
+      getExposes: () => parentExposes!,
+    } as any);
+    expect(parentExposes).not.toBeNull();
+
+    let childExposes: TransitionExposes | null = null;
+    const childHost: RuntimeHost<TransitionProps> = {
+      prototypeName: 'child-transition',
+      getRawProps: () => ({ dependsOnParentTransition: true, open: true, appear: false }),
+      commit(_children, signal) {
+        signal?.done();
+      },
+      schedule(task) {
+        task();
+      },
+      onRuntimeReady(wiring) {
+        wiring.attach('expose', [
+          [
+            EXPOSE_SET_EXPOSES_CAP,
+            (next: Record<string, unknown>) => (childExposes = next as TransitionExposes),
+          ],
+        ]);
+        wiring.attach('context', [
+          [CONTEXT_INSTANCE_TOKEN_CAP, { id: 'child-' + Math.random().toString(36).slice(2) }],
+          [CONTEXT_PARENT_CAP, () => parentToken],
+        ]);
+      },
+    };
+
+    const ChildProto = definePrototype<TransitionProps>({
+      name: 'x-child-transition-2000',
+      setup() {
+        asTransition();
+        return (r) => r.el('div', 'child');
+      },
+    });
+
+    const childRuntime = mountTransition(ChildProto, {
+      host: childHost,
+      applyRawProps: () => {},
+      getExposes: () => childExposes!,
+    } as any);
+    expect(childExposes).not.toBeNull();
+
+    // runtime 要求 state mutation 必须在 callback phase 执行
+    parentRuntime.invokeInCallbackScope(() => {
+      parentExposes!.controls.leave();
+    });
+    expect(parentExposes!.transitionState.get()).toBe('leaving');
+
+    // child 还在 entered，parent 应该被 delay
+    parentRuntime.invokeInCallbackScope(() => {
+      parentExposes!.controls.complete();
+    });
+    expect(parentExposes!.transitionState.get()).toBe('leaving');
+
+    // child 完成离开
+    childRuntime.invokeInCallbackScope(() => {
+      childExposes!.controls.leave();
+      childExposes!.controls.complete();
+    });
+
+    // child complete 会通知 parent 重试，parent 现在可以 closed
+    expect(parentExposes!.transitionState.get()).toBe('closed');
+  });
+
   it('AS-TRANSITION-1300: idempotent enter/leave calls', () => {
     const ctx = createHost();
     const P = createTransitionProto('x-as-transition-1300', (def) => {

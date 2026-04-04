@@ -42,7 +42,7 @@ It is **not yet** a full definition of:
 
 **Component → User (Feedback)**:
 
-- `transitionState` drives `data-transition` attribute for CSS styling
+- `transitionState` drives `data-transition-state` attribute for CSS styling
 - `isPresent` drives conditional rendering (element in DOM or not)
 
 ### Maker ↔ Component
@@ -76,12 +76,12 @@ It is **not yet** a full definition of:
 
 ### Base States
 
-| State      | Meaning                  | `isPresent` | Platform Mapping             |
-| ---------- | ------------------------ | ----------- | ---------------------------- |
-| `closed`   | Not perceptually present | `false`     | `display: none`, unmounted   |
-| `entering` | Transitioning to present | `true`      | `data-transition="entering"` |
-| `entered`  | Fully present and stable | `true`      | `data-transition="entered"`  |
-| `leaving`  | Transitioning to absent  | `true`      | `data-transition="leaving"`  |
+| State      | Meaning                  | `isPresent` | Platform Mapping                   |
+| ---------- | ------------------------ | ----------- | ---------------------------------- |
+| `closed`   | Not perceptually present | `false`     | `display: none`, unmounted         |
+| `entering` | Transitioning to present | `true`      | `data-transition-state="entering"` |
+| `entered`  | Fully present and stable | `true`      | `data-transition-state="entered"`  |
+| `leaving`  | Transitioning to absent  | `true`      | `data-transition-state="leaving"`  |
 
 ### Transitions
 
@@ -186,8 +186,8 @@ None directly. Transition responds to `open` prop changes, not direct user event
 
 **Setup-only** (rule-based):
 
-- `data-transition` attribute mapping
-  - `when: transitionState.eq('entering')` → `intent: style.use({ attr: { 'data-transition': 'entering' } })`
+- `data-transition-state` attribute mapping
+  - `when: transitionState.eq('entering')` → `intent: style.use({ attr: { 'data-transition-state': 'entering' } })`
 
 ## Behavioral Rules
 
@@ -228,7 +228,7 @@ None directly. Transition responds to `open` prop changes, not direct user event
 **State → Attribute**:
 
 ```
-transitionState → data-transition="{state}"
+transitionState → data-transition-state="{state}"
 ```
 
 **Completion Detection**:
@@ -240,10 +240,10 @@ transitionState → data-transition="{state}"
 **CSS Targeting**:
 
 ```css
-[data-transition='entering'] {
+[data-transition-state='entering'] {
   opacity: 0;
 }
-[data-transition='entered'] {
+[data-transition-state='entered'] {
   opacity: 1;
   transition: opacity 300ms;
 }

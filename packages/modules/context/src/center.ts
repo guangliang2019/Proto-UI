@@ -110,12 +110,13 @@ export class ContextCenter {
   resolveProvider(
     consumer: ContextInstanceToken,
     key: ContextKey<any>,
-    getParent: ContextParentGetter
+    getParent: ContextParentGetter,
+    skipSelf = false
   ): ContextInstanceToken | null {
     const byKey = this.providers.get(key);
     if (!byKey) return null;
 
-    let cur: ContextInstanceToken | null = consumer;
+    let cur: ContextInstanceToken | null = skipSelf ? getParent(consumer) : consumer;
     while (cur) {
       if (byKey.has(cur)) return cur;
       cur = getParent(cur);

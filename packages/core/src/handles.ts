@@ -77,10 +77,18 @@ export interface RunHandle<Props extends PropsBaseType> {
   };
 
   context: {
-    read<T extends JsonObject>(key: ContextKey<T>): T;
-    tryRead<T extends JsonObject>(key: ContextKey<T>): T | null;
-    update<T extends JsonObject>(key: ContextKey<T>, next: T | ((prev: T) => T)): void;
-    tryUpdate<T extends JsonObject>(key: ContextKey<T>, next: T | ((prev: T) => T)): boolean;
+    read<T extends JsonObject>(key: ContextKey<T>, options?: { skipSelf?: boolean }): T;
+    tryRead<T extends JsonObject>(key: ContextKey<T>, options?: { skipSelf?: boolean }): T | null;
+    update<T extends JsonObject>(
+      key: ContextKey<T>,
+      next: T | ((prev: T) => T),
+      options?: { skipSelf?: boolean }
+    ): void;
+    tryUpdate<T extends JsonObject>(
+      key: ContextKey<T>,
+      next: T | ((prev: T) => T),
+      options?: { skipSelf?: boolean }
+    ): boolean;
   };
 
   event: {
