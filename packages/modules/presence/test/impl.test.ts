@@ -67,4 +67,19 @@ describe('PresenceModuleImpl', () => {
     expect(handle.getPhase()).toBe('present');
     expect(unmount).not.toHaveBeenCalled();
   });
+
+  it('leave from absent resolves any pending mount and subsequent awaitMount returns undefined', async () => {
+    const impl = createImpl();
+    const handle = impl.createHandle();
+
+    const p = impl.awaitMount();
+    expect(p).toBeInstanceOf(Promise);
+
+    await handle.setIntent('leave');
+    await p;
+
+    // Subsequent awaitMount should not block since mount was already resolved
+    expect(impl.awaitMount()).toBeUndefined();
+    expect(handle.getPhase()).toBe('absent');
+  });
 });

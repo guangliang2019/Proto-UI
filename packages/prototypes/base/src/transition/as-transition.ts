@@ -248,13 +248,17 @@ export function asTransition(options?: TransitionOptions): TransitionHandles {
     const appear = !!run.props.get().appear;
     const current = transitionState.get();
 
-    if (current === 'closed' && openValue) {
-      presenceHandle?.setIntent('enter');
-      if (appear) {
-        transitionTo('entering');
+    if (current === 'closed') {
+      if (openValue) {
+        presenceHandle?.setIntent('enter');
+        if (appear) {
+          transitionTo('entering');
+        } else {
+          transitionTo('entering');
+          transitionTo('entered');
+        }
       } else {
-        transitionTo('entering');
-        transitionTo('entered');
+        presenceHandle?.setIntent('leave');
       }
     }
   };

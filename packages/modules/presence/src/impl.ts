@@ -19,6 +19,8 @@ export class PresenceModuleImpl extends ModuleBase {
   private unmountResolvers: Array<() => void> = [];
   private beforeMounts: Array<() => void | Promise<void>> = [];
   private beforeUnmounts: Array<() => void | Promise<void>> = [];
+  private mountResolved = false;
+  private unmountResolved = false;
 
   private getBridge(): PresenceHostBridge {
     return this.caps.has(PRESENCE_HOST_BRIDGE_CAP)
@@ -75,6 +77,8 @@ export class PresenceModuleImpl extends ModuleBase {
         this.resolveMounts();
         await this.getBridge().unmount();
         this.phase = 'absent';
+      } else if (this.phase === 'absent') {
+        this.resolveMounts();
       }
     }
   }
@@ -88,15 +92,20 @@ export class PresenceModuleImpl extends ModuleBase {
   private resolveMounts() {
     for (const r of this.mountResolvers) r();
     this.mountResolvers = [];
+    this.mountResolved = true;
   }
 
   private resolveUnmounts() {
     for (const r of this.unmountResolvers) r();
     this.unmountResolvers = [];
+    this.unmountResolved = true;
   }
 
   awaitMount(): Promise<void> | undefined {
     if (!this.hasHandle || this.phase !== 'absent') return undefined;
+    // If mount was already resolved (e.g., by leave intent while absent),
+    // there's no need to block.
+    if (this.mountResolved) return undefined;
     return new Promise<void>((resolve) => {
       this.mountResolvers.push(resolve);
     });
