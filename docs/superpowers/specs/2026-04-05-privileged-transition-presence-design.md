@@ -144,7 +144,7 @@ Each adapter provides a framework-native implementation:
 
 - **React** — wrapper component gains a `shouldExist` state. `mount()` sets it `true`. `unmount()` sets it `false` (or returns a Promise if a CSS transition needs to be awaited).
 - **Vue** — same pattern via a composable or wrapper component reactive flag.
-- **Web Component** — `disconnectedCallback` must **not** trigger teardown directly. Instead, it sets a pending-unmount flag and returns. The actual `hostSession.dispose()` is invoked only inside `bridge.unmount()`. If the element is re-connected while unmount is still pending, `connectedCallback` must treat it as a fresh mount: clear the pending flag, null out the old controller, and re-initialize, rather than reusing a dying controller.
+- **Web Component** — `bridge.mount()` and `bridge.unmount()` are both no-ops at the host level because structural presence is browser-controlled (`connectedCallback` / `disconnectedCallback`). The actual `hostSession.dispose()` is invoked only inside `disconnectedCallback`. If the element is re-connected after a transient disconnect, `connectedCallback` resumes via the normal `update()` path without re-initializing.
 
 ### 2.4 Privileged Hook: `packages/hooks/src/as-transition.ts`
 
@@ -215,7 +215,7 @@ The state machine logic (4-state FSM) is preserved but now calls:
 ### 4.3 Forced DOM Removal (Web Components)
 
 - **Scenario:** A user script or parent directly removes the custom element from the document before `awaitUnmount()` resolves.
-- **Handling:** The WC adapter bridge intercepts `disconnectedCallback`. If an unmount is pending, it defers `hostSession.dispose()` until `bridge.unmount()` is called. If no unmount is pending (forced removal), it performs emergency teardown immediately.
+- **Handling:** The WC adapter bridge handles `disconnectedCallback` normally: it defers teardown via a microtask so transient reconnects can be detected, then performs `hostSession.dispose()` if the element is truly disconnected. Because `bridge.unmount()` is a no-op for WC, there is no risk of the runtime being destroyed while the element is still in the DOM (e.g. after a transition reaches `closed`).
 
 ### 4.4 Testing Strategy
 

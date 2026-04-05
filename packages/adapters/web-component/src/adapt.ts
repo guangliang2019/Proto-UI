@@ -152,14 +152,10 @@ export function AdaptToWebComponent<Props extends PropsBaseType>(
           // no-op for WC: structural mount timing is browser-controlled via connectedCallback
         },
         unmount: () => {
-          if (this._invokeUnmounted) {
-            const fn = this._invokeUnmounted;
-            this._invokeUnmounted = null;
-            fn();
-          }
-          this._controller = null;
-          this._mountedOnce = false;
-          this._pendingOwnedTokens = null;
+          // no-op for WC: actual teardown is handled by disconnectedCallback when the
+          // element is truly removed from the DOM. We must NOT dispose the runtime here
+          // because the element may still be in the DOM (e.g. transition closed state)
+          // and needs to remain interactive (getExposes, update, re-enter, etc.).
         },
       };
 
