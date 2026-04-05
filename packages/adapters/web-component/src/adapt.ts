@@ -71,7 +71,7 @@ export function AdaptToWebComponent<Props extends PropsBaseType>(
 
   class ProtoElement extends HTMLElement {
     private _mountedOnce = false;
-    private _invokeUnmounted: (() => void) | null = null;
+    private _invokeUnmounted: (() => void | Promise<void>) | null = null;
     private _disconnectVersion = 0;
     private _pendingOwnedTokens: string[] | null = null;
     private _controller: RuntimeController | null = null;
@@ -84,8 +84,6 @@ export function AdaptToWebComponent<Props extends PropsBaseType>(
     private _exposes: Record<string, unknown> = {};
     private _wrappedExposes: Record<string, unknown> = {};
     private _lastWrappedRaw: Record<string, unknown> | null = null;
-    private _presencePendingUnmount = false;
-    private _presenceResolveUnmount: (() => void) | null = null;
 
     constructor() {
       super();
@@ -115,11 +113,9 @@ export function AdaptToWebComponent<Props extends PropsBaseType>(
       const router = createWebProtoEventRouter({
         rootEl: thisEl,
         globalEl: window,
-        isEnabled: () => eventGate.isEnabled?.() ?? true, // 看你 eventGate API，没就自己存个 boolean
+        isEnabled: () => eventGate.isEnabled?.() ?? true,
       });
 
-      // Create applier/effectsPort BEFORE executeWithHost,
-      // because we must inject them in host.onRuntimeReady (CP1).
       const applier = createOwnedTwTokenApplier(thisEl, {
         onChange: () => {
           this._hostDisplay?.sync();
@@ -131,15 +127,10 @@ export function AdaptToWebComponent<Props extends PropsBaseType>(
 
       const rawPropsSource: RawPropsSource<Props> = {
         debugName: `${tagName}#raw-props`,
-
         get(): Readonly<Props & PropsBaseType> {
-          // attrs-first, then opt.getProps
           const p = getElementProps(thisEl) ?? getProps(thisEl) ?? ({} as Partial<Props>);
-
-          // WC 从 DOM 取值，类型安全只能止步于边界；用 unknown 双断言把风险收口在这一处
           return p as unknown as Readonly<Props & PropsBaseType>;
         },
-
         subscribe(cb) {
           const mo = new MutationObserver((records) => {
             for (const r of records) {
@@ -156,16 +147,10 @@ export function AdaptToWebComponent<Props extends PropsBaseType>(
       };
 
       const presenceBridge = {
-        mount: () => {
-          this._presencePendingUnmount = false;
-          this._presenceResolveUnmount?.();
-          this._presenceResolveUnmount = null;
+        mount() {
+          // no-op for WC: structural mount/unmount timing is browser-controlled
         },
-        unmount: () => {
-          if (!this._presencePendingUnmount) return;
-          this._presencePendingUnmount = false;
-          this._presenceResolveUnmount?.();
-          this._presenceResolveUnmount = null;
+        unmount() {
           if (this._invokeUnmounted) {
             const fn = this._invokeUnmounted;
             this._invokeUnmounted = null;
@@ -228,7 +213,6 @@ export function AdaptToWebComponent<Props extends PropsBaseType>(
       const { controller } = hostSession;
       installDebugHooks(thisEl, hostSession.caps);
 
-      // expose update for convenience (existing behavior)
       (this as any).update = () => controller.update();
       const wrapExposes = (record: Record<string, unknown>): Record<string, unknown> => {
         const out: Record<string, unknown> = {};
@@ -257,11 +241,9 @@ export function AdaptToWebComponent<Props extends PropsBaseType>(
           this._lastWrappedRaw = raw;
           this._wrappedExposes = wrapExposes(raw);
         }
-        // 防御性浅拷贝，保持"每次 getExposes 返回独立快照"的契约
         return { ...this._wrappedExposes };
       };
 
-      // 对外暴露 props 设置入口（DevTools / 脚本测试用）
       (this as any).setProps = (next: Record<string, any>) => {
         setElementProps(thisEl, next);
         controller.update();
@@ -270,7 +252,6 @@ export function AdaptToWebComponent<Props extends PropsBaseType>(
       this._controller = controller;
       bindController(this, controller);
 
-      // Teardown must keep caps alive until unmounted callbacks finish.
       this._invokeUnmounted = () => hostSession.dispose();
     }
 
@@ -280,7 +261,6 @@ export function AdaptToWebComponent<Props extends PropsBaseType>(
       this._hostDisplay?.sync();
 
       const disconnectVersion = ++this._disconnectVersion;
-      this._presencePendingUnmount = true;
 
       queueMicrotask(async () => {
         if (this._disconnectVersion !== disconnectVersion) {
@@ -289,21 +269,18 @@ export function AdaptToWebComponent<Props extends PropsBaseType>(
           }
           this._hostDisplay?.sync();
           this._pendingOwnedTokens = null;
-          this._presencePendingUnmount = false;
           return;
         }
         if (this.isConnected) {
-          this._presencePendingUnmount = false;
+          this._pendingOwnedTokens = null;
           return;
         }
 
-        if (this._presencePendingUnmount) {
-          // presence module hasn't approved unmount yet; defer
-          return;
+        if (this._invokeUnmounted) {
+          const fn = this._invokeUnmounted;
+          this._invokeUnmounted = null;
+          await fn();
         }
-
-        this._invokeUnmounted?.();
-        this._invokeUnmounted = null;
         this._controller = null;
         this._mountedOnce = false;
         this._pendingOwnedTokens = null;

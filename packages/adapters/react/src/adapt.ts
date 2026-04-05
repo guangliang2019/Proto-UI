@@ -218,6 +218,7 @@ export function createReactAdapter(runtimeInput: ReactRuntimeInput) {
         slot: props.children,
       });
 
+      if (!shouldExist) return null;
       return runtime.createElement(
         rootTag,
         {
