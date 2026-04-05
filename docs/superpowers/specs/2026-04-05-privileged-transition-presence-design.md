@@ -64,7 +64,10 @@ export interface PresenceFacade {
 }
 
 export interface PresenceHandle {
-  setIntent(intent: 'enter' | 'leave'): void;
+  /** The implementation is async (it may await bridge callbacks), but the
+   *  facade returns `void | Promise<void>` so callers can optionally await
+   *  sequencing without forcing every consumer into async syntax. */
+  setIntent(intent: 'enter' | 'leave'): void | Promise<void>;
   getPhase(): PresencePhase; // 'absent' | 'mounting' | 'present' | 'unmounting'
   onBeforeMount(cb: () => void | Promise<void>): () => void;
   onBeforeUnmount(cb: () => void | Promise<void>): () => void;
@@ -81,8 +84,11 @@ export interface PresencePolicy {
 
 ```ts
 export interface PresencePort {
-  awaitMount(): Promise<void>;
-  awaitUnmount(): Promise<void>;
+  /** Returns a Promise only when a handle exists and the phase requires blocking.
+   *  Returns `undefined` when no handle was created (to avoid deadlocking
+   *  non-transition prototypes) or when blocking is unnecessary. */
+  awaitMount(): Promise<void> | undefined;
+  awaitUnmount(): Promise<void> | undefined;
 }
 ```
 
@@ -91,12 +97,13 @@ export interface PresencePort {
 - `PresenceHandle` holds a private intent queue (or current intent + phase).
 - On `setIntent('enter')`:
   - if `absent` → `mounting`, schedule `bridge.mount()`, then resolve `awaitMount()`.
-  - if `unmounting` → cancel unmount, move to `mounting`.
+  - if `unmounting` → cancel unmount, move to `present`.
   - if `mounting` / `present` → noop.
 - On `setIntent('leave')`:
   - if `present` → `unmounting`, hold unmount, do **not** resolve `awaitUnmount()` yet.
   - when `setIntent('leave')` is called again from `unmounting` (the confirmation step) → `absent`, fire `bridge.unmount()`, resolve `awaitUnmount()`.
-  - if `absent` → noop.
+  - if `mounting` → resolve pending mounts, fire `bridge.unmount()`, go to `absent`.
+  - if `absent` → resolve any pending mounts (required for components that start closed so that `awaitMount()` does not deadlock) and stay in `absent`.
 
 ### 2.2 Runtime: `packages/runtime/src/instance/execute/with-host.ts`
 
@@ -137,7 +144,7 @@ Each adapter provides a framework-native implementation:
 
 - **React** — wrapper component gains a `shouldExist` state. `mount()` sets it `true`. `unmount()` sets it `false` (or returns a Promise if a CSS transition needs to be awaited).
 - **Vue** — same pattern via a composable or wrapper component reactive flag.
-- **Web Component** — `disconnectedCallback` defers actual `hostSession.dispose()` until `bridge.unmount()` is called. If the element is re-entered before unmount resolves, `connectedCallback` resumes as usual.
+- **Web Component** — `disconnectedCallback` must **not** trigger teardown directly. Instead, it sets a pending-unmount flag and returns. The actual `hostSession.dispose()` is invoked only inside `bridge.unmount()`. If the element is re-connected while unmount is still pending, `connectedCallback` must treat it as a fresh mount: clear the pending flag, null out the old controller, and re-initialize, rather than reusing a dying controller.
 
 ### 2.4 Privileged Hook: `packages/hooks/src/as-transition.ts`
 

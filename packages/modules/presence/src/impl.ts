@@ -20,7 +20,6 @@ export class PresenceModuleImpl extends ModuleBase {
   private beforeMounts: Array<() => void | Promise<void>> = [];
   private beforeUnmounts: Array<() => void | Promise<void>> = [];
   private mountResolved = false;
-  private unmountResolved = false;
 
   private getBridge(): PresenceHostBridge {
     return this.caps.has(PRESENCE_HOST_BRIDGE_CAP)
@@ -53,14 +52,27 @@ export class PresenceModuleImpl extends ModuleBase {
     };
   }
 
-  private async setIntent(intent: 'enter' | 'leave') {
+  private setIntent(intent: 'enter' | 'leave') {
     if (intent === 'enter') {
       if (this.phase === 'absent') {
         this.phase = 'mounting';
-        await this.runCbs(this.beforeMounts);
-        await this.getBridge().mount();
-        this.resolveMounts();
-        this.phase = 'present';
+        this.runCbsSync(this.beforeMounts);
+        const mountResult = this.getBridge().mount();
+        if (mountResult && typeof (mountResult as Promise<void>).then === 'function') {
+          (mountResult as Promise<void>).then(
+            () => {
+              this.resolveMounts();
+              this.phase = 'present';
+            },
+            () => {
+              this.resolveMounts();
+              this.phase = 'present';
+            }
+          );
+        } else {
+          this.resolveMounts();
+          this.phase = 'present';
+        }
       } else if (this.phase === 'unmounting') {
         this.resolveUnmounts();
         this.phase = 'present';
@@ -69,23 +81,56 @@ export class PresenceModuleImpl extends ModuleBase {
       if (this.phase === 'present') {
         this.phase = 'unmounting';
       } else if (this.phase === 'unmounting') {
-        await this.runCbs(this.beforeUnmounts);
-        await this.getBridge().unmount();
-        this.resolveUnmounts();
-        this.phase = 'absent';
+        this.runCbsSync(this.beforeUnmounts);
+        const unmountResult = this.getBridge().unmount();
+        if (unmountResult && typeof (unmountResult as Promise<void>).then === 'function') {
+          (unmountResult as Promise<void>).then(
+            () => {
+              this.resolveUnmounts();
+              this.phase = 'absent';
+              this.mountResolved = false;
+            },
+            () => {
+              this.resolveUnmounts();
+              this.phase = 'absent';
+              this.mountResolved = false;
+            }
+          );
+        } else {
+          this.resolveUnmounts();
+          this.phase = 'absent';
+          this.mountResolved = false;
+        }
       } else if (this.phase === 'mounting') {
         this.resolveMounts();
-        await this.getBridge().unmount();
-        this.phase = 'absent';
+        const unmountResult = this.getBridge().unmount();
+        if (unmountResult && typeof (unmountResult as Promise<void>).then === 'function') {
+          (unmountResult as Promise<void>).then(
+            () => {
+              this.phase = 'absent';
+              this.mountResolved = false;
+            },
+            () => {
+              this.phase = 'absent';
+              this.mountResolved = false;
+            }
+          );
+        } else {
+          this.phase = 'absent';
+          this.mountResolved = false;
+        }
       } else if (this.phase === 'absent') {
         this.resolveMounts();
       }
     }
   }
 
-  private async runCbs(cbs: Array<() => void | Promise<void>>) {
+  private runCbsSync(cbs: Array<() => void | Promise<void>>) {
     for (const cb of cbs) {
-      await cb();
+      const result = cb();
+      if (result && typeof (result as Promise<void>).then === 'function') {
+        (result as Promise<void>).catch(() => {});
+      }
     }
   }
 
@@ -98,7 +143,6 @@ export class PresenceModuleImpl extends ModuleBase {
   private resolveUnmounts() {
     for (const r of this.unmountResolvers) r();
     this.unmountResolvers = [];
-    this.unmountResolved = true;
   }
 
   awaitMount(): Promise<void> | undefined {

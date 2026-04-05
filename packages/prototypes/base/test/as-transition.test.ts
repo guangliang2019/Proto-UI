@@ -3,11 +3,16 @@ import { definePrototype, type Prototype } from '@proto.ui/core';
 import type { RuntimeHost } from '@proto.ui/runtime';
 import { executeWithHost } from '@proto.ui/runtime';
 import { EXPOSE_SET_EXPOSES_CAP } from '@proto.ui/module-expose';
+import { PRESENCE_HOST_BRIDGE_CAP } from '@proto.ui/module-presence';
 import { asTransition, type TransitionProps, type TransitionExposes } from '../src/transition';
 
-function createHost(initialRaw: Partial<TransitionProps> = {}) {
+function createHost(
+  initialRaw: Partial<TransitionProps> = {},
+  opts: { bridge?: { mount?: () => void; unmount?: () => void } } = {}
+) {
   let raw: Partial<TransitionProps> = { ...initialRaw };
   let exposes: TransitionExposes | null = null;
+  const bridgeCalls = { mount: 0, unmount: 0 };
 
   const host: RuntimeHost<TransitionProps> = {
     prototypeName: 'as-transition-contract',
@@ -19,6 +24,21 @@ function createHost(initialRaw: Partial<TransitionProps> = {}) {
       task();
     },
     onRuntimeReady(wiring) {
+      wiring.attach('presence', [
+        [
+          PRESENCE_HOST_BRIDGE_CAP,
+          {
+            mount: () => {
+              bridgeCalls.mount++;
+              opts.bridge?.mount?.();
+            },
+            unmount: () => {
+              bridgeCalls.unmount++;
+              opts.bridge?.unmount?.();
+            },
+          },
+        ],
+      ]);
       wiring.attach('expose', [
         [
           EXPOSE_SET_EXPOSES_CAP,
@@ -35,6 +55,9 @@ function createHost(initialRaw: Partial<TransitionProps> = {}) {
     },
     getExposes() {
       return exposes!;
+    },
+    getBridgeCalls() {
+      return bridgeCalls;
     },
   };
 }
@@ -451,5 +474,65 @@ describe('prototypes/base: asTransition', () => {
     controller.update();
 
     expect(callbacks).toEqual(['onBeforeEnter', 'onAfterEnter', 'onBeforeLeave', 'onAfterLeave']);
+  });
+
+  it('AS-TRANSITION-2000: presence bridge is driven by enter/leave/complete', async () => {
+    const ctx = createHost(
+      { open: true, appear: true },
+      {
+        bridge: {
+          mount: () => {},
+          unmount: () => {},
+        },
+      }
+    );
+    const P = createTransitionProto('x-as-transition-2000', (def) => {
+      def.lifecycle.onMounted(() => {
+        const exposes = ctx.getExposes();
+        exposes.controls.complete();
+        exposes.controls.leave();
+        exposes.controls.complete();
+      });
+    });
+
+    mountTransition(P, ctx);
+    // flush microtasks for setIntent('enter') -> bridge.mount,
+    // finishMount -> onMounted, and setIntent('leave') -> bridge.unmount
+    await Promise.resolve();
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(ctx.getExposes().transitionState.get()).toBe('closed');
+    expect(ctx.getBridgeCalls().mount).toBe(1);
+    expect(ctx.getBridgeCalls().unmount).toBe(1);
+  });
+
+  it('AS-TRANSITION-2100: rapid enter cancels pending unmount', async () => {
+    const ctx = createHost(
+      { open: true, appear: false },
+      {
+        bridge: {
+          mount: () => {},
+          unmount: () => {},
+        },
+      }
+    );
+    const P = createTransitionProto('x-as-transition-2100', (def) => {
+      def.lifecycle.onMounted(() => {
+        const exposes = ctx.getExposes();
+        exposes.controls.leave();
+        exposes.controls.enter();
+        exposes.controls.complete();
+      });
+    });
+
+    mountTransition(P, ctx);
+    await Promise.resolve();
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(ctx.getExposes().transitionState.get()).toBe('entered');
+    expect(ctx.getBridgeCalls().mount).toBe(1);
+    expect(ctx.getBridgeCalls().unmount).toBe(0);
   });
 });

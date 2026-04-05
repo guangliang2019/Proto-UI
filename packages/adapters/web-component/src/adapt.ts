@@ -93,6 +93,7 @@ export function AdaptToWebComponent<Props extends PropsBaseType>(
 
     connectedCallback() {
       this._disconnectVersion += 1;
+
       if (this._mountedOnce) {
         if (this._pendingOwnedTokens?.length) {
           this._applier?.apply(this._pendingOwnedTokens);
@@ -147,10 +148,10 @@ export function AdaptToWebComponent<Props extends PropsBaseType>(
       };
 
       const presenceBridge = {
-        mount() {
-          // no-op for WC: structural mount/unmount timing is browser-controlled
+        mount: () => {
+          // no-op for WC: structural mount timing is browser-controlled via connectedCallback
         },
-        unmount() {
+        unmount: () => {
           if (this._invokeUnmounted) {
             const fn = this._invokeUnmounted;
             this._invokeUnmounted = null;

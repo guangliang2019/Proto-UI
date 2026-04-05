@@ -191,10 +191,7 @@ export function asTransition(options?: TransitionOptions): TransitionHandles {
   const handleLeave = () => {
     store.intendedOpen = false;
     const current = transitionState.get();
-    if (current === 'closed') {
-      presenceHandle?.setIntent('leave');
-      return;
-    }
+    if (current === 'closed') return;
     if (current === 'leaving') {
       if (config.interrupt === 'wait') {
         store.pendingQueue!.push('leave');
@@ -258,6 +255,8 @@ export function asTransition(options?: TransitionOptions): TransitionHandles {
           transitionTo('entered');
         }
       } else {
+        // 默认 closed 的组件需要 leave intent 来解除 mount 阻塞，
+        // 否则 runtime 的 awaitMount() 会永久挂起。
         presenceHandle?.setIntent('leave');
       }
     }

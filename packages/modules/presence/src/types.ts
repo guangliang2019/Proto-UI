@@ -5,7 +5,7 @@ export interface PresencePolicy {
 }
 
 export interface PresenceHandle {
-  setIntent(intent: 'enter' | 'leave'): void;
+  setIntent(intent: 'enter' | 'leave'): void | Promise<void>;
   getPhase(): PresencePhase;
   onBeforeMount(cb: () => void | Promise<void>): () => void;
   onBeforeUnmount(cb: () => void | Promise<void>): () => void;
