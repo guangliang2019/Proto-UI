@@ -17,7 +17,8 @@
     "@proto.ui/module-context": "workspace:*",
     "@proto.ui/module-anatomy": "workspace:*",
     "@proto.ui/module-as-trigger": "workspace:*",
-    "@proto.ui/module-focus": "workspace:*"
+    "@proto.ui/module-focus": "workspace:*",
+    "@proto.ui/module-presence": "workspace:*"
   },
   "devDependencies": {},
   "exports": {
