@@ -131,6 +131,7 @@ export function createReactAdapter(runtimeInput: ReactRuntimeInput) {
       }, [props, autoUpdate]);
 
       runtime.useLayoutEffect(() => {
+        if (!shouldExist) return;
         const rootEl = rootRef.current;
         if (!rootEl) return;
         if (controllerRef.current) return;
@@ -203,7 +204,7 @@ export function createReactAdapter(runtimeInput: ReactRuntimeInput) {
         return () => {
           hostSession.dispose();
         };
-      }, []);
+      }, [shouldExist]);
 
       runtime.useLayoutEffect(() => {
         if (!pendingCommitRef.current) return;

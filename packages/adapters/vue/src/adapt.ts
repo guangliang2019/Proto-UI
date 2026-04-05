@@ -139,7 +139,7 @@ export function createVueAdapter(runtime: VueRuntime) {
           { flush: 'post' }
         );
 
-        runtime.onMounted(() => {
+        const initSession = () => {
           const rootEl = rootRef.value;
           if (!rootEl) return;
           if (controllerRef.value) return;
@@ -207,7 +207,23 @@ export function createVueAdapter(runtime: VueRuntime) {
 
           controllerRef.value = hostSession.controller as RuntimeController;
           invokeRef.value = hostSession.invokeInCallbackScope;
-        });
+        };
+
+        runtime.onMounted(initSession);
+
+        runtime.watch(
+          () => shouldExist.value,
+          async (val) => {
+            if (val) {
+              await runtime.nextTick();
+              initSession();
+            } else {
+              hostSession?.dispose();
+              hostSession = null;
+            }
+          },
+          { flush: 'post' }
+        );
 
         runtime.onBeforeUnmount(() => {
           hostSession?.dispose();
