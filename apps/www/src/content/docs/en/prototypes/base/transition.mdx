@@ -110,6 +110,56 @@ absent → (setIntent enter) → mounting → present → (setIntent leave) → 
 
 This makes the state machine work correctly with CSS transitions, because the DOM element is guaranteed to exist during `entering` and `leaving` even when the adapter would otherwise remove it immediately.
 
+### Relationship with `module-presence`
+
+`transition` is a **specialization** of `presence`. Think of `@proto.ui/module-presence` as the lower-level structural governance layer, while `asTransition` is the user-facing state machine built on top of it.
+
+- **`module-presence`** decides **when** the host element may exist in the DOM. It tracks phases: `absent → mounting → present → unmounting → absent`.
+- **`asTransition`** decides **why** the state changes. It exposes the 4-state FSM (`closed → entering → entered → leaving → closed`) and translates user actions (props, controls) into presence intents (`setIntent('enter')` or `setIntent('leave')`).
+
+This separation means:
+
+1. **Adapters only deal with presence.** A React or Vue adapter does not need to know about `entering` vs `entered`; it only needs to respect the `mount()` / `unmount()` signals from `module-presence`.
+2. **Transition authors only deal with the state machine.** They do not need to worry about host-level structural timing because `asTransition` delegates that to `module-presence` automatically.
+3. **Physical removal is advisory for some hosts.** In Web Components, the browser controls structural presence via `connectedCallback` / `disconnectedCallback`, so the WC adapter treats presence bridge signals as no-ops. The element stays in the DOM during `closed` and can re-enter at any time.
+
+### Best Practices
+
+#### 1. Always pair state changes with CSS transitions
+
+`Transition` only manages logical state. If you do not provide CSS for `data-transition-state="entering"` and `data-transition-state="leaving"`, the element will appear/disappear instantly when `complete()` is called.
+
+#### 2. In controlled mode, the host must call `complete()`
+
+When using the `open` prop, the adapter (or your wrapper code) is responsible for observing the CSS transition end and calling `controls.complete()`. Without this, the state will hang in `entering` or `leaving` indefinitely.
+
+Typical controlled-mode wiring:
+
+```ts
+// After setting open=true and applying CSS transition
+el.addEventListener('transitionend', () => {
+  exposes.controls.complete();
+});
+```
+
+#### 3. Use `appear` for mount-time animation
+
+If you want an element to animate in when it first renders, set `appear: true`. Otherwise the element will jump straight to `entered` on mount without playing the enter animation.
+
+#### 4. Choose an interrupt strategy that matches your UX
+
+- **`'reverse'` (default)**: Best for most UI (menus, tooltips). If the user toggles quickly, the animation reverses direction smoothly.
+- **`'wait'`**: Best when you must guarantee every transition finishes (e.g. a multi-step wizard whose background panel should not skip animations).
+- **`'immediate'`**: Best for snappy stateless toggles where you do not care about partial animations. The current animation is discarded and the new one starts from a clean state.
+
+#### 5. Do not modify transition state directly
+
+Always use the exposed controls (`controls.enter()`, `controls.leave()`, `controls.complete()`) or the `open` prop. Mutating `transitionState` directly will bypass the presence intent layer and can cause adapters to get out of sync.
+
+#### 6. Keep DOM children stable during leaving
+
+Because `module-presence` may keep the element in the DOM during `leaving`, avoid destroying child state (like tearing down `<video>` elements or canceling network requests) until the adapter actually unmounts or `closed` is reached.
+
 ### State Machine
 
 ```
