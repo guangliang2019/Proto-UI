@@ -90,7 +90,7 @@ export function createVueAdapter(runtime: VueRuntime) {
         const eventGateRef = runtime.ref<ReturnType<typeof createEventGate> | null>(null);
         const exposesRef = runtime.ref<Record<string, unknown>>({});
         const invokeRef = runtime.ref<((fn: () => void) => void) | null>(null);
-        const shouldExist = runtime.ref(true);
+        const visible = runtime.ref(true);
 
         const subs = new Set<() => void>();
         const rawPropsSource: RawPropsSource<Props> = {
@@ -161,10 +161,10 @@ export function createVueAdapter(runtime: VueRuntime) {
 
           const presenceBridge = {
             mount() {
-              shouldExist.value = true;
+              visible.value = true;
             },
             unmount() {
-              shouldExist.value = false;
+              visible.value = false;
             },
           };
 
@@ -211,27 +211,12 @@ export function createVueAdapter(runtime: VueRuntime) {
 
         runtime.onMounted(initSession);
 
-        runtime.watch(
-          () => shouldExist.value,
-          async (val) => {
-            if (val) {
-              await runtime.nextTick();
-              initSession();
-            } else {
-              hostSession?.dispose();
-              hostSession = null;
-            }
-          },
-          { flush: 'post' }
-        );
-
         runtime.onBeforeUnmount(() => {
           hostSession?.dispose();
           hostSession = null;
         });
 
         return () => {
-          if (!shouldExist.value) return null;
           const slotNodes = ctx.slots.default ? ctx.slots.default() : null;
           const rendered = renderTemplateToVue(runtime, renderChildren.value, {
             slot: slotNodes as any,
@@ -242,7 +227,10 @@ export function createVueAdapter(runtime: VueRuntime) {
             {
               ref: rootRef,
               class: mergeHostClass(props.hostClass, hostTokens.value),
-              style: props.hostStyle,
+              style: [
+                props.hostStyle,
+                visible.value ? undefined : { opacity: 0, pointerEvents: 'none' },
+              ],
               'data-demo-ref': ctx.attrs['data-demo-ref'] as string | undefined,
             },
             rendered as any

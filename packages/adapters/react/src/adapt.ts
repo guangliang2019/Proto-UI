@@ -83,7 +83,7 @@ export function createReactAdapter(runtimeInput: ReactRuntimeInput) {
       const rootRef = runtime.useRef<HTMLElement | null>(null);
       const [renderChildren, setRenderChildren] = runtime.useState<any>(null);
       const [hostTokens, setHostTokens] = runtime.useState<string[]>([]);
-      const [shouldExist, setShouldExist] = runtime.useState(true);
+      const [visible, setVisible] = runtime.useState(true);
 
       const controllerRef = runtime.useRef<RuntimeController | null>(null);
       const eventGateRef = runtime.useRef<ReturnType<typeof createEventGate> | null>(null);
@@ -131,7 +131,6 @@ export function createReactAdapter(runtimeInput: ReactRuntimeInput) {
       }, [props, autoUpdate]);
 
       runtime.useLayoutEffect(() => {
-        if (!shouldExist) return;
         const rootEl = rootRef.current;
         if (!rootEl) return;
         if (controllerRef.current) return;
@@ -153,10 +152,10 @@ export function createReactAdapter(runtimeInput: ReactRuntimeInput) {
 
         const presenceBridge = {
           mount() {
-            setShouldExist(true);
+            setVisible(true);
           },
           unmount() {
-            setShouldExist(false);
+            setVisible(false);
           },
         };
 
@@ -204,7 +203,7 @@ export function createReactAdapter(runtimeInput: ReactRuntimeInput) {
         return () => {
           hostSession.dispose();
         };
-      }, [shouldExist]);
+      }, []);
 
       runtime.useLayoutEffect(() => {
         if (!pendingCommitRef.current) return;
@@ -219,13 +218,21 @@ export function createReactAdapter(runtimeInput: ReactRuntimeInput) {
         slot: props.children,
       });
 
-      if (!shouldExist) return null;
       return runtime.createElement(
         rootTag,
         {
           ref: rootRef as any,
           className: mergeHostClassName(props.hostClassName, hostTokens),
-          style: props.hostStyle,
+          style:
+            typeof props.hostStyle === 'object' &&
+            props.hostStyle !== null &&
+            !Array.isArray(props.hostStyle)
+              ? {
+                  ...props.hostStyle,
+                  opacity: visible ? undefined : 0,
+                  pointerEvents: visible ? undefined : 'none',
+                }
+              : { opacity: visible ? undefined : 0, pointerEvents: visible ? undefined : 'none' },
           'data-demo-ref': props['data-demo-ref' as keyof typeof props] as any,
         },
         rendered
