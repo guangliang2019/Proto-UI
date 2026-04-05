@@ -84,6 +84,8 @@ export function AdaptToWebComponent<Props extends PropsBaseType>(
     private _exposes: Record<string, unknown> = {};
     private _wrappedExposes: Record<string, unknown> = {};
     private _lastWrappedRaw: Record<string, unknown> | null = null;
+    private _presencePendingUnmount = false;
+    private _presenceResolveUnmount: (() => void) | null = null;
 
     constructor() {
       super();
@@ -153,6 +155,28 @@ export function AdaptToWebComponent<Props extends PropsBaseType>(
         },
       };
 
+      const presenceBridge = {
+        mount: () => {
+          this._presencePendingUnmount = false;
+          this._presenceResolveUnmount?.();
+          this._presenceResolveUnmount = null;
+        },
+        unmount: () => {
+          if (!this._presencePendingUnmount) return;
+          this._presencePendingUnmount = false;
+          this._presenceResolveUnmount?.();
+          this._presenceResolveUnmount = null;
+          if (this._invokeUnmounted) {
+            const fn = this._invokeUnmounted;
+            this._invokeUnmounted = null;
+            fn();
+          }
+          this._controller = null;
+          this._mountedOnce = false;
+          this._pendingOwnedTokens = null;
+        },
+      };
+
       const modules = createWebComponentModules({
         el: thisEl,
         router,
@@ -163,6 +187,7 @@ export function AdaptToWebComponent<Props extends PropsBaseType>(
         setExposes: (record) => {
           this._exposes = record;
         },
+        presenceBridge,
       });
 
       const wiring = createHostWiring({ prototypeName: tagName, modules });
@@ -255,16 +280,27 @@ export function AdaptToWebComponent<Props extends PropsBaseType>(
       this._hostDisplay?.sync();
 
       const disconnectVersion = ++this._disconnectVersion;
-      queueMicrotask(() => {
+      this._presencePendingUnmount = true;
+
+      queueMicrotask(async () => {
         if (this._disconnectVersion !== disconnectVersion) {
           if (this._pendingOwnedTokens?.length) {
             this._applier?.apply(this._pendingOwnedTokens);
           }
           this._hostDisplay?.sync();
           this._pendingOwnedTokens = null;
+          this._presencePendingUnmount = false;
           return;
         }
-        if (this.isConnected) return;
+        if (this.isConnected) {
+          this._presencePendingUnmount = false;
+          return;
+        }
+
+        if (this._presencePendingUnmount) {
+          // presence module hasn't approved unmount yet; defer
+          return;
+        }
 
         this._invokeUnmounted?.();
         this._invokeUnmounted = null;

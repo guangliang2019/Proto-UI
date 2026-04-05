@@ -7,6 +7,8 @@ import {
 } from '@proto.ui/module-expose-state-web';
 import { type PropsBaseType } from '@proto.ui/types';
 
+import { type PresenceHostBridge } from '@proto.ui/module-presence';
+
 import { getProtoParent, getPrototypeByInstance } from '../platform/instance-tree';
 
 export function createWebComponentModules<Props extends PropsBaseType>(args: {
@@ -23,6 +25,7 @@ export function createWebComponentModules<Props extends PropsBaseType>(args: {
     allowStringVar?: boolean;
   };
   setExposes: (record: Record<string, unknown>) => void;
+  presenceBridge?: PresenceHostBridge;
 }) {
   const { el, router, rawPropsSource, effectsPort, getMeta, exposeStateWebMode, setExposes } = args;
 
@@ -85,6 +88,7 @@ export function createWebComponentModules<Props extends PropsBaseType>(args: {
     .useRuleExposeStateWeb({
       nativeVariantPolicy: createExposeStateWebNativeVariantPolicy,
     })
+    .usePresence(args.presenceBridge ?? { mount: () => {}, unmount: () => {} })
     .build();
 }
 
