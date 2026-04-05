@@ -90,6 +90,7 @@ export function createVueAdapter(runtime: VueRuntime) {
         const eventGateRef = runtime.ref<ReturnType<typeof createEventGate> | null>(null);
         const exposesRef = runtime.ref<Record<string, unknown>>({});
         const invokeRef = runtime.ref<((fn: () => void) => void) | null>(null);
+        const shouldExist = runtime.ref(true);
 
         const subs = new Set<() => void>();
         const rawPropsSource: RawPropsSource<Props> = {
@@ -158,6 +159,15 @@ export function createVueAdapter(runtime: VueRuntime) {
             hostTokens.value = tokens;
           });
 
+          const presenceBridge = {
+            mount() {
+              shouldExist.value = true;
+            },
+            unmount() {
+              shouldExist.value = false;
+            },
+          };
+
           const modules = createVueModules({
             el: rootEl,
             router,
@@ -171,6 +181,7 @@ export function createVueAdapter(runtime: VueRuntime) {
             setExposes: (record) => {
               exposesRef.value = record;
             },
+            presenceBridge,
           });
 
           const wiring = createHostWiring({ prototypeName: proto.name, modules });
@@ -204,6 +215,7 @@ export function createVueAdapter(runtime: VueRuntime) {
         });
 
         return () => {
+          if (!shouldExist.value) return null;
           const slotNodes = ctx.slots.default ? ctx.slots.default() : null;
           const rendered = renderTemplateToVue(runtime, renderChildren.value, {
             slot: slotNodes as any,
