@@ -38,13 +38,39 @@ export const createRunHandle = <P extends PropsBaseType>(
         if (!anatomy) throw new Error(`[Anatomy] module unavailable`);
         return anatomy.has(family, role);
       },
-      parts: (family) => {
+      parts: ((family, options) => {
         if (!anatomy) throw new Error(`[Anatomy] module unavailable`);
-        return anatomy.parts(family);
-      },
-      partsOf: (family, role) => {
+        return anatomy.parts(family, options as any);
+      }) as RunHandle<P>['anatomy']['parts'],
+      partsOf: ((family, role, options) => {
         if (!anatomy) throw new Error(`[Anatomy] module unavailable`);
-        return anatomy.partsOf(family, role);
+        return anatomy.partsOf(family, role, options as any);
+      }) as RunHandle<P>['anatomy']['partsOf'],
+      order: {
+        version: ((family, options) => {
+          if (!anatomy) throw new Error(`[Anatomy] module unavailable`);
+          return anatomy.order.version(family, options as any);
+        }) as RunHandle<P>['anatomy']['order']['version'],
+        parts: ((family, options) => {
+          if (!anatomy) throw new Error(`[Anatomy] module unavailable`);
+          return anatomy.order.parts(family, options as any);
+        }) as RunHandle<P>['anatomy']['order']['parts'],
+        partsOf: ((family, role, options) => {
+          if (!anatomy) throw new Error(`[Anatomy] module unavailable`);
+          return anatomy.order.partsOf(family, role, options as any);
+        }) as RunHandle<P>['anatomy']['order']['partsOf'],
+        indexOfSelf: ((family, role, options) => {
+          if (!anatomy) throw new Error(`[Anatomy] module unavailable`);
+          return anatomy.order.indexOfSelf(family, role, options as any);
+        }) as RunHandle<P>['anatomy']['order']['indexOfSelf'],
+        prevOfSelf: ((family, role, options) => {
+          if (!anatomy) throw new Error(`[Anatomy] module unavailable`);
+          return anatomy.order.prevOfSelf(family, role, options as any);
+        }) as RunHandle<P>['anatomy']['order']['prevOfSelf'],
+        nextOfSelf: ((family, role, options) => {
+          if (!anatomy) throw new Error(`[Anatomy] module unavailable`);
+          return anatomy.order.nextOfSelf(family, role, options as any);
+        }) as RunHandle<P>['anatomy']['order']['nextOfSelf'],
       },
     },
   };
