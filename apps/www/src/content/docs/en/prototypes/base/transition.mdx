@@ -122,3 +122,9 @@ Accessed via the `controls` expose:
 - `enter()`: Trigger enter
 - `leave()`: Trigger leave
 - `complete()`: Mark current transition complete, advance to next state
+
+### v0 Scope
+
+`base-transition` v0 only manages the presence lifecycle of a **single element** (`closed → entering → entered → leaving → closed`).
+
+Nested exit coordination (e.g., an outer Dialog waiting for an inner child to finish leaving before closing) belongs to a separate `transition-group` / `boundary` abstraction and is intentionally out of scope for v0.

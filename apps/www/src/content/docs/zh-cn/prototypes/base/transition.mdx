@@ -122,3 +122,9 @@ closed → entering → entered → leaving → closed
 - `enter()`: 触发进入
 - `leave()`: 触发离开
 - `complete()`: 标记当前过渡完成，推进到下一状态
+
+### v0 范围说明
+
+`base-transition` v0 仅管理**单个元素自身**的存在状态生命周期（`closed → entering → entered → leaving → closed`）。
+
+若需要 parent/child 嵌套协调退出（例如外层 Dialog 等待内层某个子元素先完成离开动画后再关闭），这属于 `transition-group` / `boundary` 类的独立抽象，不在当前 v0 范围内。
