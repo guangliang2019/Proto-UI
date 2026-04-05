@@ -150,6 +150,15 @@ export function createReactAdapter(runtimeInput: ReactRuntimeInput) {
           setHostTokens(tokens);
         });
 
+        const presenceBridge = {
+          mount() {
+            setShouldExist(true);
+          },
+          unmount() {
+            setShouldExist(false);
+          },
+        };
+
         const rawPropsSource = rawPropsSourceRef.current as RawPropsSource<Props>;
         const modules = createReactModules({
           el: rootEl,
@@ -164,6 +173,7 @@ export function createReactAdapter(runtimeInput: ReactRuntimeInput) {
           setExposes: (record) => {
             exposesRef.current = record;
           },
+          presenceBridge,
         });
 
         const wiring = createHostWiring({ prototypeName: proto.name, modules });
