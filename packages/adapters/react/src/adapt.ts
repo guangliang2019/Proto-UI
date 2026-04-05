@@ -83,6 +83,7 @@ export function createReactAdapter(runtimeInput: ReactRuntimeInput) {
       const rootRef = runtime.useRef<HTMLElement | null>(null);
       const [renderChildren, setRenderChildren] = runtime.useState<any>(null);
       const [hostTokens, setHostTokens] = runtime.useState<string[]>([]);
+      const [shouldExist, setShouldExist] = runtime.useState(true);
 
       const controllerRef = runtime.useRef<RuntimeController | null>(null);
       const eventGateRef = runtime.useRef<ReturnType<typeof createEventGate> | null>(null);

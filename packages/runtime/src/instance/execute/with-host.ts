@@ -134,6 +134,7 @@ export function executeWithHost<P extends PropsBaseType>(
   let ended = false;
 
   const finishMount = () => {
+    if (ended) return;
     moduleHub.setProtoPhase('mounted');
     timeline.mark('proto:mounted');
 

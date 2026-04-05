@@ -7,6 +7,7 @@ import {
   type ExposeStateWebMode,
 } from '@proto.ui/module-expose-state-web';
 import type { PropsBaseType } from '@proto.ui/types';
+import type { PresenceHostBridge } from '@proto.ui/module-presence';
 
 import { getProtoParent, getPrototypeByInstance } from '../platform/instance-tree';
 
@@ -22,6 +23,7 @@ export function createReactModules<Props extends PropsBaseType>(args: {
   getMeta: (key: string) => unknown;
   exposeStateWebMode?: ExposeStateWebMode;
   setExposes: (record: Record<string, unknown>) => void;
+  presenceBridge?: PresenceHostBridge;
 }) {
   const { el, router, emit, rawPropsSource, effectsPort, getMeta, exposeStateWebMode, setExposes } =
     args;
@@ -77,6 +79,7 @@ export function createReactModules<Props extends PropsBaseType>(args: {
     .useRuleExposeStateWeb({
       nativeVariantPolicy: createExposeStateWebNativeVariantPolicy,
     })
+    .usePresence(args.presenceBridge ?? { mount: () => {}, unmount: () => {} })
     .build();
 }
 

@@ -16,8 +16,8 @@ export interface PresenceFacade {
 }
 
 export interface PresencePort {
-  awaitMount(): Promise<void>;
-  awaitUnmount(): Promise<void>;
+  awaitMount(): Promise<void> | undefined;
+  awaitUnmount(): Promise<void> | undefined;
 }
 
 export interface PresenceHostBridge {
