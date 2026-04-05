@@ -21,7 +21,6 @@ import type {
   AnatomyClaimDecl,
   AnatomyFamily,
   AnatomyFamilyDecl,
-  AnatomyOrderView,
   AnatomyPartView,
 } from './anatomy';
 import { State, StateDefAPI } from './state';
@@ -77,18 +76,10 @@ export interface RunHandle<Props extends PropsBaseType> {
   };
 
   context: {
-    read<T extends JsonObject>(key: ContextKey<T>, options?: { skipSelf?: boolean }): T;
-    tryRead<T extends JsonObject>(key: ContextKey<T>, options?: { skipSelf?: boolean }): T | null;
-    update<T extends JsonObject>(
-      key: ContextKey<T>,
-      next: T | ((prev: T) => T),
-      options?: { skipSelf?: boolean }
-    ): void;
-    tryUpdate<T extends JsonObject>(
-      key: ContextKey<T>,
-      next: T | ((prev: T) => T),
-      options?: { skipSelf?: boolean }
-    ): boolean;
+    read<T extends JsonObject>(key: ContextKey<T>): T;
+    tryRead<T extends JsonObject>(key: ContextKey<T>): T | null;
+    update<T extends JsonObject>(key: ContextKey<T>, next: T | ((prev: T) => T)): void;
+    tryUpdate<T extends JsonObject>(key: ContextKey<T>, next: T | ((prev: T) => T)): boolean;
   };
 
   event: {
@@ -97,9 +88,8 @@ export interface RunHandle<Props extends PropsBaseType> {
 
   anatomy: {
     has(family: AnatomyFamily, role: string): boolean;
-    parts: AnatomyOrderView['parts'];
-    partsOf: AnatomyOrderView['partsOf'];
-    order: AnatomyOrderView;
+    parts(family: AnatomyFamily): ReadonlyArray<AnatomyPartView>;
+    partsOf(family: AnatomyFamily, role: string): ReadonlyArray<AnatomyPartView>;
   };
 }
 

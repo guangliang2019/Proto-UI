@@ -1,4 +1,4 @@
-export { asTransition, TRANSITION_CONTEXT } from './as-transition';
+export { asTransition } from './as-transition';
 export { transition } from './transition';
 export type {
   TransitionState,
@@ -7,7 +7,6 @@ export type {
   TransitionExposes,
   TransitionHandles,
   TransitionOptions,
-  TransitionContextValue,
   TransitionAsHookContract,
 } from './types';
 export { default } from './transition';

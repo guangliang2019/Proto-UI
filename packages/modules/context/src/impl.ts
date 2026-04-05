@@ -197,14 +197,14 @@ export class ContextModuleImpl extends ModuleBase {
   // runtime-only API
   // -------------------------
 
-  read<T extends JsonObject>(key: ContextKey<T>, options?: { skipSelf?: boolean }): T {
+  read<T extends JsonObject>(key: ContextKey<T>): T {
     this.guardCallbackOnly('run.context.read');
 
     const self = this.getSelfToken();
     this.ensureSubscribed(self, key, 'required', 'read');
 
     const getParent = this.getParentGetter();
-    const provider = CONTEXT_CENTER.resolveProvider(self, key, getParent, options?.skipSelf);
+    const provider = CONTEXT_CENTER.resolveProvider(self, key, getParent);
     if (!provider) {
       throw contextError(
         ERR.DISCONNECTED,
@@ -223,31 +223,27 @@ export class ContextModuleImpl extends ModuleBase {
     return value as T;
   }
 
-  tryRead<T extends JsonObject>(key: ContextKey<T>, options?: { skipSelf?: boolean }): T | null {
+  tryRead<T extends JsonObject>(key: ContextKey<T>): T | null {
     this.guardCallbackOnly('run.context.tryRead');
 
     const self = this.getSelfToken();
     this.ensureSubscribed(self, key, 'optional', 'tryRead');
 
     const getParent = this.getParentGetter();
-    const provider = CONTEXT_CENTER.resolveProvider(self, key, getParent, options?.skipSelf);
+    const provider = CONTEXT_CENTER.resolveProvider(self, key, getParent);
     if (!provider) return null;
 
     return (CONTEXT_CENTER.getProviderValue(provider, key) as T) ?? null;
   }
 
-  update<T extends JsonObject>(
-    key: ContextKey<T>,
-    next: T | ((prev: T) => T),
-    options?: { skipSelf?: boolean }
-  ): void {
+  update<T extends JsonObject>(key: ContextKey<T>, next: T | ((prev: T) => T)): void {
     this.guardCallbackOnly('run.context.update');
 
     const self = this.getSelfToken();
     this.ensureSubscribedAny(self, key, 'update');
 
     const getParent = this.getParentGetter();
-    const provider = CONTEXT_CENTER.resolveProvider(self, key, getParent, options?.skipSelf);
+    const provider = CONTEXT_CENTER.resolveProvider(self, key, getParent);
     if (!provider) {
       throw contextError(
         ERR.DISCONNECTED,
@@ -270,18 +266,14 @@ export class ContextModuleImpl extends ModuleBase {
     CONTEXT_CENTER.updateFromProvider(provider, key, resolved, ctx, getParent);
   }
 
-  tryUpdate<T extends JsonObject>(
-    key: ContextKey<T>,
-    next: T | ((prev: T) => T),
-    options?: { skipSelf?: boolean }
-  ): boolean {
+  tryUpdate<T extends JsonObject>(key: ContextKey<T>, next: T | ((prev: T) => T)): boolean {
     this.guardCallbackOnly('run.context.tryUpdate');
 
     const self = this.getSelfToken();
     this.ensureSubscribed(self, key, 'optional', 'tryUpdate');
 
     const getParent = this.getParentGetter();
-    const provider = CONTEXT_CENTER.resolveProvider(self, key, getParent, options?.skipSelf);
+    const provider = CONTEXT_CENTER.resolveProvider(self, key, getParent);
     if (!provider) return false;
 
     const prev = CONTEXT_CENTER.getProviderValue(provider, key);

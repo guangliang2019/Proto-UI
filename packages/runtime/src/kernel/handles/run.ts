@@ -25,10 +25,10 @@ export const createRunHandle = <P extends PropsBaseType>(
       isProvided: (k: string) => props.isProvided(k),
     },
     context: {
-      read: (key, options) => context.read(key, options),
-      tryRead: (key, options) => context.tryRead(key, options),
-      update: (key, next, options) => context.update(key, next, options),
-      tryUpdate: (key, next, options) => context.tryUpdate(key, next, options),
+      read: (key) => context.read(key),
+      tryRead: (key) => context.tryRead(key),
+      update: (key, next) => context.update(key, next),
+      tryUpdate: (key, next) => context.tryUpdate(key, next),
     },
     event: {
       emit: (key, payload, options) => event.emit(key, payload, options),
@@ -38,39 +38,13 @@ export const createRunHandle = <P extends PropsBaseType>(
         if (!anatomy) throw new Error(`[Anatomy] module unavailable`);
         return anatomy.has(family, role);
       },
-      parts: ((family, options) => {
+      parts: (family) => {
         if (!anatomy) throw new Error(`[Anatomy] module unavailable`);
-        return anatomy.parts(family, options as any);
-      }) as RunHandle<P>['anatomy']['parts'],
-      partsOf: ((family, role, options) => {
+        return anatomy.parts(family);
+      },
+      partsOf: (family, role) => {
         if (!anatomy) throw new Error(`[Anatomy] module unavailable`);
-        return anatomy.partsOf(family, role, options as any);
-      }) as RunHandle<P>['anatomy']['partsOf'],
-      order: {
-        version: ((family, options) => {
-          if (!anatomy) throw new Error(`[Anatomy] module unavailable`);
-          return anatomy.order.version(family, options as any);
-        }) as RunHandle<P>['anatomy']['order']['version'],
-        parts: ((family, options) => {
-          if (!anatomy) throw new Error(`[Anatomy] module unavailable`);
-          return anatomy.order.parts(family, options as any);
-        }) as RunHandle<P>['anatomy']['order']['parts'],
-        partsOf: ((family, role, options) => {
-          if (!anatomy) throw new Error(`[Anatomy] module unavailable`);
-          return anatomy.order.partsOf(family, role, options as any);
-        }) as RunHandle<P>['anatomy']['order']['partsOf'],
-        indexOfSelf: ((family, role, options) => {
-          if (!anatomy) throw new Error(`[Anatomy] module unavailable`);
-          return anatomy.order.indexOfSelf(family, role, options as any);
-        }) as RunHandle<P>['anatomy']['order']['indexOfSelf'],
-        prevOfSelf: ((family, role, options) => {
-          if (!anatomy) throw new Error(`[Anatomy] module unavailable`);
-          return anatomy.order.prevOfSelf(family, role, options as any);
-        }) as RunHandle<P>['anatomy']['order']['prevOfSelf'],
-        nextOfSelf: ((family, role, options) => {
-          if (!anatomy) throw new Error(`[Anatomy] module unavailable`);
-          return anatomy.order.nextOfSelf(family, role, options as any);
-        }) as RunHandle<P>['anatomy']['order']['nextOfSelf'],
+        return anatomy.partsOf(family, role);
       },
     },
   };

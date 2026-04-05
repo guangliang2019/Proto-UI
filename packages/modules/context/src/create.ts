@@ -23,10 +23,10 @@ export function createContextModule(ctx: ModuleFactoryArgs): ContextModule {
           subscribe: (key, cb) => impl.subscribe(key as any, cb as any),
           trySubscribe: (key, cb) => impl.trySubscribe(key as any, cb as any),
 
-          read: (key, options) => impl.read(key as any, options),
-          tryRead: (key, options) => impl.tryRead(key as any, options),
-          update: (key, next, options) => impl.update(key as any, next as any, options),
-          tryUpdate: (key, next, options) => impl.tryUpdate(key as any, next as any, options),
+          read: (key) => impl.read(key as any),
+          tryRead: (key) => impl.tryRead(key as any),
+          update: (key, next) => impl.update(key as any, next as any),
+          tryUpdate: (key, next) => impl.tryUpdate(key as any, next as any),
         },
         hooks: {
           onProtoPhase: (p) => impl.onProtoPhase(p),

@@ -11,7 +11,6 @@ export type TransitionProps = {
   enterDuration?: number;
   leaveDuration?: number;
   interrupt?: 'reverse' | 'wait' | 'immediate';
-  dependsOnParentTransition?: boolean;
   onBeforeEnter?: () => void;
   onAfterEnter?: () => void;
   onBeforeLeave?: () => void;
@@ -45,15 +44,6 @@ export type TransitionHandles = {
 export type TransitionOptions = {
   stateKey?: string;
   isPresentKey?: string;
-};
-
-// Context 值类型（供 parent-child 协调）
-// 注意：Context 系统不支持函数值，因此通过 parentRef 对象在模块级 WeakMap 中做二次查找
-export type TransitionContextValue = {
-  transitionState: TransitionState;
-  enterDuration: number;
-  leaveDuration: number;
-  parentRef?: object;
 };
 
 // asHook 契约（供类型推导）
