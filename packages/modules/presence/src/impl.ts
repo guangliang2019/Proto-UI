@@ -11,22 +11,24 @@ import type {
 } from './types';
 
 export class PresenceModuleImpl extends ModuleBase {
-  private bridge: PresenceHostBridge;
   private phase: PresencePhase = 'absent';
+  private hasHandle = false;
   private mountResolvers: Array<() => void> = [];
   private unmountResolvers: Array<() => void> = [];
   private beforeMounts: Array<() => void | Promise<void>> = [];
   private beforeUnmounts: Array<() => void | Promise<void>> = [];
 
-  constructor(caps: CapsVaultView, _prototypeName: string) {
-    super(caps);
-    this.bridge = this.caps.get(PRESENCE_HOST_BRIDGE_CAP) ?? {
-      mount: () => {},
-      unmount: () => {},
-    };
+  private getBridge(): PresenceHostBridge {
+    return this.caps.has(PRESENCE_HOST_BRIDGE_CAP)
+      ? this.caps.get(PRESENCE_HOST_BRIDGE_CAP)
+      : {
+          mount: () => {},
+          unmount: () => {},
+        };
   }
 
   createHandle(policy?: PresencePolicy): PresenceHandle {
+    this.hasHandle = true;
     return {
       setIntent: (intent) => this.setIntent(intent),
       getPhase: () => this.phase,
@@ -52,7 +54,7 @@ export class PresenceModuleImpl extends ModuleBase {
       if (this.phase === 'absent') {
         this.phase = 'mounting';
         await this.runCbs(this.beforeMounts);
-        await this.bridge.mount();
+        await this.getBridge().mount();
         this.resolveMounts();
         this.phase = 'present';
       } else if (this.phase === 'unmounting') {
@@ -64,12 +66,12 @@ export class PresenceModuleImpl extends ModuleBase {
         this.phase = 'unmounting';
       } else if (this.phase === 'unmounting') {
         await this.runCbs(this.beforeUnmounts);
-        await this.bridge.unmount();
+        await this.getBridge().unmount();
         this.resolveUnmounts();
         this.phase = 'absent';
       } else if (this.phase === 'mounting') {
         this.resolveMounts();
-        await this.bridge.unmount();
+        await this.getBridge().unmount();
         this.phase = 'absent';
       }
     }
@@ -91,15 +93,15 @@ export class PresenceModuleImpl extends ModuleBase {
     this.unmountResolvers = [];
   }
 
-  async awaitMount(): Promise<void> {
-    if (this.phase !== 'absent') return;
+  awaitMount(): Promise<void> | undefined {
+    if (!this.hasHandle || this.phase !== 'absent') return undefined;
     return new Promise<void>((resolve) => {
       this.mountResolvers.push(resolve);
     });
   }
 
-  async awaitUnmount(): Promise<void> {
-    if (this.phase === 'absent') return;
+  awaitUnmount(): Promise<void> | undefined {
+    if (!this.hasHandle || this.phase === 'absent') return undefined;
     return new Promise<void>((resolve) => {
       this.unmountResolvers.push(resolve);
     });

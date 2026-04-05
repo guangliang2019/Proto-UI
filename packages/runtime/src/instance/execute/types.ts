@@ -29,7 +29,7 @@ export interface RuntimeController {
 export interface ExecuteWithHostResult {
   children: TemplateChildren;
   controller: RuntimeController;
-  invokeUnmounted(): void;
+  invokeUnmounted(): void | Promise<void>;
 
   /** expose module host for adapter caps injection (temporary but effective) */
   caps: ModuleOrchestrator;
