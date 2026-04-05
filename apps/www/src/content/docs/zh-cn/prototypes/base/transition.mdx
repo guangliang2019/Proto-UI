@@ -93,6 +93,23 @@ Toggle Open（显示）→ Toggle Open（隐藏）
 
 Transition 是一个**底层基础组件**，用于管理元素的存在状态生命周期。它本身不渲染可见内容，而是提供状态机治理，让宿主平台（CSS、React、Vue 等）根据状态驱动实际动画。
 
+### 架构
+
+`asTransition` 被实现为一个**特权 hook**（privileged hook），而不是普通的 `asHook`。它通过系统级模块 `@proto.ui/module-presence` 来**控制结构挂载与卸载的时机**，这一行为跨越所有适配器（Web Component、React、Vue）。
+
+为什么要做成特权 hook？因为"在入场动画开始前让元素不存在于 DOM 中"，以及"在退出动画完成后再延迟卸载"，这些都属于宿主平台级能力，超出了普通原型作者通过常规 API 能访问的范围。
+
+在 `module-presence` 管理下的生命周期：
+
+```
+absent → (setIntent enter) → mounting → present → (setIntent leave) → unmounting → absent
+```
+
+- **阻塞挂载**：当过渡从 `closed` 状态启动且尚未收到进入意图时，运行时的 `mounted` 阶段会被延后。宿主适配器只有在 presence handle 解析挂载后，才会真正渲染并挂载组件。
+- **延迟卸载**：当离开动画开始（`entered → leaving`），宿主适配器会保持组件在 DOM 中。只有在 `complete()` 将状态推进到 `closed`，并且 presence handle 确认卸载后，适配器才会真正移除组件。
+
+这让状态机能与 CSS 过渡正确配合：即便适配器原本会立即移除元素，`entering` 和 `leaving` 阶段也能保证 DOM 元素始终存在。
+
 ### 状态机
 
 ```

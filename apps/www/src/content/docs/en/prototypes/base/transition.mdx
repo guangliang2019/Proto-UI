@@ -93,6 +93,23 @@ In this demo the CSS transition is set to 0.3s, so `entering` and `leaving` will
 
 Transition is a **low-level foundational component** for managing the presence lifecycle of elements. It does not render visible content itself; instead, it provides state machine governance, allowing the host platform (CSS, React, Vue, etc.) to drive actual animations based on the state.
 
+### Architecture
+
+`asTransition` is implemented as a **privileged hook** (not a regular `asHook`). It uses the system-level module `@proto.ui/module-presence` to control **structural mount and unmount timing** across all adapters (Web Component, React, Vue).
+
+Why privileged? Because delaying structural mount before "entering" starts, and delaying unmount until "leaving → closed" finishes, requires host-level capabilities that go beyond what ordinary prototype authors can access.
+
+Lifecycle under `module-presence`:
+
+```
+absent → (setIntent enter) → mounting → present → (setIntent leave) → unmounting → absent
+```
+
+- **Mount blocking**: When the transition starts at `closed` and hasn't received an enter intent, the runtime `mounted` phase is deferred. The host adapter only renders/mounts the component once the presence handle resolves the mount.
+- **Deferred unmount**: When leaving starts (`entered → leaving`), the host adapter keeps the component in the DOM. Only after `complete()` moves the state to `closed` and the presence handle confirms unmount does the adapter actually remove the component.
+
+This makes the state machine work correctly with CSS transitions, because the DOM element is guaranteed to exist during `entering` and `leaving` even when the adapter would otherwise remove it immediately.
+
 ### State Machine
 
 ```
