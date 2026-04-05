@@ -12,6 +12,8 @@ import type {
 
 export class PresenceModuleImpl extends ModuleBase {
   private phase: PresencePhase = 'absent';
+  /** Guard: only block mount/unmount when a handle was created.
+   *  Prototypes without transition hooks should not deadlock on mount. */
   private hasHandle = false;
   private mountResolvers: Array<() => void> = [];
   private unmountResolvers: Array<() => void> = [];

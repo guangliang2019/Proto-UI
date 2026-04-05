@@ -147,6 +147,9 @@ export function executeWithHost<P extends PropsBaseType>(
     });
   };
 
+  // presence mount is async by design, but executeWithHost must stay sync
+  // to avoid breaking adapter contracts across the monorepo. We defer the
+  // mounted phase via .then() so it still waits for the mount approval.
   const mountPromise = presencePort?.awaitMount();
   if (mountPromise) {
     mountPromise.then(finishMount);
