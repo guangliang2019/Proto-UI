@@ -5,6 +5,7 @@ import { PRESENCE_HOST_BRIDGE_CAP } from '../src/caps';
 describe('PresenceModuleImpl', () => {
   const createImpl = (bridge?: { mount?: () => void; unmount?: () => void }) => {
     const caps = {
+      has: (cap: any) => cap === PRESENCE_HOST_BRIDGE_CAP,
       get: (cap: any) => {
         if (cap === PRESENCE_HOST_BRIDGE_CAP) {
           return { mount: () => {}, unmount: () => {}, ...bridge };
