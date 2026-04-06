@@ -179,10 +179,10 @@ None in v0.
 
 - `transition` MUST expose `transitionState` for external subscription
 - `transition` MUST transition through states in valid paths only
-- `transition` MUST call `onBeforeEnter` before entering `entering` state
-- `transition` MUST call `onAfterEnter` after reaching `entered` state
-- `transition` MUST call `onBeforeLeave` before entering `leaving` state
-- `transition` MUST call `onAfterLeave` after reaching `closed` state
+- `transition` MUST emit `beforeEnter` event before entering `entering` state
+- `transition` MUST emit `afterEnter` event after reaching `entered` state
+- `transition` MUST emit `beforeLeave` event before entering `leaving` state
+- `transition` MUST emit `afterLeave` event after reaching `closed` state
 
 ### Interruption
 
