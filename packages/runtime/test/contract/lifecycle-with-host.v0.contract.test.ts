@@ -56,7 +56,7 @@ function createMockHost() {
 }
 
 describe('runtime contract: lifecycle-with-host (v0)', () => {
-  it('created happens before first commit; mounted happens after first commit (host-scheduled)', () => {
+  it('created happens before first commit; mounted happens after first commit (host-scheduled)', async () => {
     const { host, calls, scheduled } = createMockHost();
 
     const P: Prototype = {
@@ -69,6 +69,9 @@ describe('runtime contract: lifecycle-with-host (v0)', () => {
     };
 
     executeWithHost(P, host);
+
+    // flush microtask so presence.then(finishMount) resolves when no handle exists
+    await Promise.resolve();
 
     // created before initial commit
     const createdIndex = calls.indexOf('created');
@@ -89,7 +92,7 @@ describe('runtime contract: lifecycle-with-host (v0)', () => {
     expect(commitIndex).toBeLessThan(mountedIndex);
   });
 
-  it('update() triggers a commit(update) then updated callback (ordering constraint)', () => {
+  it('update() triggers a commit(update) then updated callback (ordering constraint)', async () => {
     const { host, calls, scheduled, run } = createMockHost();
     // ensure mounted doesn't interfere in this test unless we flush it
     const P: Prototype = {
@@ -101,6 +104,9 @@ describe('runtime contract: lifecycle-with-host (v0)', () => {
     };
 
     const { controller } = executeWithHost(P, host);
+
+    // flush microtask for finishMount continuation
+    await Promise.resolve();
 
     // clear initial calls (we only care about update cycle ordering)
     calls.length = 0;
@@ -120,7 +126,7 @@ describe('runtime contract: lifecycle-with-host (v0)', () => {
     void run; // silence unused if your TS config complains
   });
 
-  it('unmounted is invoked when adapter calls invokeUnmounted()', () => {
+  it('unmounted is invoked when adapter calls invokeUnmounted()', async () => {
     const { host, calls } = createMockHost();
 
     const P: Prototype = {
@@ -134,13 +140,13 @@ describe('runtime contract: lifecycle-with-host (v0)', () => {
     const { invokeUnmounted } = executeWithHost(P, host);
 
     expect(calls.includes('unmounted')).toBe(false);
-    invokeUnmounted();
+    await invokeUnmounted();
     expect(calls.includes('unmounted')).toBe(true);
   });
 });
 
 describe('runtime contract: lifecycle-with-host (v0)', () => {
-  it('mounted scheduled task must not run after unmount (no-op / gated)', () => {
+  it('mounted scheduled task must not run after unmount (no-op / gated)', async () => {
     const proto = {
       name: 'test-mounted-after-unmount',
       setup(def: any) {
@@ -167,11 +173,14 @@ describe('runtime contract: lifecycle-with-host (v0)', () => {
 
     const res = executeWithHost(proto as any, host as any);
 
+    // flush microtask for finishMount continuation
+    await Promise.resolve();
+
     // Ensure mounted callback has been scheduled
     expect(scheduled).toBeTypeOf('function');
 
     // Unmount first
-    expect(() => res.invokeUnmounted()).not.toThrow();
+    await expect(res.invokeUnmounted()).resolves.not.toThrow();
 
     // Then execute scheduled mounted task => must not throw, must be effectively ignored/gated
     expect(() => scheduled?.()).not.toThrow();

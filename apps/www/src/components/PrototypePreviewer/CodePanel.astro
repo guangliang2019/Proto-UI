@@ -69,7 +69,7 @@ const highlighted = await highlightWithShiki(code, lang);
     </button>
 
     <div
-      class="[&_.shiki]:!bg-muted dark:[&_.shiki_span]:![color:var(--shiki-dark)] max-h-36 group-data-[code-expanded=false]:select-none group-data-[code-expanded=true]:overflow-y-auto no-scrollbar"
+      class="[&_.shiki]:!bg-muted dark:[&_.shiki_span]:![color:var(--shiki-dark)] max-h-36 group-data-[code-expanded=false]:select-none group-data-[code-expanded=true]:overflow-y-auto"
       data-code-content
       set:html={highlighted}
     />
@@ -103,7 +103,6 @@ const highlighted = await highlightWithShiki(code, lang);
       const toggle = shell.querySelector('[data-code-toggle]') as HTMLButtonElement | null;
       const copyBtn = shell.querySelector('[data-copy]') as HTMLButtonElement | null;
       const copyText = shell.querySelector('[data-copy-text]') as HTMLElement | null;
-      const codeEl = shell.querySelector('.proto-previewer__code code') as HTMLElement | null;
 
       function setExpanded(expanded: boolean) {
         if (shell) shell.dataset.codeExpanded = expanded ? 'true' : 'false';
@@ -156,12 +155,15 @@ const highlighted = await highlightWithShiki(code, lang);
         });
       }
 
-      if (copyBtn && codeEl && copyText) {
+      if (copyBtn && copyText) {
         const copyIconHtml = copyText.innerHTML;
         const checkIconHtml = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4.5"><path d="M20 6 9 17l-5-5"/></svg>`;
 
         copyBtn.addEventListener('click', async () => {
-          const text = codeEl.dataset.rawCode ?? codeEl.textContent ?? '';
+          const currentCodeEl = shell.querySelector(
+            '.proto-previewer__code code'
+          ) as HTMLElement | null;
+          const text = currentCodeEl?.dataset.rawCode ?? currentCodeEl?.textContent ?? '';
           try {
             await navigator.clipboard.writeText(text);
             copyText.innerHTML = checkIconHtml;

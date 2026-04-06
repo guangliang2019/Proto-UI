@@ -142,4 +142,24 @@ describe('adapter-react: expose-state-web', () => {
 
     mounted.unmount();
   });
+
+  it('maps camelCase semantic names to kebab-case data attrs', () => {
+    const proto: Prototype = {
+      name: 'react-esw-camel-case',
+      setup(def) {
+        const s = def.state.enum('transitionState', 'entering', {
+          options: ['closed', 'entering', 'entered', 'leaving'],
+        });
+        def.expose('transitionState', s);
+        return (r) => [r.el('div', 'ok')];
+      },
+    };
+
+    const mounted = createMountedReactAdapter(proto);
+
+    expect(getAttr(mounted.root, 'data-transition-state')).toBe('entering');
+    expect(getAttr(mounted.root, 'data-transitionstate')).toBe(null);
+
+    mounted.unmount();
+  });
 });

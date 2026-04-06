@@ -4,6 +4,7 @@ import type { WiringSpec } from '../types';
 
 import { RAW_PROPS_SOURCE_CAP, type RawPropsSource } from '@proto.ui/module-props';
 import { EFFECTS_CAP } from '@proto.ui/module-feedback';
+import { PRESENCE_HOST_BRIDGE_CAP, type PresenceHostBridge } from '@proto.ui/module-presence';
 import {
   EVENT_GLOBAL_TARGET_CAP,
   EVENT_EMIT_CAP,
@@ -113,6 +114,7 @@ export type CapsWiringBuilder = {
   useRuleExposeStateWeb(args: {
     nativeVariantPolicy: RuleExposeStateWebNativeVariantPolicy;
   }): CapsWiringBuilder;
+  usePresence(bridge: PresenceHostBridge): CapsWiringBuilder;
   build(): WiringSpec;
 };
 
@@ -200,6 +202,10 @@ export function createCapsWiring(): CapsWiringBuilder {
       return add('rule-expose-state-web', () => [
         [RULE_EXPOSE_STATE_WEB_NATIVE_VARIANT_POLICY_CAP, nativeVariantPolicy],
       ]);
+    },
+
+    usePresence(bridge) {
+      return add('presence', () => [[PRESENCE_HOST_BRIDGE_CAP, bridge]]);
     },
 
     build() {

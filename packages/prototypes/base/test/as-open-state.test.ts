@@ -3,7 +3,7 @@ import { definePrototype, type Prototype } from '@proto.ui/core';
 import type { RuntimeHost } from '@proto.ui/runtime';
 import { executeWithHost } from '@proto.ui/runtime';
 import { EXPOSE_SET_EXPOSES_CAP } from '@proto.ui/module-expose';
-import { useOpenState } from '../src/tools';
+import { asOpenState } from '../src/tools';
 
 function createHost(initialRaw: Record<string, unknown> = {}) {
   let raw = { ...initialRaw };
@@ -36,13 +36,13 @@ function createHost(initialRaw: Record<string, unknown> = {}) {
   };
 }
 
-describe('prototypes/base: useOpenState', () => {
+describe('prototypes/base: asOpenState', () => {
   it('supports uncontrolled defaultOpen initialization and imperative toggle', () => {
     let openHandle: any;
     const P: Prototype = definePrototype({
       name: 'x-as-open-state-0100',
       setup(def) {
-        const res = useOpenState();
+        const res = asOpenState();
         openHandle = res.getState?.('open');
         def.lifecycle.onCreated(() => {
           openHandle?.set(false, 'reason: test => close');
@@ -62,7 +62,7 @@ describe('prototypes/base: useOpenState', () => {
     const P: Prototype = definePrototype({
       name: 'x-as-open-state-0200',
       setup() {
-        useOpenState();
+        asOpenState();
         return (r) => r.el('div', 'ok');
       },
     });
@@ -84,8 +84,8 @@ describe('prototypes/base: useOpenState', () => {
     const P: Prototype = definePrototype({
       name: 'x-as-open-state-0300',
       setup(def) {
-        const res = useOpenState();
-        useOpenState();
+        const res = asOpenState();
+        asOpenState();
         openHandle = res.getState?.('open');
         def.lifecycle.onCreated(() => {
           openHandle?.set(true, 'reason: test => open');

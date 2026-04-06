@@ -42,7 +42,7 @@ It is **not yet** a full definition of:
 
 **Component → User (Feedback)**:
 
-- `transitionState` drives `data-transition` attribute for CSS styling
+- `transitionState` drives `data-transition-state` attribute for CSS styling
 - `isPresent` drives conditional rendering (element in DOM or not)
 
 ### Maker ↔ Component
@@ -63,25 +63,20 @@ It is **not yet** a full definition of:
 
 ### Component ↔ Component
 
-**Parent → Child (Context)**:
+None in v0.
 
-- Parent `transitionState` may influence child timing (if `dependsOnParentTransition`)
-- Parent leaving → children should complete exit first
-
-**Child → Parent (Context)**:
-
-- Child completion signals allow parent to delay state advance
+Nested transition coordination (group / child / boundary) is intentionally out of scope for the base `transition` protocol and should be addressed as a separate abstraction.
 
 ## State Machine
 
 ### Base States
 
-| State      | Meaning                  | `isPresent` | Platform Mapping             |
-| ---------- | ------------------------ | ----------- | ---------------------------- |
-| `closed`   | Not perceptually present | `false`     | `display: none`, unmounted   |
-| `entering` | Transitioning to present | `true`      | `data-transition="entering"` |
-| `entered`  | Fully present and stable | `true`      | `data-transition="entered"`  |
-| `leaving`  | Transitioning to absent  | `true`      | `data-transition="leaving"`  |
+| State      | Meaning                  | `isPresent` | Platform Mapping                   |
+| ---------- | ------------------------ | ----------- | ---------------------------------- |
+| `closed`   | Not perceptually present | `false`     | `display: none`, unmounted         |
+| `entering` | Transitioning to present | `true`      | `data-transition-state="entering"` |
+| `entered`  | Fully present and stable | `true`      | `data-transition-state="entered"`  |
+| `leaving`  | Transitioning to absent  | `true`      | `data-transition-state="leaving"`  |
 
 ### Transitions
 
@@ -125,7 +120,7 @@ leaving <----------------------+
 
 - `enterDuration?: number`
   - Expected enter duration (ms)
-  - Used for timeout fallback and parent coordination
+  - Used for timeout fallback
   - Default: `300`
 
 - `leaveDuration?: number`
@@ -135,10 +130,6 @@ leaving <----------------------+
 - `interrupt?: 'reverse' | 'wait' | 'immediate'`
   - Mid-transition interruption strategy
   - Default: `'reverse'`
-
-- `dependsOnParentTransition?: boolean`
-  - Declare dependency on parent transition for coordination
-  - Default: `false`
 
 ### Expose (Component → Maker)
 
@@ -173,21 +164,14 @@ None directly. Transition responds to `open` prop changes, not direct user event
 
 ### Context (Component ↔ Component)
 
-**Provided**:
-
-- Current `transitionState` for child discovery
-- Duration hints for coordination
-
-**Consumed**:
-
-- Parent transition state (if `dependsOnParentTransition`)
+None in v0.
 
 ### Feedback (Component → User)
 
 **Setup-only** (rule-based):
 
-- `data-transition` attribute mapping
-  - `when: transitionState.eq('entering')` → `intent: style.use({ attr: { 'data-transition': 'entering' } })`
+- `data-transition-state` attribute mapping
+  - `when: transitionState.eq('entering')` → `intent: style.use({ attr: { 'data-transition-state': 'entering' } })`
 
 ## Behavioral Rules
 
@@ -195,10 +179,10 @@ None directly. Transition responds to `open` prop changes, not direct user event
 
 - `transition` MUST expose `transitionState` for external subscription
 - `transition` MUST transition through states in valid paths only
-- `transition` MUST call `onBeforeEnter` before entering `entering` state
-- `transition` MUST call `onAfterEnter` after reaching `entered` state
-- `transition` MUST call `onBeforeLeave` before entering `leaving` state
-- `transition` MUST call `onAfterLeave` after reaching `closed` state
+- `transition` MUST emit `beforeEnter` event before entering `entering` state
+- `transition` MUST emit `afterEnter` event after reaching `entered` state
+- `transition` MUST emit `beforeLeave` event before entering `leaving` state
+- `transition` MUST emit `afterLeave` event after reaching `closed` state
 
 ### Interruption
 
@@ -215,12 +199,6 @@ None directly. Transition responds to `open` prop changes, not direct user event
 - `transition` MUST complete ongoing transitions before unmount when possible
 - `transition` MUST support `appear` for mount-time animation
 
-### Parent-Child
-
-- Child with `dependsOnParentTransition=true` MUST complete `leaving` before parent completes `leaving`
-- Parent MAY delay `entering` → `entered` until dependent children signal ready
-- Children are always independent for `interrupt` behavior
-
 ## Platform Mapping
 
 ### Web Platform
@@ -228,7 +206,7 @@ None directly. Transition responds to `open` prop changes, not direct user event
 **State → Attribute**:
 
 ```
-transitionState → data-transition="{state}"
+transitionState → data-transition-state="{state}"
 ```
 
 **Completion Detection**:
@@ -240,10 +218,10 @@ transitionState → data-transition="{state}"
 **CSS Targeting**:
 
 ```css
-[data-transition='entering'] {
+[data-transition-state='entering'] {
   opacity: 0;
 }
-[data-transition='entered'] {
+[data-transition-state='entered'] {
   opacity: 1;
   transition: opacity 300ms;
 }
