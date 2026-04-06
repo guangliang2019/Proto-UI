@@ -288,6 +288,11 @@ export default defineConfig({
                   slug: 'prototypes/base/hover-card',
                 },
                 {
+                  label: 'Dialog',
+                  translations: { en: 'Dialog', 'zh-CN': 'Dialog' },
+                  slug: 'prototypes/base/dialog',
+                },
+                {
                   label: 'Transition',
                   translations: { en: 'Transition', 'zh-CN': 'Transition' },
                   slug: 'prototypes/base/transition',
@@ -307,6 +312,11 @@ export default defineConfig({
                   label: 'Hover Card',
                   translations: { en: 'Hover Card', 'zh-CN': 'Hover Card' },
                   slug: 'prototypes/shadcn/hover-card',
+                },
+                {
+                  label: 'Dialog',
+                  translations: { en: 'Dialog', 'zh-CN': 'Dialog' },
+                  slug: 'prototypes/shadcn/dialog',
                 },
               ],
             },

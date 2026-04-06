@@ -1,0 +1,51 @@
+---
+title: 'Dialog'
+desp: 'Dialog'
+description: 'Dialog Shadcn prototype'
+---
+
+import PrototypePreviewer from '@/components/PrototypePreviewer/PrototypePreviewer.astro';
+
+<div class="dialog-demo-container">
+  <PrototypePreviewer
+    demoId="demo-shadcn-dialog"
+    initialRuntime="wc"
+    runtimes={['wc', 'react', 'vue']}
+    hasCode={true}
+  />
+</div>
+
+The shadcn dialog family provides the styled building blocks for modal dialogs.
+
+- **shadcn-dialog-root**: Holds the `open` state and provides context to all child parts.
+- **shadcn-dialog-trigger**: Opens or toggles the dialog on click.
+- **shadcn-dialog-overlay**: Renders the backdrop mask and follows the open state for enter/leave transitions.
+- **shadcn-dialog-content**: Handles focus trapping, overlay dismissal strategies (ESC, outside press), and enter/leave transitions.
+- **shadcn-dialog-title**: Semantic title automatically linked to content via `aria-labelledby`.
+- **shadcn-dialog-description**: Semantic description automatically linked to content via `aria-describedby`.
+- **shadcn-dialog-close**: Closes the dialog on click.
+
+Pass `alert` to `shadcn-dialog-content` to turn it into an alert dialog: it disables outside-press dismissal while keeping ESC close.
+
+<style>{`
+  .dialog-demo-container .dialog-overlay[data-transition-state="closed"],
+  .dialog-demo-container .dialog-overlay[data-transition-state="leaving"] {
+    opacity: 0;
+  }
+  .dialog-demo-container .dialog-overlay[data-transition-state="entering"],
+  .dialog-demo-container .dialog-overlay[data-transition-state="entered"] {
+    opacity: 1;
+    transition: opacity 0.2s ease;
+  }
+  .dialog-demo-container .dialog-content[data-transition-state="closed"],
+  .dialog-demo-container .dialog-content[data-transition-state="leaving"] {
+    opacity: 0;
+    transform: scale(0.96) translateY(-8px);
+  }
+  .dialog-demo-container .dialog-content[data-transition-state="entering"],
+  .dialog-demo-container .dialog-content[data-transition-state="entered"] {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+    transition: opacity 0.2s ease, transform 0.2s ease;
+  }
+`}</style>
