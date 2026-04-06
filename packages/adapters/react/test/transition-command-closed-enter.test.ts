@@ -83,7 +83,7 @@ describe('adapter-react: transition command in closed state', () => {
     }
   });
 
-  it('schedules one-frame soft unmount and supports immediate re-enter cancel', () => {
+  it('keeps closed tail frame and cancels second-frame unmount on re-enter', () => {
     const originalRaf = globalThis.requestAnimationFrame;
     const originalCancelRaf = globalThis.cancelAnimationFrame;
     let rafSeq = 0;
@@ -124,10 +124,85 @@ describe('adapter-react: transition command in closed state', () => {
       expect(mounted.root).not.toBe(null);
       expect(rafQueue.size).toBe(1);
 
-      // 在尾帧卸载触发前立即反向进入，应取消待执行卸载。
+      const first = rafQueue.entries().next().value as [number, FrameRequestCallback] | undefined;
+      expect(first).toBeTruthy();
+      if (first) {
+        rafQueue.delete(first[0]);
+        first[1](16.7);
+      }
+
+      // 第一帧后仍应保留 closed 可见帧，并排队第二帧卸载。
+      expect(mounted.root).not.toBe(null);
+      expect(rafQueue.size).toBe(1);
+
+      // 第二帧卸载触发前反向进入，应取消待执行卸载。
       callControl(mounted, 'controls.enter');
       expect(readTransitionState(mounted)).toBe('entering');
       expect(rafQueue.size).toBe(0);
+    } finally {
+      mounted.unmount();
+      globalThis.requestAnimationFrame = originalRaf;
+      globalThis.cancelAnimationFrame = originalCancelRaf;
+    }
+  });
+
+  it('keeps mounted while close transition is running and supports re-enter cancel', () => {
+    const originalRaf = globalThis.requestAnimationFrame;
+    const originalCancelRaf = globalThis.cancelAnimationFrame;
+    let rafSeq = 0;
+    const rafQueue = new Map<number, FrameRequestCallback>();
+
+    globalThis.requestAnimationFrame = ((cb: FrameRequestCallback) => {
+      const id = ++rafSeq;
+      rafQueue.set(id, cb);
+      return id;
+    }) as typeof requestAnimationFrame;
+
+    globalThis.cancelAnimationFrame = ((id: number) => {
+      rafQueue.delete(id);
+    }) as typeof cancelAnimationFrame;
+
+    const proto = definePrototype<TransitionProps>({
+      name: 'react-transition-tail-motion-gate',
+      setup() {
+        asTransition();
+        return (r) => [r.el('div', 'ok')];
+      },
+    });
+
+    const mounted = createMountedReactAdapter(proto as any, {
+      open: true,
+      appear: false,
+    });
+
+    try {
+      callControl(mounted, 'controls.complete');
+      callControl(mounted, 'controls.leave');
+      callControl(mounted, 'controls.complete');
+
+      const first = rafQueue.entries().next().value as [number, FrameRequestCallback] | undefined;
+      expect(first).toBeTruthy();
+      if (first) {
+        rafQueue.delete(first[0]);
+        first[1](16.7);
+      }
+
+      const root = mounted.root as HTMLElement | null;
+      expect(root).not.toBeNull();
+      root?.dispatchEvent(new Event('transitionrun', { bubbles: true }));
+
+      const second = rafQueue.entries().next().value as [number, FrameRequestCallback] | undefined;
+      expect(second).toBeTruthy();
+      if (second) {
+        rafQueue.delete(second[0]);
+        second[1](16.7);
+      }
+
+      mounted.ref.current?.update?.();
+      expect(mounted.root).not.toBeNull();
+
+      callControl(mounted, 'controls.enter');
+      expect(readTransitionState(mounted)).toBe('entering');
     } finally {
       mounted.unmount();
       globalThis.requestAnimationFrame = originalRaf;

@@ -74,8 +74,19 @@ export class PresenceModuleImpl extends ModuleBase {
           this.phase = 'present';
         }
       } else if (this.phase === 'unmounting') {
-        this.resolveUnmounts();
-        this.phase = 'present';
+        const mountResult = this.getBridge().mount();
+        const settle = () => {
+          this.resolveUnmounts();
+          this.phase = 'present';
+        };
+        if (mountResult && typeof (mountResult as Promise<void>).then === 'function') {
+          (mountResult as Promise<void>).then(
+            () => settle(),
+            () => settle()
+          );
+        } else {
+          settle();
+        }
       }
     } else {
       if (this.phase === 'present') {

@@ -111,17 +111,161 @@ export function createVueAdapter(runtime: VueRuntime) {
 
         let pendingCommit = false;
         let pendingSignal: CommitSignal | null = null;
-        let pendingSoftUnmountRafId: number | null = null;
+        let pendingSoftUnmount: { cancel: () => void } | null = null;
         let baselineOuterRafId: number | null = null;
         let baselineInnerRafId: number | null = null;
         let baselineSignal: CommitSignal | null = null;
         let hostSession: ReturnType<typeof createVueHostSession<Props>> | null = null;
 
         const cancelPendingSoftUnmount = () => {
-          if (pendingSoftUnmountRafId != null) {
-            cancelAnimationFrame(pendingSoftUnmountRafId);
-            pendingSoftUnmountRafId = null;
-          }
+          const pending = pendingSoftUnmount;
+          pendingSoftUnmount = null;
+          pending?.cancel();
+        };
+
+        const scheduleSoftUnmount = (): Promise<void> => {
+          cancelPendingSoftUnmount();
+
+          return new Promise<void>((resolve) => {
+            const rootEl = rootRef.value;
+            if (!rootEl) {
+              shouldExist.value = false;
+              resolve();
+              return;
+            }
+
+            let finished = false;
+            let sawMotionSignal = false;
+            let pendingTransitions = 0;
+            let pendingAnimations = 0;
+            let firstRaf: number | null = null;
+            let secondRaf: number | null = null;
+
+            const cleanup = () => {
+              rootEl.removeEventListener('transitionrun', onTransitionRun, true);
+              rootEl.removeEventListener('transitionend', onTransitionDone, true);
+              rootEl.removeEventListener('transitioncancel', onTransitionDone, true);
+              rootEl.removeEventListener('animationstart', onAnimationStart, true);
+              rootEl.removeEventListener('animationend', onAnimationDone, true);
+              rootEl.removeEventListener('animationcancel', onAnimationDone, true);
+              if (firstRaf != null) {
+                cancelAnimationFrame(firstRaf);
+                firstRaf = null;
+              }
+              if (secondRaf != null) {
+                cancelAnimationFrame(secondRaf);
+                secondRaf = null;
+              }
+            };
+
+            const finish = (applyUnmount: boolean) => {
+              if (finished) return;
+              finished = true;
+              cleanup();
+              if (pendingSoftUnmount === pending) {
+                pendingSoftUnmount = null;
+              }
+              if (applyUnmount) {
+                shouldExist.value = false;
+              }
+              resolve();
+            };
+
+            const isFromTree = (target: EventTarget | null) =>
+              target instanceof Node && rootEl.contains(target);
+
+            const tryFinishMotion = () => {
+              if (sawMotionSignal && pendingTransitions <= 0 && pendingAnimations <= 0) {
+                finish(true);
+              }
+            };
+
+            const onTransitionRun = (e: Event) => {
+              if (!isFromTree(e.target)) return;
+              sawMotionSignal = true;
+              pendingTransitions++;
+            };
+
+            const onTransitionDone = (e: Event) => {
+              if (!isFromTree(e.target)) return;
+              if (pendingTransitions > 0) pendingTransitions--;
+              tryFinishMotion();
+            };
+
+            const onAnimationStart = (e: Event) => {
+              if (!isFromTree(e.target)) return;
+              sawMotionSignal = true;
+              pendingAnimations++;
+            };
+
+            const onAnimationDone = (e: Event) => {
+              if (!isFromTree(e.target)) return;
+              if (pendingAnimations > 0) pendingAnimations--;
+              tryFinishMotion();
+            };
+
+            const captureActiveAnimations = () => {
+              const getAnimations = (
+                rootEl as HTMLElement & { getAnimations?: (opt?: unknown) => Animation[] }
+              ).getAnimations;
+              if (typeof getAnimations !== 'function') return;
+
+              let animations: Animation[] = [];
+              try {
+                animations = getAnimations.call(rootEl, { subtree: true });
+              } catch {
+                try {
+                  animations = getAnimations.call(rootEl);
+                } catch {
+                  animations = [];
+                }
+              }
+
+              for (const animation of animations) {
+                if (animation.playState === 'finished' || animation.playState === 'idle') continue;
+                sawMotionSignal = true;
+                pendingAnimations++;
+                animation.finished.then(
+                  () => {
+                    if (pendingAnimations > 0) pendingAnimations--;
+                    tryFinishMotion();
+                  },
+                  () => {
+                    if (pendingAnimations > 0) pendingAnimations--;
+                    tryFinishMotion();
+                  }
+                );
+              }
+            };
+
+            rootEl.addEventListener('transitionrun', onTransitionRun, true);
+            rootEl.addEventListener('transitionend', onTransitionDone, true);
+            rootEl.addEventListener('transitioncancel', onTransitionDone, true);
+            rootEl.addEventListener('animationstart', onAnimationStart, true);
+            rootEl.addEventListener('animationend', onAnimationDone, true);
+            rootEl.addEventListener('animationcancel', onAnimationDone, true);
+
+            // 捕获已经在运行中的动画/过渡，避免中断路径下漏掉 close 尾帧。
+            captureActiveAnimations();
+
+            firstRaf = requestAnimationFrame(() => {
+              firstRaf = null;
+              secondRaf = requestAnimationFrame(() => {
+                secondRaf = null;
+                if (!sawMotionSignal) {
+                  finish(true);
+                  return;
+                }
+                tryFinishMotion();
+              });
+            });
+
+            const pending = {
+              cancel: () => finish(false),
+            };
+
+            pendingSoftUnmount = pending;
+          });
         };
 
         const cancelBaselineFrames = () => {
@@ -245,11 +389,7 @@ export function createVueAdapter(runtime: VueRuntime) {
               shouldExist.value = true;
             },
             unmount() {
-              cancelPendingSoftUnmount();
-              pendingSoftUnmountRafId = requestAnimationFrame(() => {
-                pendingSoftUnmountRafId = null;
-                shouldExist.value = false;
-              });
+              return scheduleSoftUnmount();
             },
           };
 
