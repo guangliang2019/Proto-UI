@@ -12,7 +12,7 @@ const hoverCardContent = definePrototype<
 
     def.feedback.style.use(
       tw(
-        'absolute left-0 top-full z-50 mt-2 block w-80 rounded-xl border border-border/60 bg-background p-4 text-sm leading-6 shadow-lg'
+        'absolute left-0 top-full z-40 mt-2 block w-80 rounded-xl border border-border/60 bg-background p-4 text-sm leading-6 shadow-lg'
       )
     );
   },

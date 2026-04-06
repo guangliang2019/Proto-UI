@@ -8,6 +8,8 @@ export * from './switch';
 export * from './tabs';
 export * from './dropdown';
 export * from './hover-card';
+export * from './dialog';
 export * from './tools';
 export { default as dropdown } from './dropdown';
 export { default as hoverCard } from './hover-card';
+export { default as dialog } from './dialog';
