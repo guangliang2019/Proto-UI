@@ -4,6 +4,7 @@ import type { RuntimeHost } from '@proto.ui/runtime';
 import { executeWithHost } from '@proto.ui/runtime';
 import { EXPOSE_SET_EXPOSES_CAP } from '@proto.ui/module-expose';
 import { PRESENCE_HOST_BRIDGE_CAP } from '@proto.ui/module-presence';
+import { EVENT_EMIT_CAP } from '@proto.ui/module-event';
 import { asTransition, type TransitionProps, type TransitionExposes } from '../src/transition';
 
 function createHost(
@@ -13,6 +14,7 @@ function createHost(
   let raw: Partial<TransitionProps> = { ...initialRaw };
   let exposes: TransitionExposes | null = null;
   const bridgeCalls = { mount: 0, unmount: 0 };
+  const emitted: Array<{ key: string; payload: any }> = [];
 
   const host: RuntimeHost<TransitionProps> = {
     prototypeName: 'as-transition-contract',
@@ -45,6 +47,9 @@ function createHost(
           (next: Record<string, unknown>) => (exposes = next as TransitionExposes),
         ],
       ]);
+      wiring.attach('event', [
+        [EVENT_EMIT_CAP, (key: string, payload: any) => emitted.push({ key, payload })],
+      ]);
     },
   };
 
@@ -58,6 +63,9 @@ function createHost(
     },
     getBridgeCalls() {
       return bridgeCalls;
+    },
+    getEmitted() {
+      return emitted;
     },
   };
 }
@@ -93,13 +101,13 @@ describe('prototypes/base: asTransition', () => {
     expect(ctx.getExposes().isPresent.get()).toBe(false);
   });
 
-  it('AS-TRANSITION-0200: with open=true and appear=false, starts at entered', () => {
+  it('AS-TRANSITION-0200: with open=true and appear=false, starts at entering', () => {
     const ctx = createHost({ open: true, appear: false });
     const P = createTransitionProto('x-as-transition-0200');
 
     mountTransition(P, ctx);
 
-    expect(ctx.getExposes().transitionState.get()).toBe('entered');
+    expect(ctx.getExposes().transitionState.get()).toBe('entering');
     expect(ctx.getExposes().isPresent.get()).toBe(true);
   });
 
@@ -178,10 +186,8 @@ describe('prototypes/base: asTransition', () => {
   });
 
   it('AS-TRANSITION-0800: immediate interrupt: entering + leave should reset through entered', () => {
-    const callbacks: string[] = [];
     const ctx = createHost({
       interrupt: 'immediate',
-      onAfterEnter: () => callbacks.push('onAfterEnter'),
     });
     const P = createTransitionProto('x-as-transition-0800', (def) => {
       def.lifecycle.onMounted(() => {
@@ -193,18 +199,16 @@ describe('prototypes/base: asTransition', () => {
 
     mountTransition(P, ctx);
 
-    expect(callbacks).toEqual(['onAfterEnter']);
+    expect(ctx.getEmitted().some((e) => e.key === 'afterEnter')).toBe(true);
     expect(ctx.getExposes().transitionState.get()).toBe('leaving');
     expect(ctx.getExposes().isPresent.get()).toBe(true);
   });
 
   it('AS-TRANSITION-0900: immediate interrupt: leaving + enter should reset through closed', () => {
-    const callbacks: string[] = [];
     const ctx = createHost({
       open: true,
       appear: false,
       interrupt: 'immediate',
-      onAfterLeave: () => callbacks.push('onAfterLeave'),
     });
     const P = createTransitionProto('x-as-transition-0900', (def) => {
       def.lifecycle.onMounted(() => {
@@ -216,7 +220,7 @@ describe('prototypes/base: asTransition', () => {
 
     mountTransition(P, ctx);
 
-    expect(callbacks).toEqual(['onAfterLeave']);
+    expect(ctx.getEmitted().some((e) => e.key === 'afterLeave')).toBe(true);
     expect(ctx.getExposes().transitionState.get()).toBe('entering');
     expect(ctx.getExposes().isPresent.get()).toBe(true);
   });
@@ -268,9 +272,9 @@ describe('prototypes/base: asTransition', () => {
     mountTransition(P, ctx);
 
     expect(steps).toEqual([
-      'after-leave:leaving',
-      'after-enter:leaving',
-      'after-complete:entering',
+      'after-leave:entering',
+      'after-enter:entering',
+      'after-complete:leaving',
     ]);
     expect(ctx.getExposes().isPresent.get()).toBe(true);
   });
@@ -439,19 +443,12 @@ describe('prototypes/base: asTransition', () => {
 
     mountTransition(P, ctx);
 
-    expect(ctx.getExposes().transitionState.get()).toBe('entered');
+    expect(ctx.getExposes().transitionState.get()).toBe('entering');
     expect(ctx.getExposes().isPresent.get()).toBe(true);
   });
 
-  it('AS-TRANSITION-1700: calls lifecycle callbacks during controlled transitions', () => {
-    const callbacks: string[] = [];
-    const ctx = createHost({
-      open: false,
-      onBeforeEnter: () => callbacks.push('onBeforeEnter'),
-      onAfterEnter: () => callbacks.push('onAfterEnter'),
-      onBeforeLeave: () => callbacks.push('onBeforeLeave'),
-      onAfterLeave: () => callbacks.push('onAfterLeave'),
-    });
+  it('AS-TRANSITION-1700: emits lifecycle events during controlled transitions', () => {
+    const ctx = createHost({ open: false });
 
     const P = createTransitionProto('x-as-transition-1700', (def) => {
       def.lifecycle.onUpdated(() => {
@@ -473,7 +470,11 @@ describe('prototypes/base: asTransition', () => {
     controller.applyRawProps({ open: false });
     controller.update();
 
-    expect(callbacks).toEqual(['onBeforeEnter', 'onAfterEnter', 'onBeforeLeave', 'onAfterLeave']);
+    const keys = ctx.getEmitted().map((e) => e.key);
+    expect(keys).toContain('beforeEnter');
+    expect(keys).toContain('afterEnter');
+    expect(keys).toContain('beforeLeave');
+    expect(keys).toContain('afterLeave');
   });
 
   it('AS-TRANSITION-2000: presence bridge is driven by enter/leave/complete', async () => {

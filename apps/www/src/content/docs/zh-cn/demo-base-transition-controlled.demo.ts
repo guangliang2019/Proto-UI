@@ -2,10 +2,8 @@ import type { DemoSetupContext } from '@/components/PrototypePreviewer/demo-type
 
 export default {
   type: 'demo',
-  setup({ refs, api }: DemoSetupContext) {
-    const toggleBtn = refs.toggleBtn;
+  setup({ host, refs, api }: DemoSetupContext) {
     const label = refs.stateLabel;
-    const box = refs.box;
     if (!label) return;
 
     const getTransitionState = () =>
@@ -20,8 +18,11 @@ export default {
 
     readState();
     const mo = new MutationObserver(readState);
-    const el = refs.transition;
-    if (el) mo.observe(el, { attributes: true, attributeFilter: ['data-transition-state'] });
+    mo.observe(host, {
+      subtree: true,
+      attributes: true,
+      attributeFilter: ['data-transition-state'],
+    });
 
     const toggleOpen = () => {
       const state = getTransitionState();
@@ -29,30 +30,32 @@ export default {
       api.setProps('transition', { open: !isOpen });
     };
 
-    const onBoxClick = (e: Event) => {
-      if ((e.target as HTMLElement).closest('.transition-box')) {
+    const onHostClick = (e: Event) => {
+      const target = e.target as HTMLElement | null;
+      if (!target) return;
+      if (target.closest('[data-demo-ref="toggleBtn"]') || target.closest('.transition-box')) {
         toggleOpen();
       }
     };
 
-    toggleBtn?.addEventListener('click', toggleOpen);
-    box?.addEventListener('click', onBoxClick);
-
-    // Demo 宿主在 CSS 过渡结束后自动调用 complete 以推进状态机
-    const inner = box?.querySelector('.transition-box') ?? box;
-    const onTransitionEnd = () => {
+    // 使用 host 级别事件委托，覆盖 presence 真实卸载后的 remount 节点。
+    const onTransitionEnd = (e: Event) => {
+      const target = e.target as HTMLElement | null;
+      if (!target) return;
+      if (!target.closest('[data-demo-ref="transition"]')) return;
+      if (!target.classList.contains('transition-box')) return;
       const state = getTransitionState();
       if (state === 'entering' || state === 'leaving') {
         api.call('transition', 'controls.complete');
       }
     };
-    inner?.addEventListener('transitionend', onTransitionEnd);
+    host.addEventListener('click', onHostClick);
+    host.addEventListener('transitionend', onTransitionEnd);
 
     return () => {
       mo.disconnect();
-      toggleBtn?.removeEventListener('click', toggleOpen);
-      box?.removeEventListener('click', onBoxClick);
-      inner?.removeEventListener('transitionend', onTransitionEnd);
+      host.removeEventListener('click', onHostClick);
+      host.removeEventListener('transitionend', onTransitionEnd);
     };
   },
   root: {

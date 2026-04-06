@@ -121,7 +121,7 @@ This separation means:
 
 1. **Adapters only deal with presence.** A React or Vue adapter does not need to know about `entering` vs `entered`; it only needs to respect the `mount()` / `unmount()` signals from `module-presence`.
 2. **Transition authors only deal with the state machine.** They do not need to worry about host-level structural timing because `asTransition` delegates that to `module-presence` automatically.
-3. **Physical removal is advisory for some hosts.** In Web Components, the browser controls structural presence via `connectedCallback` / `disconnectedCallback`. In React and Vue, the adapters also keep the DOM element during `closed` (hiding it with CSS) so that CSS transitions, ref callbacks, and imperative APIs remain reliable when moving from `closed → entering`. All adapters treat the presence bridge signals as no-ops or "visual hide" directives; the element can re-enter at any time while `closed`.
+3. **Physical removal semantics differ by host.** In Web Components, the browser controls structural presence via `connectedCallback` / `disconnectedCallback`. In React and Vue, the adapters render `null` when the presence handle signals unmount, so the element is truly removed from the DOM once `leaving → closed` completes. To ensure CSS transitions still animate correctly on re-enter (`closed → entering`), React/Vue adapters insert a one-frame baseline: on the first commit after a fresh mount, they temporarily force `data-transition-state="closed"`, force a reflow, then restore the real state. This gives the browser the style anchor it needs before switching to `entering`.
 
 ### Best Practices
 

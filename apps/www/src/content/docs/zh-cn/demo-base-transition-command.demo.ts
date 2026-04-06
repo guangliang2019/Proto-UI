@@ -2,7 +2,7 @@ import type { DemoSetupContext } from '@/components/PrototypePreviewer/demo-type
 
 export default {
   type: 'demo',
-  setup({ refs, api }: DemoSetupContext) {
+  setup({ host, refs, api }: DemoSetupContext) {
     const enterBtn = refs.enterBtn;
     const leaveBtn = refs.leaveBtn;
     const completeBtn = refs.completeBtn;
@@ -21,8 +21,11 @@ export default {
 
     readState();
     const mo = new MutationObserver(readState);
-    const el = refs.transition;
-    if (el) mo.observe(el, { attributes: true, attributeFilter: ['data-transition-state'] });
+    mo.observe(host, {
+      subtree: true,
+      attributes: true,
+      attributeFilter: ['data-transition-state'],
+    });
 
     const onEnter = () => api.call('transition', 'controls.enter');
     const onLeave = () => api.call('transition', 'controls.leave');

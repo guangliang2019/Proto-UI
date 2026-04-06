@@ -2,8 +2,8 @@ export { asEscapeKey } from './as-escape-key';
 export type { EscapeKeyOptions } from './as-escape-key';
 export { asOpenState } from './as-open-state';
 export type { OpenStateExposes, OpenStateHandles, OpenStateOptions } from './as-open-state';
-// asTransition 已移动到 transition 目录
-export { asTransition } from '../transition';
+// asTransition 已移动到 @proto.ui/hooks
+export { asTransition } from '@proto.ui/hooks';
 export type {
   TransitionExposes,
   TransitionHandles,
@@ -11,4 +11,4 @@ export type {
   TransitionState,
   TransitionProps,
   TransitionControls,
-} from '../transition';
+} from '@proto.ui/hooks';

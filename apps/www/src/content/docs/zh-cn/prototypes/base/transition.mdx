@@ -121,7 +121,7 @@ absent → (setIntent enter) → mounting → present → (setIntent leave) → 
 
 1. **适配器只需要关心 presence。** React 或 Vue 适配器不需要了解 `entering` 和 `entered` 的区别，只需响应 `module-presence` 发出的 `mount()` / `unmount()` 信号即可。
 2. **Transition 使用者只需要关心状态机。** 不需要操心宿主层面的结构挂载时机，因为 `asTransition` 已经自动把这些委托给 `module-presence`。
-3. **物理移除对某些宿主是咨询性的。** 在 Web Component 中，浏览器通过 `connectedCallback` / `disconnectedCallback` 控制结构存在；而在 React 和 Vue 中，适配器为了保证 CSS 过渡、ref 回调和 imperative API 在 `closed → entering` 时可靠工作，也会在 `closed` 阶段保留 DOM，仅通过 CSS 隐藏元素。所有适配器都将 presence bridge 信号视为 no-op 或「视觉隐藏」指令，元素在 `closed` 期间随时可以重新 `enter`。
+3. **物理移除的语义因宿主而异。** 在 Web Component 中，浏览器通过 `connectedCallback` / `disconnectedCallback` 控制结构存在。而在 React 和 Vue 中，当 presence handle 发出卸载信号时，适配器会渲染 `null`，因此在 `leaving → closed` 完成后，元素会被真正从 DOM 中移除。为了保证在重新进入（`closed → entering`）时 CSS 过渡仍能正确播放，React/Vue 适配器会在首次挂载后的第一帧插入一个 baseline：临时强制 `data-transition-state="closed"`，触发强制回流（reflow），然后恢复真实状态。这让浏览器在切换到 `entering` 之前获得必要的样式锚点。
 
 ### 最佳实践
 
