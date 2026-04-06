@@ -83,7 +83,7 @@ describe('adapter-react: transition command in closed state', () => {
     }
   });
 
-  it('delays soft unmount by one frame after leaving completes', () => {
+  it('schedules one-frame soft unmount and supports immediate re-enter cancel', () => {
     const originalRaf = globalThis.requestAnimationFrame;
     const originalCancelRaf = globalThis.cancelAnimationFrame;
     let rafSeq = 0;
@@ -124,15 +124,9 @@ describe('adapter-react: transition command in closed state', () => {
       expect(mounted.root).not.toBe(null);
       expect(rafQueue.size).toBe(1);
 
-      const next = rafQueue.entries().next().value as [number, FrameRequestCallback] | undefined;
-      expect(next).toBeTruthy();
-      if (next) {
-        rafQueue.delete(next[0]);
-        next[1](16.7);
-      }
-
-      mounted.update();
-      expect(mounted.root).toBe(null);
+      // 在尾帧卸载触发前立即反向进入，应取消待执行卸载。
+      callControl(mounted, 'controls.enter');
+      expect(readTransitionState(mounted)).toBe('entering');
       expect(rafQueue.size).toBe(0);
     } finally {
       mounted.unmount();
