@@ -111,10 +111,18 @@ export function createVueAdapter(runtime: VueRuntime) {
 
         let pendingCommit = false;
         let pendingSignal: CommitSignal | null = null;
+        let pendingSoftUnmountRafId: number | null = null;
         let baselineOuterRafId: number | null = null;
         let baselineInnerRafId: number | null = null;
         let baselineSignal: CommitSignal | null = null;
         let hostSession: ReturnType<typeof createVueHostSession<Props>> | null = null;
+
+        const cancelPendingSoftUnmount = () => {
+          if (pendingSoftUnmountRafId != null) {
+            cancelAnimationFrame(pendingSoftUnmountRafId);
+            pendingSoftUnmountRafId = null;
+          }
+        };
 
         const cancelBaselineFrames = () => {
           if (baselineOuterRafId != null) {
@@ -233,10 +241,15 @@ export function createVueAdapter(runtime: VueRuntime) {
 
           const presenceBridge = {
             mount() {
+              cancelPendingSoftUnmount();
               shouldExist.value = true;
             },
             unmount() {
-              shouldExist.value = false;
+              cancelPendingSoftUnmount();
+              pendingSoftUnmountRafId = requestAnimationFrame(() => {
+                pendingSoftUnmountRafId = null;
+                shouldExist.value = false;
+              });
             },
           };
 
@@ -292,6 +305,7 @@ export function createVueAdapter(runtime: VueRuntime) {
             } else {
               // Soft unmount: disable events and clear surfaced state,
               // but keep exposes so imperative controls can re-enter from absent.
+              cancelPendingSoftUnmount();
               cancelBaselineFrames();
               resolveBaselineSignal();
               hasBeenUnmounted = true;
@@ -303,6 +317,7 @@ export function createVueAdapter(runtime: VueRuntime) {
         );
 
         runtime.onBeforeUnmount(() => {
+          cancelPendingSoftUnmount();
           cancelBaselineFrames();
           resolveBaselineSignal();
           if (hostSession) {

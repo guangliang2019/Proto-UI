@@ -102,9 +102,17 @@ export function createReactAdapter(runtimeInput: ReactRuntimeInput) {
       const pendingSignalRef = runtime.useRef<CommitSignal | null>(null);
       const hostSessionRef = runtime.useRef<{ dispose(): void } | null>(null);
       const hasBeenUnmountedRef = runtime.useRef(false);
+      const pendingSoftUnmountRafRef = runtime.useRef<number | null>(null);
       const baselineOuterRafRef = runtime.useRef<number | null>(null);
       const baselineInnerRafRef = runtime.useRef<number | null>(null);
       const baselineSignalRef = runtime.useRef<CommitSignal | null>(null);
+
+      const cancelPendingSoftUnmount = () => {
+        if (pendingSoftUnmountRafRef.current != null) {
+          cancelAnimationFrame(pendingSoftUnmountRafRef.current);
+          pendingSoftUnmountRafRef.current = null;
+        }
+      };
 
       const cancelBaselineFrames = () => {
         if (baselineOuterRafRef.current != null) {
@@ -156,6 +164,7 @@ export function createReactAdapter(runtimeInput: ReactRuntimeInput) {
           // Soft unmount: presence requested unmount, but adapter component remains in tree.
           // Disable events and clear visual host tokens, but keep exposes so imperative
           // methods (e.g. controls.enter) can still re-enter from closed/absent.
+          cancelPendingSoftUnmount();
           cancelBaselineFrames();
           resolveBaselineSignal();
           hasBeenUnmountedRef.current = true;
@@ -194,10 +203,15 @@ export function createReactAdapter(runtimeInput: ReactRuntimeInput) {
 
         const presenceBridge = {
           mount() {
+            cancelPendingSoftUnmount();
             setShouldExist(true);
           },
           unmount() {
-            setShouldExist(false);
+            cancelPendingSoftUnmount();
+            pendingSoftUnmountRafRef.current = requestAnimationFrame(() => {
+              pendingSoftUnmountRafRef.current = null;
+              setShouldExist(false);
+            });
           },
         };
 
@@ -248,6 +262,7 @@ export function createReactAdapter(runtimeInput: ReactRuntimeInput) {
       // unconditionally dispose any remaining session so the prototype runtime is torn down.
       runtime.useLayoutEffect(() => {
         return () => {
+          cancelPendingSoftUnmount();
           cancelBaselineFrames();
           resolveBaselineSignal();
           if (hostSessionRef.current) {
