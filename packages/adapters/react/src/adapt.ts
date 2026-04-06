@@ -4,6 +4,7 @@ import {
   createHostWiring,
   createEventGate,
   createWebProtoEventRouter,
+  createSoftUnmountScheduler,
 } from '@proto.ui/adapter-base';
 import type { ExposeStateWebMode } from '@proto.ui/module-expose-state-web';
 import type { RawPropsSource } from '@proto.ui/module-props';
@@ -102,162 +103,14 @@ export function createReactAdapter(runtimeInput: ReactRuntimeInput) {
       const pendingSignalRef = runtime.useRef<CommitSignal | null>(null);
       const hostSessionRef = runtime.useRef<{ dispose(): void } | null>(null);
       const hasBeenUnmountedRef = runtime.useRef(false);
-      const pendingSoftUnmountRef = runtime.useRef<{ cancel: () => void } | null>(null);
       const baselineOuterRafRef = runtime.useRef<number | null>(null);
       const baselineInnerRafRef = runtime.useRef<number | null>(null);
       const baselineSignalRef = runtime.useRef<CommitSignal | null>(null);
 
-      const cancelPendingSoftUnmount = () => {
-        const pending = pendingSoftUnmountRef.current;
-        pendingSoftUnmountRef.current = null;
-        pending?.cancel();
-      };
-
-      const scheduleSoftUnmount = (): Promise<void> => {
-        cancelPendingSoftUnmount();
-
-        return new Promise<void>((resolve) => {
-          const rootEl = rootRef.current;
-          if (!rootEl) {
-            setShouldExist(false);
-            resolve();
-            return;
-          }
-
-          let finished = false;
-          let sawMotionSignal = false;
-          let pendingTransitions = 0;
-          let pendingAnimations = 0;
-          let firstRaf: number | null = null;
-          let secondRaf: number | null = null;
-
-          const cleanup = () => {
-            rootEl.removeEventListener('transitionrun', onTransitionRun, true);
-            rootEl.removeEventListener('transitionend', onTransitionDone, true);
-            rootEl.removeEventListener('transitioncancel', onTransitionDone, true);
-            rootEl.removeEventListener('animationstart', onAnimationStart, true);
-            rootEl.removeEventListener('animationend', onAnimationDone, true);
-            rootEl.removeEventListener('animationcancel', onAnimationDone, true);
-            if (firstRaf != null) {
-              cancelAnimationFrame(firstRaf);
-              firstRaf = null;
-            }
-            if (secondRaf != null) {
-              cancelAnimationFrame(secondRaf);
-              secondRaf = null;
-            }
-          };
-
-          const finish = (applyUnmount: boolean) => {
-            if (finished) return;
-            finished = true;
-            cleanup();
-            if (pendingSoftUnmountRef.current === pending) {
-              pendingSoftUnmountRef.current = null;
-            }
-            if (applyUnmount) {
-              setShouldExist(false);
-            }
-            resolve();
-          };
-
-          const isFromTree = (target: EventTarget | null) =>
-            target instanceof Node && rootEl.contains(target);
-
-          const tryFinishMotion = () => {
-            if (sawMotionSignal && pendingTransitions <= 0 && pendingAnimations <= 0) {
-              finish(true);
-            }
-          };
-
-          const onTransitionRun = (e: Event) => {
-            if (!isFromTree(e.target)) return;
-            sawMotionSignal = true;
-            pendingTransitions++;
-          };
-
-          const onTransitionDone = (e: Event) => {
-            if (!isFromTree(e.target)) return;
-            if (pendingTransitions > 0) pendingTransitions--;
-            tryFinishMotion();
-          };
-
-          const onAnimationStart = (e: Event) => {
-            if (!isFromTree(e.target)) return;
-            sawMotionSignal = true;
-            pendingAnimations++;
-          };
-
-          const onAnimationDone = (e: Event) => {
-            if (!isFromTree(e.target)) return;
-            if (pendingAnimations > 0) pendingAnimations--;
-            tryFinishMotion();
-          };
-
-          const captureActiveAnimations = () => {
-            const getAnimations = (
-              rootEl as HTMLElement & { getAnimations?: (opt?: unknown) => Animation[] }
-            ).getAnimations;
-            if (typeof getAnimations !== 'function') return;
-
-            let animations: Animation[] = [];
-            try {
-              animations = getAnimations.call(rootEl, { subtree: true });
-            } catch {
-              try {
-                animations = getAnimations.call(rootEl);
-              } catch {
-                animations = [];
-              }
-            }
-
-            for (const animation of animations) {
-              if (animation.playState === 'finished' || animation.playState === 'idle') continue;
-              sawMotionSignal = true;
-              pendingAnimations++;
-              animation.finished.then(
-                () => {
-                  if (pendingAnimations > 0) pendingAnimations--;
-                  tryFinishMotion();
-                },
-                () => {
-                  if (pendingAnimations > 0) pendingAnimations--;
-                  tryFinishMotion();
-                }
-              );
-            }
-          };
-
-          rootEl.addEventListener('transitionrun', onTransitionRun, true);
-          rootEl.addEventListener('transitionend', onTransitionDone, true);
-          rootEl.addEventListener('transitioncancel', onTransitionDone, true);
-          rootEl.addEventListener('animationstart', onAnimationStart, true);
-          rootEl.addEventListener('animationend', onAnimationDone, true);
-          rootEl.addEventListener('animationcancel', onAnimationDone, true);
-
-          // Capture already-running motions (e.g. interrupting entering -> leaving -> complete)
-          // so unmount does not miss the tail animation if no new transitionrun is emitted.
-          captureActiveAnimations();
-
-          firstRaf = requestAnimationFrame(() => {
-            firstRaf = null;
-            secondRaf = requestAnimationFrame(() => {
-              secondRaf = null;
-              if (!sawMotionSignal) {
-                finish(true);
-                return;
-              }
-              tryFinishMotion();
-            });
-          });
-
-          const pending = {
-            cancel: () => finish(false),
-          };
-
-          pendingSoftUnmountRef.current = pending;
-        });
-      };
+      const softUnmount = createSoftUnmountScheduler(
+        () => rootRef.current,
+        () => setShouldExist(false)
+      );
 
       const cancelBaselineFrames = () => {
         if (baselineOuterRafRef.current != null) {
@@ -309,7 +162,7 @@ export function createReactAdapter(runtimeInput: ReactRuntimeInput) {
           // Soft unmount: presence requested unmount, but adapter component remains in tree.
           // Disable events and clear visual host tokens, but keep exposes so imperative
           // methods (e.g. controls.enter) can still re-enter from closed/absent.
-          cancelPendingSoftUnmount();
+          softUnmount.cancel();
           cancelBaselineFrames();
           resolveBaselineSignal();
           hasBeenUnmountedRef.current = true;
@@ -348,11 +201,11 @@ export function createReactAdapter(runtimeInput: ReactRuntimeInput) {
 
         const presenceBridge = {
           mount() {
-            cancelPendingSoftUnmount();
+            softUnmount.cancel();
             setShouldExist(true);
           },
           unmount() {
-            return scheduleSoftUnmount();
+            return softUnmount.schedule();
           },
         };
 
@@ -403,7 +256,7 @@ export function createReactAdapter(runtimeInput: ReactRuntimeInput) {
       // unconditionally dispose any remaining session so the prototype runtime is torn down.
       runtime.useLayoutEffect(() => {
         return () => {
-          cancelPendingSoftUnmount();
+          softUnmount.cancel();
           cancelBaselineFrames();
           resolveBaselineSignal();
           if (hostSessionRef.current) {

@@ -126,19 +126,19 @@ export function asTransition(options?: TransitionOptions): TransitionHandles {
     }
   };
 
+  const VALID_TRANSITIONS: Record<TransitionState, TransitionState[]> = {
+    closed: ['entering'],
+    entering: ['entered', 'leaving', 'closed'],
+    entered: ['leaving'],
+    leaving: ['closed', 'entering'],
+  };
+
   // 核心状态机迁移函数
   const transitionTo = (target: TransitionState) => {
     const current = transitionState.get();
     if (current === target) return;
 
-    const validTransitions: Record<TransitionState, TransitionState[]> = {
-      closed: ['entering'],
-      entering: ['entered', 'leaving', 'closed'],
-      entered: ['leaving'],
-      leaving: ['closed', 'entering'],
-    };
-
-    if (!validTransitions[current].includes(target)) {
+    if (!VALID_TRANSITIONS[current].includes(target)) {
       console.warn(`[asTransition] Invalid transition: ${current} → ${target}`);
       return;
     }

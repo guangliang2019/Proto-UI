@@ -10,6 +10,14 @@ import type {
   PresencePort,
 } from './types';
 
+function isPromiseLike<T>(value: T | PromiseLike<T>): value is PromiseLike<T> {
+  return (
+    value !== null &&
+    typeof value === 'object' &&
+    typeof (value as PromiseLike<T>).then === 'function'
+  );
+}
+
 export class PresenceModuleImpl extends ModuleBase {
   private phase: PresencePhase = 'absent';
   /** Guard: only block mount/unmount when a handle was created.
@@ -58,8 +66,8 @@ export class PresenceModuleImpl extends ModuleBase {
         this.phase = 'mounting';
         this.runCbsSync(this.beforeMounts);
         const mountResult = this.getBridge().mount();
-        if (mountResult && typeof (mountResult as Promise<void>).then === 'function') {
-          (mountResult as Promise<void>).then(
+        if (isPromiseLike(mountResult)) {
+          mountResult.then(
             () => {
               this.resolveMounts();
               this.phase = 'present';
@@ -79,7 +87,7 @@ export class PresenceModuleImpl extends ModuleBase {
           this.resolveUnmounts();
           this.phase = 'present';
         };
-        if (mountResult && typeof (mountResult as Promise<void>).then === 'function') {
+        if (isPromiseLike(mountResult)) {
           (mountResult as Promise<void>).then(
             () => settle(),
             () => settle()
@@ -94,7 +102,7 @@ export class PresenceModuleImpl extends ModuleBase {
       } else if (this.phase === 'unmounting') {
         this.runCbsSync(this.beforeUnmounts);
         const unmountResult = this.getBridge().unmount();
-        if (unmountResult && typeof (unmountResult as Promise<void>).then === 'function') {
+        if (isPromiseLike(unmountResult)) {
           (unmountResult as Promise<void>).then(
             () => {
               this.resolveUnmounts();
@@ -115,7 +123,7 @@ export class PresenceModuleImpl extends ModuleBase {
       } else if (this.phase === 'mounting') {
         this.resolveMounts();
         const unmountResult = this.getBridge().unmount();
-        if (unmountResult && typeof (unmountResult as Promise<void>).then === 'function') {
+        if (isPromiseLike(unmountResult)) {
           (unmountResult as Promise<void>).then(
             () => {
               this.phase = 'absent';
@@ -139,7 +147,7 @@ export class PresenceModuleImpl extends ModuleBase {
   private runCbsSync(cbs: Array<() => void | Promise<void>>) {
     for (const cb of cbs) {
       const result = cb();
-      if (result && typeof (result as Promise<void>).then === 'function') {
+      if (isPromiseLike(result)) {
         (result as Promise<void>).catch(() => {});
       }
     }
