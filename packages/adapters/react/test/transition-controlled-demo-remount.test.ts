@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 
+import type { DemoSpec } from '../../../../apps/www/src/components/PrototypePreviewer/demo-types';
 import controlledDemo from '../../../../apps/www/src/content/docs/zh-cn/demo-base-transition-controlled.demo';
 
 function mountTransitionNode(host: HTMLElement, state: string) {
@@ -65,7 +66,7 @@ describe('transition controlled demo setup', () => {
       setProps,
     };
 
-    const cleanup = (controlledDemo as any).setup?.({
+    const cleanup = (controlledDemo as DemoSpec).setup?.({
       host,
       refs: {
         toggleBtn,

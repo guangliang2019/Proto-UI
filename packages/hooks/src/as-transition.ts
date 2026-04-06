@@ -49,8 +49,8 @@ export function asTransition(options?: TransitionOptions): TransitionHandles {
       type: 'string',
       empty: 'fallback',
       enum: ['reverse', 'wait', 'immediate'],
-    } as any,
-  } as any);
+    },
+  });
 
   def.props.setDefaults({
     defaultOpen: false,
@@ -58,7 +58,7 @@ export function asTransition(options?: TransitionOptions): TransitionHandles {
     enterDuration: 300,
     leaveDuration: 200,
     interrupt: 'reverse',
-  } as any);
+  });
 
   // 注册自定义事件（替代原来的 onBeforeEnter/onAfterEnter 等回调 Props）
   def.expose.event('beforeEnter', { payload: 'void' });
@@ -273,8 +273,8 @@ export function asTransition(options?: TransitionOptions): TransitionHandles {
     syncFromProps(run);
   });
 
-  def.props.watch(['open'] as any, (run, next) => {
-    syncControlled(run, !!(next as any).open);
+  def.props.watch(['open'], (run, next) => {
+    syncControlled(run, !!next.open);
   });
 
   // 暴露公共 API

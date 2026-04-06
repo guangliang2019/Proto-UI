@@ -1,5 +1,5 @@
 import { setElementProps } from '@proto.ui/adapter-web-component';
-import { createReactAdapter } from '@proto.ui/adapter-react';
+import { createReactAdapter, type ReactRuntime } from '@proto.ui/adapter-react';
 import { createVueAdapter } from '@proto.ui/adapter-vue';
 import { getPrototype } from './registry';
 import { loadReact } from './runtimes/react-runtime';
@@ -7,25 +7,33 @@ import { loadVue } from './runtimes/vue-runtime';
 import type { DemoChild, DemoRenderOptions, DemoRenderResult, DemoRuntimeApi } from './demo-types';
 import { ensurePreviewWcRegistered } from './wc-registry';
 
-const reactRoots = new WeakMap<HTMLElement, { unmount: () => void; render: (el: any) => void }>();
-const reactComponentCache = new WeakMap<object, Map<string, any>>();
-const vueComponentCache = new WeakMap<object, Map<string, any>>();
+const reactRoots = new WeakMap<
+  HTMLElement,
+  { unmount: () => void; render: (el: unknown) => void }
+>();
+const reactComponentCache = new WeakMap<object, Map<string, object>>();
+const vueComponentCache = new WeakMap<object, Map<string, object>>();
 
-function getScopedComponentCache(
-  cache: WeakMap<object, Map<string, any>>,
+function getScopedComponentCache<T extends object>(
+  cache: WeakMap<object, Map<string, T>>,
   adapter: object
-): Map<string, any> {
+): Map<string, T> {
   let scopedCache = cache.get(adapter);
   if (!scopedCache) {
-    scopedCache = new Map<string, any>();
+    scopedCache = new Map<string, T>();
     cache.set(adapter, scopedCache);
   }
   return scopedCache;
 }
 
-function callInScope(inst: any, fn: () => void) {
-  if (typeof inst?.invokeInCallbackScope === 'function') {
-    let result: any;
+type DemoInstance = {
+  getExposes?(): Record<string, unknown>;
+  invokeInCallbackScope?(fn: () => void): void;
+};
+
+function callInScope(inst: DemoInstance, fn: () => void) {
+  if (typeof inst.invokeInCallbackScope === 'function') {
+    let result: unknown;
     inst.invokeInCallbackScope(() => {
       result = fn();
     });
@@ -59,7 +67,7 @@ function renderDemoNodeWc(node: DemoChild, parent: HTMLElement) {
   const el = document.createElement(wcName);
   if (node.className) el.className = node.className;
   if (node.ref) el.setAttribute('data-demo-ref', node.ref);
-  if (node.props) setElementProps(el, node.props as Record<string, any>);
+  if (node.props) setElementProps(el, node.props);
   parent.appendChild(el);
 
   const kids = node.children ?? [];
@@ -75,8 +83,13 @@ function collectDemoRefs(host: HTMLElement): Record<string, HTMLElement> {
   return refs;
 }
 
-function resolvePath(obj: any, path: string): any {
-  return path.split('.').reduce((o, k) => o?.[k], obj);
+function resolvePath(obj: unknown, path: string): unknown {
+  return path.split('.').reduce<unknown>((o, k) => {
+    if (o != null && typeof o === 'object') {
+      return (o as Record<string, unknown>)[k];
+    }
+    return undefined;
+  }, obj);
 }
 
 async function renderDemoWc(opt: DemoRenderOptions): Promise<DemoRenderResult> {
@@ -87,18 +100,19 @@ async function renderDemoWc(opt: DemoRenderOptions): Promise<DemoRenderResult> {
   const refs = collectDemoRefs(host);
   const api: DemoRuntimeApi = {
     call(ref, path, ...args) {
-      const el = refs[ref] as any;
+      const el = refs[ref] as DemoInstance & HTMLElement;
       if (!el) return;
       const exposes = el.getExposes?.() ?? {};
       const fn = resolvePath(exposes, path);
       if (typeof fn === 'function') return fn(...args);
     },
     getExposes(ref) {
-      const el = refs[ref] as any;
+      const el = refs[ref] as DemoInstance & HTMLElement;
       return el?.getExposes?.();
     },
     setProps(ref, next) {
-      const el = refs[ref] as any;
+      const el = refs[ref] as DemoInstance &
+        HTMLElement & { setProps?(v: Record<string, unknown>): void; update?(): void };
       if (!el) return;
       el.setProps?.(next);
       el.update?.();
@@ -119,7 +133,7 @@ async function renderDemoReact(opt: DemoRenderOptions): Promise<DemoRenderResult
   const { host, demo } = opt;
 
   const { React, ReactDOM } = await loadReact();
-  const adapter = createReactAdapter(React as any);
+  const adapter = createReactAdapter(React as unknown as ReactRuntime);
 
   const existingRoot = reactRoots.get(host);
   if (existingRoot) {
@@ -128,7 +142,7 @@ async function renderDemoReact(opt: DemoRenderOptions): Promise<DemoRenderResult
   }
   host.innerHTML = '';
 
-  const componentRefs = new Map<string, any>();
+  const componentRefs = new Map<string, DemoInstance>();
   const propsMap = new Map<string, Record<string, unknown>>();
 
   function initProps(node: DemoChild) {
@@ -140,7 +154,7 @@ async function renderDemoReact(opt: DemoRenderOptions): Promise<DemoRenderResult
   }
   initProps(demo.root);
 
-  function renderNode(node: DemoChild): any {
+  function renderNode(node: DemoChild): unknown {
     if (typeof node === 'string') return node;
     if (node.kind === 'text') return node.text;
     if (node.kind === 'box') {
@@ -156,7 +170,7 @@ async function renderDemoReact(opt: DemoRenderOptions): Promise<DemoRenderResult
     const scopedCache = getScopedComponentCache(reactComponentCache, adapter);
     let Component = scopedCache.get(node.prototypeId);
     if (!Component) {
-      Component = adapter(proto as any);
+      Component = adapter(proto as Prototype<PropsBaseType>);
       scopedCache.set(node.prototypeId, Component);
     }
     const kids = (node.children ?? []).map((child) => renderNode(child));
@@ -164,16 +178,20 @@ async function renderDemoReact(opt: DemoRenderOptions): Promise<DemoRenderResult
     if (node.ref) {
       mergedProps['data-demo-ref'] = node.ref;
       Object.assign(mergedProps, propsMap.get(node.ref) ?? {});
-      mergedProps.ref = (instance: any) => {
-        if (instance) componentRefs.set(node.ref!, instance);
+      mergedProps.ref = (instance: unknown) => {
+        if (instance) componentRefs.set(node.ref!, instance as DemoInstance);
         else componentRefs.delete(node.ref!);
       };
     }
     if (node.className) mergedProps.hostClassName = node.className;
-    return React.createElement(Component, mergedProps as any, ...kids);
+    return React.createElement(Component, mergedProps as Record<string, unknown>, ...kids);
   }
 
-  const root = (ReactDOM as any).createRoot(host);
+  const root = (
+    ReactDOM as {
+      createRoot(el: HTMLElement): { render: (el: unknown) => void; unmount: () => void };
+    }
+  ).createRoot(host);
   reactRoots.set(host, root);
 
   function renderTree() {
@@ -236,7 +254,7 @@ async function renderDemoVue(opt: DemoRenderOptions): Promise<DemoRenderResult> 
   }
   host.innerHTML = '';
 
-  const componentRefs = new Map<string, any>();
+  const componentRefs = new Map<string, DemoInstance>();
   const propsMap = Vue.reactive<Record<string, Record<string, unknown>>>({});
 
   function initProps(node: DemoChild) {
@@ -248,7 +266,7 @@ async function renderDemoVue(opt: DemoRenderOptions): Promise<DemoRenderResult> 
   }
   initProps(demo.root);
 
-  function renderNode(node: DemoChild): any {
+  function renderNode(node: DemoChild): unknown {
     if (typeof node === 'string') return node;
     if (node.kind === 'text') return node.text;
     if (node.kind === 'box') {
@@ -259,8 +277,8 @@ async function renderDemoVue(opt: DemoRenderOptions): Promise<DemoRenderResult> 
           class: node.className,
           'data-demo-ref': node.ref,
           ref: node.ref
-            ? (el: any) => {
-                if (el) componentRefs.set(node.ref!, el);
+            ? (el: unknown) => {
+                if (el) componentRefs.set(node.ref!, el as DemoInstance);
               }
             : undefined,
         },
@@ -272,7 +290,7 @@ async function renderDemoVue(opt: DemoRenderOptions): Promise<DemoRenderResult> 
     const scopedCache = getScopedComponentCache(vueComponentCache, adapter);
     let Component = scopedCache.get(node.prototypeId);
     if (!Component) {
-      Component = adapter(proto as any);
+      Component = adapter(proto as Prototype<PropsBaseType>);
       scopedCache.set(node.prototypeId, Component);
     }
     const kids = (node.children ?? []).map((child) => renderNode(child));
@@ -280,8 +298,8 @@ async function renderDemoVue(opt: DemoRenderOptions): Promise<DemoRenderResult> 
     if (node.ref) {
       mergedProps['data-demo-ref'] = node.ref;
       Object.assign(mergedProps, propsMap[node.ref] ?? {});
-      mergedProps.ref = (el: any) => {
-        if (el) componentRefs.set(node.ref!, el);
+      mergedProps.ref = (el: unknown) => {
+        if (el) componentRefs.set(node.ref!, el as DemoInstance);
       };
     }
     if (node.className) mergedProps.hostClass = node.className;

@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { definePrototype, type Prototype } from '@proto.ui/core';
+import { definePrototype, type DefHandle, type Prototype } from '@proto.ui/core';
+import type { PropsBaseType } from '@proto.ui/types';
 import type { RuntimeHost } from '@proto.ui/runtime';
 import { executeWithHost } from '@proto.ui/runtime';
 import { EXPOSE_SET_EXPOSES_CAP } from '@proto.ui/module-expose';
@@ -14,7 +15,7 @@ function createHost(
   let raw: Partial<TransitionProps> = { ...initialRaw };
   let exposes: TransitionExposes | null = null;
   const bridgeCalls = { mount: 0, unmount: 0 };
-  const emitted: Array<{ key: string; payload: any }> = [];
+  const emitted: Array<{ key: string; payload: unknown }> = [];
 
   const host: RuntimeHost<TransitionProps> = {
     prototypeName: 'as-transition-contract',
@@ -48,7 +49,7 @@ function createHost(
         ],
       ]);
       wiring.attach('event', [
-        [EVENT_EMIT_CAP, (key: string, payload: any) => emitted.push({ key, payload })],
+        [EVENT_EMIT_CAP, (key: string, payload: unknown) => emitted.push({ key, payload })],
       ]);
     },
   };
@@ -71,14 +72,15 @@ function createHost(
 }
 
 function mountTransition(proto: Prototype<TransitionProps>, ctx: ReturnType<typeof createHost>) {
-  // executeWithHost 的泛型约束与 Prototype 内部推断存在微妙不匹配，
-  // 在此处统一收敛一次强转，避免在用例中反复出现 as any
-  return executeWithHost(proto as any, ctx.host as any);
+  return executeWithHost<PropsBaseType>(
+    proto as Prototype<PropsBaseType>,
+    ctx.host as RuntimeHost<PropsBaseType>
+  );
 }
 
 function createTransitionProto(
   name: string,
-  setupCallback?: (def: any) => void
+  setupCallback?: (def: DefHandle<TransitionProps, TransitionExposes>) => void
 ): Prototype<TransitionProps> {
   return definePrototype<TransitionProps>({
     name,

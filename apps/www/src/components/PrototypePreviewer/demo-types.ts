@@ -25,9 +25,9 @@ export type DemoNode =
 export type DemoChild = DemoNode | string;
 
 export type DemoRuntimeApi = {
-  call(ref: string, path: string, ...args: any[]): any;
+  call(ref: string, path: string, ...args: unknown[]): unknown;
   getExposes(ref: string): Record<string, unknown> | undefined;
-  setProps(ref: string, next: Record<string, any>): void;
+  setProps(ref: string, next: Record<string, unknown>): void;
 };
 
 export type DemoSetupContext = {
@@ -114,7 +114,10 @@ export function assertDemoSpec(demo: DemoSpec) {
     }
     if (node.kind === 'box') {
       assertClassName((node as any).className, [...path, 'className']);
-      if ((node as any).ref !== undefined && typeof (node as any).ref !== 'string') {
+      if (
+        (node as Record<string, unknown>).ref !== undefined &&
+        typeof (node as Record<string, unknown>).ref !== 'string'
+      ) {
         throw new Error(`[PrototypePreviewer] demo ref 必须是字符串：${path.join('.')}`);
       }
     } else if (node.kind === 'proto') {
@@ -123,7 +126,10 @@ export function assertDemoSpec(demo: DemoSpec) {
         throw new Error(`[PrototypePreviewer] demo 节点缺少 prototypeId：${path.join('.')}`);
       }
       assertClassName((node as any).className, [...path, 'className']);
-      if ((node as any).ref !== undefined && typeof (node as any).ref !== 'string') {
+      if (
+        (node as Record<string, unknown>).ref !== undefined &&
+        typeof (node as Record<string, unknown>).ref !== 'string'
+      ) {
         throw new Error(`[PrototypePreviewer] demo ref 必须是字符串：${path.join('.')}`);
       }
       if ((node as any).props !== undefined) {

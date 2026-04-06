@@ -50,13 +50,17 @@ export function createWebProtoEventRouter(opt: {
     return target === rootEl || (target instanceof Node && rootEl.contains(target));
   }
 
+  type ElementWithSymbols = HTMLElement & Record<symbol, unknown>;
+
   function isProtoInstanceNode(target: EventTarget | null): target is HTMLElement {
     if (!(target instanceof HTMLElement)) return false;
-    return PROTO_INSTANCE_MARKS.some((mark) => (target as any)[mark] === true);
+    return PROTO_INSTANCE_MARKS.some((mark) => (target as ElementWithSymbols)[mark] === true);
   }
 
   function isTriggerOwnerNode(target: EventTarget | null): target is HTMLElement {
-    return target instanceof HTMLElement && (target as any)[TRIGGER_OWNER_MARK] === true;
+    return (
+      target instanceof HTMLElement && (target as ElementWithSymbols)[TRIGGER_OWNER_MARK] === true
+    );
   }
 
   function getNearestProtoInstance(target: EventTarget | null): HTMLElement | null {
@@ -124,11 +128,13 @@ export function createWebProtoEventRouter(opt: {
     return isWithinRoot(native.target);
   }
 
+  type KeyboardEventWithSymbols = KeyboardEvent & Record<symbol, Set<EventTarget> | undefined>;
+
   function getPressCommitEmittedRoots(native: KeyboardEvent): Set<EventTarget> {
-    const seen = (native as any)[PRESS_COMMIT_EMITTED_ROOTS];
+    const seen = (native as KeyboardEventWithSymbols)[PRESS_COMMIT_EMITTED_ROOTS];
     if (seen instanceof Set) return seen;
     const next = new Set<EventTarget>();
-    (native as any)[PRESS_COMMIT_EMITTED_ROOTS] = next;
+    (native as KeyboardEventWithSymbols)[PRESS_COMMIT_EMITTED_ROOTS] = next;
     return next;
   }
 

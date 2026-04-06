@@ -154,13 +154,12 @@ export function createReactAdapter(runtimeInput: ReactRuntimeInput) {
       runtime.useLayoutEffect(() => {
         if (!shouldExist) {
           // Soft unmount: presence requested unmount, but adapter component remains in tree.
-          // Disable events and clear surfaced state, but keep the session alive so it can
-          // later call presenceBridge.mount() to re-enter.
+          // Disable events and clear visual host tokens, but keep exposes so imperative
+          // methods (e.g. controls.enter) can still re-enter from closed/absent.
           cancelBaselineFrames();
           resolveBaselineSignal();
           hasBeenUnmountedRef.current = true;
           eventGateRef.current?.disable?.();
-          exposesRef.current = {};
           setHostTokens([]);
           return;
         }
@@ -289,7 +288,9 @@ export function createReactAdapter(runtimeInput: ReactRuntimeInput) {
               hasBeenUnmountedRef.current = false;
 
               const latestRoot = rootRef.current;
-              const realState = (exposesRef.current as any)?.transitionState?.get?.();
+              const realState = (
+                exposesRef.current as { transitionState?: { get?(): string } } | undefined
+              )?.transitionState?.get?.();
               if (latestRoot) {
                 if (typeof realState === 'string') {
                   latestRoot.setAttribute('data-transition-state', realState);
@@ -319,10 +320,10 @@ export function createReactAdapter(runtimeInput: ReactRuntimeInput) {
       return runtime.createElement(
         rootTag,
         {
-          ref: rootRef as any,
+          ref: rootRef as string | undefined,
           className: mergeHostClassName(props.hostClassName, hostTokens),
           style: props.hostStyle,
-          'data-demo-ref': props['data-demo-ref' as keyof typeof props] as any,
+          'data-demo-ref': props['data-demo-ref' as keyof typeof props] as string | undefined,
         },
         rendered
       );

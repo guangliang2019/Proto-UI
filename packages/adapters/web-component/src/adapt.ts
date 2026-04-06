@@ -215,10 +215,10 @@ export function AdaptToWebComponent<Props extends PropsBaseType>(
         const out: Record<string, unknown> = {};
         for (const [key, value] of Object.entries(record)) {
           if (typeof value === 'function') {
-            out[key] = (...args: any[]) => {
-              let result: any;
+            out[key] = (...args: unknown[]) => {
+              let result: unknown;
               hostSession.invokeInCallbackScope(() => {
-                result = value(...args);
+                result = (value as (...a: unknown[]) => unknown)(...args);
               });
               return result;
             };
@@ -241,7 +241,9 @@ export function AdaptToWebComponent<Props extends PropsBaseType>(
         return { ...this._wrappedExposes };
       };
 
-      (this as any).setProps = (next: Record<string, any>) => {
+      (this as unknown as { setProps?(v: Record<string, unknown>): void }).setProps = (
+        next: Record<string, unknown>
+      ) => {
         setElementProps(thisEl, next);
         controller.update();
       };

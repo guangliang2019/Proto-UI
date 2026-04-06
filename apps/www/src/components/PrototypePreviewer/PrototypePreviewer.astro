@@ -85,7 +85,7 @@ const codeMapModules = import.meta.glob('../../content/docs/demo_components/**/*
 
 function findCodeMapForDemo(targetDemoId: string): Record<RuntimeId, string> | undefined {
   for (const mod of Object.values(codeMapModules)) {
-    const map = (mod as any).codeMap as Record<RuntimeId, Record<string, string>> | undefined;
+    const map = (mod as { codeMap?: Record<RuntimeId, Record<string, string>> }).codeMap;
     if (!map) continue;
     const hasDemo = Object.values(map).some((runtimeMap) => targetDemoId in runtimeMap);
     if (!hasDemo) continue;

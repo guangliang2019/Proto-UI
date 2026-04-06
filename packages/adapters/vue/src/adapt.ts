@@ -23,7 +23,7 @@ export type VueRuntime = VueRenderRuntime & {
   h: (type: any, props?: any, children?: any) => any;
   ref: <T>(v: T) => { value: T };
   shallowRef: <T>(v: T) => { value: T };
-  watch: (src: any, cb: (...args: any[]) => void | Promise<void>, opt?: any) => void;
+  watch: (src: unknown, cb: (...args: unknown[]) => void | Promise<void>, opt?: unknown) => void;
   onMounted: (cb: () => void) => void;
   onBeforeUnmount: (cb: () => void) => void;
   nextTick: () => Promise<void>;
@@ -177,7 +177,9 @@ export function createVueAdapter(runtime: VueRuntime) {
                   baselineInnerRafId = null;
                   hasBeenUnmounted = false;
                   const latestRoot = rootRef.value;
-                  const realState = (exposesRef.value as any)?.transitionState?.get?.();
+                  const realState = (
+                    exposesRef.value as { transitionState?: { get?(): string } } | undefined
+                  )?.transitionState?.get?.();
                   if (latestRoot) {
                     if (typeof realState === 'string') {
                       latestRoot.setAttribute('data-transition-state', realState);
@@ -289,12 +291,11 @@ export function createVueAdapter(runtime: VueRuntime) {
               initSession();
             } else {
               // Soft unmount: disable events and clear surfaced state,
-              // but keep the session alive so it can later re-enter.
+              // but keep exposes so imperative controls can re-enter from absent.
               cancelBaselineFrames();
               resolveBaselineSignal();
               hasBeenUnmounted = true;
               eventGateRef.value?.disable?.();
-              exposesRef.value = {};
               hostTokens.value = [];
             }
           },
