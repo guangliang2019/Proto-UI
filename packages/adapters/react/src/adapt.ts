@@ -4,6 +4,7 @@ import {
   createHostWiring,
   createEventGate,
   createWebProtoEventRouter,
+  createSoftUnmountScheduler,
 } from '@proto.ui/adapter-base';
 import type { ExposeStateWebMode } from '@proto.ui/module-expose-state-web';
 import type { RawPropsSource } from '@proto.ui/module-props';
@@ -31,6 +32,7 @@ export type ReactRuntime = ReactRenderRuntime & {
 export type ReactAdapterHandle = {
   update(): void;
   getExposes(): Record<string, unknown>;
+  invokeInCallbackScope?(fn: () => void): void;
 };
 
 export type ReactAdapterProps<Props extends PropsBaseType> = Props &
@@ -82,10 +84,12 @@ export function createReactAdapter(runtimeInput: ReactRuntimeInput) {
       const rootRef = runtime.useRef<HTMLElement | null>(null);
       const [renderChildren, setRenderChildren] = runtime.useState<any>(null);
       const [hostTokens, setHostTokens] = runtime.useState<string[]>([]);
+      const [shouldExist, setShouldExist] = runtime.useState(true);
 
       const controllerRef = runtime.useRef<RuntimeController | null>(null);
       const eventGateRef = runtime.useRef<ReturnType<typeof createEventGate> | null>(null);
       const exposesRef = runtime.useRef<Record<string, unknown>>({});
+      const invokeInCallbackScopeRef = runtime.useRef<((fn: () => void) => void) | null>(null);
 
       const propsRef = runtime.useRef<ReactAdapterProps<Props>>(props);
       propsRef.current = props;
@@ -97,6 +101,34 @@ export function createReactAdapter(runtimeInput: ReactRuntimeInput) {
 
       const pendingCommitRef = runtime.useRef(false);
       const pendingSignalRef = runtime.useRef<CommitSignal | null>(null);
+      const commitVersionRef = runtime.useRef(0);
+      const [commitVersion, setCommitVersion] = runtime.useState(0);
+      const hostSessionRef = runtime.useRef<{ dispose(): void } | null>(null);
+      const hasBeenUnmountedRef = runtime.useRef(false);
+      const baselineOuterRafRef = runtime.useRef<number | null>(null);
+      const baselineInnerRafRef = runtime.useRef<number | null>(null);
+      const baselineSignalRef = runtime.useRef<CommitSignal | null>(null);
+
+      const softUnmount = createSoftUnmountScheduler(
+        () => rootRef.current,
+        () => setShouldExist(false)
+      );
+
+      const cancelBaselineFrames = () => {
+        if (baselineOuterRafRef.current != null) {
+          cancelAnimationFrame(baselineOuterRafRef.current);
+          baselineOuterRafRef.current = null;
+        }
+        if (baselineInnerRafRef.current != null) {
+          cancelAnimationFrame(baselineInnerRafRef.current);
+          baselineInnerRafRef.current = null;
+        }
+      };
+
+      const resolveBaselineSignal = () => {
+        baselineSignalRef.current?.done?.();
+        baselineSignalRef.current = null;
+      };
 
       if (!rawPropsSourceRef.current) {
         rawPropsSourceRef.current = {
@@ -117,6 +149,7 @@ export function createReactAdapter(runtimeInput: ReactRuntimeInput) {
         () => ({
           update: () => controllerRef.current?.update(),
           getExposes: () => ({ ...(exposesRef.current ?? {}) }),
+          invokeInCallbackScope: (fn: () => void) => invokeInCallbackScopeRef.current?.(fn),
         }),
         []
       );
@@ -127,9 +160,31 @@ export function createReactAdapter(runtimeInput: ReactRuntimeInput) {
       }, [props, autoUpdate]);
 
       runtime.useLayoutEffect(() => {
+        if (!shouldExist) {
+          // Soft unmount: presence requested unmount, but adapter component remains in tree.
+          // Disable events and clear visual host tokens, but keep exposes so imperative
+          // methods (e.g. controls.enter) can still re-enter from closed/absent.
+          softUnmount.cancel();
+          cancelBaselineFrames();
+          resolveBaselineSignal();
+          hasBeenUnmountedRef.current = true;
+          eventGateRef.current?.disable?.();
+          setHostTokens([]);
+          return;
+        }
+
         const rootEl = rootRef.current;
         if (!rootEl) return;
-        if (controllerRef.current) return;
+
+        // If there is an existing session, dispose it before creating a new one.
+        // React rendered null while shouldExist was false, so the old DOM element was
+        // removed. A new rootEl is fresh and the old router/modules are stale.
+        if (hostSessionRef.current) {
+          hostSessionRef.current.dispose();
+          hostSessionRef.current = null;
+          controllerRef.current = null;
+          eventGateRef.current = null;
+        }
 
         markProtoInstance(rootEl, proto as Prototype<any>);
 
@@ -146,6 +201,16 @@ export function createReactAdapter(runtimeInput: ReactRuntimeInput) {
           setHostTokens(tokens);
         });
 
+        const presenceBridge = {
+          mount() {
+            softUnmount.cancel();
+            setShouldExist(true);
+          },
+          unmount() {
+            return softUnmount.schedule();
+          },
+        };
+
         const rawPropsSource = rawPropsSourceRef.current as RawPropsSource<Props>;
         const modules = createReactModules({
           el: rootEl,
@@ -160,6 +225,7 @@ export function createReactAdapter(runtimeInput: ReactRuntimeInput) {
           setExposes: (record) => {
             exposesRef.current = record;
           },
+          presenceBridge,
         });
 
         const wiring = createHostWiring({ prototypeName: proto.name, modules });
@@ -175,6 +241,10 @@ export function createReactAdapter(runtimeInput: ReactRuntimeInput) {
             pendingCommitRef.current = true;
             pendingSignalRef.current = signal;
             setRenderChildren(children);
+            // React may bail out when children keeps the same reference.
+            // Use an explicit commit version so baseline/layout settlement still runs.
+            commitVersionRef.current += 1;
+            setCommitVersion(commitVersionRef.current);
           },
           onAfterUnmount: () => {
             controllerRef.current = null;
@@ -183,10 +253,23 @@ export function createReactAdapter(runtimeInput: ReactRuntimeInput) {
           },
         });
 
+        hostSessionRef.current = hostSession;
         controllerRef.current = hostSession.controller as RuntimeController;
+        invokeInCallbackScopeRef.current = hostSession.invokeInCallbackScope;
+      }, [shouldExist]);
 
+      // Hard unmount: when the React adapter component itself is removed from the parent tree,
+      // unconditionally dispose any remaining session so the prototype runtime is torn down.
+      runtime.useLayoutEffect(() => {
         return () => {
-          hostSession.dispose();
+          softUnmount.cancel();
+          cancelBaselineFrames();
+          resolveBaselineSignal();
+          if (hostSessionRef.current) {
+            hostSessionRef.current.dispose();
+            hostSessionRef.current = null;
+            controllerRef.current = null;
+          }
         };
       }, []);
 
@@ -194,21 +277,84 @@ export function createReactAdapter(runtimeInput: ReactRuntimeInput) {
         if (!pendingCommitRef.current) return;
         pendingCommitRef.current = false;
 
+        const rootEl = rootRef.current;
+        const needsBaseline =
+          rootEl && !eventGateRef.current?.isEnabled?.() && hasBeenUnmountedRef.current;
+
+        if (needsBaseline) {
+          // 为跨帧 CSS transition 做准备：真实卸载后的 remount 需要先以 closed 状态渲染一帧
+          cancelBaselineFrames();
+          resolveBaselineSignal();
+
+          rootEl!.setAttribute('data-transition-state', 'closed');
+          void rootEl!.offsetHeight;
+          eventGateRef.current?.enable();
+
+          const signal = pendingSignalRef.current;
+          pendingSignalRef.current = null;
+
+          baselineSignalRef.current = signal;
+
+          // 关键：使用双 RAF，确保 closed baseline 至少经历一帧可见提交。
+          baselineOuterRafRef.current = requestAnimationFrame(() => {
+            baselineOuterRafRef.current = null;
+            baselineInnerRafRef.current = requestAnimationFrame(() => {
+              baselineInnerRafRef.current = null;
+              hasBeenUnmountedRef.current = false;
+
+              const latestRoot = rootRef.current;
+              const realState = (
+                exposesRef.current as { transitionState?: { get?(): string } } | undefined
+              )?.transitionState?.get?.();
+              if (latestRoot) {
+                if (typeof realState === 'string') {
+                  latestRoot.setAttribute('data-transition-state', realState);
+                } else {
+                  latestRoot.removeAttribute('data-transition-state');
+                }
+              }
+
+              resolveBaselineSignal();
+            });
+          });
+          return;
+        }
+
+        // Baseline is already running (double RAF not settled yet).
+        // Keep forcing closed state and do not cancel queued baseline frames,
+        // otherwise React follow-up commits can collapse closed -> entering.
+        if (
+          hasBeenUnmountedRef.current &&
+          (baselineSignalRef.current != null ||
+            baselineOuterRafRef.current != null ||
+            baselineInnerRafRef.current != null)
+        ) {
+          rootEl?.setAttribute('data-transition-state', 'closed');
+          eventGateRef.current?.enable();
+          pendingSignalRef.current?.done?.();
+          pendingSignalRef.current = null;
+          return;
+        }
+
+        cancelBaselineFrames();
+        resolveBaselineSignal();
         eventGateRef.current?.enable();
         pendingSignalRef.current?.done?.();
         pendingSignalRef.current = null;
-      }, [renderChildren]);
+      }, [commitVersion]);
 
       const rendered = renderTemplateToReact(runtime, renderChildren, {
         slot: props.children,
       });
 
+      if (!shouldExist) return null;
       return runtime.createElement(
         rootTag,
         {
-          ref: rootRef as any,
+          ref: rootRef as { current: HTMLElement | null },
           className: mergeHostClassName(props.hostClassName, hostTokens),
           style: props.hostStyle,
+          'data-demo-ref': props['data-demo-ref' as keyof typeof props] as string | undefined,
         },
         rendered
       );

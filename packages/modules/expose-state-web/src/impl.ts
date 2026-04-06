@@ -14,6 +14,7 @@ import {
   type ExposeStateWebMode,
   type ExposeStateWebNameMap,
 } from './caps';
+import { createExposeStateWebNameMap } from './utils';
 
 type Binding = {
   key: string;
@@ -24,56 +25,6 @@ type Binding = {
   kind?: StateSpec['kind'];
   stateId?: string;
 };
-
-function defaultNameMap(semantic: string) {
-  const official = mapOfficialSemanticName(semantic);
-  if (official) {
-    return {
-      dataAttr: `data-${official}`,
-      cssVar: `--pui-${official}`,
-    };
-  }
-
-  const base = semantic
-    .trim()
-    .replace(/\s+/g, '-')
-    .replace(/\./g, '-')
-    .replace(/[^a-zA-Z0-9\-]/g, '-')
-    .replace(/-+/g, '-')
-    .replace(/^-+|-+$/g, '')
-    .toLowerCase();
-  return {
-    dataAttr: `data-${base}`,
-    cssVar: `--pui-${base}`,
-  };
-}
-
-function mapOfficialSemanticName(semantic: string): string | null {
-  switch (semantic) {
-    case '@interaction/disabled':
-      return 'disabled';
-    case '@interaction/hovered':
-      return 'hovered';
-    case '@interaction/pressed':
-      return 'pressed';
-    case '@interaction/focused':
-      return 'focused';
-    case '@interaction/focusVisible':
-      return 'focus-visible';
-    case '@accessibility/expanded':
-      return 'expanded';
-    case '@accessibility/invalid':
-      return 'invalid';
-    case '@accessibility/selected':
-      return 'selected';
-    case '@accessibility/checked':
-      return 'checked';
-    case '@accessibility/current':
-      return 'current';
-    default:
-      return null;
-  }
-}
 
 function mapOfficialAriaAttr(semantic: string): string | null {
   switch (semantic) {
@@ -167,7 +118,7 @@ export class ExposeStateWebModuleImpl extends ModuleBase {
 
     const nameMap = this.caps.has(EXPOSE_STATE_WEB_MAP_CAP)
       ? this.caps.get(EXPOSE_STATE_WEB_MAP_CAP)
-      : defaultNameMap;
+      : createExposeStateWebNameMap;
 
     const mode: ExposeStateWebMode = this.caps.has(EXPOSE_STATE_WEB_MODE_CAP)
       ? this.caps.get(EXPOSE_STATE_WEB_MODE_CAP)

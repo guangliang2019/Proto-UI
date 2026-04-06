@@ -49,4 +49,33 @@ describe('adapter-vue: expose', () => {
 
     mounted.unmount();
   });
+
+  it('supports invoking exposed control methods within callback scope', async () => {
+    const proto: Prototype = {
+      name: 'vue-expose-controls',
+      setup(def) {
+        const phase = def.state.enum('phase', 'idle', { options: ['idle', 'running'] });
+        def.expose.state('phase', phase);
+        def.expose.value('controls', {
+          run: () => phase.set('running', 'reason: test.controls.run'),
+        });
+        return (r) => [r.el('div', 'ok')];
+      },
+    };
+
+    const mounted = createMountedVueAdapter(proto);
+    await flushVue();
+
+    expect(typeof mounted.vm.invokeInCallbackScope).toBe('function');
+    expect(mounted.vm.getExposes().phase.get()).toBe('idle');
+
+    mounted.vm.invokeInCallbackScope(() => {
+      mounted.vm.getExposes().controls.run();
+    });
+    await flushVue();
+
+    expect(mounted.vm.getExposes().phase.get()).toBe('running');
+
+    mounted.unmount();
+  });
 });

@@ -148,4 +148,25 @@ describe('adapter-vue: expose-state-web', () => {
 
     mounted.unmount();
   });
+
+  it('maps camelCase semantic names to kebab-case data attrs', async () => {
+    const proto: Prototype = {
+      name: 'vue-esw-camel-case',
+      setup(def) {
+        const s = def.state.enum('transitionState', 'entering', {
+          options: ['closed', 'entering', 'entered', 'leaving'],
+        });
+        def.expose('transitionState', s);
+        return (r) => [r.el('div', 'ok')];
+      },
+    };
+
+    const mounted = createMountedVueAdapter(proto);
+    await flushVue();
+
+    expect(getAttr(mounted.root, 'data-transition-state')).toBe('entering');
+    expect(getAttr(mounted.root, 'data-transitionstate')).toBe(null);
+
+    mounted.unmount();
+  });
 });

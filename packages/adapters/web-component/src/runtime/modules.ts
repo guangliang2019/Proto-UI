@@ -1,12 +1,14 @@
 import { createCapsWiring, createDomOrderObserver } from '@proto.ui/adapter-base';
 import type { EffectsPort } from '@proto.ui/core';
 import { type RawPropsSource } from '@proto.ui/module-props';
+import {
+  createExposeStateWebNameMap,
+  createExposeStateWebNativeVariantPolicy,
+} from '@proto.ui/module-expose-state-web';
 import { type PropsBaseType } from '@proto.ui/types';
 
-import {
-  createWebComponentNameMap,
-  webComponentNativeVariantPolicy,
-} from '../platform/expose-state-web';
+import { type PresenceHostBridge } from '@proto.ui/module-presence';
+
 import { getProtoParent, getPrototypeByInstance } from '../platform/instance-tree';
 
 export function createWebComponentModules<Props extends PropsBaseType>(args: {
@@ -23,6 +25,7 @@ export function createWebComponentModules<Props extends PropsBaseType>(args: {
     allowStringVar?: boolean;
   };
   setExposes: (record: Record<string, unknown>) => void;
+  presenceBridge?: PresenceHostBridge;
 }) {
   const { el, router, rawPropsSource, effectsPort, getMeta, exposeStateWebMode, setExposes } = args;
 
@@ -32,6 +35,15 @@ export function createWebComponentModules<Props extends PropsBaseType>(args: {
     .useEventTargets({
       root: () => router.rootTarget,
       global: () => router.globalTarget,
+      emit: (key, payload, options) => {
+        const ev = new CustomEvent(key, {
+          detail: payload,
+          bubbles: true,
+          cancelable: true,
+          ...options,
+        });
+        el.dispatchEvent(ev);
+      },
     })
     .useFocus({
       instance: el,
@@ -53,7 +65,7 @@ export function createWebComponentModules<Props extends PropsBaseType>(args: {
     })
     .useExposeStateWeb({
       host: el,
-      nameMap: createWebComponentNameMap,
+      nameMap: createExposeStateWebNameMap,
       mode: exposeStateWebMode,
     })
     .useContext({
@@ -74,8 +86,9 @@ export function createWebComponentModules<Props extends PropsBaseType>(args: {
     })
     .useRuleMeta((key: string) => getMeta(key))
     .useRuleExposeStateWeb({
-      nativeVariantPolicy: webComponentNativeVariantPolicy,
+      nativeVariantPolicy: createExposeStateWebNativeVariantPolicy,
     })
+    .usePresence(args.presenceBridge ?? { mount: () => {}, unmount: () => {} })
     .build();
 }
 

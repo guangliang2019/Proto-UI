@@ -22,7 +22,7 @@ import { executeWithHost, RuntimeHost } from '../../src';
  *   - After unmount + dispose, all handle operations MUST throw (guard responsibility).
  */
 describe('runtime contract: state basic (v0)', () => {
-  it('setup: setDefault works; set throws; created sees setup-default; initial render observes it', () => {
+  it('setup: setDefault works; set throws; created sees setup-default; initial render observes it', async () => {
     const logs: string[] = [];
 
     const host: RuntimeHost<any> = {
@@ -64,11 +64,14 @@ describe('runtime contract: state basic (v0)', () => {
 
     executeWithHost(P, host);
 
+    // flush microtask so finishMount runs when no presence handle exists
+    await Promise.resolve();
+
     // created runs before first render; both should observe the setup-default value.
     expect(logs).toEqual(['created:true', 'render:true']);
   });
 
-  it('created set is visible to initial render; mounted set does not re-render until explicit update()', () => {
+  it('created set is visible to initial render; mounted set does not re-render until explicit update()', async () => {
     const commits: Array<string> = [];
     const scheduled: Array<() => void> = [];
 
@@ -115,6 +118,9 @@ describe('runtime contract: state basic (v0)', () => {
     const ret = executeWithHost(P, host);
     controller = ret.controller;
 
+    // flush microtask for finishMount continuation
+    await Promise.resolve();
+
     // initial commit must observe created-time set(1)
     expect(commits).toEqual(['commit:1']);
 
@@ -128,7 +134,7 @@ describe('runtime contract: state basic (v0)', () => {
     expect(commits).toEqual(['commit:1', 'commit:2']);
   });
 
-  it('dispose: usable during unmounted callback; after dispose, get/set/setDefault all throw', () => {
+  it('dispose: usable during unmounted callback; after dispose, get/set/setDefault all throw', async () => {
     const host: RuntimeHost<any> = {
       prototypeName: 'x-runtime-state-dispose',
       getRawProps() {
@@ -162,7 +168,7 @@ describe('runtime contract: state basic (v0)', () => {
     };
 
     const { invokeUnmounted } = executeWithHost(P, host);
-    invokeUnmounted();
+    await invokeUnmounted();
 
     // After module hub dispose, all operations must throw (guard responsibility).
     expect(() => s.get()).toThrow();

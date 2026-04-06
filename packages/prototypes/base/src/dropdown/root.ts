@@ -1,6 +1,6 @@
 import { defineAsHook, definePrototype, type DefHandle } from '@proto.ui/core';
 import { asCollection } from '@proto.ui/hooks';
-import { useOpenState } from '../tools';
+import { asOpenState } from '../tools';
 import { DROPDOWN_CONTEXT, DROPDOWN_FAMILY } from './shared';
 import type { DropdownRootAsHookContract, DropdownRootExposes, DropdownRootProps } from './types';
 
@@ -34,7 +34,7 @@ function setupDropdownRoot(def: DefHandle<DropdownRootProps, DropdownRootExposes
     openEntry: 'active-or-first',
     openEntryValue: '',
   });
-  const openState = useOpenState();
+  const openState = asOpenState();
   const open = openState.getState?.('open');
   const activeValue = def.state.string('activeValue', '');
   let controlled = false;

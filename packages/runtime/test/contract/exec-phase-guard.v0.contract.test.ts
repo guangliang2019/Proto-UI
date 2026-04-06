@@ -15,7 +15,7 @@ import { executeWithHost, RuntimeHost } from '../../src';
  * We use state module as a "probe" for __sys guards, instead of exposing __sys directly.
  */
 describe('runtime contract: exec phase guard (v0)', () => {
-  it('setup domain: runtime-only ops must throw; runtime domain begins before created/render', () => {
+  it('setup domain: runtime-only ops must throw; runtime domain begins before created/render', async () => {
     const logs: string[] = [];
 
     const host: RuntimeHost<any> = {
@@ -72,11 +72,14 @@ describe('runtime contract: exec phase guard (v0)', () => {
 
     executeWithHost(P, host);
 
+    // flush microtask so presence.then(finishMount) resolves when no handle exists
+    await Promise.resolve();
+
     // ordering sanity: created before render before mounted (host.schedule immediate here)
     expect(logs).toEqual(['created', 'render', 'mounted']);
   });
 
-  it('disposed boundary: handle is usable during unmounted; must throw after dispose', () => {
+  it('disposed boundary: handle is usable during unmounted; must throw after dispose', async () => {
     const host: RuntimeHost<any> = {
       prototypeName: 'x-runtime-exec-phase-dispose',
       getRawProps() {
@@ -110,7 +113,7 @@ describe('runtime contract: exec phase guard (v0)', () => {
     };
 
     const { invokeUnmounted } = executeWithHost(P, host);
-    invokeUnmounted();
+    await invokeUnmounted();
 
     // after invokeUnmounted finishes, module hub should be disposed by host executor,
     // and state handle must become unusable (guarded by __sys.ensureNotDisposed).
