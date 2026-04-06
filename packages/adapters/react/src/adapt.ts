@@ -101,6 +101,8 @@ export function createReactAdapter(runtimeInput: ReactRuntimeInput) {
 
       const pendingCommitRef = runtime.useRef(false);
       const pendingSignalRef = runtime.useRef<CommitSignal | null>(null);
+      const commitVersionRef = runtime.useRef(0);
+      const [commitVersion, setCommitVersion] = runtime.useState(0);
       const hostSessionRef = runtime.useRef<{ dispose(): void } | null>(null);
       const hasBeenUnmountedRef = runtime.useRef(false);
       const baselineOuterRafRef = runtime.useRef<number | null>(null);
@@ -239,6 +241,10 @@ export function createReactAdapter(runtimeInput: ReactRuntimeInput) {
             pendingCommitRef.current = true;
             pendingSignalRef.current = signal;
             setRenderChildren(children);
+            // React may bail out when children keeps the same reference.
+            // Use an explicit commit version so baseline/layout settlement still runs.
+            commitVersionRef.current += 1;
+            setCommitVersion(commitVersionRef.current);
           },
           onAfterUnmount: () => {
             controllerRef.current = null;
@@ -314,12 +320,28 @@ export function createReactAdapter(runtimeInput: ReactRuntimeInput) {
           return;
         }
 
+        // Baseline is already running (double RAF not settled yet).
+        // Keep forcing closed state and do not cancel queued baseline frames,
+        // otherwise React follow-up commits can collapse closed -> entering.
+        if (
+          hasBeenUnmountedRef.current &&
+          (baselineSignalRef.current != null ||
+            baselineOuterRafRef.current != null ||
+            baselineInnerRafRef.current != null)
+        ) {
+          rootEl?.setAttribute('data-transition-state', 'closed');
+          eventGateRef.current?.enable();
+          pendingSignalRef.current?.done?.();
+          pendingSignalRef.current = null;
+          return;
+        }
+
         cancelBaselineFrames();
         resolveBaselineSignal();
         eventGateRef.current?.enable();
         pendingSignalRef.current?.done?.();
         pendingSignalRef.current = null;
-      }, [renderChildren]);
+      }, [commitVersion]);
 
       const rendered = renderTemplateToReact(runtime, renderChildren, {
         slot: props.children,

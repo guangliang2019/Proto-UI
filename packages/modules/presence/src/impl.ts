@@ -74,13 +74,16 @@ export class PresenceModuleImpl extends ModuleBase {
         const mountResult = this.getBridge().mount();
         this.pendingMount = mountResult ?? null;
         if (isPromiseLike(mountResult)) {
+          const activeMount = mountResult;
           mountResult.then(
             () => {
+              if (this.pendingMount !== activeMount) return;
               this.pendingMount = null;
               this.resolveMounts();
               this.phase = 'present';
             },
             () => {
+              if (this.pendingMount !== activeMount) return;
               this.pendingMount = null;
               this.resolveMounts();
               this.phase = 'present';
@@ -101,13 +104,27 @@ export class PresenceModuleImpl extends ModuleBase {
         // If we are still in the first-stage unmounting (unmount() not yet called),
         // we can roll back without notifying the host.
         if (this.pendingUnmount != null) {
+          // Invalidate the currently pending unmount first so stale async
+          // completion cannot flip phase back to absent after re-enter.
+          this.pendingUnmount = null;
           const mountResult = this.getBridge().mount();
+          this.pendingMount = mountResult ?? null;
           if (isPromiseLike(mountResult)) {
+            const activeMount = mountResult;
             mountResult.then(
-              () => settle(),
-              () => settle()
+              () => {
+                if (this.pendingMount !== activeMount) return;
+                this.pendingMount = null;
+                settle();
+              },
+              () => {
+                if (this.pendingMount !== activeMount) return;
+                this.pendingMount = null;
+                settle();
+              }
             );
           } else {
+            this.pendingMount = null;
             settle();
           }
         } else {
@@ -119,17 +136,23 @@ export class PresenceModuleImpl extends ModuleBase {
         this.phase = 'unmounting';
       } else if (this.phase === 'unmounting') {
         this.runCbsSync(this.beforeUnmounts);
+        // Reverse-enter may leave a pending mount callback; invalidate it
+        // before starting unmount to avoid stale present settlement.
+        this.pendingMount = null;
         const unmountResult = this.getBridge().unmount();
         this.pendingUnmount = unmountResult ?? null;
         if (isPromiseLike(unmountResult)) {
+          const activeUnmount = unmountResult;
           unmountResult.then(
             () => {
+              if (this.pendingUnmount !== activeUnmount) return;
               this.pendingUnmount = null;
               this.resolveUnmounts();
               this.phase = 'absent';
               this.mountResolved = false;
             },
             () => {
+              if (this.pendingUnmount !== activeUnmount) return;
               this.pendingUnmount = null;
               this.resolveUnmounts();
               this.phase = 'absent';
@@ -151,19 +174,26 @@ export class PresenceModuleImpl extends ModuleBase {
         };
         // Only call bridge.unmount() if structural mount was actually started.
         if (this.pendingMount != null) {
+          // Invalidate pending mount completion before reversing.
+          this.pendingMount = null;
           const unmountResult = this.getBridge().unmount();
+          this.pendingUnmount = unmountResult ?? null;
           if (isPromiseLike(unmountResult)) {
+            const activeUnmount = unmountResult;
             unmountResult.then(
               () => {
-                this.phase = 'absent';
-                this.mountResolved = false;
+                if (this.pendingUnmount !== activeUnmount) return;
+                this.pendingUnmount = null;
+                settle();
               },
               () => {
-                this.phase = 'absent';
-                this.mountResolved = false;
+                if (this.pendingUnmount !== activeUnmount) return;
+                this.pendingUnmount = null;
+                settle();
               }
             );
           } else {
+            this.pendingUnmount = null;
             settle();
           }
         } else {

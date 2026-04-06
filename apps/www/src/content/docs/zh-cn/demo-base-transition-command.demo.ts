@@ -51,7 +51,7 @@ export default {
         prototypeId: 'base-transition',
         ref: 'transition',
         props: {
-          open: true,
+          defaultOpen: true,
           appear: true,
         },
         className: 'transition-wrapper',

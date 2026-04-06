@@ -47,6 +47,40 @@ function readTransitionState(mounted: ReturnType<typeof createMountedReactAdapte
 }
 
 describe('adapter-react: transition command in closed state', () => {
+  it('does not remount when leave is interrupted before complete', () => {
+    const proto = definePrototype<TransitionProps>({
+      name: 'react-transition-interrupt-no-remount',
+      setup() {
+        asTransition();
+        return (r) => [r.el('div', 'ok')];
+      },
+    });
+
+    const mounted = createMountedReactAdapter(proto as any, {
+      open: true,
+      appear: false,
+    });
+
+    try {
+      const firstRoot = mounted.root;
+      expect(firstRoot).not.toBeNull();
+
+      callControl(mounted, 'controls.leave');
+      expect(readTransitionState(mounted)).toBe('leaving');
+
+      callControl(mounted, 'controls.enter');
+      expect(readTransitionState(mounted)).toBe('entering');
+
+      callControl(mounted, 'controls.complete');
+      expect(readTransitionState(mounted)).toBe('entered');
+
+      // Leaving was interrupted before close-complete, so structural mount should persist.
+      expect(mounted.root).toBe(firstRoot);
+    } finally {
+      mounted.unmount();
+    }
+  });
+
   it('keeps controls.enter callable after soft unmount', () => {
     const proto = definePrototype<TransitionProps>({
       name: 'react-transition-command-closed-enter',

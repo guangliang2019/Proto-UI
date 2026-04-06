@@ -28,6 +28,7 @@ function getScopedComponentCache<T extends object>(
 
 type DemoInstance = {
   getExposes?(): Record<string, unknown>;
+  update?(): void;
   invokeInCallbackScope?(fn: () => void): void;
 };
 
@@ -104,7 +105,10 @@ async function renderDemoWc(opt: DemoRenderOptions): Promise<DemoRenderResult> {
       if (!el) return;
       const exposes = el.getExposes?.() ?? {};
       const fn = resolvePath(exposes, path);
-      if (typeof fn === 'function') return fn(...args);
+      if (typeof fn !== 'function') return;
+      const result = fn(...args);
+      el.update?.();
+      return result;
     },
     getExposes(ref) {
       const el = refs[ref] as DemoInstance & HTMLElement;
@@ -210,7 +214,9 @@ async function renderDemoReact(opt: DemoRenderOptions): Promise<DemoRenderResult
       const exposes = inst.getExposes?.() ?? {};
       const fn = resolvePath(exposes, path);
       if (typeof fn !== 'function') return;
-      return callInScope(inst, () => fn(...args));
+      const result = callInScope(inst, () => fn(...args));
+      inst.update?.();
+      return result;
     },
     getExposes(ref) {
       const inst = componentRefs.get(ref);
@@ -325,7 +331,9 @@ async function renderDemoVue(opt: DemoRenderOptions): Promise<DemoRenderResult> 
       const exposes = inst.getExposes?.() ?? {};
       const fn = resolvePath(exposes, path);
       if (typeof fn !== 'function') return;
-      return callInScope(inst, () => fn(...args));
+      const result = callInScope(inst, () => fn(...args));
+      inst.update?.();
+      return result;
     },
     getExposes(ref) {
       const inst = componentRefs.get(ref);

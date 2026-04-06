@@ -48,6 +48,41 @@ function readTransitionState(mounted: ReturnType<typeof createMountedVueAdapter>
 }
 
 describe('adapter-vue: transition command in closed state', () => {
+  it('does not remount when leave is interrupted before complete', async () => {
+    const proto = definePrototype<TransitionProps>({
+      name: 'vue-transition-interrupt-no-remount',
+      setup() {
+        asTransition();
+        return (r) => [r.el('div', 'ok')];
+      },
+    });
+
+    const mounted = createMountedVueAdapter(proto as any, {
+      open: true,
+      appear: false,
+    });
+
+    try {
+      await flushVue();
+      const firstRoot = mounted.host.firstElementChild;
+      expect(firstRoot).not.toBeNull();
+
+      await callControl(mounted, 'controls.leave');
+      expect(readTransitionState(mounted)).toBe('leaving');
+
+      await callControl(mounted, 'controls.enter');
+      expect(readTransitionState(mounted)).toBe('entering');
+
+      await callControl(mounted, 'controls.complete');
+      expect(readTransitionState(mounted)).toBe('entered');
+
+      // Leaving was interrupted before close-complete, so structural mount should persist.
+      expect(mounted.host.firstElementChild).toBe(firstRoot);
+    } finally {
+      mounted.unmount();
+    }
+  });
+
   it('keeps controls.enter callable after soft unmount', async () => {
     const proto = definePrototype<TransitionProps>({
       name: 'vue-transition-command-closed-enter',

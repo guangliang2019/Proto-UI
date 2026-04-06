@@ -55,8 +55,9 @@ describe('PresenceModuleImpl', () => {
   });
 
   it('rapid interrupt unmounting -> enter cancels unmount', async () => {
+    const mount = vi.fn();
     const unmount = vi.fn();
-    const impl = createImpl({ unmount });
+    const impl = createImpl({ mount, unmount });
     const handle = impl.createHandle();
 
     await handle.setIntent('enter');
@@ -66,6 +67,42 @@ describe('PresenceModuleImpl', () => {
     handle.setIntent('enter');
     expect(handle.getPhase()).toBe('present');
     expect(unmount).not.toHaveBeenCalled();
+    // Stage-1 unmounting reversal must not issue an extra mount.
+    expect(mount).toHaveBeenCalledTimes(1);
+  });
+
+  it('ignores stale unmount completion after enter cancels pending unmount', async () => {
+    let resolveUnmount: (() => void) | null = null;
+    const mount = vi.fn();
+    const unmount = vi.fn(
+      () =>
+        new Promise<void>((resolve) => {
+          resolveUnmount = resolve;
+        })
+    );
+    const impl = createImpl({ mount, unmount });
+    const handle = impl.createHandle();
+
+    await handle.setIntent('enter');
+    handle.setIntent('leave');
+    const unmountGate = impl.awaitUnmount();
+    handle.setIntent('leave');
+
+    expect(handle.getPhase()).toBe('unmounting');
+    expect(unmount).toHaveBeenCalledOnce();
+
+    // Reverse while unmount promise is pending.
+    handle.setIntent('enter');
+    expect(handle.getPhase()).toBe('present');
+    await unmountGate;
+
+    // Initial enter + reverse-enter while pending unmount.
+    expect(mount).toHaveBeenCalledTimes(2);
+
+    // Late completion of the canceled unmount must be ignored.
+    resolveUnmount?.();
+    await Promise.resolve();
+    expect(handle.getPhase()).toBe('present');
   });
 
   it('leave from absent resolves any pending mount and subsequent awaitMount returns undefined', async () => {
