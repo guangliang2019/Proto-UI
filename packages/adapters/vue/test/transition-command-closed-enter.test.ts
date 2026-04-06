@@ -85,4 +85,64 @@ describe('adapter-vue: transition command in closed state', () => {
       mounted.unmount();
     }
   });
+
+  it('delays soft unmount by one frame after leaving completes', async () => {
+    const originalRaf = globalThis.requestAnimationFrame;
+    const originalCancelRaf = globalThis.cancelAnimationFrame;
+    let rafSeq = 0;
+    const rafQueue = new Map<number, FrameRequestCallback>();
+
+    globalThis.requestAnimationFrame = ((cb: FrameRequestCallback) => {
+      const id = ++rafSeq;
+      rafQueue.set(id, cb);
+      return id;
+    }) as typeof requestAnimationFrame;
+
+    globalThis.cancelAnimationFrame = ((id: number) => {
+      rafQueue.delete(id);
+    }) as typeof cancelAnimationFrame;
+
+    const proto = definePrototype<TransitionProps>({
+      name: 'vue-transition-tail-frame-unmount',
+      setup() {
+        asTransition();
+        return (r) => [r.el('div', 'ok')];
+      },
+    });
+
+    const mounted = createMountedVueAdapter(proto as any, {
+      open: true,
+      appear: false,
+    });
+
+    try {
+      await flushVue();
+
+      await callControl(mounted, 'controls.complete');
+      expect(readTransitionState(mounted)).toBe('entered');
+
+      await callControl(mounted, 'controls.leave');
+      expect(readTransitionState(mounted)).toBe('leaving');
+
+      await callControl(mounted, 'controls.complete');
+      expect(readTransitionState(mounted)).toBe('closed');
+      expect(mounted.host.firstElementChild).not.toBeNull();
+      expect(rafQueue.size).toBe(1);
+
+      const next = rafQueue.entries().next().value as [number, FrameRequestCallback] | undefined;
+      expect(next).toBeTruthy();
+      if (next) {
+        rafQueue.delete(next[0]);
+        next[1](16.7);
+      }
+
+      await flushVue();
+      expect(mounted.host.firstElementChild).toBeNull();
+      expect(rafQueue.size).toBe(0);
+    } finally {
+      mounted.unmount();
+      globalThis.requestAnimationFrame = originalRaf;
+      globalThis.cancelAnimationFrame = originalCancelRaf;
+    }
+  });
 });

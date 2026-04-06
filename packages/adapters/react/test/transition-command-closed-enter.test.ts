@@ -82,4 +82,62 @@ describe('adapter-react: transition command in closed state', () => {
       mounted.unmount();
     }
   });
+
+  it('delays soft unmount by one frame after leaving completes', () => {
+    const originalRaf = globalThis.requestAnimationFrame;
+    const originalCancelRaf = globalThis.cancelAnimationFrame;
+    let rafSeq = 0;
+    const rafQueue = new Map<number, FrameRequestCallback>();
+
+    globalThis.requestAnimationFrame = ((cb: FrameRequestCallback) => {
+      const id = ++rafSeq;
+      rafQueue.set(id, cb);
+      return id;
+    }) as typeof requestAnimationFrame;
+
+    globalThis.cancelAnimationFrame = ((id: number) => {
+      rafQueue.delete(id);
+    }) as typeof cancelAnimationFrame;
+
+    const proto = definePrototype<TransitionProps>({
+      name: 'react-transition-tail-frame-unmount',
+      setup() {
+        asTransition();
+        return (r) => [r.el('div', 'ok')];
+      },
+    });
+
+    const mounted = createMountedReactAdapter(proto as any, {
+      open: true,
+      appear: false,
+    });
+
+    try {
+      callControl(mounted, 'controls.complete');
+      expect(readTransitionState(mounted)).toBe('entered');
+
+      callControl(mounted, 'controls.leave');
+      expect(readTransitionState(mounted)).toBe('leaving');
+
+      callControl(mounted, 'controls.complete');
+      expect(readTransitionState(mounted)).toBe('closed');
+      expect(mounted.root).not.toBe(null);
+      expect(rafQueue.size).toBe(1);
+
+      const next = rafQueue.entries().next().value as [number, FrameRequestCallback] | undefined;
+      expect(next).toBeTruthy();
+      if (next) {
+        rafQueue.delete(next[0]);
+        next[1](16.7);
+      }
+
+      mounted.update();
+      expect(mounted.root).toBe(null);
+      expect(rafQueue.size).toBe(0);
+    } finally {
+      mounted.unmount();
+      globalThis.requestAnimationFrame = originalRaf;
+      globalThis.cancelAnimationFrame = originalCancelRaf;
+    }
+  });
 });
