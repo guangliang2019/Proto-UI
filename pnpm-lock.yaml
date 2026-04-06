@@ -329,6 +329,9 @@ importers:
       '@proto.ui/module-anatomy':
         specifier: workspace:*
         version: link:../modules/anatomy
+      '@proto.ui/module-presence':
+        specifier: workspace:*
+        version: link:../modules/presence
       '@proto.ui/types':
         specifier: workspace:*
         version: link:../types
