@@ -256,6 +256,11 @@ export function createReactAdapter(runtimeInput: ReactRuntimeInput) {
         hostSessionRef.current = hostSession;
         controllerRef.current = hostSession.controller as RuntimeController;
         invokeInCallbackScopeRef.current = hostSession.invokeInCallbackScope;
+
+        const { kernel } = hostSession;
+        if (kernel && kernel.run) {
+          (kernel.run as any).host = { get: () => rootRef.current };
+        }
       }, [shouldExist]);
 
       // Hard unmount: when the React adapter component itself is removed from the parent tree,

@@ -207,7 +207,11 @@ export function AdaptToWebComponent<Props extends PropsBaseType>(
         },
       });
 
-      const { controller } = hostSession;
+      const { controller, kernel } = hostSession;
+      if (kernel && kernel.run) {
+        (kernel.run as any).host = { get: () => thisEl };
+      }
+
       installDebugHooks(thisEl, hostSession.caps);
 
       (this as any).update = () => controller.update();

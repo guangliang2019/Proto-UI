@@ -304,6 +304,11 @@ export function createVueAdapter(runtime: VueRuntime) {
 
           controllerRef.value = hostSession.controller as RuntimeController;
           invokeRef.value = hostSession.invokeInCallbackScope;
+
+          const { kernel } = hostSession;
+          if (kernel && kernel.run) {
+            (kernel.run as any).host = { get: () => rootRef.value };
+          }
         };
 
         runtime.onMounted(initSession);

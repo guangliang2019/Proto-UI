@@ -34,6 +34,7 @@ export type TransitionExposes = {
 export type TransitionHandles = {
   transitionState: State<TransitionState>;
   isPresent: State<boolean>;
+  controls: TransitionControls;
 };
 
 // asHook 选项

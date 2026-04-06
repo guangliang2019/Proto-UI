@@ -3,6 +3,7 @@ import { TemplateChildren } from '@proto.ui/core';
 import { PropsBaseType } from '@proto.ui/types';
 import { LifecycleRegistry } from '../../kernel/handles/def';
 import { ModuleOrchestrator } from '../../orchestrator/module-orchestrator';
+import type { Kernel } from '../../kernel';
 
 export interface ExecuteOptions {
   props?: any;
@@ -36,4 +37,7 @@ export interface ExecuteWithHostResult {
 
   /** invoke a function inside the runtime callback scope (for adapter expose method wrapping) */
   invokeInCallbackScope(fn: () => void): void;
+
+  /** underlying kernel reference so adapters can patch run handle extensions */
+  kernel?: Kernel<any>;
 }
