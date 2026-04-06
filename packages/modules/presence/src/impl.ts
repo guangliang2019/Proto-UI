@@ -29,6 +29,11 @@ export class PresenceModuleImpl extends ModuleBase {
   private beforeUnmounts: Array<() => void | Promise<void>> = [];
   private mountResolved = false;
 
+  /** Tracks whether bridge.mount() has actually been invoked and not yet settled. */
+  private pendingMount: void | Promise<void> | null = null;
+  /** Tracks whether bridge.unmount() has actually been invoked and not yet settled. */
+  private pendingUnmount: void | Promise<void> | null = null;
+
   private getBridge(): PresenceHostBridge {
     return this.caps.has(PRESENCE_HOST_BRIDGE_CAP)
       ? this.caps.get(PRESENCE_HOST_BRIDGE_CAP)
@@ -64,34 +69,47 @@ export class PresenceModuleImpl extends ModuleBase {
     if (intent === 'enter') {
       if (this.phase === 'absent') {
         this.phase = 'mounting';
+        this.pendingUnmount = null;
         this.runCbsSync(this.beforeMounts);
         const mountResult = this.getBridge().mount();
+        this.pendingMount = mountResult ?? null;
         if (isPromiseLike(mountResult)) {
           mountResult.then(
             () => {
+              this.pendingMount = null;
               this.resolveMounts();
               this.phase = 'present';
             },
             () => {
+              this.pendingMount = null;
               this.resolveMounts();
               this.phase = 'present';
             }
           );
         } else {
+          this.pendingMount = null;
           this.resolveMounts();
           this.phase = 'present';
         }
       } else if (this.phase === 'unmounting') {
-        const mountResult = this.getBridge().mount();
         const settle = () => {
+          this.pendingUnmount = null;
           this.resolveUnmounts();
           this.phase = 'present';
         };
-        if (isPromiseLike(mountResult)) {
-          (mountResult as Promise<void>).then(
-            () => settle(),
-            () => settle()
-          );
+        // Only call bridge.mount() if structural unmount was actually started.
+        // If we are still in the first-stage unmounting (unmount() not yet called),
+        // we can roll back without notifying the host.
+        if (this.pendingUnmount != null) {
+          const mountResult = this.getBridge().mount();
+          if (isPromiseLike(mountResult)) {
+            mountResult.then(
+              () => settle(),
+              () => settle()
+            );
+          } else {
+            settle();
+          }
         } else {
           settle();
         }
@@ -102,41 +120,54 @@ export class PresenceModuleImpl extends ModuleBase {
       } else if (this.phase === 'unmounting') {
         this.runCbsSync(this.beforeUnmounts);
         const unmountResult = this.getBridge().unmount();
+        this.pendingUnmount = unmountResult ?? null;
         if (isPromiseLike(unmountResult)) {
-          (unmountResult as Promise<void>).then(
+          unmountResult.then(
             () => {
+              this.pendingUnmount = null;
               this.resolveUnmounts();
               this.phase = 'absent';
               this.mountResolved = false;
             },
             () => {
+              this.pendingUnmount = null;
               this.resolveUnmounts();
               this.phase = 'absent';
               this.mountResolved = false;
             }
           );
         } else {
+          this.pendingUnmount = null;
           this.resolveUnmounts();
           this.phase = 'absent';
           this.mountResolved = false;
         }
       } else if (this.phase === 'mounting') {
-        this.resolveMounts();
-        const unmountResult = this.getBridge().unmount();
-        if (isPromiseLike(unmountResult)) {
-          (unmountResult as Promise<void>).then(
-            () => {
-              this.phase = 'absent';
-              this.mountResolved = false;
-            },
-            () => {
-              this.phase = 'absent';
-              this.mountResolved = false;
-            }
-          );
-        } else {
+        const settle = () => {
+          this.pendingMount = null;
+          this.resolveMounts();
           this.phase = 'absent';
           this.mountResolved = false;
+        };
+        // Only call bridge.unmount() if structural mount was actually started.
+        if (this.pendingMount != null) {
+          const unmountResult = this.getBridge().unmount();
+          if (isPromiseLike(unmountResult)) {
+            unmountResult.then(
+              () => {
+                this.phase = 'absent';
+                this.mountResolved = false;
+              },
+              () => {
+                this.phase = 'absent';
+                this.mountResolved = false;
+              }
+            );
+          } else {
+            settle();
+          }
+        } else {
+          settle();
         }
       } else if (this.phase === 'absent') {
         this.resolveMounts();
