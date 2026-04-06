@@ -335,7 +335,7 @@ export function createReactAdapter(runtimeInput: ReactRuntimeInput) {
       return runtime.createElement(
         rootTag,
         {
-          ref: rootRef as string | undefined,
+          ref: rootRef as { current: HTMLElement | null },
           className: mergeHostClassName(props.hostClassName, hostTokens),
           style: props.hostStyle,
           'data-demo-ref': props['data-demo-ref' as keyof typeof props] as string | undefined,
