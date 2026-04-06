@@ -34,10 +34,17 @@ type DemoInstance = {
 
 function callInScope(inst: DemoInstance, fn: () => void) {
   if (typeof inst.invokeInCallbackScope === 'function') {
+    let invoked = false;
     let result: unknown;
     inst.invokeInCallbackScope(() => {
+      invoked = true;
       result = fn();
     });
+    // Some adapters expose invokeInCallbackScope early but wire it later.
+    // Fallback to direct invocation so first-click controls are not dropped.
+    if (!invoked) {
+      return fn();
+    }
     return result;
   }
   return fn();
@@ -106,9 +113,7 @@ async function renderDemoWc(opt: DemoRenderOptions): Promise<DemoRenderResult> {
       const exposes = el.getExposes?.() ?? {};
       const fn = resolvePath(exposes, path);
       if (typeof fn !== 'function') return;
-      const result = fn(...args);
-      el.update?.();
-      return result;
+      return fn(...args);
     },
     getExposes(ref) {
       const el = refs[ref] as DemoInstance & HTMLElement;

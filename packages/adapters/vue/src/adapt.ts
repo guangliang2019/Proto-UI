@@ -86,6 +86,7 @@ export function createVueAdapter(runtime: VueRuntime) {
       setup(props: any, ctx: any) {
         const rootRef = runtime.ref<HTMLElement | null>(null);
         const renderChildren = runtime.shallowRef<any>(null);
+        const commitVersion = runtime.ref(0);
         const hostTokens = runtime.shallowRef<string[]>([]);
         const controllerRef = runtime.ref<RuntimeController | null>(null);
         const eventGateRef = runtime.ref<ReturnType<typeof createEventGate> | null>(null);
@@ -155,7 +156,7 @@ export function createVueAdapter(runtime: VueRuntime) {
         runtime.watch(() => ctx.attrs, notifyPropsChange, { deep: true });
 
         runtime.watch(
-          renderChildren,
+          () => commitVersion.value,
           async () => {
             if (!pendingCommit) return;
             pendingCommit = false;
@@ -198,6 +199,20 @@ export function createVueAdapter(runtime: VueRuntime) {
                   resolveBaselineSignal();
                 });
               });
+              return;
+            }
+
+            // Baseline is already running (double RAF not settled yet).
+            // Keep forcing closed state and do not cancel queued baseline frames,
+            // otherwise follow-up commits can collapse closed -> entering.
+            if (
+              hasBeenUnmounted &&
+              (baselineSignal != null || baselineOuterRafId != null || baselineInnerRafId != null)
+            ) {
+              rootEl?.setAttribute('data-transition-state', 'closed');
+              eventGateRef.value?.enable();
+              pendingSignal?.done?.();
+              pendingSignal = null;
               return;
             }
 
@@ -278,6 +293,7 @@ export function createVueAdapter(runtime: VueRuntime) {
               pendingCommit = true;
               pendingSignal = signal;
               renderChildren.value = children;
+              commitVersion.value += 1;
             },
             onAfterUnmount: () => {
               controllerRef.value = null;
