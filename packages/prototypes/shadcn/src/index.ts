@@ -22,7 +22,7 @@ export { default as shadcnDropdownItem } from './dropdown/item';
 export {
   dialogRoot,
   dialogTrigger,
-  dialogOverlay,
+  dialogMask,
   dialogContent,
   dialogTitle,
   dialogDescription,
@@ -30,7 +30,7 @@ export {
 } from './dialog';
 export { default as shadcnDialogRoot } from './dialog/root';
 export { default as shadcnDialogTrigger } from './dialog/trigger';
-export { default as shadcnDialogOverlay } from './dialog/overlay';
+export { default as shadcnDialogMask } from './dialog/overlay';
 export { default as shadcnDialogContent } from './dialog/content';
 export { default as shadcnDialogTitle } from './dialog/title';
 export { default as shadcnDialogDescription } from './dialog/description';
@@ -103,9 +103,9 @@ export type {
   ShadcnDialogTriggerProps,
   ShadcnDialogTriggerExposes,
   ShadcnDialogTriggerAsHookContract,
-  ShadcnDialogOverlayProps,
-  ShadcnDialogOverlayExposes,
-  ShadcnDialogOverlayAsHookContract,
+  ShadcnDialogMaskProps,
+  ShadcnDialogMaskExposes,
+  ShadcnDialogMaskAsHookContract,
   ShadcnDialogContentProps,
   ShadcnDialogContentExposes,
   ShadcnDialogContentAsHookContract,
