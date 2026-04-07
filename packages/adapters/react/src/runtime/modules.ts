@@ -85,13 +85,11 @@ export function createReactModules<Props extends PropsBaseType>(args: {
     .useOverlay({
       host: el,
       globalMount: {
-        mount(el) {
-          if (el.parentNode !== document.body) {
-            document.body.appendChild(el);
-          }
+        mount() {
+          // React 的 VDOM 自己管理 DOM 生命周期，不在这里做原生 portal
         },
         unmount() {
-          /* React unmount handles cleanup */
+          // React unmount handles cleanup
         },
       },
       modal: {

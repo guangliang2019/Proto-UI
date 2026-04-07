@@ -85,12 +85,12 @@ export function createVueModules<Props extends PropsBaseType>(args: {
     .useOverlay({
       host: el,
       globalMount: {
-        mount(el) {
-          if (el.parentNode !== document.body) {
-            document.body.appendChild(el);
-          }
+        mount() {
+          // Vue 的 VDOM 自己管理 DOM 生命周期，不在这里做原生 portal
         },
-        unmount() {},
+        unmount() {
+          // Vue unmount handles cleanup
+        },
       },
       modal: {
         lock() {
