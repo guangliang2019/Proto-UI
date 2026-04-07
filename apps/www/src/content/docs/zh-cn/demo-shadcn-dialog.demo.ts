@@ -11,7 +11,7 @@ export default {
       },
       {
         kind: 'proto',
-        prototypeId: 'shadcn-dialog-overlay',
+        prototypeId: 'shadcn-dialog-mask',
       },
       {
         kind: 'proto',

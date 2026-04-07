@@ -8,7 +8,7 @@ export const codeMap: Record<RuntimeId, Record<string, string>> = {
   <wc-base-dialog-trigger class="rounded border px-3 py-1.5 cursor-pointer select-none">
     Open Dialog
   </wc-base-dialog-trigger>
-  <wc-base-dialog-overlay class="bg-black/50"></wc-base-dialog-overlay>
+  <wc-base-dialog-mask class="bg-black/50"></wc-base-dialog-mask>
   <wc-base-dialog-content class="w-full max-w-md rounded-lg border bg-white p-6 shadow-xl">
     <wc-base-dialog-title class="text-lg font-semibold mb-2">Confirm Action</wc-base-dialog-title>
     <wc-base-dialog-description class="text-sm text-slate-600 mb-6">
@@ -27,7 +27,7 @@ export const codeMap: Record<RuntimeId, Record<string, string>> = {
 import {
   BaseDialogRoot,
   BaseDialogTrigger,
-  BaseDialogOverlay,
+  BaseDialogMask,
   BaseDialogContent,
   BaseDialogTitle,
   BaseDialogDescription,
@@ -40,7 +40,7 @@ export function DemoBaseDialogDemo() {
       <BaseDialogTrigger className="rounded border px-3 py-1.5 cursor-pointer select-none">
         Open Dialog
       </BaseDialogTrigger>
-      <BaseDialogOverlay className="bg-black/50" />
+      <BaseDialogMask className="bg-black/50" />
       <BaseDialogContent className="w-full max-w-md rounded-lg border bg-white p-6 shadow-xl">
         <BaseDialogTitle className="text-lg font-semibold mb-2">Confirm Action</BaseDialogTitle>
         <BaseDialogDescription className="text-sm text-slate-600 mb-6">
@@ -66,7 +66,7 @@ export function DemoBaseDialogDemo() {
 import {
   BaseDialogRoot,
   BaseDialogTrigger,
-  BaseDialogOverlay,
+  BaseDialogMask,
   BaseDialogContent,
   BaseDialogTitle,
   BaseDialogDescription,
@@ -79,7 +79,7 @@ import {
     <BaseDialogTrigger class="rounded border px-3 py-1.5 cursor-pointer select-none">
       Open Dialog
     </BaseDialogTrigger>
-    <BaseDialogOverlay class="bg-black/50" />
+    <BaseDialogMask class="bg-black/50" />
     <BaseDialogContent class="w-full max-w-md rounded-lg border bg-white p-6 shadow-xl">
       <BaseDialogTitle class="text-lg font-semibold mb-2">Confirm Action</BaseDialogTitle>
       <BaseDialogDescription class="text-sm text-slate-600 mb-6">

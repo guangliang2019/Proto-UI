@@ -13,7 +13,7 @@ export default {
       },
       {
         kind: 'proto',
-        prototypeId: 'base-dialog-overlay',
+        prototypeId: 'base-dialog-mask',
         className: 'bg-black/50',
       },
       {

@@ -19,7 +19,7 @@ The dialog family provides the protocol-layer building blocks for modal and non-
 
 - **dialog-root**: Holds the `open` state and provides context to all child parts.
 - **dialog-trigger**: Opens or toggles the dialog on click.
-- **dialog-overlay**: Renders the backdrop mask and follows the open state for enter/leave transitions.
+- **dialog-mask**: Renders the backdrop mask and follows the open state for enter/leave transitions.
 - **dialog-content**: Handles focus trapping, overlay dismissal strategies (ESC, outside press), and enter/leave transitions.
 - **dialog-title**: Semantic title automatically linked to content via `aria-labelledby`.
 - **dialog-description**: Semantic description automatically linked to content via `aria-describedby`.
@@ -28,12 +28,12 @@ The dialog family provides the protocol-layer building blocks for modal and non-
 Pass `alert` to `dialog-content` to turn it into an alert dialog: it sets `role="alertdialog"` and disables outside-press dismissal while keeping ESC close.
 
 <style>{`
-  .dialog-demo-container .dialog-overlay[data-transition-state="closed"],
-  .dialog-demo-container .dialog-overlay[data-transition-state="leaving"] {
+  .dialog-demo-container .dialog-mask[data-transition-state="closed"],
+  .dialog-demo-container .dialog-mask[data-transition-state="leaving"] {
     opacity: 0;
   }
-  .dialog-demo-container .dialog-overlay[data-transition-state="entering"],
-  .dialog-demo-container .dialog-overlay[data-transition-state="entered"] {
+  .dialog-demo-container .dialog-mask[data-transition-state="entering"],
+  .dialog-demo-container .dialog-mask[data-transition-state="entered"] {
     opacity: 1;
     transition: opacity 0.2s ease;
   }

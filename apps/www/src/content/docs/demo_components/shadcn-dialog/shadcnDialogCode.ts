@@ -6,7 +6,7 @@ export const codeMap: Record<RuntimeId, Record<string, string>> = {
     'demo-shadcn-dialog': formatCode(`
 <wc-shadcn-dialog-root class="relative inline-flex items-start">
   <wc-shadcn-dialog-trigger>Open Dialog</wc-shadcn-dialog-trigger>
-  <wc-shadcn-dialog-overlay></wc-shadcn-dialog-overlay>
+  <wc-shadcn-dialog-mask></wc-shadcn-dialog-mask>
   <wc-shadcn-dialog-content>
     <wc-shadcn-dialog-title>Edit Profile</wc-shadcn-dialog-title>
     <wc-shadcn-dialog-description>
@@ -25,7 +25,7 @@ export const codeMap: Record<RuntimeId, Record<string, string>> = {
 import {
   ShadcnDialogRoot,
   ShadcnDialogTrigger,
-  ShadcnDialogOverlay,
+  ShadcnDialogMask,
   ShadcnDialogContent,
   ShadcnDialogTitle,
   ShadcnDialogDescription,
@@ -36,7 +36,7 @@ export function DemoShadcnDialogDemo() {
   return (
     <ShadcnDialogRoot className="relative inline-flex items-start">
       <ShadcnDialogTrigger>Open Dialog</ShadcnDialogTrigger>
-      <ShadcnDialogOverlay />
+      <ShadcnDialogMask />
       <ShadcnDialogContent>
         <ShadcnDialogTitle>Edit Profile</ShadcnDialogTitle>
         <ShadcnDialogDescription>
@@ -58,7 +58,7 @@ export function DemoShadcnDialogDemo() {
 import {
   ShadcnDialogRoot,
   ShadcnDialogTrigger,
-  ShadcnDialogOverlay,
+  ShadcnDialogMask,
   ShadcnDialogContent,
   ShadcnDialogTitle,
   ShadcnDialogDescription,
@@ -69,7 +69,7 @@ import {
 <template>
   <ShadcnDialogRoot class="relative inline-flex items-start">
     <ShadcnDialogTrigger>Open Dialog</ShadcnDialogTrigger>
-    <ShadcnDialogOverlay />
+    <ShadcnDialogMask />
     <ShadcnDialogContent>
       <ShadcnDialogTitle>Edit Profile</ShadcnDialogTitle>
       <ShadcnDialogDescription>

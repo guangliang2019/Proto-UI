@@ -19,7 +19,7 @@ The shadcn dialog family provides the styled building blocks for modal dialogs.
 
 - **shadcn-dialog-root**: Holds the `open` state and provides context to all child parts.
 - **shadcn-dialog-trigger**: Opens or toggles the dialog on click.
-- **shadcn-dialog-overlay**: Renders the backdrop mask and follows the open state for enter/leave transitions.
+- **shadcn-dialog-mask**: Renders the backdrop mask and follows the open state for enter/leave transitions.
 - **shadcn-dialog-content**: Handles focus trapping, overlay dismissal strategies (ESC, outside press), and enter/leave transitions.
 - **shadcn-dialog-title**: Semantic title automatically linked to content via `aria-labelledby`.
 - **shadcn-dialog-description**: Semantic description automatically linked to content via `aria-describedby`.
@@ -28,12 +28,12 @@ The shadcn dialog family provides the styled building blocks for modal dialogs.
 Pass `alert` to `shadcn-dialog-content` to turn it into an alert dialog: it disables outside-press dismissal while keeping ESC close.
 
 <style>{`
-  .dialog-demo-container .dialog-overlay[data-transition-state="closed"],
-  .dialog-demo-container .dialog-overlay[data-transition-state="leaving"] {
+  .dialog-demo-container .dialog-mask[data-transition-state="closed"],
+  .dialog-demo-container .dialog-mask[data-transition-state="leaving"] {
     opacity: 0;
   }
-  .dialog-demo-container .dialog-overlay[data-transition-state="entering"],
-  .dialog-demo-container .dialog-overlay[data-transition-state="entered"] {
+  .dialog-demo-container .dialog-mask[data-transition-state="entering"],
+  .dialog-demo-container .dialog-mask[data-transition-state="entered"] {
     opacity: 1;
     transition: opacity 0.2s ease;
   }

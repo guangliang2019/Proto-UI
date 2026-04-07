@@ -111,9 +111,9 @@ const manualPrototypeModules: Record<string, PrototypeModuleLoader> = {
     const mod = await import('../../../../../packages/prototypes/base/src/dialog/trigger');
     registerPrototype('base-dialog-trigger', mod.default);
   },
-  'base-dialog-overlay': async () => {
+  'base-dialog-mask': async () => {
     const mod = await import('../../../../../packages/prototypes/base/src/dialog/overlay');
-    registerPrototype('base-dialog-overlay', mod.default);
+    registerPrototype('base-dialog-mask', mod.default);
   },
   'base-dialog-content': async () => {
     const mod = await import('../../../../../packages/prototypes/base/src/dialog/content');
@@ -139,9 +139,9 @@ const manualPrototypeModules: Record<string, PrototypeModuleLoader> = {
     const mod = await import('../../../../../packages/prototypes/shadcn/src/dialog/trigger');
     registerPrototype('shadcn-dialog-trigger', mod.default);
   },
-  'shadcn-dialog-overlay': async () => {
+  'shadcn-dialog-mask': async () => {
     const mod = await import('../../../../../packages/prototypes/shadcn/src/dialog/overlay');
-    registerPrototype('shadcn-dialog-overlay', mod.default);
+    registerPrototype('shadcn-dialog-mask', mod.default);
   },
   'shadcn-dialog-content': async () => {
     const mod = await import('../../../../../packages/prototypes/shadcn/src/dialog/content');
