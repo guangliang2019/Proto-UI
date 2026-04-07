@@ -125,10 +125,14 @@ export class OverlayModuleImpl extends ModuleBase {
 
     if (next) {
       if (this.config.portal && this.globalMount) {
-        const hostEl =
-          this.registration.content instanceof HTMLElement
-            ? this.registration.content
-            : (this.caps.get(HOST_ELEMENT_CAP) ?? null);
+        let hostEl: HTMLElement | null =
+          this.registration.content instanceof HTMLElement ? this.registration.content : null;
+        if (!hostEl && this.caps.has(HOST_ELEMENT_CAP)) {
+          const capHost = this.caps.get(HOST_ELEMENT_CAP);
+          if (capHost instanceof HTMLElement) {
+            hostEl = capHost;
+          }
+        }
         if (hostEl) {
           this.globalMount.mount(hostEl);
           this.mountedHost = hostEl;
