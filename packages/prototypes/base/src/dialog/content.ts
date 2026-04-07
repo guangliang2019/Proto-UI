@@ -2,7 +2,6 @@ import { defineAsHook, definePrototype, tw, type DefHandle } from '@proto.ui/cor
 import { asFocusScope, asOverlay } from '@proto.ui/hooks';
 import { asTransition } from '../tools';
 import { DIALOG_CONTEXT, DIALOG_FAMILY } from './shared';
-import { createBodyPortal } from './portal';
 import type {
   DialogContentAsHookContract,
   DialogContentExposes,
@@ -22,11 +21,14 @@ function setupDialogContent(def: DefHandle<DialogContentProps, DialogContentExpo
   const alertProp = def.state.bool('alert', false);
 
   const overlay = asOverlay({
-    closeOnEscape: false,
-    closeOnOutsidePress: false,
-    closeOnFocusOutside: false,
+    closeOnEscape: true,
+    closeOnOutsidePress: true,
+    closeOnFocusOutside: true,
     restore: 'trigger',
     entry: 'content',
+    placement: 'center',
+    portal: true,
+    modal: false,
   });
 
   const focusScope = asFocusScope({ trap: true });
@@ -37,7 +39,6 @@ function setupDialogContent(def: DefHandle<DialogContentProps, DialogContentExpo
   const open = def.state.bool('open', false);
   def.expose.state('open', open);
 
-  const portal = createBodyPortal();
   let mountedRun: any = null;
 
   const updateOpen = (nextOpen: boolean, reason?: string) => {
@@ -80,15 +81,10 @@ function setupDialogContent(def: DefHandle<DialogContentProps, DialogContentExpo
     } else {
       controls.leave();
     }
-    const host = run.host?.get?.();
-    if (host instanceof HTMLElement) {
-      portal.mount(host);
-    }
   });
 
   def.lifecycle.onUnmounted(() => {
     mountedRun = null;
-    portal.unmount();
   });
 
   overlay.open.watch((_ctx, event) => {

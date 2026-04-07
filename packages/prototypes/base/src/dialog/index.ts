@@ -10,9 +10,9 @@ export type {
   DialogDescriptionAsHookContract,
   DialogDescriptionExposes,
   DialogDescriptionProps,
-  DialogOverlayAsHookContract,
-  DialogOverlayExposes,
-  DialogOverlayProps,
+  DialogMaskAsHookContract,
+  DialogMaskExposes,
+  DialogMaskProps,
   DialogRootAsHookContract,
   DialogRootExposes,
   DialogRootProps,
@@ -28,7 +28,7 @@ export type { DialogContextValue } from './shared';
 export { DIALOG_CONTEXT, DIALOG_FAMILY } from './shared';
 export { asDialogRoot, default as dialogRoot } from './root';
 export { asDialogTrigger, default as dialogTrigger } from './trigger';
-export { asDialogOverlay, default as dialogOverlay } from './overlay';
+export { asDialogMask, default as dialogMask } from './overlay';
 export { asDialogContent, default as dialogContent } from './content';
 export { asDialogTitle, default as dialogTitle } from './title';
 export { asDialogDescription, default as dialogDescription } from './description';

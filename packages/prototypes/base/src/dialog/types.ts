@@ -42,20 +42,20 @@ export type DialogTriggerAsHookContract = {
   };
 };
 
-export interface DialogOverlayProps {}
+export interface DialogMaskProps {}
 
-export type DialogOverlayExposes = {
+export type DialogMaskExposes = {
   transitionState: ExposeState<'closed' | 'entering' | 'entered' | 'leaving'>;
   isPresent: ExposeState<boolean>;
 };
 
-export type DialogOverlayStateHandles = {
+export type DialogMaskStateHandles = {
   transitionState: State<'closed' | 'entering' | 'entered' | 'leaving'>;
   isPresent: State<boolean>;
 };
 
-export type DialogOverlayAsHookContract = {
-  state: DialogOverlayStateHandles;
+export type DialogMaskAsHookContract = {
+  state: DialogMaskStateHandles;
 };
 
 export interface DialogContentProps {

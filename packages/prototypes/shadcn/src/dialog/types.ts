@@ -8,9 +8,9 @@ import type {
   DialogDescriptionAsHookContract,
   DialogDescriptionExposes,
   DialogDescriptionProps,
-  DialogOverlayAsHookContract,
-  DialogOverlayExposes,
-  DialogOverlayProps,
+  DialogMaskAsHookContract,
+  DialogMaskExposes,
+  DialogMaskProps,
   DialogRootAsHookContract,
   DialogRootExposes,
   DialogRootProps,
@@ -32,9 +32,9 @@ export type ShadcnDialogTriggerProps = DialogTriggerProps & {
 export type ShadcnDialogTriggerExposes = DialogTriggerExposes;
 export type ShadcnDialogTriggerAsHookContract = DialogTriggerAsHookContract;
 
-export type ShadcnDialogOverlayProps = DialogOverlayProps;
-export type ShadcnDialogOverlayExposes = DialogOverlayExposes;
-export type ShadcnDialogOverlayAsHookContract = DialogOverlayAsHookContract;
+export type ShadcnDialogMaskProps = DialogMaskProps;
+export type ShadcnDialogMaskExposes = DialogMaskExposes;
+export type ShadcnDialogMaskAsHookContract = DialogMaskAsHookContract;
 
 export type ShadcnDialogContentProps = DialogContentProps;
 export type ShadcnDialogContentExposes = DialogContentExposes;

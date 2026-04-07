@@ -4,7 +4,7 @@ import {
   dialogClose,
   dialogContent,
   dialogDescription,
-  dialogOverlay,
+  dialogMask,
   dialogRoot,
   dialogTitle,
   dialogTrigger,
@@ -12,7 +12,7 @@ import {
 
 AdaptToWebComponent(dialogRoot as any);
 AdaptToWebComponent(dialogTrigger as any);
-AdaptToWebComponent(dialogOverlay as any);
+AdaptToWebComponent(dialogMask as any);
 AdaptToWebComponent(dialogContent as any);
 AdaptToWebComponent(dialogTitle as any);
 AdaptToWebComponent(dialogDescription as any);
@@ -22,7 +22,7 @@ describe('prototypes/shadcn: dialog', () => {
   it('styles and opens a dialog compound prototype', async () => {
     const root = document.createElement('shadcn-dialog-root') as any;
     const trigger = document.createElement('shadcn-dialog-trigger') as any;
-    const overlay = document.createElement('shadcn-dialog-overlay') as any;
+    const mask = document.createElement('shadcn-dialog-mask') as any;
     const content = document.createElement('shadcn-dialog-content') as any;
     const title = document.createElement('shadcn-dialog-title') as any;
     const description = document.createElement('shadcn-dialog-description') as any;
@@ -32,7 +32,7 @@ describe('prototypes/shadcn: dialog', () => {
     content.appendChild(description);
     content.appendChild(close);
     root.appendChild(trigger);
-    root.appendChild(overlay);
+    root.appendChild(mask);
     root.appendChild(content);
     document.body.appendChild(root);
 
@@ -41,14 +41,14 @@ describe('prototypes/shadcn: dialog', () => {
 
     expect(trigger.className.includes('rounded-lg')).toBe(true);
     expect(content.classList.contains('hidden')).toBe(true);
-    expect(overlay.classList.contains('hidden')).toBe(true);
+    expect(mask.classList.contains('hidden')).toBe(true);
 
     trigger.dispatchEvent(new MouseEvent('click', { bubbles: true }));
     await Promise.resolve();
 
     expect(root.getExposes().open.get()).toBe(true);
     expect(content.classList.contains('hidden')).toBe(false);
-    expect(overlay.classList.contains('hidden')).toBe(false);
+    expect(mask.classList.contains('hidden')).toBe(false);
     expect(content.className.includes('rounded-lg')).toBe(true);
     expect(content.className.includes('shadow-lg')).toBe(true);
     expect(title.className.includes('text-lg')).toBe(true);
@@ -59,7 +59,7 @@ describe('prototypes/shadcn: dialog', () => {
 
     expect(root.getExposes().open.get()).toBe(false);
     expect(content.classList.contains('hidden')).toBe(true);
-    expect(overlay.classList.contains('hidden')).toBe(true);
+    expect(mask.classList.contains('hidden')).toBe(true);
 
     root.remove();
     await Promise.resolve();
