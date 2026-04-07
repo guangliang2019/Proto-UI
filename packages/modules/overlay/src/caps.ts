@@ -2,7 +2,7 @@ import { cap, type OverlayLayerRole } from '@proto.ui/core';
 
 export type OverlayGlobalMount = {
   mount(el: HTMLElement): void;
-  unmount(): void;
+  unmount(el: HTMLElement): void;
 };
 
 export const OVERLAY_GLOBAL_MOUNT_CAP = cap<OverlayGlobalMount>('@proto.ui/overlay/globalMount');

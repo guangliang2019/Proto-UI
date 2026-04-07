@@ -25,6 +25,7 @@ export { __VUE_PROTO_INSTANCE } from './platform/instance-tree';
 export type VueRuntime = VueRenderRuntime & {
   defineComponent: (opt: any) => any;
   h: (type: any, props?: any, children?: any) => any;
+  Teleport?: any;
   ref: <T>(v: T) => { value: T };
   shallowRef: <T>(v: T) => { value: T };
   watch: (src: unknown, cb: (...args: unknown[]) => void | Promise<void>, opt?: unknown) => void;
@@ -73,6 +74,8 @@ function defaultGetProps<Props extends PropsBaseType>(
 }
 
 export function createVueAdapter(runtime: VueRuntime) {
+  const sharedOverlayLayerScheduler = createZIndexOverlayLayerScheduler();
+
   return function AdaptToVue<Props extends PropsBaseType>(
     proto: Prototype<Props>,
     opt: VueAdapterOptions<Props> = {}
@@ -83,13 +86,20 @@ export function createVueAdapter(runtime: VueRuntime) {
     const exposeStateWebMode = opt.exposeStateWebMode;
     const autoUpdate = opt.autoUpdateOnPropsChange ?? true;
     const rootTag = opt.rootTag ?? 'div';
+    const hasCustomOverlayLayerConfig =
+      !!opt.overlayLayer &&
+      (typeof opt.overlayLayer.baseZIndex !== 'undefined' ||
+        typeof opt.overlayLayer.step !== 'undefined' ||
+        typeof opt.overlayLayer.roleOffsets !== 'undefined');
     const overlayLayerScheduler =
       opt.overlayLayer?.scheduler ??
-      createZIndexOverlayLayerScheduler({
-        baseZIndex: opt.overlayLayer?.baseZIndex,
-        step: opt.overlayLayer?.step,
-        roleOffsets: opt.overlayLayer?.roleOffsets,
-      });
+      (hasCustomOverlayLayerConfig
+        ? createZIndexOverlayLayerScheduler({
+            baseZIndex: opt.overlayLayer?.baseZIndex,
+            step: opt.overlayLayer?.step,
+            roleOffsets: opt.overlayLayer?.roleOffsets,
+          })
+        : sharedOverlayLayerScheduler);
 
     return runtime.defineComponent({
       name: `Proto(${proto.name})`,
@@ -240,9 +250,12 @@ export function createVueAdapter(runtime: VueRuntime) {
           { flush: 'post' }
         );
 
+        let lastInitRoot: HTMLElement | null = null;
+
         const initSession = () => {
           const rootEl = rootRef.value;
-          if (!rootEl) return;
+          if (!rootEl || rootEl === lastInitRoot) return;
+          lastInitRoot = rootEl;
 
           // Dispose any existing session before creating a new one.
           // Vue removed the old DOM element while shouldExist was false,
@@ -349,6 +362,22 @@ export function createVueAdapter(runtime: VueRuntime) {
           { flush: 'post' }
         );
 
+        runtime.watch(
+          rootRef,
+          () => {
+            if (!shouldExist.value) return;
+            const currentRoot = rootRef.value;
+            if (currentRoot && currentRoot !== lastInitRoot) {
+              runtime.nextTick().then(() => {
+                if (rootRef.value === currentRoot && shouldExist.value) {
+                  initSession();
+                }
+              });
+            }
+          },
+          { flush: 'post' }
+        );
+
         runtime.onBeforeUnmount(() => {
           softUnmount.cancel();
           cancelBaselineFrames();
@@ -358,6 +387,7 @@ export function createVueAdapter(runtime: VueRuntime) {
             hostSession = null;
             controllerRef.value = null;
           }
+          lastInitRoot = null;
         });
 
         return () => {
@@ -370,7 +400,9 @@ export function createVueAdapter(runtime: VueRuntime) {
           return runtime.h(
             rootTag,
             {
-              ref: rootRef,
+              ref: (el: HTMLElement | null) => {
+                rootRef.value = el;
+              },
               class: mergeHostClass(props.hostClass, hostTokens.value),
               style: props.hostStyle,
               'data-demo-ref': ctx.attrs['data-demo-ref'] as string | undefined,

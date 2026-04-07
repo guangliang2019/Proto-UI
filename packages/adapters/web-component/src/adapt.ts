@@ -63,6 +63,8 @@ export type WebComponentAdapterConstructor = {
   prototype: WebComponentAdapterElement;
 };
 
+const SHARED_OVERLAY_LAYER_SCHEDULER = createZIndexOverlayLayerScheduler();
+
 export function AdaptToWebComponent<Props extends PropsBaseType>(
   proto: Prototype<Props>,
   opt: WebComponentAdapterOptions<Props> = {}
@@ -76,13 +78,20 @@ export function AdaptToWebComponent<Props extends PropsBaseType>(
   const schedule = opt.schedule ?? ((task) => queueMicrotask(task));
   const getMeta = opt.getMeta ?? createDefaultMetaGetter();
   const exposeStateWebMode = opt.exposeStateWebMode;
+  const hasCustomOverlayLayerConfig =
+    !!opt.overlayLayer &&
+    (typeof opt.overlayLayer.baseZIndex !== 'undefined' ||
+      typeof opt.overlayLayer.step !== 'undefined' ||
+      typeof opt.overlayLayer.roleOffsets !== 'undefined');
   const overlayLayerScheduler =
     opt.overlayLayer?.scheduler ??
-    createZIndexOverlayLayerScheduler({
-      baseZIndex: opt.overlayLayer?.baseZIndex,
-      step: opt.overlayLayer?.step,
-      roleOffsets: opt.overlayLayer?.roleOffsets,
-    });
+    (hasCustomOverlayLayerConfig
+      ? createZIndexOverlayLayerScheduler({
+          baseZIndex: opt.overlayLayer?.baseZIndex,
+          step: opt.overlayLayer?.step,
+          roleOffsets: opt.overlayLayer?.roleOffsets,
+        })
+      : SHARED_OVERLAY_LAYER_SCHEDULER);
 
   class ProtoElement extends HTMLElement {
     private _mountedOnce = false;

@@ -30,6 +30,7 @@ export type ReactRuntime = ReactRenderRuntime & {
   useImperativeHandle: (ref: any, create: () => any, deps?: any[]) => void;
   forwardRef: (render: (props: any, ref: any) => any) => any;
   createElement: (type: any, props?: any, ...children: any[]) => any;
+  createPortal?: (children: any, container: Element) => any;
 };
 
 export type ReactAdapterHandle = {
@@ -76,6 +77,7 @@ function defaultGetProps<Props extends PropsBaseType>(
 
 export function createReactAdapter(runtimeInput: ReactRuntimeInput) {
   const runtime = normalizeRuntime(runtimeInput);
+  const sharedOverlayLayerScheduler = createZIndexOverlayLayerScheduler();
 
   return function AdaptToReact<Props extends PropsBaseType>(
     proto: Prototype<Props>,
@@ -87,13 +89,20 @@ export function createReactAdapter(runtimeInput: ReactRuntimeInput) {
     const exposeStateWebMode = opt.exposeStateWebMode;
     const autoUpdate = opt.autoUpdateOnPropsChange ?? true;
     const rootTag = opt.rootTag ?? 'div';
+    const hasCustomOverlayLayerConfig =
+      !!opt.overlayLayer &&
+      (typeof opt.overlayLayer.baseZIndex !== 'undefined' ||
+        typeof opt.overlayLayer.step !== 'undefined' ||
+        typeof opt.overlayLayer.roleOffsets !== 'undefined');
     const overlayLayerScheduler =
       opt.overlayLayer?.scheduler ??
-      createZIndexOverlayLayerScheduler({
-        baseZIndex: opt.overlayLayer?.baseZIndex,
-        step: opt.overlayLayer?.step,
-        roleOffsets: opt.overlayLayer?.roleOffsets,
-      });
+      (hasCustomOverlayLayerConfig
+        ? createZIndexOverlayLayerScheduler({
+            baseZIndex: opt.overlayLayer?.baseZIndex,
+            step: opt.overlayLayer?.step,
+            roleOffsets: opt.overlayLayer?.roleOffsets,
+          })
+        : sharedOverlayLayerScheduler);
 
     const Component = runtime.forwardRef((props: ReactAdapterProps<Props>, ref: any) => {
       const rootRef = runtime.useRef<HTMLElement | null>(null);

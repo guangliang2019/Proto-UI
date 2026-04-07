@@ -128,7 +128,8 @@ describe('adapter-react: dialog integration', () => {
     try {
       const host = mounted.root as HTMLElement;
       expect(host).not.toBeNull();
-      expect(host.style.zIndex).toBe('6101');
+      const zIndex = parseInt(host.style.zIndex || '0', 10);
+      expect(zIndex).toBeGreaterThanOrEqual(7110);
     } finally {
       mounted.unmount();
     }

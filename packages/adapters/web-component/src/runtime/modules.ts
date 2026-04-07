@@ -113,7 +113,7 @@ export function createWebComponentModules<Props extends PropsBaseType>(args: {
           } catch {}
           document.body.appendChild(el);
         },
-        unmount() {
+        unmount(el) {
           if (!mountedEl) return;
           if (originalParent) {
             if (originalNext && originalParent.contains(originalNext)) {

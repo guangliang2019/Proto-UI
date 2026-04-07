@@ -10,7 +10,7 @@ import {
 import type { PropsBaseType } from '@proto.ui/types';
 import type { PresenceHostBridge } from '@proto.ui/module-presence';
 
-import { getProtoParent, getPrototypeByInstance } from '../platform/instance-tree';
+import { getProtoParent, getPrototypeByInstance, setProtoParent } from '../platform/instance-tree';
 
 export function createVueModules<Props extends PropsBaseType>(args: {
   el: HTMLElement;
@@ -85,11 +85,16 @@ export function createVueModules<Props extends PropsBaseType>(args: {
     .useOverlay({
       host: el,
       globalMount: {
-        mount() {
-          // Vue 的 VDOM 自己管理 DOM 生命周期，不在这里做原生 portal
+        mount(hostEl) {
+          if (hostEl.parentElement && hostEl.parentElement !== document.body) {
+            setProtoParent(hostEl, hostEl.parentElement);
+          }
+          if (hostEl.parentNode !== document.body) {
+            document.body.appendChild(hostEl);
+          }
         },
         unmount() {
-          // Vue unmount handles cleanup
+          /* Vue unmount handles cleanup */
         },
       },
       modal: {

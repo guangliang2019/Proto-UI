@@ -155,7 +155,7 @@ export class OverlayModuleImpl extends ModuleBase {
     if (this.mountedHost === hostEl) return;
 
     if (this.mountedHost && this.mountedHost !== hostEl) {
-      this.globalMount.unmount();
+      this.globalMount.unmount(this.mountedHost);
       this.mountedHost = null;
     }
 
@@ -165,7 +165,7 @@ export class OverlayModuleImpl extends ModuleBase {
 
   private unmountGlobalIfNeeded(): void {
     if (!this.mountedHost || !this.globalMount) return;
-    this.globalMount.unmount();
+    this.globalMount.unmount(this.mountedHost);
     this.mountedHost = null;
   }
 

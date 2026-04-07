@@ -8,12 +8,13 @@ export type OverlayZIndexLayerSchedulerOptions = Readonly<{
   roleOffsets?: Readonly<Record<string, number>>;
 }>;
 
-const DEFAULT_BASE_Z_INDEX = 2000;
-const DEFAULT_STEP = 10;
+const DEFAULT_BASE_Z_INDEX = 10000;
+const DEFAULT_STEP = 1;
 const DEFAULT_ROLE_OFFSETS: Readonly<Record<string, number>> = Object.freeze({
   overlay: 0,
-  'dialog-mask': 0,
-  'dialog-content': 1,
+  // Keep semantic gaps wide so open-order sequence won't collapse role ordering.
+  'dialog-mask': 1000,
+  'dialog-content': 1010,
 });
 
 function toInteger(value: unknown, fallback: number): number {
