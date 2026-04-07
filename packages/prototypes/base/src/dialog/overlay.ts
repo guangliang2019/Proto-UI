@@ -19,13 +19,26 @@ function setupDialogMask(def: DefHandle<DialogMaskProps, DialogMaskExposes>): vo
   const controls = transition.controls;
   const open = def.state.bool('open', false);
 
+  const updateOpen = (nextOpen: boolean, reason?: string) => {
+    open.set(nextOpen, reason ?? 'reason: dialog mask sync => open');
+    if (nextOpen) {
+      overlay.openOverlay(reason ?? 'dialog.open');
+    } else {
+      overlay.close(reason ?? 'dialog.close');
+    }
+  };
+
   def.context.subscribe(DIALOG_CONTEXT, (_run, next) => {
-    open.set(next.open, 'reason: dialog context sync => mask open');
+    updateOpen(next.open, 'reason: dialog context sync => mask open');
     if (next.open) {
       controls.enter();
     } else {
       controls.leave();
     }
+  });
+
+  def.lifecycle.onMounted(() => {
+    updateOpen(open.get(), 'reason: lifecycle.onMounted => dialog mask open sync');
   });
 
   def.rule({
