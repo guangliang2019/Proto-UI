@@ -6,6 +6,12 @@ import { RAW_PROPS_SOURCE_CAP, type RawPropsSource } from '@proto.ui/module-prop
 import { EFFECTS_CAP } from '@proto.ui/module-feedback';
 import { PRESENCE_HOST_BRIDGE_CAP, type PresenceHostBridge } from '@proto.ui/module-presence';
 import {
+  OVERLAY_GLOBAL_MOUNT_CAP,
+  OVERLAY_MODAL_CAP,
+  type OverlayGlobalMount,
+  type OverlayModal,
+} from '@proto.ui/module-overlay';
+import {
   EVENT_GLOBAL_TARGET_CAP,
   EVENT_EMIT_CAP,
   EVENT_ROOT_TARGET_CAP,
@@ -115,6 +121,7 @@ export type CapsWiringBuilder = {
     nativeVariantPolicy: RuleExposeStateWebNativeVariantPolicy;
   }): CapsWiringBuilder;
   usePresence(bridge: PresenceHostBridge): CapsWiringBuilder;
+  useOverlay(args: { globalMount?: OverlayGlobalMount; modal?: OverlayModal }): CapsWiringBuilder;
   build(): WiringSpec;
 };
 
@@ -206,6 +213,13 @@ export function createCapsWiring(): CapsWiringBuilder {
 
     usePresence(bridge) {
       return add('presence', () => [[PRESENCE_HOST_BRIDGE_CAP, bridge]]);
+    },
+
+    useOverlay({ globalMount, modal }) {
+      return add('overlay', () => [
+        ...(globalMount ? [[OVERLAY_GLOBAL_MOUNT_CAP, globalMount] as const] : []),
+        ...(modal ? [[OVERLAY_MODAL_CAP, modal] as const] : []),
+      ]);
     },
 
     build() {

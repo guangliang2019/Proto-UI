@@ -29,6 +29,10 @@ export function createWebComponentModules<Props extends PropsBaseType>(args: {
 }) {
   const { el, router, rawPropsSource, effectsPort, getMeta, exposeStateWebMode, setExposes } = args;
 
+  let mountedEl: HTMLElement | null = null;
+  let originalParent: Node | null = null;
+  let originalNext: Node | null = null;
+
   return createCapsWiring()
     .useProps(rawPropsSource)
     .useFeedback(effectsPort)
@@ -89,6 +93,52 @@ export function createWebComponentModules<Props extends PropsBaseType>(args: {
       nativeVariantPolicy: createExposeStateWebNativeVariantPolicy,
     })
     .usePresence(args.presenceBridge ?? { mount: () => {}, unmount: () => {} })
+    .useOverlay({
+      globalMount: {
+        mount(el) {
+          if (el.parentNode === document.body) return;
+          mountedEl = el;
+          originalParent = el.parentNode;
+          originalNext = el.nextSibling;
+          try {
+            Object.defineProperty(el, 'parentNode', {
+              get() {
+                return originalParent;
+              },
+              configurable: true,
+            });
+          } catch {}
+          document.body.appendChild(el);
+        },
+        unmount() {
+          if (!mountedEl) return;
+          if (originalParent) {
+            originalParent.insertBefore(mountedEl, originalNext);
+          }
+          try {
+            Object.defineProperty(mountedEl, 'parentNode', {
+              get() {
+                return originalParent;
+              },
+              configurable: true,
+            });
+          } catch {}
+          mountedEl = null;
+        },
+      },
+      modal: {
+        lock() {
+          const original = document.body.style.overflow;
+          (document.body as any).__proto_ui_original_overflow = original;
+          document.body.style.overflow = 'hidden';
+        },
+        unlock() {
+          const original = (document.body as any).__proto_ui_original_overflow ?? '';
+          document.body.style.overflow = original;
+          delete (document.body as any).__proto_ui_original_overflow;
+        },
+      },
+    })
     .build();
 }
 

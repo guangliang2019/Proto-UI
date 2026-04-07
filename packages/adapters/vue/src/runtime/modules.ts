@@ -80,6 +80,28 @@ export function createVueModules<Props extends PropsBaseType>(args: {
       nativeVariantPolicy: createExposeStateWebNativeVariantPolicy,
     })
     .usePresence(args.presenceBridge ?? { mount: () => {}, unmount: () => {} })
+    .useOverlay({
+      globalMount: {
+        mount(el) {
+          if (el.parentNode !== document.body) {
+            document.body.appendChild(el);
+          }
+        },
+        unmount() {},
+      },
+      modal: {
+        lock() {
+          const original = document.body.style.overflow;
+          (document.body as any).__proto_ui_original_overflow = original;
+          document.body.style.overflow = 'hidden';
+        },
+        unlock() {
+          const original = (document.body as any).__proto_ui_original_overflow ?? '';
+          document.body.style.overflow = original;
+          delete (document.body as any).__proto_ui_original_overflow;
+        },
+      },
+    })
     .build();
 }
 
