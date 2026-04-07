@@ -96,6 +96,7 @@ export function createWebComponentModules<Props extends PropsBaseType>(args: {
     })
     .usePresence(args.presenceBridge ?? { mount: () => {}, unmount: () => {} })
     .useOverlay({
+      host: el,
       globalMount: {
         mount(el) {
           if (el.parentNode === document.body) return;
@@ -115,7 +116,11 @@ export function createWebComponentModules<Props extends PropsBaseType>(args: {
         unmount() {
           if (!mountedEl) return;
           if (originalParent) {
-            originalParent.insertBefore(mountedEl, originalNext);
+            if (originalNext && originalParent.contains(originalNext)) {
+              originalParent.insertBefore(mountedEl, originalNext);
+            } else {
+              originalParent.appendChild(mountedEl);
+            }
           }
           try {
             Object.defineProperty(mountedEl, 'parentNode', {
