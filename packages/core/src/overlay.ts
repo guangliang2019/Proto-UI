@@ -32,6 +32,8 @@ export type OverlayConfigPatch = Readonly<{
   alignOffset?: number;
   entry?: OverlayFocusEntry;
   restore?: OverlayFocusRestore;
+  portal?: boolean;
+  modal?: boolean;
   meta?: Readonly<Record<string, unknown>>;
 }>;
 
@@ -48,6 +50,8 @@ export type OverlayConfig = Readonly<{
   alignOffset: number;
   entry: OverlayFocusEntry;
   restore: OverlayFocusRestore;
+  portal: boolean;
+  modal: boolean;
   meta?: Readonly<Record<string, unknown>>;
 }>;
 

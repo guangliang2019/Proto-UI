@@ -14,6 +14,13 @@ import type {
 import { illegalPhase } from '@proto.ui/core';
 import { ModuleBase } from '@proto.ui/module-base';
 import type { StateEvent } from '@proto.ui/types';
+import { HOST_ELEMENT_CAP } from '@proto.ui/module-expose-state-web';
+import {
+  OVERLAY_GLOBAL_MOUNT_CAP,
+  OVERLAY_MODAL_CAP,
+  type OverlayGlobalMount,
+  type OverlayModal,
+} from './caps';
 
 const DEFAULT_CONFIG: OverlayConfig = Object.freeze({
   defaultOpen: false,
@@ -28,6 +35,8 @@ const DEFAULT_CONFIG: OverlayConfig = Object.freeze({
   alignOffset: 0,
   entry: 'content',
   restore: 'trigger',
+  portal: false,
+  modal: false,
 });
 
 function createObservedBoolHandle(initialValue = false) {
@@ -86,10 +95,18 @@ export class OverlayModuleImpl extends ModuleBase {
   });
 
   private readonly openState = createObservedBoolHandle(false);
+  private globalMount: OverlayGlobalMount | null = null;
+  private modalLock: OverlayModal | null = null;
+  private mountedHost: HTMLElement | null = null;
 
   constructor(caps: CapsVaultView, prototypeName: string) {
     super(caps);
     this.prototypeName = prototypeName;
+
+    this.globalMount = this.caps.has(OVERLAY_GLOBAL_MOUNT_CAP)
+      ? this.caps.get(OVERLAY_GLOBAL_MOUNT_CAP)
+      : null;
+    this.modalLock = this.caps.has(OVERLAY_MODAL_CAP) ? this.caps.get(OVERLAY_MODAL_CAP) : null;
   }
 
   private ensureSetup(op: string) {
@@ -105,6 +122,30 @@ export class OverlayModuleImpl extends ModuleBase {
   private setOpen(next: boolean, reason?: OverlayReason) {
     this.lastReason = reason;
     this.openState.set(next, reason);
+
+    if (next) {
+      if (this.config.portal && this.globalMount) {
+        const hostEl =
+          this.registration.content instanceof HTMLElement
+            ? this.registration.content
+            : (this.caps.get(HOST_ELEMENT_CAP) ?? null);
+        if (hostEl) {
+          this.globalMount.mount(hostEl);
+          this.mountedHost = hostEl;
+        }
+      }
+      if (this.config.modal && this.modalLock) {
+        this.modalLock.lock();
+      }
+    } else {
+      if (this.mountedHost && this.globalMount) {
+        this.globalMount.unmount();
+        this.mountedHost = null;
+      }
+      if (this.config.modal && this.modalLock) {
+        this.modalLock.unlock();
+      }
+    }
   }
 
   private replaceRegistration(next: Partial<OverlayRegistration>) {
@@ -160,6 +201,8 @@ export class OverlayModuleImpl extends ModuleBase {
     this.patchLiteral('alignOffset', patch.alignOffset);
     this.patchLiteral('entry', patch.entry);
     this.patchLiteral('restore', patch.restore);
+    this.patchBoolean('portal', patch.portal);
+    this.patchBoolean('modal', patch.modal);
 
     if (typeof patch.meta !== 'undefined') {
       this.config = Object.freeze({
