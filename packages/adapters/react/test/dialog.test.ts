@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { definePrototype } from '@proto.ui/core';
 
-import { DIALOG_CONTEXT, dialogContent, dialogOverlay } from '../../../prototypes/base/src/dialog';
+import { DIALOG_CONTEXT, dialogContent, dialogMask } from '../../../prototypes/base/src/dialog';
 import { createMountedReactAdapter } from './utils/fake-react';
 
 describe('adapter-react: dialog integration', () => {
@@ -67,9 +67,9 @@ describe('adapter-react: dialog integration', () => {
     }
   });
 
-  it('dialog overlay follows transition state', () => {
+  it('dialog mask follows transition state', () => {
     const proto = definePrototype({
-      name: 'react-dialog-overlay-transition',
+      name: 'react-dialog-mask-transition',
       setup(def) {
         def.context.provide(DIALOG_CONTEXT, {
           open: false,
@@ -77,7 +77,7 @@ describe('adapter-react: dialog integration', () => {
           disabled: false,
           alert: false,
         });
-        dialogOverlay.setup(def);
+        dialogMask.setup(def);
         return (r) => [r.el('div')];
       },
     });

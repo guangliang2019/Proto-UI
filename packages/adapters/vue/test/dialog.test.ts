@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { definePrototype } from '@proto.ui/core';
 
-import { DIALOG_CONTEXT, dialogContent, dialogOverlay } from '../../../prototypes/base/src/dialog';
+import { DIALOG_CONTEXT, dialogContent, dialogMask } from '../../../prototypes/base/src/dialog';
 import { createMountedVueAdapter, flushVue } from './utils/vue';
 
 describe('adapter-vue: dialog integration', () => {
@@ -70,9 +70,9 @@ describe('adapter-vue: dialog integration', () => {
     }
   });
 
-  it('dialog overlay follows transition state', async () => {
+  it('dialog mask follows transition state', async () => {
     const proto = definePrototype({
-      name: 'vue-dialog-overlay-transition',
+      name: 'vue-dialog-mask-transition',
       setup(def) {
         def.context.provide(DIALOG_CONTEXT, {
           open: false,
@@ -80,7 +80,7 @@ describe('adapter-vue: dialog integration', () => {
           disabled: false,
           alert: false,
         });
-        dialogOverlay.setup(def);
+        dialogMask.setup(def);
         return (r) => [r.el('div')];
       },
     });
