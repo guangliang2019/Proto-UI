@@ -1,6 +1,7 @@
 import { createCapsWiring, createDomOrderObserver } from '@proto.ui/adapter-base';
 import type { EffectsPort } from '@proto.ui/core';
 import type { RawPropsSource } from '@proto.ui/module-props';
+import type { OverlayLayerScheduler } from '@proto.ui/adapter-base';
 import {
   createExposeStateWebNameMap,
   createExposeStateWebNativeVariantPolicy,
@@ -24,6 +25,7 @@ export function createVueModules<Props extends PropsBaseType>(args: {
   exposeStateWebMode?: ExposeStateWebMode;
   setExposes: (record: Record<string, unknown>) => void;
   presenceBridge?: PresenceHostBridge;
+  overlayLayerScheduler?: OverlayLayerScheduler;
 }) {
   const { el, router, emit, rawPropsSource, effectsPort, getMeta, exposeStateWebMode, setExposes } =
     args;
@@ -81,6 +83,7 @@ export function createVueModules<Props extends PropsBaseType>(args: {
     })
     .usePresence(args.presenceBridge ?? { mount: () => {}, unmount: () => {} })
     .useOverlay({
+      host: el,
       globalMount: {
         mount(el) {
           if (el.parentNode !== document.body) {
@@ -101,6 +104,7 @@ export function createVueModules<Props extends PropsBaseType>(args: {
           delete (document.body as any).__proto_ui_original_overflow;
         },
       },
+      layerScheduler: args.overlayLayerScheduler,
     })
     .build();
 }

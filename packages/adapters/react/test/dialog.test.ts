@@ -101,4 +101,36 @@ describe('adapter-react: dialog integration', () => {
       mounted.unmount();
     }
   });
+
+  it('supports adapter overlayLayer base z-index configuration', () => {
+    const proto = definePrototype({
+      name: 'react-dialog-layer-base',
+      setup(def) {
+        def.context.provide(DIALOG_CONTEXT, {
+          open: true,
+          controlled: false,
+          disabled: false,
+          alert: false,
+        });
+        dialogContent.setup(def);
+        return (r) => [r.el('div', 'hello')];
+      },
+    });
+
+    const mounted = createMountedReactAdapter(
+      proto as any,
+      {},
+      {
+        overlayLayer: { baseZIndex: 6100 },
+      }
+    );
+
+    try {
+      const host = mounted.root as HTMLElement;
+      expect(host).not.toBeNull();
+      expect(host.style.zIndex).toBe('6101');
+    } finally {
+      mounted.unmount();
+    }
+  });
 });

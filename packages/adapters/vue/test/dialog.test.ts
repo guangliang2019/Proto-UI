@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { definePrototype } from '@proto.ui/core';
 
 import { DIALOG_CONTEXT, dialogContent, dialogMask } from '../../../prototypes/base/src/dialog';
-import { createMountedVueAdapter, flushVue } from './utils/vue';
+import { createMountedVueAdapter, createMountedVueAdapterWithOptions, flushVue } from './utils/vue';
 
 describe('adapter-vue: dialog integration', () => {
   it('renders dialog content when open and hides it when closed', async () => {
@@ -63,8 +63,8 @@ describe('adapter-vue: dialog integration', () => {
 
       expect(['entering', 'entered']).toContain(state ?? 'entering');
 
-      const host = mounted.host;
-      expect(host.querySelector('div')).not.toBeNull();
+      const layeredHost = document.body.querySelector('[data-transition-state]');
+      expect(layeredHost).not.toBeNull();
     } finally {
       mounted.unmount();
     }
@@ -102,6 +102,39 @@ describe('adapter-vue: dialog integration', () => {
       await flushVue();
 
       expect(['entering', 'entered']).toContain(exposes.transitionState?.get?.());
+    } finally {
+      mounted.unmount();
+    }
+  });
+
+  it('supports adapter overlayLayer base z-index configuration', async () => {
+    const proto = definePrototype({
+      name: 'vue-dialog-layer-base',
+      setup(def) {
+        def.context.provide(DIALOG_CONTEXT, {
+          open: true,
+          controlled: false,
+          disabled: false,
+          alert: false,
+        });
+        dialogContent.setup(def);
+        return (r) => [r.el('div', 'hello')];
+      },
+    });
+
+    const mounted = createMountedVueAdapterWithOptions(
+      proto as any,
+      {
+        overlayLayer: { baseZIndex: 7100 },
+      },
+      {}
+    );
+    await flushVue();
+
+    try {
+      const host = document.body.querySelector('[style*="z-index: 7101"]') as HTMLElement | null;
+      expect(host).not.toBeNull();
+      expect(host?.style.zIndex).toBe('7101');
     } finally {
       mounted.unmount();
     }

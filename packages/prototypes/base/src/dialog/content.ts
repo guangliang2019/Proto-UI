@@ -29,6 +29,7 @@ function setupDialogContent(def: DefHandle<DialogContentProps, DialogContentExpo
     placement: 'center',
     portal: true,
     modal: false,
+    layerRole: 'dialog-content',
   });
 
   const focusScope = asFocusScope({ trap: true });
@@ -58,11 +59,6 @@ function setupDialogContent(def: DefHandle<DialogContentProps, DialogContentExpo
   def.context.subscribe(DIALOG_CONTEXT, (run, next) => {
     syncAlert(run);
     updateOpen(next.open, 'reason: dialog context sync => content');
-    if (next.open) {
-      controls.enter();
-    } else {
-      controls.leave();
-    }
   });
 
   let pointerDownInside = false;
@@ -89,7 +85,9 @@ function setupDialogContent(def: DefHandle<DialogContentProps, DialogContentExpo
 
   overlay.open.watch((_ctx, event) => {
     if (event.type !== 'next') return;
-    if (!event.next) {
+    if (event.next) {
+      controls.enter();
+    } else {
       controls.leave();
       const run = mountedRun;
       if (!run) return;
@@ -150,7 +148,7 @@ const dialogContent = definePrototype({
   name: 'base-dialog-content',
   setup(def) {
     setupDialogContent(def);
-    def.feedback.style.use(tw('fixed left-1/2 top-1/2 z-50 -translate-x-1/2 -translate-y-1/2'));
+    def.feedback.style.use(tw('fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2'));
   },
 });
 

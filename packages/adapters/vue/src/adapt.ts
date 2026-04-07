@@ -5,6 +5,9 @@ import {
   createEventGate,
   createWebProtoEventRouter,
   createSoftUnmountScheduler,
+  createZIndexOverlayLayerScheduler,
+  type OverlayLayerScheduler,
+  type OverlayZIndexLayerSchedulerOptions,
 } from '@proto.ui/adapter-base';
 import type { ExposeStateWebMode } from '@proto.ui/module-expose-state-web';
 import type { RawPropsSource } from '@proto.ui/module-props';
@@ -50,6 +53,11 @@ export interface VueAdapterOptions<Props extends PropsBaseType> {
   exposeStateWebMode?: ExposeStateWebMode;
   autoUpdateOnPropsChange?: boolean;
   rootTag?: string;
+  overlayLayer?:
+    | (OverlayZIndexLayerSchedulerOptions & {
+        scheduler?: OverlayLayerScheduler;
+      })
+    | undefined;
 }
 
 function defaultGetProps<Props extends PropsBaseType>(
@@ -75,6 +83,13 @@ export function createVueAdapter(runtime: VueRuntime) {
     const exposeStateWebMode = opt.exposeStateWebMode;
     const autoUpdate = opt.autoUpdateOnPropsChange ?? true;
     const rootTag = opt.rootTag ?? 'div';
+    const overlayLayerScheduler =
+      opt.overlayLayer?.scheduler ??
+      createZIndexOverlayLayerScheduler({
+        baseZIndex: opt.overlayLayer?.baseZIndex,
+        step: opt.overlayLayer?.step,
+        roleOffsets: opt.overlayLayer?.roleOffsets,
+      });
 
     return runtime.defineComponent({
       name: `Proto(${proto.name})`,
@@ -278,6 +293,7 @@ export function createVueAdapter(runtime: VueRuntime) {
               exposesRef.value = record;
             },
             presenceBridge,
+            overlayLayerScheduler,
           });
 
           const wiring = createHostWiring({ prototypeName: proto.name, modules });

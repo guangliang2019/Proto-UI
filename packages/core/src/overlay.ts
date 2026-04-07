@@ -6,6 +6,7 @@ export type OverlayAlign = 'start' | 'center' | 'end';
 
 export type OverlayFocusEntry = 'first' | 'selected' | 'content' | 'manual';
 export type OverlayFocusRestore = 'trigger' | 'previous' | 'none';
+export type OverlayLayerRole = 'overlay' | 'dialog-mask' | 'dialog-content' | (string & {});
 
 export type OverlayReason =
   | 'trigger.press'
@@ -34,6 +35,8 @@ export type OverlayConfigPatch = Readonly<{
   restore?: OverlayFocusRestore;
   portal?: boolean;
   modal?: boolean;
+  layerRole?: OverlayLayerRole;
+  layerOffset?: number;
   meta?: Readonly<Record<string, unknown>>;
 }>;
 
@@ -52,6 +55,8 @@ export type OverlayConfig = Readonly<{
   restore: OverlayFocusRestore;
   portal: boolean;
   modal: boolean;
+  layerRole: OverlayLayerRole;
+  layerOffset: number;
   meta?: Readonly<Record<string, unknown>>;
 }>;
 

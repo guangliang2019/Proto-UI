@@ -13,6 +13,7 @@ function setupDialogMask(def: DefHandle<DialogMaskProps, DialogMaskExposes>): vo
     closeOnFocusOutside: false,
     portal: true,
     modal: true,
+    layerRole: 'dialog-mask',
   });
 
   const transition = asTransition();
@@ -30,7 +31,11 @@ function setupDialogMask(def: DefHandle<DialogMaskProps, DialogMaskExposes>): vo
 
   def.context.subscribe(DIALOG_CONTEXT, (_run, next) => {
     updateOpen(next.open, 'reason: dialog context sync => mask open');
-    if (next.open) {
+  });
+
+  overlay.open.watch((_ctx, event) => {
+    if (event.type !== 'next') return;
+    if (event.next) {
       controls.enter();
     } else {
       controls.leave();
@@ -39,6 +44,11 @@ function setupDialogMask(def: DefHandle<DialogMaskProps, DialogMaskExposes>): vo
 
   def.lifecycle.onMounted(() => {
     updateOpen(open.get(), 'reason: lifecycle.onMounted => dialog mask open sync');
+    if (open.get()) {
+      controls.enter();
+    } else {
+      controls.leave();
+    }
   });
 
   def.rule({
@@ -61,7 +71,7 @@ const dialogMask = definePrototype({
   name: 'base-dialog-mask',
   setup(def) {
     setupDialogMask(def);
-    def.feedback.style.use(tw('fixed inset-0 z-50'));
+    def.feedback.style.use(tw('fixed inset-0'));
   },
 });
 

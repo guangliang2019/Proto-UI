@@ -7,8 +7,10 @@ import { EFFECTS_CAP } from '@proto.ui/module-feedback';
 import { PRESENCE_HOST_BRIDGE_CAP, type PresenceHostBridge } from '@proto.ui/module-presence';
 import {
   OVERLAY_GLOBAL_MOUNT_CAP,
+  OVERLAY_LAYER_SCHEDULER_CAP,
   OVERLAY_MODAL_CAP,
   type OverlayGlobalMount,
+  type OverlayLayerScheduler,
   type OverlayModal,
 } from '@proto.ui/module-overlay';
 import {
@@ -121,7 +123,12 @@ export type CapsWiringBuilder = {
     nativeVariantPolicy: RuleExposeStateWebNativeVariantPolicy;
   }): CapsWiringBuilder;
   usePresence(bridge: PresenceHostBridge): CapsWiringBuilder;
-  useOverlay(args: { globalMount?: OverlayGlobalMount; modal?: OverlayModal }): CapsWiringBuilder;
+  useOverlay(args: {
+    host?: HTMLElement;
+    globalMount?: OverlayGlobalMount;
+    modal?: OverlayModal;
+    layerScheduler?: OverlayLayerScheduler;
+  }): CapsWiringBuilder;
   build(): WiringSpec;
 };
 
@@ -215,10 +222,12 @@ export function createCapsWiring(): CapsWiringBuilder {
       return add('presence', () => [[PRESENCE_HOST_BRIDGE_CAP, bridge]]);
     },
 
-    useOverlay({ globalMount, modal }) {
+    useOverlay({ host, globalMount, modal, layerScheduler }) {
       return add('overlay', () => [
+        ...(host ? [[HOST_ELEMENT_CAP, host] as const] : []),
         ...(globalMount ? [[OVERLAY_GLOBAL_MOUNT_CAP, globalMount] as const] : []),
         ...(modal ? [[OVERLAY_MODAL_CAP, modal] as const] : []),
+        ...(layerScheduler ? [[OVERLAY_LAYER_SCHEDULER_CAP, layerScheduler] as const] : []),
       ]);
     },
 

@@ -6,7 +6,7 @@ const dialogMask = definePrototype<ShadcnDialogMaskExposes, ShadcnDialogMaskProp
   name: 'shadcn-dialog-mask',
   setup(def) {
     asDialogMask();
-    def.feedback.style.use(tw('fixed inset-0 z-50 bg-black/80'));
+    def.feedback.style.use(tw('fixed inset-0 bg-black/80'));
   },
 });
 

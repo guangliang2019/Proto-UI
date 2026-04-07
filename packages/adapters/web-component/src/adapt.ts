@@ -8,6 +8,9 @@ import {
   createHostWiring,
   createEventGate,
   createWebProtoEventRouter,
+  createZIndexOverlayLayerScheduler,
+  type OverlayLayerScheduler,
+  type OverlayZIndexLayerSchedulerOptions,
 } from '@proto.ui/adapter-base';
 
 import { bindController, getElementProps, setElementProps, unbindController } from './props';
@@ -41,6 +44,11 @@ export interface WebComponentAdapterOptions<Props extends PropsBaseType = PropsB
     allowContinuousAttr?: boolean;
     allowStringVar?: boolean;
   };
+  overlayLayer?:
+    | (OverlayZIndexLayerSchedulerOptions & {
+        scheduler?: OverlayLayerScheduler;
+      })
+    | undefined;
 }
 
 export type WebComponentAdapterHandle = {
@@ -68,6 +76,13 @@ export function AdaptToWebComponent<Props extends PropsBaseType>(
   const schedule = opt.schedule ?? ((task) => queueMicrotask(task));
   const getMeta = opt.getMeta ?? createDefaultMetaGetter();
   const exposeStateWebMode = opt.exposeStateWebMode;
+  const overlayLayerScheduler =
+    opt.overlayLayer?.scheduler ??
+    createZIndexOverlayLayerScheduler({
+      baseZIndex: opt.overlayLayer?.baseZIndex,
+      step: opt.overlayLayer?.step,
+      roleOffsets: opt.overlayLayer?.roleOffsets,
+    });
 
   class ProtoElement extends HTMLElement {
     private _mountedOnce = false;
@@ -170,6 +185,7 @@ export function AdaptToWebComponent<Props extends PropsBaseType>(
           this._exposes = record;
         },
         presenceBridge,
+        overlayLayerScheduler,
       });
 
       const wiring = createHostWiring({ prototypeName: tagName, modules });

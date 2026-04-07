@@ -146,6 +146,9 @@ importers:
       '@proto.ui/module-focus':
         specifier: workspace:*
         version: link:../../modules/focus
+      '@proto.ui/module-overlay':
+        specifier: workspace:*
+        version: link:../../modules/overlay
       '@proto.ui/module-presence':
         specifier: workspace:*
         version: link:../../modules/presence
@@ -461,6 +464,9 @@ importers:
       '@proto.ui/module-base':
         specifier: workspace:*
         version: link:../base
+      '@proto.ui/module-expose-state-web':
+        specifier: workspace:*
+        version: link:../expose-state-web
       '@proto.ui/types':
         specifier: workspace:*
         version: link:../../types

@@ -1,6 +1,7 @@
 import { createCapsWiring, createDomOrderObserver } from '@proto.ui/adapter-base';
 import type { EffectsPort } from '@proto.ui/core';
 import { type RawPropsSource } from '@proto.ui/module-props';
+import type { OverlayLayerScheduler } from '@proto.ui/adapter-base';
 import {
   createExposeStateWebNameMap,
   createExposeStateWebNativeVariantPolicy,
@@ -26,6 +27,7 @@ export function createWebComponentModules<Props extends PropsBaseType>(args: {
   };
   setExposes: (record: Record<string, unknown>) => void;
   presenceBridge?: PresenceHostBridge;
+  overlayLayerScheduler?: OverlayLayerScheduler;
 }) {
   const { el, router, rawPropsSource, effectsPort, getMeta, exposeStateWebMode, setExposes } = args;
 
@@ -129,15 +131,16 @@ export function createWebComponentModules<Props extends PropsBaseType>(args: {
       modal: {
         lock() {
           const original = document.body.style.overflow;
-          (document.body as any).__proto_ui_original_overflow = original;
+          document.body.__proto_ui_original_overflow = original;
           document.body.style.overflow = 'hidden';
         },
         unlock() {
-          const original = (document.body as any).__proto_ui_original_overflow ?? '';
+          const original = document.body.__proto_ui_original_overflow ?? '';
           document.body.style.overflow = original;
-          delete (document.body as any).__proto_ui_original_overflow;
+          delete document.body.__proto_ui_original_overflow;
         },
       },
+      layerScheduler: args.overlayLayerScheduler,
     })
     .build();
 }

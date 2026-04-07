@@ -1,13 +1,10 @@
 import type {
   CapsVaultView,
   ObservedStateHandle,
-  OverlayAlign,
   OverlayConfig,
   OverlayConfigPatch,
-  OverlayFocusEntry,
-  OverlayFocusRestore,
   OverlayHandle,
-  OverlayPlacement,
+  ProtoPhase,
   OverlayReason,
   OverlayRegistration,
 } from '@proto.ui/core';
@@ -17,8 +14,10 @@ import type { StateEvent } from '@proto.ui/types';
 import { HOST_ELEMENT_CAP } from '@proto.ui/module-expose-state-web';
 import {
   OVERLAY_GLOBAL_MOUNT_CAP,
+  OVERLAY_LAYER_SCHEDULER_CAP,
   OVERLAY_MODAL_CAP,
   type OverlayGlobalMount,
+  type OverlayLayerScheduler,
   type OverlayModal,
 } from './caps';
 
@@ -37,6 +36,8 @@ const DEFAULT_CONFIG: OverlayConfig = Object.freeze({
   restore: 'trigger',
   portal: false,
   modal: false,
+  layerRole: 'overlay',
+  layerOffset: 0,
 });
 
 function createObservedBoolHandle(initialValue = false) {
@@ -97,16 +98,36 @@ export class OverlayModuleImpl extends ModuleBase {
   private readonly openState = createObservedBoolHandle(false);
   private globalMount: OverlayGlobalMount | null = null;
   private modalLock: OverlayModal | null = null;
+  private layerScheduler: OverlayLayerScheduler | null = null;
   private mountedHost: HTMLElement | null = null;
+  private layerDetach: (() => void) | null = null;
+  private layerHost: HTMLElement | null = null;
+  private modalLocked = false;
 
   constructor(caps: CapsVaultView, prototypeName: string) {
     super(caps);
     this.prototypeName = prototypeName;
+    this.refreshHostCaps();
+  }
 
+  protected override onCapsEpoch(_epoch: number): void {
+    this.refreshHostCaps();
+  }
+
+  override onProtoPhase(phase: ProtoPhase): void {
+    super.onProtoPhase(phase);
+    if (phase !== 'unmounted') return;
+    this.teardownOpenSideEffects();
+  }
+
+  private refreshHostCaps(): void {
     this.globalMount = this.caps.has(OVERLAY_GLOBAL_MOUNT_CAP)
       ? this.caps.get(OVERLAY_GLOBAL_MOUNT_CAP)
       : null;
     this.modalLock = this.caps.has(OVERLAY_MODAL_CAP) ? this.caps.get(OVERLAY_MODAL_CAP) : null;
+    this.layerScheduler = this.caps.has(OVERLAY_LAYER_SCHEDULER_CAP)
+      ? this.caps.get(OVERLAY_LAYER_SCHEDULER_CAP)
+      : null;
   }
 
   private ensureSetup(op: string) {
@@ -119,37 +140,107 @@ export class OverlayModuleImpl extends ModuleBase {
     }
   }
 
+  private resolveHostElement(): HTMLElement | null {
+    let hostEl: HTMLElement | null =
+      this.registration.content instanceof HTMLElement ? this.registration.content : null;
+    if (hostEl) return hostEl;
+    if (!this.caps.has(HOST_ELEMENT_CAP)) return null;
+    const capHost = this.caps.get(HOST_ELEMENT_CAP);
+    return capHost instanceof HTMLElement ? capHost : null;
+  }
+
+  private mountGlobalIfNeeded(hostEl: HTMLElement): void {
+    if (!this.config.portal || !this.globalMount) return;
+
+    if (this.mountedHost === hostEl) return;
+
+    if (this.mountedHost && this.mountedHost !== hostEl) {
+      this.globalMount.unmount();
+      this.mountedHost = null;
+    }
+
+    this.globalMount.mount(hostEl);
+    this.mountedHost = hostEl;
+  }
+
+  private unmountGlobalIfNeeded(): void {
+    if (!this.mountedHost || !this.globalMount) return;
+    this.globalMount.unmount();
+    this.mountedHost = null;
+  }
+
+  private applyLayerIfNeeded(hostEl: HTMLElement): void {
+    if (!this.layerScheduler) return;
+
+    if (this.layerDetach && this.layerHost === hostEl) return;
+
+    this.clearLayer();
+    this.layerDetach = this.layerScheduler.attach(hostEl, {
+      role: this.config.layerRole,
+      offset: this.config.layerOffset,
+      modal: this.config.modal,
+      portal: this.config.portal,
+      meta: this.config.meta,
+    });
+    this.layerHost = hostEl;
+  }
+
+  private clearLayer(): void {
+    this.layerHost = null;
+    if (!this.layerDetach) return;
+    try {
+      this.layerDetach();
+    } finally {
+      this.layerDetach = null;
+    }
+  }
+
+  private lockModalIfNeeded(): void {
+    if (!this.config.modal || !this.modalLock || this.modalLocked) return;
+    this.modalLock.lock();
+    this.modalLocked = true;
+  }
+
+  private unlockModalIfNeeded(): void {
+    if (!this.modalLock || !this.modalLocked) return;
+    this.modalLock.unlock();
+    this.modalLocked = false;
+  }
+
+  private syncOpenSideEffects(): void {
+    const hostEl = this.resolveHostElement();
+    if (hostEl) {
+      this.mountGlobalIfNeeded(hostEl);
+      this.applyLayerIfNeeded(hostEl);
+    }
+    this.lockModalIfNeeded();
+  }
+
+  private teardownOpenSideEffects(): void {
+    this.clearLayer();
+    this.unmountGlobalIfNeeded();
+    this.unlockModalIfNeeded();
+  }
+
   private setOpen(next: boolean, reason?: OverlayReason) {
     this.lastReason = reason;
+
+    const wasOpen = this.openState.handle.get();
+    if (Object.is(wasOpen, next)) {
+      if (next) {
+        this.syncOpenSideEffects();
+      }
+      return;
+    }
+
     this.openState.set(next, reason);
 
     if (next) {
-      if (this.config.portal && this.globalMount) {
-        let hostEl: HTMLElement | null =
-          this.registration.content instanceof HTMLElement ? this.registration.content : null;
-        if (!hostEl && this.caps.has(HOST_ELEMENT_CAP)) {
-          const capHost = this.caps.get(HOST_ELEMENT_CAP);
-          if (capHost instanceof HTMLElement) {
-            hostEl = capHost;
-          }
-        }
-        if (hostEl) {
-          this.globalMount.mount(hostEl);
-          this.mountedHost = hostEl;
-        }
-      }
-      if (this.config.modal && this.modalLock) {
-        this.modalLock.lock();
-      }
-    } else {
-      if (this.mountedHost && this.globalMount) {
-        this.globalMount.unmount();
-        this.mountedHost = null;
-      }
-      if (this.config.modal && this.modalLock) {
-        this.modalLock.unlock();
-      }
+      this.syncOpenSideEffects();
+      return;
     }
+
+    this.teardownOpenSideEffects();
   }
 
   private replaceRegistration(next: Partial<OverlayRegistration>) {
@@ -160,53 +251,34 @@ export class OverlayModuleImpl extends ModuleBase {
     });
   }
 
-  private patchBoolean<K extends keyof OverlayConfig>(
-    field: K,
-    value: OverlayConfigPatch[K]
-  ): void {
+  private patchValue<K extends keyof OverlayConfig>(field: K, value: OverlayConfigPatch[K]): void {
     if (typeof value === 'undefined') return;
     pushOverrideWarning(this.warnings, String(field), this.config[field], value);
     this.config = Object.freeze({
       ...this.config,
       [field]: value,
-    });
-  }
-
-  private patchLiteral<K extends keyof OverlayConfig>(
-    field: K,
-    value:
-      | OverlayPlacement
-      | OverlayAlign
-      | OverlayFocusEntry
-      | OverlayFocusRestore
-      | number
-      | undefined
-  ): void {
-    if (typeof value === 'undefined') return;
-    pushOverrideWarning(this.warnings, String(field), this.config[field], value);
-    this.config = Object.freeze({
-      ...this.config,
-      [field]: value,
-    });
+    }) as OverlayConfig;
   }
 
   configure(patch: OverlayConfigPatch): void {
     this.ensureSetup('overlay.configure');
 
-    this.patchBoolean('defaultOpen', patch.defaultOpen);
-    this.patchBoolean('closeOnEscape', patch.closeOnEscape);
-    this.patchBoolean('closeOnOutsidePress', patch.closeOnOutsidePress);
-    this.patchBoolean('closeOnFocusOutside', patch.closeOnFocusOutside);
-    this.patchBoolean('closeOnAnchorPress', patch.closeOnAnchorPress);
-    this.patchBoolean('closeOnTriggerPress', patch.closeOnTriggerPress);
-    this.patchLiteral('placement', patch.placement);
-    this.patchLiteral('align', patch.align);
-    this.patchLiteral('sideOffset', patch.sideOffset);
-    this.patchLiteral('alignOffset', patch.alignOffset);
-    this.patchLiteral('entry', patch.entry);
-    this.patchLiteral('restore', patch.restore);
-    this.patchBoolean('portal', patch.portal);
-    this.patchBoolean('modal', patch.modal);
+    this.patchValue('defaultOpen', patch.defaultOpen);
+    this.patchValue('closeOnEscape', patch.closeOnEscape);
+    this.patchValue('closeOnOutsidePress', patch.closeOnOutsidePress);
+    this.patchValue('closeOnFocusOutside', patch.closeOnFocusOutside);
+    this.patchValue('closeOnAnchorPress', patch.closeOnAnchorPress);
+    this.patchValue('closeOnTriggerPress', patch.closeOnTriggerPress);
+    this.patchValue('placement', patch.placement);
+    this.patchValue('align', patch.align);
+    this.patchValue('sideOffset', patch.sideOffset);
+    this.patchValue('alignOffset', patch.alignOffset);
+    this.patchValue('entry', patch.entry);
+    this.patchValue('restore', patch.restore);
+    this.patchValue('portal', patch.portal);
+    this.patchValue('modal', patch.modal);
+    this.patchValue('layerRole', patch.layerRole);
+    this.patchValue('layerOffset', patch.layerOffset);
 
     if (typeof patch.meta !== 'undefined') {
       this.config = Object.freeze({
@@ -262,6 +334,13 @@ export class OverlayModuleImpl extends ModuleBase {
 
   registerContent(target: unknown): void {
     this.replaceRegistration({ content: target });
+
+    if (!this.isOpen()) return;
+
+    const hostEl = this.resolveHostElement();
+    if (!hostEl) return;
+    this.mountGlobalIfNeeded(hostEl);
+    this.applyLayerIfNeeded(hostEl);
   }
 
   readonly handle: OverlayHandle<any> = {
