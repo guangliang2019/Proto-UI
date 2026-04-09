@@ -1,4 +1,5 @@
 // packages/modules/expose-state-web/src/caps.ts
+export { HOST_ELEMENT_CAP } from '@proto.ui/core';
 import { cap } from '@proto.ui/core';
 
 export type ExposeStateWebNameMap = (semantic: string) => {
@@ -12,8 +13,6 @@ export type ExposeStateWebMode = {
   /** allow css var for enum/string states */
   allowStringVar?: boolean;
 };
-
-export const HOST_ELEMENT_CAP = cap<HTMLElement>('@proto.ui/web/hostElement');
 
 export const EXPOSE_STATE_WEB_MAP_CAP = cap<ExposeStateWebNameMap>(
   '@proto.ui/expose-state-web/nameMap'

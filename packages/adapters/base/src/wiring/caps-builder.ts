@@ -1,5 +1,5 @@
 // packages/adapters/base/src/wiring/caps-builder.ts
-import type { CapEntries } from '@proto.ui/core';
+import { HOST_ELEMENT_CAP, type CapEntries } from '@proto.ui/core';
 import type { WiringSpec } from '../types';
 
 import { RAW_PROPS_SOURCE_CAP, type RawPropsSource } from '@proto.ui/module-props';
@@ -24,7 +24,6 @@ import { EXPOSE_SET_EXPOSES_CAP, type ExposeHostSink } from '@proto.ui/module-ex
 import {
   EXPOSE_STATE_WEB_MAP_CAP,
   EXPOSE_STATE_WEB_MODE_CAP,
-  HOST_ELEMENT_CAP,
   type ExposeStateWebMode,
   type ExposeStateWebNameMap,
 } from '@proto.ui/module-expose-state-web';

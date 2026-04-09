@@ -11,7 +11,7 @@ import type {
 import { illegalPhase } from '@proto.ui/core';
 import { ModuleBase } from '@proto.ui/module-base';
 import type { StateEvent } from '@proto.ui/types';
-import { HOST_ELEMENT_CAP } from '@proto.ui/module-expose-state-web';
+import { HOST_ELEMENT_CAP } from '@proto.ui/core';
 import {
   OVERLAY_GLOBAL_MOUNT_CAP,
   OVERLAY_LAYER_SCHEDULER_CAP,
