@@ -103,6 +103,62 @@ const manualPrototypeModules: Record<string, PrototypeModuleLoader> = {
     const mod = await import('../../../../../packages/prototypes/shadcn/src/dropdown/item');
     registerPrototype('shadcn-dropdown-item', mod.default);
   },
+  'base-dialog-root': async () => {
+    const mod = await import('../../../../../packages/prototypes/base/src/dialog/root');
+    registerPrototype('base-dialog-root', mod.default);
+  },
+  'base-dialog-trigger': async () => {
+    const mod = await import('../../../../../packages/prototypes/base/src/dialog/trigger');
+    registerPrototype('base-dialog-trigger', mod.default);
+  },
+  'base-dialog-mask': async () => {
+    const mod = await import('../../../../../packages/prototypes/base/src/dialog/overlay');
+    registerPrototype('base-dialog-mask', mod.default);
+  },
+  'base-dialog-content': async () => {
+    const mod = await import('../../../../../packages/prototypes/base/src/dialog/content');
+    registerPrototype('base-dialog-content', mod.default);
+  },
+  'base-dialog-title': async () => {
+    const mod = await import('../../../../../packages/prototypes/base/src/dialog/title');
+    registerPrototype('base-dialog-title', mod.default);
+  },
+  'base-dialog-description': async () => {
+    const mod = await import('../../../../../packages/prototypes/base/src/dialog/description');
+    registerPrototype('base-dialog-description', mod.default);
+  },
+  'base-dialog-close': async () => {
+    const mod = await import('../../../../../packages/prototypes/base/src/dialog/close');
+    registerPrototype('base-dialog-close', mod.default);
+  },
+  'shadcn-dialog-root': async () => {
+    const mod = await import('../../../../../packages/prototypes/shadcn/src/dialog/root');
+    registerPrototype('shadcn-dialog-root', mod.default);
+  },
+  'shadcn-dialog-trigger': async () => {
+    const mod = await import('../../../../../packages/prototypes/shadcn/src/dialog/trigger');
+    registerPrototype('shadcn-dialog-trigger', mod.default);
+  },
+  'shadcn-dialog-mask': async () => {
+    const mod = await import('../../../../../packages/prototypes/shadcn/src/dialog/overlay');
+    registerPrototype('shadcn-dialog-mask', mod.default);
+  },
+  'shadcn-dialog-content': async () => {
+    const mod = await import('../../../../../packages/prototypes/shadcn/src/dialog/content');
+    registerPrototype('shadcn-dialog-content', mod.default);
+  },
+  'shadcn-dialog-title': async () => {
+    const mod = await import('../../../../../packages/prototypes/shadcn/src/dialog/title');
+    registerPrototype('shadcn-dialog-title', mod.default);
+  },
+  'shadcn-dialog-description': async () => {
+    const mod = await import('../../../../../packages/prototypes/shadcn/src/dialog/description');
+    registerPrototype('shadcn-dialog-description', mod.default);
+  },
+  'shadcn-dialog-close': async () => {
+    const mod = await import('../../../../../packages/prototypes/shadcn/src/dialog/close');
+    registerPrototype('shadcn-dialog-close', mod.default);
+  },
 };
 
 /**

@@ -109,4 +109,37 @@ describe('WC router: createWebProtoEventRouter', () => {
 
     router.dispose();
   });
+
+  it('routes press.commit from globally mounted node linked to current root', async () => {
+    const rootEl = document.createElement('div') as HTMLElement & Record<symbol, unknown>;
+    const portalHost = document.createElement('div') as HTMLElement & Record<symbol, unknown>;
+    const trigger = document.createElement('button');
+
+    const protoInstance = Symbol.for('@proto.ui/adapter-web-component/__proto_instance');
+    const protoParent = Symbol.for('@proto.ui/adapter-base/__proto_parent_instance');
+
+    rootEl[protoInstance] = true;
+    portalHost[protoParent] = rootEl;
+    portalHost.appendChild(trigger);
+
+    document.body.appendChild(rootEl);
+    document.body.appendChild(portalHost);
+
+    const router = createWebProtoEventRouter({
+      rootEl,
+      globalEl: window,
+      isEnabled: () => true,
+    });
+
+    const fired = once(router.rootTarget, 'press.commit');
+    const native = new MouseEvent('click', { bubbles: true });
+    trigger.dispatchEvent(native);
+
+    const ev = await fired;
+    expect((ev as CustomEvent).detail).toBe(native);
+
+    router.dispose();
+    portalHost.remove();
+    rootEl.remove();
+  });
 });

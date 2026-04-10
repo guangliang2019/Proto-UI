@@ -146,6 +146,9 @@ importers:
       '@proto.ui/module-focus':
         specifier: workspace:*
         version: link:../../modules/focus
+      '@proto.ui/module-overlay':
+        specifier: workspace:*
+        version: link:../../modules/overlay
       '@proto.ui/module-presence':
         specifier: workspace:*
         version: link:../../modules/presence

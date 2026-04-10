@@ -193,5 +193,6 @@ export function executeWithHost<P extends PropsBaseType>(
     invokeUnmounted,
     caps: moduleHub,
     invokeInCallbackScope: (fn) => callbackScope.run(run, fn),
+    kernel: inst.kernel,
   };
 }

@@ -5,6 +5,9 @@ import {
   createEventGate,
   createWebProtoEventRouter,
   createSoftUnmountScheduler,
+  createZIndexOverlayLayerScheduler,
+  type OverlayLayerScheduler,
+  type OverlayZIndexLayerSchedulerOptions,
 } from '@proto.ui/adapter-base';
 import type { ExposeStateWebMode } from '@proto.ui/module-expose-state-web';
 import type { RawPropsSource } from '@proto.ui/module-props';
@@ -27,6 +30,7 @@ export type ReactRuntime = ReactRenderRuntime & {
   useImperativeHandle: (ref: any, create: () => any, deps?: any[]) => void;
   forwardRef: (render: (props: any, ref: any) => any) => any;
   createElement: (type: any, props?: any, ...children: any[]) => any;
+  createPortal?: (children: any, container: Element) => any;
 };
 
 export type ReactAdapterHandle = {
@@ -50,6 +54,11 @@ export interface ReactAdapterOptions<Props extends PropsBaseType> {
   exposeStateWebMode?: ExposeStateWebMode;
   autoUpdateOnPropsChange?: boolean;
   rootTag?: string;
+  overlayLayer?:
+    | (OverlayZIndexLayerSchedulerOptions & {
+        scheduler?: OverlayLayerScheduler;
+      })
+    | undefined;
 }
 
 type ReactRuntimeInput = ReactRuntime | { React: ReactRuntime };
@@ -68,6 +77,7 @@ function defaultGetProps<Props extends PropsBaseType>(
 
 export function createReactAdapter(runtimeInput: ReactRuntimeInput) {
   const runtime = normalizeRuntime(runtimeInput);
+  const sharedOverlayLayerScheduler = createZIndexOverlayLayerScheduler();
 
   return function AdaptToReact<Props extends PropsBaseType>(
     proto: Prototype<Props>,
@@ -79,6 +89,20 @@ export function createReactAdapter(runtimeInput: ReactRuntimeInput) {
     const exposeStateWebMode = opt.exposeStateWebMode;
     const autoUpdate = opt.autoUpdateOnPropsChange ?? true;
     const rootTag = opt.rootTag ?? 'div';
+    const hasCustomOverlayLayerConfig =
+      !!opt.overlayLayer &&
+      (typeof opt.overlayLayer.baseZIndex !== 'undefined' ||
+        typeof opt.overlayLayer.step !== 'undefined' ||
+        typeof opt.overlayLayer.roleOffsets !== 'undefined');
+    const overlayLayerScheduler =
+      opt.overlayLayer?.scheduler ??
+      (hasCustomOverlayLayerConfig
+        ? createZIndexOverlayLayerScheduler({
+            baseZIndex: opt.overlayLayer?.baseZIndex,
+            step: opt.overlayLayer?.step,
+            roleOffsets: opt.overlayLayer?.roleOffsets,
+          })
+        : sharedOverlayLayerScheduler);
 
     const Component = runtime.forwardRef((props: ReactAdapterProps<Props>, ref: any) => {
       const rootRef = runtime.useRef<HTMLElement | null>(null);
@@ -226,6 +250,7 @@ export function createReactAdapter(runtimeInput: ReactRuntimeInput) {
             exposesRef.current = record;
           },
           presenceBridge,
+          overlayLayerScheduler,
         });
 
         const wiring = createHostWiring({ prototypeName: proto.name, modules });
@@ -256,6 +281,11 @@ export function createReactAdapter(runtimeInput: ReactRuntimeInput) {
         hostSessionRef.current = hostSession;
         controllerRef.current = hostSession.controller as RuntimeController;
         invokeInCallbackScopeRef.current = hostSession.invokeInCallbackScope;
+
+        const { kernel } = hostSession;
+        if (kernel && kernel.run) {
+          (kernel.run as any).host = { get: () => rootRef.current };
+        }
       }, [shouldExist]);
 
       // Hard unmount: when the React adapter component itself is removed from the parent tree,

@@ -8,6 +8,9 @@ import {
   createHostWiring,
   createEventGate,
   createWebProtoEventRouter,
+  createZIndexOverlayLayerScheduler,
+  type OverlayLayerScheduler,
+  type OverlayZIndexLayerSchedulerOptions,
 } from '@proto.ui/adapter-base';
 
 import { bindController, getElementProps, setElementProps, unbindController } from './props';
@@ -41,6 +44,11 @@ export interface WebComponentAdapterOptions<Props extends PropsBaseType = PropsB
     allowContinuousAttr?: boolean;
     allowStringVar?: boolean;
   };
+  overlayLayer?:
+    | (OverlayZIndexLayerSchedulerOptions & {
+        scheduler?: OverlayLayerScheduler;
+      })
+    | undefined;
 }
 
 export type WebComponentAdapterHandle = {
@@ -55,6 +63,8 @@ export type WebComponentAdapterConstructor = {
   prototype: WebComponentAdapterElement;
 };
 
+const SHARED_OVERLAY_LAYER_SCHEDULER = createZIndexOverlayLayerScheduler();
+
 export function AdaptToWebComponent<Props extends PropsBaseType>(
   proto: Prototype<Props>,
   opt: WebComponentAdapterOptions<Props> = {}
@@ -68,6 +78,20 @@ export function AdaptToWebComponent<Props extends PropsBaseType>(
   const schedule = opt.schedule ?? ((task) => queueMicrotask(task));
   const getMeta = opt.getMeta ?? createDefaultMetaGetter();
   const exposeStateWebMode = opt.exposeStateWebMode;
+  const hasCustomOverlayLayerConfig =
+    !!opt.overlayLayer &&
+    (typeof opt.overlayLayer.baseZIndex !== 'undefined' ||
+      typeof opt.overlayLayer.step !== 'undefined' ||
+      typeof opt.overlayLayer.roleOffsets !== 'undefined');
+  const overlayLayerScheduler =
+    opt.overlayLayer?.scheduler ??
+    (hasCustomOverlayLayerConfig
+      ? createZIndexOverlayLayerScheduler({
+          baseZIndex: opt.overlayLayer?.baseZIndex,
+          step: opt.overlayLayer?.step,
+          roleOffsets: opt.overlayLayer?.roleOffsets,
+        })
+      : SHARED_OVERLAY_LAYER_SCHEDULER);
 
   class ProtoElement extends HTMLElement {
     private _mountedOnce = false;
@@ -170,6 +194,7 @@ export function AdaptToWebComponent<Props extends PropsBaseType>(
           this._exposes = record;
         },
         presenceBridge,
+        overlayLayerScheduler,
       });
 
       const wiring = createHostWiring({ prototypeName: tagName, modules });
@@ -207,7 +232,11 @@ export function AdaptToWebComponent<Props extends PropsBaseType>(
         },
       });
 
-      const { controller } = hostSession;
+      const { controller, kernel } = hostSession;
+      if (kernel && kernel.run) {
+        (kernel.run as any).host = { get: () => thisEl };
+      }
+
       installDebugHooks(thisEl, hostSession.caps);
 
       (this as any).update = () => controller.update();

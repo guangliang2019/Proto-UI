@@ -103,7 +103,7 @@ const hoverCardContent = definePrototype({
   name: 'base-hover-card-content',
   setup(def) {
     setupHoverCardContent(def);
-    def.feedback.style.use(tw('absolute left-0 top-full z-50 mt-2'));
+    def.feedback.style.use(tw('absolute left-0 top-full z-40 mt-2'));
   },
 });
 
