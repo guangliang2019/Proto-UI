@@ -75,6 +75,26 @@ const manualPrototypeModules: Record<string, PrototypeModuleLoader> = {
     const mod = await import('../../../../../packages/prototypes/base/src/transition/transition');
     registerPrototype('base-transition', mod.default);
   },
+  'base-select-root': async () => {
+    const mod = await import('../../../../../packages/prototypes/base/src/select/root');
+    registerPrototype('base-select-root', mod.default);
+  },
+  'base-select-trigger': async () => {
+    const mod = await import('../../../../../packages/prototypes/base/src/select/trigger');
+    registerPrototype('base-select-trigger', mod.default);
+  },
+  'base-select-value': async () => {
+    const mod = await import('../../../../../packages/prototypes/base/src/select/value');
+    registerPrototype('base-select-value', mod.default);
+  },
+  'base-select-content': async () => {
+    const mod = await import('../../../../../packages/prototypes/base/src/select/content');
+    registerPrototype('base-select-content', mod.default);
+  },
+  'base-select-item': async () => {
+    const mod = await import('../../../../../packages/prototypes/base/src/select/item');
+    registerPrototype('base-select-item', mod.default);
+  },
   'shadcn-hover-card-root': async () => {
     const mod = await import('../../../../../packages/prototypes/shadcn/src/hover-card/root');
     registerPrototype('shadcn-hover-card-root', mod.default);

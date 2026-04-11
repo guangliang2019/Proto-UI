@@ -179,6 +179,11 @@ export default defineConfig({
                   translations: { en: 'Transition', 'zh-CN': 'Transition' },
                   slug: 'ui-libraries/base/transition',
                 },
+                {
+                  label: 'Select',
+                  translations: { en: 'Select', 'zh-CN': 'Select' },
+                  slug: 'ui-libraries/base/select',
+                },
               ],
             },
             {
