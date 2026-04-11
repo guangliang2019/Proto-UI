@@ -8,7 +8,7 @@ describe('adapter-react: slots', () => {
     const proto: Prototype = {
       name: 'react-slot-basic',
       setup() {
-        return (r) => [r.el('div', [r.r.slot()])];
+        return (r) => [r.el('div', [r.slot()])];
       },
     };
 

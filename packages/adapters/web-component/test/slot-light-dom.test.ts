@@ -8,7 +8,7 @@ describe('adapter-web-component light DOM slot (v0)', () => {
     const P: Prototype = {
       name: 'x-light-slot-1',
       setup() {
-        return (r) => [r.el('div', [r.r.slot()])];
+        return (r) => [r.el('div', [r.slot()])];
       },
     };
 
@@ -32,7 +32,7 @@ describe('adapter-web-component light DOM slot (v0)', () => {
     const P: Prototype = {
       name: 'x-light-slot-2',
       setup() {
-        return (r) => [r.el('div', [r.el('span', 'prefix'), r.r.slot(), r.el('span', 'suffix')])];
+        return (r) => [r.el('div', [r.el('span', 'prefix'), r.slot(), r.el('span', 'suffix')])];
       },
     };
 
@@ -52,7 +52,7 @@ describe('adapter-web-component light DOM slot (v0)', () => {
     const P: Prototype = {
       name: 'x-light-slot-3',
       setup() {
-        return (r) => [r.el('div', [r.r.slot()])];
+        return (r) => [r.el('div', [r.slot()])];
       },
     };
 
@@ -76,7 +76,7 @@ describe('adapter-web-component light DOM slot (v0)', () => {
       name: 'x-light-slot-4',
       setup(def) {
         // no props needed; we only test update semantics
-        return (r) => [r.el('div', [r.r.slot()])];
+        return (r) => [r.el('div', [r.slot()])];
       },
     };
 
@@ -101,7 +101,7 @@ describe('adapter-web-component light DOM slot (v0)', () => {
     const P: Prototype = {
       name: 'x-light-slot-mo',
       setup() {
-        return (r) => [r.el('div', [r.r.slot()])];
+        return (r) => [r.el('div', [r.slot()])];
       },
     };
 

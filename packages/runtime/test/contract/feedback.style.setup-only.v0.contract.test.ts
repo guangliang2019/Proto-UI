@@ -12,7 +12,7 @@ describe('runtime: feedback.style.setup-only v0', () => {
           def.feedback.style.use(tw('opacity-50'));
           void run;
         });
-        return (r: any) => [r.r.slot()];
+        return (r: any) => [r.slot()];
       },
     } as any;
 
@@ -34,7 +34,7 @@ describe('runtime: feedback.style.setup-only v0', () => {
           void run;
         });
 
-        return (r: any) => [r.r.slot()];
+        return (r: any) => [r.slot()];
       },
     } as any;
 

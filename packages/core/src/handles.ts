@@ -208,6 +208,7 @@ export interface ElementFactory {
 
 export interface RendererHandle<Props extends PropsBaseType> {
   el: ElementFactory;
+  slot(): TemplateNode;
   r: ReservedFactories;
   read: RenderReadHandle<Props>; // render 阶段可用的 readonly 快照视图
 }

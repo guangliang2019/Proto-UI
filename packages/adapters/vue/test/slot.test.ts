@@ -9,7 +9,7 @@ describe('adapter-vue: slots', () => {
     const proto: Prototype = {
       name: 'vue-slot-basic',
       setup() {
-        return (r) => [r.el('div', [r.r.slot()])];
+        return (r) => [r.el('div', [r.slot()])];
       },
     };
 

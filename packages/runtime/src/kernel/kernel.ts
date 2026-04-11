@@ -87,7 +87,7 @@ export function createKernel<P extends PropsBaseType>(
   } finally {
     opt?.asHook?.exitSetup?.();
   }
-  const defaultRender: RenderFn = (renderer) => [renderer.r.slot()];
+  const defaultRender: RenderFn = (renderer) => [renderer.slot()];
   let renderFn: RenderFn = defaultRender;
   if (typeof maybeRender === 'function') {
     renderFn = maybeRender;
@@ -122,8 +122,8 @@ export function createKernel<P extends PropsBaseType>(
     props: propsFacade as any,
   };
 
-  const { el, r } = createRendererPrimitives();
-  const renderer: RendererHandle<P> = { el, r, read };
+  const { el, slot, r } = createRendererPrimitives();
+  const renderer: RendererHandle<P> = { el, slot, r, read };
 
   // ----------------
   // render

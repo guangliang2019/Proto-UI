@@ -8,7 +8,7 @@ describe('adapter-web-component: intra-document move', () => {
       name: 'x-move-stable-style',
       setup(def) {
         def.feedback.style.use(tw('inline-flex rounded-lg'));
-        return (r) => r.el('div', r.r.slot());
+        return (r) => r.el('div', r.slot());
       },
     });
 
