@@ -46,4 +46,32 @@ describe('adapter-react: expose', () => {
 
     mounted.unmount();
   });
+
+  it('supports invoking exposed control methods within callback scope', () => {
+    const proto: Prototype = {
+      name: 'react-expose-controls',
+      setup(def) {
+        const phase = def.state.enum('phase', 'idle', { options: ['idle', 'running'] });
+        def.expose.state('phase', phase);
+        def.expose.value('controls', {
+          run: () => phase.set('running', 'reason: test.controls.run'),
+        });
+        return (r) => [r.el('div', 'ok')];
+      },
+    };
+
+    const mounted = createMountedReactAdapter(proto);
+    const handle = mounted.ref.current;
+
+    expect(typeof handle.invokeInCallbackScope).toBe('function');
+    expect(handle.getExposes().phase.get()).toBe('idle');
+
+    handle.invokeInCallbackScope(() => {
+      handle.getExposes().controls.run();
+    });
+
+    expect(handle.getExposes().phase.get()).toBe('running');
+
+    mounted.unmount();
+  });
 });

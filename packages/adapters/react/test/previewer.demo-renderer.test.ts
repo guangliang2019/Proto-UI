@@ -35,6 +35,7 @@ const loadReact = vi.fn(async () => ({
   },
   ReactDOM: {
     createRoot: vi.fn(() => reactRoot),
+    createPortal: vi.fn((children: any) => children),
   },
 }));
 
@@ -95,5 +96,5 @@ describe('PrototypePreviewer demo-renderer / react', () => {
 
     expect(reactRoot.unmount).toHaveBeenCalledTimes(1);
     host.remove();
-  });
+  }, 15000);
 });

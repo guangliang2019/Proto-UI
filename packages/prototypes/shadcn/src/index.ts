@@ -19,6 +19,22 @@ export { default as shadcnDropdownRoot } from './dropdown/root';
 export { default as shadcnDropdownTrigger } from './dropdown/trigger';
 export { default as shadcnDropdownContent } from './dropdown/content';
 export { default as shadcnDropdownItem } from './dropdown/item';
+export {
+  dialogRoot,
+  dialogTrigger,
+  dialogMask,
+  dialogContent,
+  dialogTitle,
+  dialogDescription,
+  dialogClose,
+} from './dialog';
+export { default as shadcnDialogRoot } from './dialog/root';
+export { default as shadcnDialogTrigger } from './dialog/trigger';
+export { default as shadcnDialogMask } from './dialog/overlay';
+export { default as shadcnDialogContent } from './dialog/content';
+export { default as shadcnDialogTitle } from './dialog/title';
+export { default as shadcnDialogDescription } from './dialog/description';
+export { default as shadcnDialogClose } from './dialog/close';
 export type {
   ShadcnButtonProps,
   ShadcnButtonExposes,
@@ -80,3 +96,26 @@ export type {
   ShadcnDropdownItemExposes,
   ShadcnDropdownItemAsHookContract,
 } from './dropdown/types';
+export type {
+  ShadcnDialogRootProps,
+  ShadcnDialogRootExposes,
+  ShadcnDialogRootAsHookContract,
+  ShadcnDialogTriggerProps,
+  ShadcnDialogTriggerExposes,
+  ShadcnDialogTriggerAsHookContract,
+  ShadcnDialogMaskProps,
+  ShadcnDialogMaskExposes,
+  ShadcnDialogMaskAsHookContract,
+  ShadcnDialogContentProps,
+  ShadcnDialogContentExposes,
+  ShadcnDialogContentAsHookContract,
+  ShadcnDialogTitleProps,
+  ShadcnDialogTitleExposes,
+  ShadcnDialogTitleAsHookContract,
+  ShadcnDialogDescriptionProps,
+  ShadcnDialogDescriptionExposes,
+  ShadcnDialogDescriptionAsHookContract,
+  ShadcnDialogCloseProps,
+  ShadcnDialogCloseExposes,
+  ShadcnDialogCloseAsHookContract,
+} from './dialog/types';

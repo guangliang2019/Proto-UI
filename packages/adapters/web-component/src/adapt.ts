@@ -8,9 +8,12 @@ import {
   createHostWiring,
   createEventGate,
   createWebProtoEventRouter,
+  createZIndexOverlayLayerScheduler,
+  type OverlayLayerScheduler,
+  type OverlayZIndexLayerSchedulerOptions,
 } from '@proto.ui/adapter-base';
 
-import { bindController, getElementProps, unbindController } from './props';
+import { bindController, getElementProps, setElementProps, unbindController } from './props';
 import { SlotProjector } from './slot-projector';
 import { createOwnedTwTokenApplier } from './feedback-style';
 import { installDebugHooks, removeDebugHooks } from './debug/hooks';
@@ -41,6 +44,11 @@ export interface WebComponentAdapterOptions<Props extends PropsBaseType = PropsB
     allowContinuousAttr?: boolean;
     allowStringVar?: boolean;
   };
+  overlayLayer?:
+    | (OverlayZIndexLayerSchedulerOptions & {
+        scheduler?: OverlayLayerScheduler;
+      })
+    | undefined;
 }
 
 export type WebComponentAdapterHandle = {
@@ -55,6 +63,8 @@ export type WebComponentAdapterConstructor = {
   prototype: WebComponentAdapterElement;
 };
 
+const SHARED_OVERLAY_LAYER_SCHEDULER = createZIndexOverlayLayerScheduler();
+
 export function AdaptToWebComponent<Props extends PropsBaseType>(
   proto: Prototype<Props>,
   opt: WebComponentAdapterOptions<Props> = {}
@@ -68,10 +78,24 @@ export function AdaptToWebComponent<Props extends PropsBaseType>(
   const schedule = opt.schedule ?? ((task) => queueMicrotask(task));
   const getMeta = opt.getMeta ?? createDefaultMetaGetter();
   const exposeStateWebMode = opt.exposeStateWebMode;
+  const hasCustomOverlayLayerConfig =
+    !!opt.overlayLayer &&
+    (typeof opt.overlayLayer.baseZIndex !== 'undefined' ||
+      typeof opt.overlayLayer.step !== 'undefined' ||
+      typeof opt.overlayLayer.roleOffsets !== 'undefined');
+  const overlayLayerScheduler =
+    opt.overlayLayer?.scheduler ??
+    (hasCustomOverlayLayerConfig
+      ? createZIndexOverlayLayerScheduler({
+          baseZIndex: opt.overlayLayer?.baseZIndex,
+          step: opt.overlayLayer?.step,
+          roleOffsets: opt.overlayLayer?.roleOffsets,
+        })
+      : SHARED_OVERLAY_LAYER_SCHEDULER);
 
   class ProtoElement extends HTMLElement {
     private _mountedOnce = false;
-    private _invokeUnmounted: (() => void) | null = null;
+    private _invokeUnmounted: (() => void | Promise<void>) | null = null;
     private _disconnectVersion = 0;
     private _pendingOwnedTokens: string[] | null = null;
     private _controller: RuntimeController | null = null;
@@ -82,6 +106,8 @@ export function AdaptToWebComponent<Props extends PropsBaseType>(
 
     private _applier: ReturnType<typeof createOwnedTwTokenApplier> | null = null;
     private _exposes: Record<string, unknown> = {};
+    private _wrappedExposes: Record<string, unknown> = {};
+    private _lastWrappedRaw: Record<string, unknown> | null = null;
 
     constructor() {
       super();
@@ -91,6 +117,7 @@ export function AdaptToWebComponent<Props extends PropsBaseType>(
 
     connectedCallback() {
       this._disconnectVersion += 1;
+
       if (this._mountedOnce) {
         if (this._pendingOwnedTokens?.length) {
           this._applier?.apply(this._pendingOwnedTokens);
@@ -111,11 +138,9 @@ export function AdaptToWebComponent<Props extends PropsBaseType>(
       const router = createWebProtoEventRouter({
         rootEl: thisEl,
         globalEl: window,
-        isEnabled: () => eventGate.isEnabled?.() ?? true, // 看你 eventGate API，没就自己存个 boolean
+        isEnabled: () => eventGate.isEnabled?.() ?? true,
       });
 
-      // Create applier/effectsPort BEFORE executeWithHost,
-      // because we must inject them in host.onRuntimeReady (CP1).
       const applier = createOwnedTwTokenApplier(thisEl, {
         onChange: () => {
           this._hostDisplay?.sync();
@@ -127,15 +152,10 @@ export function AdaptToWebComponent<Props extends PropsBaseType>(
 
       const rawPropsSource: RawPropsSource<Props> = {
         debugName: `${tagName}#raw-props`,
-
         get(): Readonly<Props & PropsBaseType> {
-          // attrs-first, then opt.getProps
           const p = getElementProps(thisEl) ?? getProps(thisEl) ?? ({} as Partial<Props>);
-
-          // WC 从 DOM 取值，类型安全只能止步于边界；用 unknown 双断言把风险收口在这一处
           return p as unknown as Readonly<Props & PropsBaseType>;
         },
-
         subscribe(cb) {
           const mo = new MutationObserver((records) => {
             for (const r of records) {
@@ -151,6 +171,18 @@ export function AdaptToWebComponent<Props extends PropsBaseType>(
         },
       };
 
+      const presenceBridge = {
+        mount: () => {
+          // no-op for WC: structural mount timing is browser-controlled via connectedCallback
+        },
+        unmount: () => {
+          // no-op for WC: actual teardown is handled by disconnectedCallback when the
+          // element is truly removed from the DOM. We must NOT dispose the runtime here
+          // because the element may still be in the DOM (e.g. transition closed state)
+          // and needs to remain interactive (getExposes, update, re-enter, etc.).
+        },
+      };
+
       const modules = createWebComponentModules({
         el: thisEl,
         router,
@@ -161,6 +193,8 @@ export function AdaptToWebComponent<Props extends PropsBaseType>(
         setExposes: (record) => {
           this._exposes = record;
         },
+        presenceBridge,
+        overlayLayerScheduler,
       });
 
       const wiring = createHostWiring({ prototypeName: tagName, modules });
@@ -187,6 +221,8 @@ export function AdaptToWebComponent<Props extends PropsBaseType>(
         },
         onAfterUnmount: () => {
           this._exposes = {};
+          this._wrappedExposes = {};
+          this._lastWrappedRaw = null;
           this._applier?.clear();
           this._applier = null;
           this._hostDisplay?.disconnect();
@@ -196,20 +232,54 @@ export function AdaptToWebComponent<Props extends PropsBaseType>(
         },
       });
 
-      const { controller } = hostSession;
+      const { controller, kernel } = hostSession;
+      if (kernel && kernel.run) {
+        (kernel.run as any).host = { get: () => thisEl };
+      }
+
       installDebugHooks(thisEl, hostSession.caps);
 
-      // expose update for convenience (existing behavior)
       (this as any).update = () => controller.update();
+      const wrapExposes = (record: Record<string, unknown>): Record<string, unknown> => {
+        const out: Record<string, unknown> = {};
+        for (const [key, value] of Object.entries(record)) {
+          if (typeof value === 'function') {
+            out[key] = (...args: unknown[]) => {
+              let result: unknown;
+              hostSession.invokeInCallbackScope(() => {
+                result = (value as (...a: unknown[]) => unknown)(...args);
+              });
+              return result;
+            };
+          } else if (value !== null && typeof value === 'object' && !Array.isArray(value)) {
+            out[key] = wrapExposes(value as Record<string, unknown>);
+          } else {
+            out[key] = value;
+          }
+        }
+        return out;
+      };
+
       (this as any).getExposes = () => {
         if (!this.isConnected) return {};
-        return { ...(this._exposes ?? {}) };
+        const raw = this._exposes ?? {};
+        if (this._lastWrappedRaw !== raw) {
+          this._lastWrappedRaw = raw;
+          this._wrappedExposes = wrapExposes(raw);
+        }
+        return { ...this._wrappedExposes };
+      };
+
+      (this as unknown as { setProps?(v: Record<string, unknown>): void }).setProps = (
+        next: Record<string, unknown>
+      ) => {
+        setElementProps(thisEl, next);
+        controller.update();
       };
 
       this._controller = controller;
       bindController(this, controller);
 
-      // Teardown must keep caps alive until unmounted callbacks finish.
       this._invokeUnmounted = () => hostSession.dispose();
     }
 
@@ -219,7 +289,8 @@ export function AdaptToWebComponent<Props extends PropsBaseType>(
       this._hostDisplay?.sync();
 
       const disconnectVersion = ++this._disconnectVersion;
-      queueMicrotask(() => {
+
+      queueMicrotask(async () => {
         if (this._disconnectVersion !== disconnectVersion) {
           if (this._pendingOwnedTokens?.length) {
             this._applier?.apply(this._pendingOwnedTokens);
@@ -228,10 +299,16 @@ export function AdaptToWebComponent<Props extends PropsBaseType>(
           this._pendingOwnedTokens = null;
           return;
         }
-        if (this.isConnected) return;
+        if (this.isConnected) {
+          this._pendingOwnedTokens = null;
+          return;
+        }
 
-        this._invokeUnmounted?.();
-        this._invokeUnmounted = null;
+        if (this._invokeUnmounted) {
+          const fn = this._invokeUnmounted;
+          this._invokeUnmounted = null;
+          await fn();
+        }
         this._controller = null;
         this._mountedOnce = false;
         this._pendingOwnedTokens = null;

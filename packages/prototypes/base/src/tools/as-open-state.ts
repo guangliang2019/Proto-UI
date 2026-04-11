@@ -23,13 +23,13 @@ export type OpenStateHandles = {
   open: State<boolean>;
 };
 
-export const useOpenState = defineHook<
+export const asOpenState = defineHook<
   any,
   OpenStateExposes,
   OpenStateHandles,
   OpenStateOptions | undefined
 >({
-  name: 'useOpenState',
+  name: 'asOpenState',
   mode: 'configurable',
   setup(def, options, api) {
     const prop = options?.prop ?? 'open';

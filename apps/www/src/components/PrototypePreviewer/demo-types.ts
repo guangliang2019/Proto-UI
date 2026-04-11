@@ -10,21 +10,36 @@ export type DemoNode =
   | {
       kind: 'box';
       className?: string;
+      ref?: string;
       children?: DemoChild[];
     }
   | {
       kind: 'proto';
       prototypeId: string;
       className?: string;
+      ref?: string;
       props?: Record<string, unknown>;
       children?: DemoChild[];
     };
 
 export type DemoChild = DemoNode | string;
 
+export type DemoRuntimeApi = {
+  call(ref: string, path: string, ...args: unknown[]): unknown;
+  getExposes(ref: string): Record<string, unknown> | undefined;
+  setProps(ref: string, next: Record<string, unknown>): void;
+};
+
+export type DemoSetupContext = {
+  host: HTMLElement;
+  refs: Record<string, HTMLElement>;
+  api: DemoRuntimeApi;
+};
+
 export type DemoSpec = {
   type: 'demo';
   root: DemoNode;
+  setup?: (ctx: DemoSetupContext) => void | (() => void);
 };
 
 export type DemoRenderResult = {
@@ -82,6 +97,9 @@ export function assertDemoSpec(demo: DemoSpec) {
   if (!demo.root) {
     throw new Error('[PrototypePreviewer] demo 格式错误：缺少 root。');
   }
+  if (demo.setup !== undefined && typeof demo.setup !== 'function') {
+    throw new Error('[PrototypePreviewer] demo.setup 必须是函数。');
+  }
 
   const walk = (node: DemoChild, path: string[]) => {
     if (typeof node === 'string') return;
@@ -96,12 +114,24 @@ export function assertDemoSpec(demo: DemoSpec) {
     }
     if (node.kind === 'box') {
       assertClassName((node as any).className, [...path, 'className']);
+      if (
+        (node as Record<string, unknown>).ref !== undefined &&
+        typeof (node as Record<string, unknown>).ref !== 'string'
+      ) {
+        throw new Error(`[PrototypePreviewer] demo ref 必须是字符串：${path.join('.')}`);
+      }
     } else if (node.kind === 'proto') {
       const protoId = (node as any).prototypeId;
       if (!protoId || typeof protoId !== 'string') {
         throw new Error(`[PrototypePreviewer] demo 节点缺少 prototypeId：${path.join('.')}`);
       }
       assertClassName((node as any).className, [...path, 'className']);
+      if (
+        (node as Record<string, unknown>).ref !== undefined &&
+        typeof (node as Record<string, unknown>).ref !== 'string'
+      ) {
+        throw new Error(`[PrototypePreviewer] demo ref 必须是字符串：${path.join('.')}`);
+      }
       if ((node as any).props !== undefined) {
         assertJsonLike((node as any).props, [...path, 'props']);
       }

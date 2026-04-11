@@ -2,12 +2,15 @@
 
 type Unsub = () => void;
 const PRESS_COMMIT_EMITTED_ROOTS = Symbol.for('@proto.ui/router/press-commit-emitted-roots');
+const PROTO_PARENT_INSTANCE_MARK = Symbol.for('@proto.ui/adapter-base/__proto_parent_instance');
 const PROTO_INSTANCE_MARKS = [
   Symbol.for('@proto.ui/adapter-web-component/__proto_instance'),
   Symbol.for('@proto.ui/adapter-react/__proto_instance'),
   Symbol.for('@proto.ui/adapter-vue/__proto_instance'),
 ] as const;
 const TRIGGER_OWNER_MARK = Symbol.for('@proto.ui/as-trigger/confirm-owner');
+
+type ElementWithSymbols = HTMLElement & Record<symbol, unknown>;
 
 type Listener = {
   type: string;
@@ -50,23 +53,43 @@ export function createWebProtoEventRouter(opt: {
     return target === rootEl || (target instanceof Node && rootEl.contains(target));
   }
 
+  function getLinkedProtoParent(target: EventTarget | null): HTMLElement | null {
+    if (!(target instanceof HTMLElement)) return null;
+    const linkedParent = (target as ElementWithSymbols)[PROTO_PARENT_INSTANCE_MARK];
+    return linkedParent instanceof HTMLElement ? linkedParent : null;
+  }
+
   function isProtoInstanceNode(target: EventTarget | null): target is HTMLElement {
     if (!(target instanceof HTMLElement)) return false;
-    return PROTO_INSTANCE_MARKS.some((mark) => (target as any)[mark] === true);
+    return PROTO_INSTANCE_MARKS.some((mark) => (target as ElementWithSymbols)[mark] === true);
   }
 
   function isTriggerOwnerNode(target: EventTarget | null): target is HTMLElement {
-    return target instanceof HTMLElement && (target as any)[TRIGGER_OWNER_MARK] === true;
+    return (
+      target instanceof HTMLElement && (target as ElementWithSymbols)[TRIGGER_OWNER_MARK] === true
+    );
   }
 
   function getNearestProtoInstance(target: EventTarget | null): HTMLElement | null {
     let cur: Node | null = target instanceof Node ? target : null;
+    const visited = new Set<Node>();
     while (cur) {
+      if (visited.has(cur)) return null;
+      visited.add(cur);
+
       if (typeof ShadowRoot !== 'undefined' && cur instanceof ShadowRoot) {
         cur = cur.host;
         continue;
       }
+
       if (isProtoInstanceNode(cur)) return cur;
+
+      const linkedParent = getLinkedProtoParent(cur);
+      if (linkedParent && linkedParent !== cur) {
+        cur = linkedParent;
+        continue;
+      }
+
       cur = cur.parentNode;
     }
     return null;
@@ -124,11 +147,18 @@ export function createWebProtoEventRouter(opt: {
     return isWithinRoot(native.target);
   }
 
+  function shouldRouteGlobalRootEvent(native: Event) {
+    if (isWithinRoot(native.target)) return false;
+    return shouldRouteToCurrentRoot(native);
+  }
+
+  type KeyboardEventWithSymbols = KeyboardEvent & Record<symbol, Set<EventTarget> | undefined>;
+
   function getPressCommitEmittedRoots(native: KeyboardEvent): Set<EventTarget> {
-    const seen = (native as any)[PRESS_COMMIT_EMITTED_ROOTS];
+    const seen = (native as KeyboardEventWithSymbols)[PRESS_COMMIT_EMITTED_ROOTS];
     if (seen instanceof Set) return seen;
     const next = new Set<EventTarget>();
-    (native as any)[PRESS_COMMIT_EMITTED_ROOTS] = next;
+    (native as KeyboardEventWithSymbols)[PRESS_COMMIT_EMITTED_ROOTS] = next;
     return next;
   }
 
@@ -203,6 +233,40 @@ export function createWebProtoEventRouter(opt: {
     })
   );
 
+  // portal fallback: globally mounted nodes do not bubble pointer events to rootEl
+  unsubs.push(
+    listen(globalEl, 'pointerdown', (e) => {
+      if (!opt.isEnabled()) return;
+      if (!shouldRouteGlobalRootEvent(e)) return;
+      suppressFollowupDirectClick = false;
+      emit(protoRootBus, 'pointer.down', e);
+    })
+  );
+
+  unsubs.push(
+    listen(globalEl, 'pointermove', (e) => {
+      if (!opt.isEnabled()) return;
+      if (!shouldRouteGlobalRootEvent(e)) return;
+      emit(protoRootBus, 'pointer.move', e);
+    })
+  );
+
+  unsubs.push(
+    listen(globalEl, 'pointerup', (e) => {
+      if (!opt.isEnabled()) return;
+      if (!shouldRouteGlobalRootEvent(e)) return;
+      emit(protoRootBus, 'pointer.up', e);
+    })
+  );
+
+  unsubs.push(
+    listen(globalEl, 'pointercancel', (e) => {
+      if (!opt.isEnabled()) return;
+      if (!shouldRouteGlobalRootEvent(e)) return;
+      emit(protoRootBus, 'pointer.cancel', e);
+    })
+  );
+
   // key -> key.* (global)
   unsubs.push(
     listen(globalEl, 'keydown', (e: KeyboardEvent) => {
@@ -238,11 +302,25 @@ export function createWebProtoEventRouter(opt: {
   );
 
   // click -> press.commit (root)
+  // 只响应真实的 MouseEvent；由 event.emit() 分发的 CustomEvent 不触发 press.commit，
+  // 避免组件暴露的合成 click 事件（如 asButton）导致重复 toggle。
   unsubs.push(
     listen(rootEl, 'click', (e) => {
       if (!opt.isEnabled()) return;
+      if (!(e instanceof MouseEvent)) return;
       if (!shouldRouteToCurrentRoot(e)) return;
-      if (e instanceof MouseEvent && shouldSuppressFollowupClick(e)) return;
+      if (shouldSuppressFollowupClick(e)) return;
+      suppressFollowupDirectClick = false;
+      emit(protoRootBus, 'press.commit', e);
+    })
+  );
+
+  unsubs.push(
+    listen(globalEl, 'click', (e) => {
+      if (!opt.isEnabled()) return;
+      if (!(e instanceof MouseEvent)) return;
+      if (!shouldRouteGlobalRootEvent(e)) return;
+      if (shouldSuppressFollowupClick(e)) return;
       suppressFollowupDirectClick = false;
       emit(protoRootBus, 'press.commit', e);
     })
@@ -252,6 +330,14 @@ export function createWebProtoEventRouter(opt: {
   unsubs.push(
     listen(rootEl, 'contextmenu', (e) => {
       if (!opt.isEnabled()) return;
+      emit(protoRootBus, 'context.menu', e);
+    })
+  );
+
+  unsubs.push(
+    listen(globalEl, 'contextmenu', (e) => {
+      if (!opt.isEnabled()) return;
+      if (!shouldRouteGlobalRootEvent(e)) return;
       emit(protoRootBus, 'context.menu', e);
     })
   );

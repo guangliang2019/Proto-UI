@@ -8,6 +8,13 @@ import type {
 } from '@proto.ui/core';
 import type { PropsBaseType } from '@proto.ui/types';
 
+export type {
+  OverlayGlobalMount,
+  OverlayModal,
+  OverlayLayerRequest,
+  OverlayLayerScheduler,
+} from './caps';
+
 export type OverlayFacade = {
   getOverlay<P extends PropsBaseType = PropsBaseType>(): OverlayHandle<P>;
 };

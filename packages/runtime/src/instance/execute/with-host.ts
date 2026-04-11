@@ -7,6 +7,7 @@ import { createTimeline } from '../../kernel/timeline';
 import type { PropsFacade, PropsPort } from '@proto.ui/module-props';
 import type { RulePort } from '@proto.ui/module-rule';
 import { EventPort } from '@proto.ui/module-event';
+import type { PresencePort } from '@proto.ui/module-presence';
 import { __RT_EVENT_CALLBACKS } from '../../kernel/event';
 import { createRuntimeInstance } from '../instance';
 
@@ -125,26 +126,46 @@ export function executeWithHost<P extends PropsBaseType>(
     for (const cb of lifecycle.created) cb(run);
   });
 
+  const presencePort = moduleHub.getPort<PresencePort>('presence');
+
   // initial commit
   const children = doRenderCommit('initial');
 
-  moduleHub.setProtoPhase('mounted');
-  timeline.mark('proto:mounted');
-
   let ended = false;
 
-  host.schedule(() => {
+  const finishMount = () => {
     if (ended) return;
-    timeline.mark('mounted:callbacks');
+    moduleHub.setProtoPhase('mounted');
+    timeline.mark('proto:mounted');
 
-    callbackScope.run(run, () => {
-      for (const cb of lifecycle.mounted) cb(run);
+    host.schedule(() => {
+      if (ended) return;
+      timeline.mark('mounted:callbacks');
+
+      callbackScope.run(run, () => {
+        for (const cb of lifecycle.mounted) cb(run);
+      });
     });
-  });
+  };
 
-  const invokeUnmounted = () => {
+  // presence mount is async by design, but executeWithHost must stay sync
+  // to avoid breaking adapter contracts across the monorepo. We defer the
+  // mounted phase via .then() so it still waits for the mount approval.
+  const mountPromise = presencePort?.awaitMount();
+  if (mountPromise) {
+    mountPromise.then(finishMount);
+  } else {
+    finishMount();
+  }
+
+  const invokeUnmounted = async () => {
     if (ended) return;
     ended = true;
+
+    const unmountPromise = presencePort?.awaitUnmount();
+    if (unmountPromise) {
+      await unmountPromise;
+    }
 
     timeline.mark('unmount:begin');
     host.onUnmountBegin?.();
@@ -166,5 +187,12 @@ export function executeWithHost<P extends PropsBaseType>(
     timeline.mark('dispose:done');
   };
 
-  return { children, controller, invokeUnmounted, caps: moduleHub };
+  return {
+    children,
+    controller,
+    invokeUnmounted,
+    caps: moduleHub,
+    invokeInCallbackScope: (fn) => callbackScope.run(run, fn),
+    kernel: inst.kernel,
+  };
 }

@@ -71,6 +71,9 @@ export function createFakeReactRuntime() {
         children: flatChildren,
       };
     },
+    createPortal(children: any, _container: any) {
+      return children;
+    },
   };
 
   function render(

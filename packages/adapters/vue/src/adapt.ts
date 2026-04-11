@@ -4,6 +4,10 @@ import {
   createHostWiring,
   createEventGate,
   createWebProtoEventRouter,
+  createSoftUnmountScheduler,
+  createZIndexOverlayLayerScheduler,
+  type OverlayLayerScheduler,
+  type OverlayZIndexLayerSchedulerOptions,
 } from '@proto.ui/adapter-base';
 import type { ExposeStateWebMode } from '@proto.ui/module-expose-state-web';
 import type { RawPropsSource } from '@proto.ui/module-props';
@@ -21,9 +25,10 @@ export { __VUE_PROTO_INSTANCE } from './platform/instance-tree';
 export type VueRuntime = VueRenderRuntime & {
   defineComponent: (opt: any) => any;
   h: (type: any, props?: any, children?: any) => any;
+  Teleport?: any;
   ref: <T>(v: T) => { value: T };
   shallowRef: <T>(v: T) => { value: T };
-  watch: (src: any, cb: () => void, opt?: any) => void;
+  watch: (src: unknown, cb: (...args: unknown[]) => void | Promise<void>, opt?: unknown) => void;
   onMounted: (cb: () => void) => void;
   onBeforeUnmount: (cb: () => void) => void;
   nextTick: () => Promise<void>;
@@ -32,6 +37,7 @@ export type VueRuntime = VueRenderRuntime & {
 export type VueAdapterHandle = {
   update(): void;
   getExposes(): Record<string, unknown>;
+  invokeInCallbackScope?(fn: () => void): void;
 };
 
 export type VueAdapterProps<Props extends PropsBaseType> = Props &
@@ -48,6 +54,11 @@ export interface VueAdapterOptions<Props extends PropsBaseType> {
   exposeStateWebMode?: ExposeStateWebMode;
   autoUpdateOnPropsChange?: boolean;
   rootTag?: string;
+  overlayLayer?:
+    | (OverlayZIndexLayerSchedulerOptions & {
+        scheduler?: OverlayLayerScheduler;
+      })
+    | undefined;
 }
 
 function defaultGetProps<Props extends PropsBaseType>(
@@ -63,6 +74,8 @@ function defaultGetProps<Props extends PropsBaseType>(
 }
 
 export function createVueAdapter(runtime: VueRuntime) {
+  const sharedOverlayLayerScheduler = createZIndexOverlayLayerScheduler();
+
   return function AdaptToVue<Props extends PropsBaseType>(
     proto: Prototype<Props>,
     opt: VueAdapterOptions<Props> = {}
@@ -73,6 +86,20 @@ export function createVueAdapter(runtime: VueRuntime) {
     const exposeStateWebMode = opt.exposeStateWebMode;
     const autoUpdate = opt.autoUpdateOnPropsChange ?? true;
     const rootTag = opt.rootTag ?? 'div';
+    const hasCustomOverlayLayerConfig =
+      !!opt.overlayLayer &&
+      (typeof opt.overlayLayer.baseZIndex !== 'undefined' ||
+        typeof opt.overlayLayer.step !== 'undefined' ||
+        typeof opt.overlayLayer.roleOffsets !== 'undefined');
+    const overlayLayerScheduler =
+      opt.overlayLayer?.scheduler ??
+      (hasCustomOverlayLayerConfig
+        ? createZIndexOverlayLayerScheduler({
+            baseZIndex: opt.overlayLayer?.baseZIndex,
+            step: opt.overlayLayer?.step,
+            roleOffsets: opt.overlayLayer?.roleOffsets,
+          })
+        : sharedOverlayLayerScheduler);
 
     return runtime.defineComponent({
       name: `Proto(${proto.name})`,
@@ -84,10 +111,14 @@ export function createVueAdapter(runtime: VueRuntime) {
       setup(props: any, ctx: any) {
         const rootRef = runtime.ref<HTMLElement | null>(null);
         const renderChildren = runtime.shallowRef<any>(null);
+        const commitVersion = runtime.ref(0);
         const hostTokens = runtime.shallowRef<string[]>([]);
         const controllerRef = runtime.ref<RuntimeController | null>(null);
         const eventGateRef = runtime.ref<ReturnType<typeof createEventGate> | null>(null);
         const exposesRef = runtime.ref<Record<string, unknown>>({});
+        const invokeRef = runtime.ref<((fn: () => void) => void) | null>(null);
+        const shouldExist = runtime.ref(true);
+        let hasBeenUnmounted = false;
 
         const subs = new Set<() => void>();
         const rawPropsSource: RawPropsSource<Props> = {
@@ -107,28 +138,111 @@ export function createVueAdapter(runtime: VueRuntime) {
 
         let pendingCommit = false;
         let pendingSignal: CommitSignal | null = null;
+        let baselineOuterRafId: number | null = null;
+        let baselineInnerRafId: number | null = null;
+        let baselineSignal: CommitSignal | null = null;
         let hostSession: ReturnType<typeof createVueHostSession<Props>> | null = null;
+
+        const softUnmount = createSoftUnmountScheduler(
+          () => rootRef.value,
+          () => {
+            shouldExist.value = false;
+          }
+        );
+
+        const cancelBaselineFrames = () => {
+          if (baselineOuterRafId != null) {
+            cancelAnimationFrame(baselineOuterRafId);
+            baselineOuterRafId = null;
+          }
+          if (baselineInnerRafId != null) {
+            cancelAnimationFrame(baselineInnerRafId);
+            baselineInnerRafId = null;
+          }
+        };
+
+        const resolveBaselineSignal = () => {
+          baselineSignal?.done?.();
+          baselineSignal = null;
+        };
 
         ctx.expose({
           update: () => controllerRef.value?.update(),
           getExposes: () => ({ ...(exposesRef.value ?? {}) }),
+          invokeInCallbackScope: (fn: () => void) => invokeRef.value?.(fn),
         } satisfies VueAdapterHandle);
 
-        runtime.watch(
-          props as any,
-          () => {
-            for (const cb of subs) cb();
-            if (autoUpdate) controllerRef.value?.update();
-          },
-          { deep: true }
-        );
+        const notifyPropsChange = () => {
+          for (const cb of subs) cb();
+          if (autoUpdate) controllerRef.value?.update();
+        };
+
+        runtime.watch(props as any, notifyPropsChange, { deep: true });
+        runtime.watch(() => ctx.attrs, notifyPropsChange, { deep: true });
 
         runtime.watch(
-          renderChildren,
+          () => commitVersion.value,
           async () => {
             if (!pendingCommit) return;
             pendingCommit = false;
             await runtime.nextTick();
+
+            const rootEl = rootRef.value;
+            const eventGate = eventGateRef.value;
+            const needsBaseline = rootEl && eventGate && !eventGate.isEnabled() && hasBeenUnmounted;
+
+            if (needsBaseline) {
+              cancelBaselineFrames();
+              resolveBaselineSignal();
+
+              rootEl.setAttribute('data-transition-state', 'closed');
+              void rootEl.offsetHeight;
+              eventGateRef.value?.enable();
+
+              const signal = pendingSignal;
+              pendingSignal = null;
+
+              baselineSignal = signal;
+
+              // 双 RAF 保证 closed baseline 至少经历一帧可见提交。
+              baselineOuterRafId = requestAnimationFrame(() => {
+                baselineOuterRafId = null;
+                baselineInnerRafId = requestAnimationFrame(() => {
+                  baselineInnerRafId = null;
+                  hasBeenUnmounted = false;
+                  const latestRoot = rootRef.value;
+                  const realState = (
+                    exposesRef.value as { transitionState?: { get?(): string } } | undefined
+                  )?.transitionState?.get?.();
+                  if (latestRoot) {
+                    if (typeof realState === 'string') {
+                      latestRoot.setAttribute('data-transition-state', realState);
+                    } else {
+                      latestRoot.removeAttribute('data-transition-state');
+                    }
+                  }
+                  resolveBaselineSignal();
+                });
+              });
+              return;
+            }
+
+            // Baseline is already running (double RAF not settled yet).
+            // Keep forcing closed state and do not cancel queued baseline frames,
+            // otherwise follow-up commits can collapse closed -> entering.
+            if (
+              hasBeenUnmounted &&
+              (baselineSignal != null || baselineOuterRafId != null || baselineInnerRafId != null)
+            ) {
+              rootEl?.setAttribute('data-transition-state', 'closed');
+              eventGateRef.value?.enable();
+              pendingSignal?.done?.();
+              pendingSignal = null;
+              return;
+            }
+
+            cancelBaselineFrames();
+            resolveBaselineSignal();
             eventGateRef.value?.enable();
             pendingSignal?.done?.();
             pendingSignal = null;
@@ -136,10 +250,22 @@ export function createVueAdapter(runtime: VueRuntime) {
           { flush: 'post' }
         );
 
-        runtime.onMounted(() => {
+        let lastInitRoot: HTMLElement | null = null;
+
+        const initSession = () => {
           const rootEl = rootRef.value;
-          if (!rootEl) return;
-          if (controllerRef.value) return;
+          if (!rootEl || rootEl === lastInitRoot) return;
+          lastInitRoot = rootEl;
+
+          // Dispose any existing session before creating a new one.
+          // Vue removed the old DOM element while shouldExist was false,
+          // so the old router/modules are stale.
+          if (hostSession) {
+            hostSession.dispose();
+            hostSession = null;
+            controllerRef.value = null;
+            eventGateRef.value = null;
+          }
 
           markProtoInstance(rootEl, proto as Prototype<any>);
 
@@ -156,6 +282,16 @@ export function createVueAdapter(runtime: VueRuntime) {
             hostTokens.value = tokens;
           });
 
+          const presenceBridge = {
+            mount() {
+              softUnmount.cancel();
+              shouldExist.value = true;
+            },
+            unmount() {
+              return softUnmount.schedule();
+            },
+          };
+
           const modules = createVueModules({
             el: rootEl,
             router,
@@ -169,6 +305,8 @@ export function createVueAdapter(runtime: VueRuntime) {
             setExposes: (record) => {
               exposesRef.value = record;
             },
+            presenceBridge,
+            overlayLayerScheduler,
           });
 
           const wiring = createHostWiring({ prototypeName: proto.name, modules });
@@ -184,6 +322,7 @@ export function createVueAdapter(runtime: VueRuntime) {
               pendingCommit = true;
               pendingSignal = signal;
               renderChildren.value = children;
+              commitVersion.value += 1;
             },
             onAfterUnmount: () => {
               controllerRef.value = null;
@@ -193,14 +332,66 @@ export function createVueAdapter(runtime: VueRuntime) {
           });
 
           controllerRef.value = hostSession.controller as RuntimeController;
-        });
+          invokeRef.value = hostSession.invokeInCallbackScope;
+
+          const { kernel } = hostSession;
+          if (kernel && kernel.run) {
+            (kernel.run as any).host = { get: () => rootRef.value };
+          }
+        };
+
+        runtime.onMounted(initSession);
+
+        runtime.watch(
+          () => shouldExist.value,
+          async (val) => {
+            if (val) {
+              await runtime.nextTick();
+              initSession();
+            } else {
+              // Soft unmount: disable events and clear surfaced state,
+              // but keep exposes so imperative controls can re-enter from absent.
+              softUnmount.cancel();
+              cancelBaselineFrames();
+              resolveBaselineSignal();
+              hasBeenUnmounted = true;
+              eventGateRef.value?.disable?.();
+              hostTokens.value = [];
+            }
+          },
+          { flush: 'post' }
+        );
+
+        runtime.watch(
+          rootRef,
+          () => {
+            if (!shouldExist.value) return;
+            const currentRoot = rootRef.value;
+            if (currentRoot && currentRoot !== lastInitRoot) {
+              runtime.nextTick().then(() => {
+                if (rootRef.value === currentRoot && shouldExist.value) {
+                  initSession();
+                }
+              });
+            }
+          },
+          { flush: 'post' }
+        );
 
         runtime.onBeforeUnmount(() => {
-          hostSession?.dispose();
-          hostSession = null;
+          softUnmount.cancel();
+          cancelBaselineFrames();
+          resolveBaselineSignal();
+          if (hostSession) {
+            hostSession.dispose();
+            hostSession = null;
+            controllerRef.value = null;
+          }
+          lastInitRoot = null;
         });
 
         return () => {
+          if (!shouldExist.value) return null;
           const slotNodes = ctx.slots.default ? ctx.slots.default() : null;
           const rendered = renderTemplateToVue(runtime, renderChildren.value, {
             slot: slotNodes as any,
@@ -209,9 +400,12 @@ export function createVueAdapter(runtime: VueRuntime) {
           return runtime.h(
             rootTag,
             {
-              ref: rootRef,
+              ref: (el: HTMLElement | null) => {
+                rootRef.value = el;
+              },
               class: mergeHostClass(props.hostClass, hostTokens.value),
               style: props.hostStyle,
+              'data-demo-ref': ctx.attrs['data-demo-ref'] as string | undefined,
             },
             rendered as any
           );

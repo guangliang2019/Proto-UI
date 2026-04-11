@@ -3,6 +3,7 @@ import { TemplateChildren } from '@proto.ui/core';
 import { PropsBaseType } from '@proto.ui/types';
 import { LifecycleRegistry } from '../../kernel/handles/def';
 import { ModuleOrchestrator } from '../../orchestrator/module-orchestrator';
+import type { Kernel } from '../../kernel';
 
 export interface ExecuteOptions {
   props?: any;
@@ -29,8 +30,14 @@ export interface RuntimeController {
 export interface ExecuteWithHostResult {
   children: TemplateChildren;
   controller: RuntimeController;
-  invokeUnmounted(): void;
+  invokeUnmounted(): void | Promise<void>;
 
   /** expose module host for adapter caps injection (temporary but effective) */
   caps: ModuleOrchestrator;
+
+  /** invoke a function inside the runtime callback scope (for adapter expose method wrapping) */
+  invokeInCallbackScope(fn: () => void): void;
+
+  /** underlying kernel reference so adapters can patch run handle extensions */
+  kernel?: Kernel<any>;
 }

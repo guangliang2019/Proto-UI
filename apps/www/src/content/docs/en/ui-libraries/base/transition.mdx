@@ -1,0 +1,197 @@
+---
+title: 'Transition'
+desp: 'Transition'
+description: 'Transition base prototype'
+---
+
+import PrototypePreviewer from '@/components/PrototypePreviewer/PrototypePreviewer.astro';
+
+### Imperative Control
+
+<div class="transition-demo-container">
+  <PrototypePreviewer
+    demoId="demo-base-transition-command"
+    initialRuntime="wc"
+    runtimes={['wc', 'react', 'vue']}
+    hasCode={true}
+  />
+</div>
+
+This demo shows **imperative** state-machine control.
+
+- **Enter**: Moves into `entering` from any valid state (`closed → entering` or `leaving → entering`). Ignored if already entering or entered.
+- **Leave**: Moves into `leaving` from any valid state (`entered → leaving` or `entering → leaving`). Ignored if already leaving or closed.
+- **Complete**: Advances `entering` to `entered`, or `leaving` to `closed`.
+
+Typical full flow:
+
+```
+Enter → Complete → Leave → Complete
+```
+
+### Controlled Mode
+
+<div class="transition-demo-container">
+  <PrototypePreviewer
+    demoId="demo-base-transition-controlled"
+    initialRuntime="wc"
+    runtimes={['wc', 'react', 'vue']}
+    hasCode={true}
+  />
+</div>
+
+This demo shows the state machine driven by the **`open` prop**. **The host platform calls `complete()` after the CSS transition ends to advance the state automatically**.
+
+- **Toggle Open**: Flips the `open` value.
+  - If currently `closed` / `leaving`, setting `open=true` triggers `entering → entered`.
+  - If currently `entered` / `entering`, setting `open=false` triggers `leaving → closed`.
+- **Click Me**: Clicking the box itself also toggles `open`, behaving the same as the button.
+
+Typical flow:
+
+```
+Toggle Open (show) → Toggle Open (hide)
+```
+
+In this demo the CSS transition is set to 0.3s, so `entering` and `leaving` will auto-`complete` after that duration.
+
+<style>{`
+  .transition-demo-container {
+    --transition-duration: 0.3s;
+  }
+
+  .transition-demo-container .transition-wrapper[data-transition-state="closed"] .transition-box {
+    opacity: 0;
+    transform: scale(0.95) translateY(-10px);
+    background: linear-gradient(135deg, #9ca3af 0%, #6b7280 100%);
+  }
+
+  .transition-demo-container .transition-wrapper[data-transition-state="entering"] .transition-box {
+    opacity: 0.7;
+    transform: scale(0.98) translateY(-2px);
+    background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .transition-demo-container .transition-wrapper[data-transition-state="entered"] .transition-box {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+    background: linear-gradient(135deg, #34d399 0%, #10b981 100%);
+  }
+
+  .transition-demo-container .transition-wrapper[data-transition-state="leaving"] .transition-box {
+    opacity: 0.5;
+    transform: scale(0.98) translateY(2px);
+    background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .transition-demo-container .transition-box {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+`}</style>
+
+Transition is a **low-level foundational component** for managing the presence lifecycle of elements. It does not render visible content itself; instead, it provides state machine governance, allowing the host platform (CSS, React, Vue, etc.) to drive actual animations based on the state.
+
+### Architecture
+
+`asTransition` is implemented as a **privileged hook** (not a regular `asHook`). It uses the system-level module `@proto.ui/module-presence` to control **structural mount and unmount timing** across all adapters (Web Component, React, Vue).
+
+Why privileged? Because delaying structural mount before "entering" starts, and delaying unmount until "leaving → closed" finishes, requires host-level capabilities that go beyond what ordinary prototype authors can access.
+
+Lifecycle under `module-presence`:
+
+```
+absent → (setIntent enter) → mounting → present → (setIntent leave) → unmounting → absent
+```
+
+- **Mount blocking**: When the transition starts at `closed` and hasn't received an enter intent, the runtime `mounted` phase is deferred. The host adapter only renders/mounts the component once the presence handle resolves the mount.
+- **Deferred unmount**: When leaving starts (`entered → leaving`), the host adapter keeps the component in the DOM. Only after `complete()` moves the state to `closed` and the presence handle confirms unmount does the adapter actually remove the component.
+
+This makes the state machine work correctly with CSS transitions, because the DOM element is guaranteed to exist during `entering` and `leaving` even when the adapter would otherwise remove it immediately.
+
+### Relationship with `module-presence`
+
+`transition` is a **specialization** of `presence`. Think of `@proto.ui/module-presence` as the lower-level structural governance layer, while `asTransition` is the user-facing state machine built on top of it.
+
+- **`module-presence`** decides **when** the host element may exist in the DOM. It tracks phases: `absent → mounting → present → unmounting → absent`.
+- **`asTransition`** decides **why** the state changes. It exposes the 4-state FSM (`closed → entering → entered → leaving → closed`) and translates user actions (props, controls) into presence intents (`setIntent('enter')` or `setIntent('leave')`).
+
+This separation means:
+
+1. **Adapters only deal with presence.** A React or Vue adapter does not need to know about `entering` vs `entered`; it only needs to respect the `mount()` / `unmount()` signals from `module-presence`.
+2. **Transition authors only deal with the state machine.** They do not need to worry about host-level structural timing because `asTransition` delegates that to `module-presence` automatically.
+3. **Physical removal semantics differ by host.** In Web Components, the browser controls structural presence via `connectedCallback` / `disconnectedCallback`. In React and Vue, the adapters render `null` when the presence handle signals unmount, so the element is truly removed from the DOM once `leaving → closed` completes. To ensure CSS transitions still animate correctly on re-enter (`closed → entering`), React/Vue adapters insert a one-frame baseline: on the first commit after a fresh mount, they temporarily force `data-transition-state="closed"`, force a reflow, then restore the real state. This gives the browser the style anchor it needs before switching to `entering`.
+
+### Best Practices
+
+#### 1. Always pair state changes with CSS transitions
+
+`Transition` only manages logical state. If you do not provide CSS for `data-transition-state="entering"` and `data-transition-state="leaving"`, the element will appear/disappear instantly when `complete()` is called.
+
+#### 2. In controlled mode, the host must call `complete()`
+
+When using the `open` prop, the adapter (or your wrapper code) is responsible for observing the CSS transition end and calling `controls.complete()`. Without this, the state will hang in `entering` or `leaving` indefinitely.
+
+Typical controlled-mode wiring:
+
+```ts
+// After setting open=true and applying CSS transition
+el.addEventListener('transitionend', () => {
+  exposes.controls.complete();
+});
+```
+
+#### 3. Use `appear` for mount-time animation
+
+If you want an element to animate in when it first renders, set `appear: true`. Otherwise the element will jump straight to `entered` on mount without playing the enter animation.
+
+#### 4. Choose an interrupt strategy that matches your UX
+
+- **`'reverse'` (default)**: Best for most UI (menus, tooltips). If the user toggles quickly, the animation reverses direction smoothly.
+- **`'wait'`**: Best when you must guarantee every transition finishes (e.g. a multi-step wizard whose background panel should not skip animations).
+- **`'immediate'`**: Best for snappy stateless toggles where you do not care about partial animations. The current animation is discarded and the new one starts from a clean state.
+
+#### 5. Do not modify transition state directly
+
+Always use the exposed controls (`controls.enter()`, `controls.leave()`, `controls.complete()`) or the `open` prop. Mutating `transitionState` directly will bypass the presence intent layer and can cause adapters to get out of sync.
+
+#### 6. Keep DOM children stable during leaving
+
+Because `module-presence` may keep the element in the DOM during `leaving`, avoid destroying child state (like tearing down `<video>` elements or canceling network requests) until the adapter actually unmounts or `closed` is reached.
+
+### State Machine
+
+```
+closed → entering → entered → leaving → closed
+```
+
+- **closed**: Invisible, typically `display: none` or removed from DOM
+- **entering**: Entering animation in progress, DOM exists, entering styles applied
+- **entered**: Fully visible, stable state
+- **leaving**: Leaving animation in progress, DOM still exists, leaving styles applied
+
+### Props
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `open` | `boolean` | - | Controlled mode: target presence state |
+| `defaultOpen` | `boolean` | `false` | Uncontrolled mode: initial state |
+| `appear` | `boolean` | `false` | Whether to play enter animation on mount |
+| `enterDuration` | `number` | `300` | Expected enter animation duration (ms) |
+| `leaveDuration` | `number` | `200` | Expected leave animation duration (ms) |
+| `interrupt` | `'reverse' \| 'wait' \| 'immediate'` | `'reverse'` | Interruption strategy |
+
+### Imperative API
+
+Accessed via the `controls` expose:
+
+- `enter()`: Trigger enter
+- `leave()`: Trigger leave
+- `complete()`: Mark current transition complete, advance to next state
+
+### v0 Scope
+
+`base-transition` v0 only manages the presence lifecycle of a **single element** (`closed → entering → entered → leaving → closed`).
+
+Nested exit coordination (e.g., an outer Dialog waiting for an inner child to finish leaving before closing) belongs to a separate `transition-group` / `boundary` abstraction and is intentionally out of scope for v0.

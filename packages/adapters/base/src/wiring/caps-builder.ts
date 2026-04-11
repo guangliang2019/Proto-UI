@@ -1,9 +1,18 @@
 // packages/adapters/base/src/wiring/caps-builder.ts
-import type { CapEntries } from '@proto.ui/core';
+import { HOST_ELEMENT_CAP, type CapEntries } from '@proto.ui/core';
 import type { WiringSpec } from '../types';
 
 import { RAW_PROPS_SOURCE_CAP, type RawPropsSource } from '@proto.ui/module-props';
 import { EFFECTS_CAP } from '@proto.ui/module-feedback';
+import { PRESENCE_HOST_BRIDGE_CAP, type PresenceHostBridge } from '@proto.ui/module-presence';
+import {
+  OVERLAY_GLOBAL_MOUNT_CAP,
+  OVERLAY_LAYER_SCHEDULER_CAP,
+  OVERLAY_MODAL_CAP,
+  type OverlayGlobalMount,
+  type OverlayLayerScheduler,
+  type OverlayModal,
+} from '@proto.ui/module-overlay';
 import {
   EVENT_GLOBAL_TARGET_CAP,
   EVENT_EMIT_CAP,
@@ -15,7 +24,6 @@ import { EXPOSE_SET_EXPOSES_CAP, type ExposeHostSink } from '@proto.ui/module-ex
 import {
   EXPOSE_STATE_WEB_MAP_CAP,
   EXPOSE_STATE_WEB_MODE_CAP,
-  HOST_ELEMENT_CAP,
   type ExposeStateWebMode,
   type ExposeStateWebNameMap,
 } from '@proto.ui/module-expose-state-web';
@@ -113,6 +121,13 @@ export type CapsWiringBuilder = {
   useRuleExposeStateWeb(args: {
     nativeVariantPolicy: RuleExposeStateWebNativeVariantPolicy;
   }): CapsWiringBuilder;
+  usePresence(bridge: PresenceHostBridge): CapsWiringBuilder;
+  useOverlay(args: {
+    host?: HTMLElement;
+    globalMount?: OverlayGlobalMount;
+    modal?: OverlayModal;
+    layerScheduler?: OverlayLayerScheduler;
+  }): CapsWiringBuilder;
   build(): WiringSpec;
 };
 
@@ -199,6 +214,19 @@ export function createCapsWiring(): CapsWiringBuilder {
     useRuleExposeStateWeb({ nativeVariantPolicy }) {
       return add('rule-expose-state-web', () => [
         [RULE_EXPOSE_STATE_WEB_NATIVE_VARIANT_POLICY_CAP, nativeVariantPolicy],
+      ]);
+    },
+
+    usePresence(bridge) {
+      return add('presence', () => [[PRESENCE_HOST_BRIDGE_CAP, bridge]]);
+    },
+
+    useOverlay({ host, globalMount, modal, layerScheduler }) {
+      return add('overlay', () => [
+        ...(host ? [[HOST_ELEMENT_CAP, host] as const] : []),
+        ...(globalMount ? [[OVERLAY_GLOBAL_MOUNT_CAP, globalMount] as const] : []),
+        ...(modal ? [[OVERLAY_MODAL_CAP, modal] as const] : []),
+        ...(layerScheduler ? [[OVERLAY_LAYER_SCHEDULER_CAP, layerScheduler] as const] : []),
       ]);
     },
 
