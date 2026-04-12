@@ -128,6 +128,9 @@ importers:
       '@proto.ui/module-as-trigger':
         specifier: workspace:*
         version: link:../../modules/as-trigger
+      '@proto.ui/module-boundary':
+        specifier: workspace:*
+        version: link:../../modules/boundary
       '@proto.ui/module-context':
         specifier: workspace:*
         version: link:../../modules/context
@@ -146,6 +149,9 @@ importers:
       '@proto.ui/module-focus':
         specifier: workspace:*
         version: link:../../modules/focus
+      '@proto.ui/module-hit-participation':
+        specifier: workspace:*
+        version: link:../../modules/hit-participation
       '@proto.ui/module-overlay':
         specifier: workspace:*
         version: link:../../modules/overlay
@@ -369,6 +375,18 @@ importers:
         specifier: workspace:*
         version: link:../../core
 
+  packages/modules/boundary:
+    dependencies:
+      '@proto.ui/core':
+        specifier: workspace:*
+        version: link:../../core
+      '@proto.ui/module-base':
+        specifier: workspace:*
+        version: link:../base
+      '@proto.ui/types':
+        specifier: workspace:*
+        version: link:../../types
+
   packages/modules/context:
     dependencies:
       '@proto.ui/core':
@@ -445,6 +463,18 @@ importers:
         version: link:../base
 
   packages/modules/focus:
+    dependencies:
+      '@proto.ui/core':
+        specifier: workspace:*
+        version: link:../../core
+      '@proto.ui/module-base':
+        specifier: workspace:*
+        version: link:../base
+      '@proto.ui/types':
+        specifier: workspace:*
+        version: link:../../types
+
+  packages/modules/hit-participation:
     dependencies:
       '@proto.ui/core':
         specifier: workspace:*
@@ -664,6 +694,9 @@ importers:
       '@proto.ui/module-base':
         specifier: workspace:*
         version: link:../modules/base
+      '@proto.ui/module-boundary':
+        specifier: workspace:*
+        version: link:../modules/boundary
       '@proto.ui/module-context':
         specifier: workspace:*
         version: link:../modules/context
@@ -685,6 +718,9 @@ importers:
       '@proto.ui/module-focus':
         specifier: workspace:*
         version: link:../modules/focus
+      '@proto.ui/module-hit-participation':
+        specifier: workspace:*
+        version: link:../modules/hit-participation
       '@proto.ui/module-overlay':
         specifier: workspace:*
         version: link:../modules/overlay

@@ -3,10 +3,18 @@ import { definePrototype, type OverlayHandle } from '@proto.ui/core';
 import { asOverlay } from '@proto.ui/hooks';
 import type { RuntimeHost } from '../../src';
 import { executeWithHost } from '../../src';
+import { BOUNDARY_HOST_BRIDGE_CAP, type BoundaryPort } from '@proto.ui/module-boundary';
 import type { OverlayPort } from '@proto.ui/module-overlay';
 import type { PropsBaseType } from '@proto.ui/types';
 
-const createHost = <P extends PropsBaseType>(name: string) => {
+const createHost = <P extends PropsBaseType>(
+  name: string,
+  options?: {
+    onRuntimeReady?: (wiring: {
+      attach(moduleName: string, entries: readonly unknown[]): void;
+    }) => void;
+  }
+) => {
   const host: RuntimeHost<P> = {
     prototypeName: name,
     getRawProps: () => ({}) as any,
@@ -16,6 +24,7 @@ const createHost = <P extends PropsBaseType>(name: string) => {
     schedule(task) {
       task();
     },
+    onRuntimeReady: options?.onRuntimeReady as any,
   };
 
   return { host };
@@ -132,5 +141,44 @@ describe('runtime contract: overlay (v0)', () => {
       anchor,
       content,
     });
+  });
+
+  it('OVERLAY-0500: boundary outside notifications close an open overlay when closeOnOutsidePress is enabled', () => {
+    let overlay!: OverlayHandle<any>;
+    const outsider = document.createElement('button');
+
+    const P = definePrototype({
+      name: 'x-overlay-0500',
+      setup(def) {
+        overlay = asOverlay({ closeOnOutsidePress: true, defaultOpen: true });
+        def.lifecycle.onMounted(() => {
+          overlay.registerTrigger(document.createElement('button'));
+        });
+        return (r) => r.el('div', 'ok');
+      },
+    });
+
+    const { host } = createHost(P.name, {
+      onRuntimeReady(wiring) {
+        wiring.attach('boundary', [
+          [
+            BOUNDARY_HOST_BRIDGE_CAP,
+            {
+              classify({ sample }: any) {
+                return sample?.target === outsider ? 'outside' : 'unknown';
+              },
+            },
+          ],
+        ]);
+      },
+    });
+    const result = executeWithHost(P as any, host as any);
+    const overlayPort = result.caps.getPort<OverlayPort>('overlay');
+    const boundaryPort = result.caps.getPort<BoundaryPort>('boundary');
+
+    expect(overlayPort?.isOpen()).toBe(true);
+    expect(boundaryPort?.notify({ target: outsider })).toBe('outside');
+    expect(overlayPort?.isOpen()).toBe(false);
+    expect(overlayPort?.getLastReason()).toBe('outside.press');
   });
 });

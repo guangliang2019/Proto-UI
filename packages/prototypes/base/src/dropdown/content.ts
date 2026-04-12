@@ -1,5 +1,5 @@
 import { defineAsHook, definePrototype, tw, type DefHandle } from '@proto.ui/core';
-import { asFocusGroup, asOverlay } from '@proto.ui/hooks';
+import { asBoundary, asFocusGroup, asOverlay } from '@proto.ui/hooks';
 import { asFocusRoving } from '../behaviors';
 import { DROPDOWN_CONTEXT, DROPDOWN_FAMILY, DROPDOWN_FOCUS_GROUP } from './shared';
 import type {
@@ -44,6 +44,7 @@ function setupDropdownContent(
     restore: 'trigger',
     entry: 'content',
   });
+  const boundary = asBoundary();
   const open = def.state.bool('open', false);
   const store = (api?.store ?? {}) as {
     typeahead: string;
@@ -105,6 +106,11 @@ function setupDropdownContent(
 
   def.lifecycle.onMounted((run) => {
     store.run = run;
+    const trigger = run.anatomy.partsOf(DROPDOWN_FAMILY, 'trigger')[0] ?? null;
+    const triggerTarget = trigger?.getRootTarget?.() ?? null;
+    if (triggerTarget) {
+      overlay.registerTrigger(triggerTarget);
+    }
     const ctx = run.context.read(DROPDOWN_CONTEXT);
     activeValue = ctx.activeValue ?? '';
     open.set(ctx.open, 'reason: lifecycle.onMounted => content open sync');
@@ -197,6 +203,17 @@ function setupDropdownContent(
     if (!match) return;
     if (ev?.detail) (ev.detail as any)[DROPDOWN_TYPEAHEAD_HANDLED] = true;
     focusById?.(String(match.snapshot?.value ?? ''), { reason: 'keyboard' });
+  });
+
+  def.event.onGlobal('native:pointerdown', (run, ev) => {
+    const ctx = run.context.read(DROPDOWN_CONTEXT);
+    if (!ctx.open || ctx.disabled || ctx.controlled) return;
+    const classification = boundary.notify({
+      type: 'pointerdown',
+      target: ev?.target,
+      nativeEvent: ev,
+    });
+    if (classification !== 'outside') return;
   });
 
   def.lifecycle.onUnmounted(() => {

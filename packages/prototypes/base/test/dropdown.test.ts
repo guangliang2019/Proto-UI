@@ -40,6 +40,36 @@ describe('prototypes/base: dropdown', () => {
     await Promise.resolve();
   });
 
+  it('outside pointerdown closes dropdown through boundary classification', async () => {
+    const root = document.createElement('base-dropdown-root') as any;
+    const trigger = document.createElement('base-dropdown-trigger') as any;
+    const content = document.createElement('base-dropdown-content') as any;
+
+    root.appendChild(trigger);
+    root.appendChild(content);
+    document.body.appendChild(root);
+
+    await Promise.resolve();
+    await Promise.resolve();
+
+    trigger.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(root.getExposes().open.get()).toBe(true);
+    expect(content.classList.contains('hidden')).toBe(false);
+
+    document.body.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true }));
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(root.getExposes().open.get()).toBe(false);
+    expect(content.classList.contains('hidden')).toBe(true);
+
+    root.remove();
+    await Promise.resolve();
+  });
+
   it('controlled dropdown root synchronizes from props updates', async () => {
     const root = document.createElement('base-dropdown-root') as any;
     const trigger = document.createElement('base-dropdown-trigger') as any;

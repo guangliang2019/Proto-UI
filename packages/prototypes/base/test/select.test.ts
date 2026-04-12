@@ -51,6 +51,40 @@ describe('prototypes/base: select', () => {
     await Promise.resolve();
   });
 
+  it('outside pointerdown closes select through boundary classification', async () => {
+    const root = document.createElement('base-select-root') as any;
+    const trigger = document.createElement('base-select-trigger') as any;
+    const content = document.createElement('base-select-content') as any;
+    const item = document.createElement('base-select-item') as any;
+
+    setElementProps(item, { value: 'a', textValue: 'Alpha' });
+
+    content.appendChild(item);
+    root.appendChild(trigger);
+    root.appendChild(content);
+    document.body.appendChild(root);
+
+    await Promise.resolve();
+    await Promise.resolve();
+
+    trigger.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(root.getExposes().open.get()).toBe(true);
+    expect(content.classList.contains('hidden')).toBe(false);
+
+    document.body.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true }));
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(root.getExposes().open.get()).toBe(false);
+    expect(content.classList.contains('hidden')).toBe(true);
+
+    root.remove();
+    await Promise.resolve();
+  });
+
   it('controlled select root synchronizes selected value text from props', async () => {
     const root = document.createElement('base-select-root') as any;
     const value = document.createElement('base-select-value') as any;

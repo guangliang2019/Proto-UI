@@ -1,11 +1,17 @@
 import { defineAsHook, definePrototype, tw, type DefHandle } from '@proto.ui/core';
-import { asOverlay } from '@proto.ui/hooks';
+import { asHitParticipation, asOverlay } from '@proto.ui/hooks';
 import { asTransition } from '../tools';
 import { DIALOG_CONTEXT, DIALOG_FAMILY } from './shared';
 import type { DialogMaskAsHookContract, DialogMaskExposes, DialogMaskProps } from './types';
 
 function setupDialogMask(def: DefHandle<DialogMaskProps, DialogMaskExposes>): void {
   def.anatomy.claim(DIALOG_FAMILY, { role: 'mask' });
+  def.props.define({
+    passthrough: { type: 'boolean', empty: 'fallback' },
+  });
+  def.props.setDefaults({
+    passthrough: false,
+  });
 
   const overlay = asOverlay({
     closeOnEscape: false,
@@ -15,10 +21,50 @@ function setupDialogMask(def: DefHandle<DialogMaskProps, DialogMaskExposes>): vo
     modal: true,
     layerRole: 'dialog-mask',
   });
+  const hitParticipation = asHitParticipation({
+    debugLabel: 'dialog-mask',
+    meta: {
+      overlayKind: 'dialog-mask',
+    },
+  });
 
   const transition = asTransition();
   const controls = transition.controls;
   const open = def.state.bool('open', false);
+  let hitRegionDispose: (() => void) | null = null;
+  let hitSyncDisposed = false;
+
+  const syncHitParticipation = (run: any) => {
+    if (hitSyncDisposed) return;
+
+    let target = run.host?.get?.() ?? null;
+
+    if (!target) {
+      try {
+        const ownIndex = run.anatomy.order.indexOfSelf(DIALOG_FAMILY, 'mask', { missing: 'null' });
+        const ownMask =
+          typeof ownIndex === 'number' && ownIndex >= 0
+            ? (run.anatomy.partsOf(DIALOG_FAMILY, 'mask')[ownIndex] ?? null)
+            : null;
+        target = ownMask?.getRootTarget?.() ?? null;
+      } catch {
+        target = run.host?.get?.() ?? null;
+      }
+    }
+
+    hitRegionDispose?.();
+    hitRegionDispose = null;
+
+    if (!target) return;
+
+    hitRegionDispose = hitParticipation.registerRegion(target, {
+      role: 'mask',
+      mode: run.props.get().passthrough ? 'passthrough' : 'participating',
+      meta: {
+        overlayKind: 'dialog-mask',
+      },
+    });
+  };
 
   const updateOpen = (nextOpen: boolean, reason?: string) => {
     open.set(nextOpen, reason ?? 'reason: dialog mask sync => open');
@@ -33,6 +79,10 @@ function setupDialogMask(def: DefHandle<DialogMaskProps, DialogMaskExposes>): vo
     updateOpen(next.open, 'reason: dialog context sync => mask open');
   });
 
+  def.props.watch(['passthrough'], (run) => {
+    syncHitParticipation(run);
+  });
+
   overlay.open.watch((_ctx, event) => {
     if (event.type !== 'next') return;
     if (event.next) {
@@ -42,13 +92,25 @@ function setupDialogMask(def: DefHandle<DialogMaskProps, DialogMaskExposes>): vo
     }
   });
 
-  def.lifecycle.onMounted(() => {
+  def.lifecycle.onMounted((run) => {
+    hitSyncDisposed = false;
+    syncHitParticipation(run);
+    queueMicrotask(() => {
+      if (hitSyncDisposed) return;
+      syncHitParticipation(run);
+    });
     updateOpen(open.get(), 'reason: lifecycle.onMounted => dialog mask open sync');
     if (open.get()) {
       controls.enter();
     } else {
       controls.leave();
     }
+  });
+
+  def.lifecycle.onUnmounted(() => {
+    hitSyncDisposed = true;
+    hitRegionDispose?.();
+    hitRegionDispose = null;
   });
 
   def.rule({

@@ -1,5 +1,5 @@
 import { defineAsHook, definePrototype, tw, type DefHandle } from '@proto.ui/core';
-import { asFocusGroup, asOverlay } from '@proto.ui/hooks';
+import { asBoundary, asFocusGroup, asOverlay } from '@proto.ui/hooks';
 import { asFocusRoving } from '../behaviors';
 import { SELECT_CONTEXT, SELECT_FAMILY, SELECT_FOCUS_GROUP } from './shared';
 import type {
@@ -40,6 +40,7 @@ function setupSelectContent(def: DefHandle<SelectContentProps, SelectContentExpo
     restore: 'trigger',
     entry: 'content',
   });
+  const boundary = asBoundary();
   const open = def.state.bool('open', false);
   let mountedRun: any = null;
 
@@ -110,6 +111,11 @@ function setupSelectContent(def: DefHandle<SelectContentProps, SelectContentExpo
 
   def.lifecycle.onMounted((run) => {
     mountedRun = run;
+    const trigger = run.anatomy.partsOf(SELECT_FAMILY, 'trigger')[0] ?? null;
+    const triggerTarget = trigger?.getRootTarget?.() ?? null;
+    if (triggerTarget) {
+      overlay.registerTrigger(triggerTarget);
+    }
     const ctx = run.context.read(SELECT_CONTEXT);
     activeValue = ctx.activeValue ?? '';
     selectedValue = ctx.value ?? '';
@@ -159,6 +165,17 @@ function setupSelectContent(def: DefHandle<SelectContentProps, SelectContentExpo
       open: false,
       activeValue: '',
     }));
+  });
+
+  def.event.onGlobal('native:pointerdown', (run, ev) => {
+    const ctx = run.context.read(SELECT_CONTEXT);
+    if (!ctx.open || ctx.disabled || ctx.controlledOpen) return;
+    const classification = boundary.notify({
+      type: 'pointerdown',
+      target: ev?.target,
+      nativeEvent: ev,
+    });
+    if (classification !== 'outside') return;
   });
 
   def.rule({

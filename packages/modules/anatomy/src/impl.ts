@@ -925,6 +925,7 @@ export class AnatomyModuleImpl extends ModuleBase {
       hasExpose: (key: string) => claim.exposePort.has(key),
       getExpose: (key: string) =>
         claim.exposePort.has(key) ? (claim.exposePort.get(key) ?? null) : null,
+      getRootTarget: () => claim.getRootTarget(claim.instance) ?? null,
       hasHook: (name: string) => getHookNames(claim.prototype).has(name),
     };
   }

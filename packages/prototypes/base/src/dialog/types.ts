@@ -42,7 +42,9 @@ export type DialogTriggerAsHookContract = {
   };
 };
 
-export interface DialogMaskProps {}
+export interface DialogMaskProps {
+  passthrough?: boolean;
+}
 
 export type DialogMaskExposes = {
   transitionState: ExposeState<'closed' | 'entering' | 'entered' | 'leaving'>;
