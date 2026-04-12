@@ -298,7 +298,7 @@ To keep the main thread clear, this article does not continue into:
 - host capability matrices
 - milestone plans for specific versions
 
-These topics will continue in the `Specifications` and `Engineering` sections.
+These topics will continue in the `Specifications` and `Build` sections.
 
 ---
 
@@ -315,6 +315,6 @@ It becomes:
 You can keep reading according to your goal:
 
 - If you want to clarify boundaries and common questions, go to [FAQ](/en/whitepaper/faq/)
-- If you want to read the formal contract, go to [Specifications / Introduction](/en/specs/introduction/)
-- If you want to understand how the implementation layer carries these principles, go to [Engineering / Introduction](/en/engineering/introduction/)
-- If you already want to participate in building prototypes or adapters, go to [Ecosystem / Introduction](/en/ecosystem/)
+- If you want to read the formal contract, go to [Specifications / Introduction](/en/specifications/introduction/)
+- If you want to understand how the implementation layer carries these principles, go to [Build / Overview](/en/build/)
+- If you already want to participate in building prototypes or adapters, go to [Build / Contribute](/en/build/contribute/)

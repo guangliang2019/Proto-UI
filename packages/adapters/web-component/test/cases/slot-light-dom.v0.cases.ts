@@ -19,7 +19,7 @@ export const LIGHT_SLOT_V0_CASES: LightSlotCase[] = [
       const P: Prototype = {
         name: 'x-contract-light-slot-1',
         setup() {
-          return (r) => [r.el('div', [r.r.slot()])];
+          return (r) => [r.el('div', [r.slot()])];
         },
       };
 
@@ -47,7 +47,7 @@ export const LIGHT_SLOT_V0_CASES: LightSlotCase[] = [
       const P: Prototype = {
         name: 'x-contract-light-slot-2',
         setup() {
-          return (r) => [r.el('div', [r.el('span', 'prefix'), r.r.slot(), r.el('span', 'suffix')])];
+          return (r) => [r.el('div', [r.el('span', 'prefix'), r.slot(), r.el('span', 'suffix')])];
         },
       };
 
@@ -72,7 +72,7 @@ export const LIGHT_SLOT_V0_CASES: LightSlotCase[] = [
       const P: Prototype = {
         name: 'x-contract-light-slot-3',
         setup() {
-          return (r) => [r.el('div', [r.r.slot()])];
+          return (r) => [r.el('div', [r.slot()])];
         },
       };
 
@@ -99,7 +99,7 @@ export const LIGHT_SLOT_V0_CASES: LightSlotCase[] = [
       const P: Prototype = {
         name: 'x-contract-light-slot-4',
         setup() {
-          return (r) => [r.el('div', [r.r.slot()])];
+          return (r) => [r.el('div', [r.slot()])];
         },
       };
 
@@ -130,7 +130,7 @@ export const LIGHT_SLOT_V0_CASES: LightSlotCase[] = [
       const P: Prototype = {
         name: 'x-contract-light-slot-5',
         setup() {
-          return (r) => [r.el('div', [r.r.slot()])];
+          return (r) => [r.el('div', [r.slot()])];
         },
       };
 

@@ -1,0 +1,62 @@
+---
+title: 'Select'
+desp: 'Select 基础原型'
+description: 'Select 基础原型'
+---
+
+import { PrototypePreviewer } from '@/components/PrototypePreviewer';
+
+`base-select` 是当前 base 原型库里用来验证 value 类组件路径的核心探针。
+
+<div>
+  <PrototypePreviewer
+    demoId="demo-base-select"
+    initialRuntime="wc"
+    runtimes={['wc', 'react', 'vue']}
+    hasCode={true}
+  />
+</div>
+
+它与 `dropdown` 的区别在于，协议边界不只停在开合与 active-item 协作，还会把一个专门的 `select-value` 部件留在 family 内部，用来承接“当前选中值文本”的正式呈现。
+
+## Family Parts
+
+- `select-root`：持有 `open`、`value`、`textValue`
+- `select-trigger`：负责打开和关闭弹出层
+- `select-value`：渲染当前选中值文本或 placeholder
+- `select-content`：负责浮层进入、关闭与焦点进入
+- `select-item`：提供 `value` / `textValue` snapshot，并提交选中结果
+
+## 为什么它重要
+
+这个 family 不只是为了扩充 base 库，还承担了一次 value 类组件的实践验证：
+
+- 选中值文本由原型 family 自己定义
+- 宿主应用不需要手动渲染这段文本
+- value 呈现可以通过显式 update 驱动重渲染完成刷新
+
+因此，`select-value` 是一个明确的 `render-consumed-value` 样本，而不只是 exposed-state 样本。
+
+## 当前 v0 边界
+
+`base-select` 目前包含：
+
+- 单选语义
+- 弹层开合协作
+- 打开后优先聚焦当前 selected item
+- 选中值文本同步
+- family 内部自带的 value 呈现部件
+
+它暂时不包含：
+
+- 表单语义
+- 原生 `<select>` 等价行为
+- combobox / 搜索能力
+- 分组 options
+- 多选
+
+## References
+
+- 契约：[select.v0.md](/Users/yangguangliang/Desktop/projects/Proto-UI/internal/contracts/prototype-base/select.v0.md)
+- 源码：[packages/prototypes/base/src/select](/Users/yangguangliang/Desktop/projects/Proto-UI/packages/prototypes/base/src/select)
+- 测试：[select.test.ts](/Users/yangguangliang/Desktop/projects/Proto-UI/packages/prototypes/base/test/select.test.ts)

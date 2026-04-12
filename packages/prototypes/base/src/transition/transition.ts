@@ -18,7 +18,7 @@ export const transition = definePrototype({
     asTransition();
     // Transition 组件本身不渲染具体 DOM，只提供状态机治理
     // 子组件或宿主平台通过 exposes 驱动实际动画
-    return (r) => r.r.slot();
+    return (r) => r.slot();
   },
 });
 

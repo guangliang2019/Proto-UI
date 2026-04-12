@@ -106,7 +106,7 @@ describe('prototypes/base: asCollection', () => {
           },
         });
         asCollection({ family, rootRole: 'root' });
-        return (r) => r.el('div', r.r.slot());
+        return (r) => r.el('div', r.slot());
       },
     });
 
@@ -123,7 +123,7 @@ describe('prototypes/base: asCollection', () => {
           family,
           getMeta: (run) => ({ id: run.props.get().id ?? '' }),
         });
-        return (r) => r.el('div', r.r.slot());
+        return (r) => r.el('div', r.slot());
       },
     });
 

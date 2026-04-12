@@ -93,7 +93,7 @@ describe('runtime contract: anatomy.order (v0)', () => {
             .map((part) => part.getExpose('id'));
           version = run.anatomy.order.version(family);
         });
-        return (r) => r.el('div', r.r.slot());
+        return (r) => r.el('div', r.slot());
       },
     });
 
@@ -114,7 +114,7 @@ describe('runtime contract: anatomy.order (v0)', () => {
             itemANextId = next?.getExpose('id');
           }
         });
-        return (r) => r.el('div', r.r.slot());
+        return (r) => r.el('div', r.slot());
       },
     });
 
@@ -152,7 +152,7 @@ describe('runtime contract: anatomy.order (v0)', () => {
             itemAPrevId = run.anatomy.order.prevOfSelf(family, 'item')?.getExpose('id');
             itemANextId = run.anatomy.order.nextOfSelf(family, 'item')?.getExpose('id');
           });
-          return (r) => r.el('div', r.r.slot());
+          return (r) => r.el('div', r.slot());
         },
       }) as any,
       itemACtx.host as any
@@ -163,7 +163,7 @@ describe('runtime contract: anatomy.order (v0)', () => {
         setup(def) {
           def.anatomy.claim(family, { role: 'item' });
           def.expose.value('id' as any, 'b');
-          return (r) => r.el('div', r.r.slot());
+          return (r) => r.el('div', r.slot());
         },
       }) as any,
       itemBCtx.host as any
@@ -208,7 +208,7 @@ describe('runtime contract: anatomy.order (v0)', () => {
             next: run.anatomy.order.nextOfSelf(family, 'item', { missing: 'null' }),
           };
         });
-        return (r) => r.el('div', r.r.slot());
+        return (r) => r.el('div', r.slot());
       },
     });
 
