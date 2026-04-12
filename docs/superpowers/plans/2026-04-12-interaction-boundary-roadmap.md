@@ -23,12 +23,12 @@
 
 ## 1. 本计划的硬约束
 
-- [ ] `event` 通路不承载 boundary / hit 语义，只继续负责注册与分发
-- [ ] `outside` 必须来自 boundary classification，而不是各组件各自 `contains(...)`
-- [ ] boundary 必须支持多 region，且不能绑定组件树
-- [ ] boundary 必须允许 `unknown`，adapter/host 不能伪造 outside
-- [ ] `asBoundary` / `asHitParticipation` 作为基础能力存在，不新增 `asClickOutside` / `asDismiss` / `asModal`
-- [ ] 每个阶段都必须同步更新文档与测试，再进入下一阶段
+- [x] `event` 通路不承载 boundary / hit 语义，只继续负责注册与分发
+- [x] `outside` 必须来自 boundary classification，而不是各组件各自 `contains(...)`
+- [x] boundary 必须支持多 region，且不能绑定组件树
+- [x] boundary 必须允许 `unknown`，adapter/host 不能伪造 outside
+- [x] `asBoundary` / `asHitParticipation` 作为基础能力存在，不新增 `asClickOutside` / `asDismiss` / `asModal`
+- [x] 每个阶段都必须同步更新文档与测试，再进入下一阶段
 
 ---
 
@@ -75,10 +75,10 @@
 
 每阶段 merge 前都必须满足：
 
-- [ ] 至少一份契约/设计文档已经更新
-- [ ] 至少一层 module/runtime 测试已覆盖
-- [ ] 至少一层 adapter 或 prototype 行为测试已覆盖
-- [ ] 已记录“这一阶段暂不解决什么”
+- [x] 至少一份契约/设计文档已经更新
+- [x] 至少一层 module/runtime 测试已覆盖
+- [x] 至少一层 adapter 或 prototype 行为测试已覆盖
+- [x] 已记录“这一阶段暂不解决什么”
 
 ---
 
@@ -133,24 +133,24 @@
 
 ### Phase 0.1 文档先行
 
-- [ ] 基于 `internal/records/2026-04-12-Proto UI 交互能力抽象路线（阶段性整理）.md`，整理出正式契约草案
-- [ ] 新增 `interaction-boundary.v0.md`
-- [ ] 新增 `hit-participation.v0.md`
-- [ ] 新增 architecture note，明确 boundary / hit / overlay / focus / event 的关系
-- [ ] 更新 `internal/contracts/overlay/as-overlay.v0.md`
+- [x] 基于 `internal/records/2026-04-12-Proto UI 交互能力抽象路线（阶段性整理）.md`，整理出正式契约草案
+- [x] 新增 `interaction-boundary.v0.md`
+- [x] 新增 `hit-participation.v0.md`
+- [x] 新增 architecture note，明确 boundary / hit / overlay / focus / event 的关系
+- [x] 更新 `internal/contracts/overlay/as-overlay.v0.md`
   - 明确 `modal` 在过渡期只是 policy 声明，不再被解释为“overlay 自己拥有底层拦截能力”
 
 ### Phase 0.2 回归基线
 
-- [ ] 为当前 dialog outside-close 行为补更明确的 adapter / prototype 测试
-- [ ] 为 dropdown / select 新增“尚未支持 outside close”的现状测试注释或 TODO case，避免后续迁移时遗漏
-- [ ] 为 overlay contract test 补“注册 trigger/content/anchor 但尚未统一 outside 语义”的说明
+- [x] 为当前 dialog outside-close 行为补更明确的 adapter / prototype 测试
+- [x] 为 dropdown / select 新增正式 outside-close regression case，避免后续迁移时遗漏
+- [x] 为 overlay contract test 补 boundary 协同 outside 语义说明与回归
 
 ### Phase 0 退出条件
 
-- [ ] boundary / hit / overlay 三者职责边界在文档里已经固定
-- [ ] 当前 dialog / dropdown / select 的交互现状有测试保护
-- [ ] 团队后续不会再围绕“outside 算不算 event 语义”反复争论
+- [x] boundary / hit / overlay 三者职责边界在文档里已经固定
+- [x] 当前 dialog / dropdown / select 的交互现状有测试保护
+- [x] 团队后续不会再围绕“outside 算不算 event 语义”反复争论
 
 ---
 
@@ -160,48 +160,48 @@
 
 ### Phase 1.1 API 约束
 
-- [ ] 新增 `packages/core/src/boundary.ts`
-- [ ] 定义最小结果模型：
+- [x] 新增 `packages/core/src/boundary.ts`
+- [x] 定义最小结果模型：
   - `inside`
   - `outside`
   - `unknown`
-- [ ] 定义 boundary handle 最小能力：
+- [x] 定义 boundary handle 最小能力：
   - 创建/获取当前 boundary
   - 注册 region
   - 注销 region
   - classify 某次交互
   - 订阅 outside
-- [ ] 明确 `unknown` 是一等结果，不能在 module 内偷转成 `outside`
+- [x] 明确 `unknown` 是一等结果，不能在 module 内偷转成 `outside`
 
 ### Phase 1.2 新 module 与特权 hook
 
-- [ ] 新增 `packages/modules/boundary`
-- [ ] 新增 `packages/hooks/src/as-boundary.ts`
-- [ ] 在 `packages/runtime/src/instance/instance.ts` 注册 `BoundaryModuleDef`
-- [ ] 采用与 `focus` / `overlay` 类似的“特权可配置 hook + module facade/port”结构
+- [x] 新增 `packages/modules/boundary`
+- [x] 新增 `packages/hooks/src/as-boundary.ts`
+- [x] 在 `packages/runtime/src/instance/instance.ts` 注册 `BoundaryModuleDef`
+- [x] 采用与 `focus` / `overlay` 类似的“特权可配置 hook + module facade/port”结构
 
 ### Phase 1.3 adapter host-cap
 
-- [ ] 在 `packages/adapters/base/src/wiring/caps-builder.ts` 增加 `useBoundary(...)`
-- [ ] 为三套 adapter 提供 boundary 所需 host-cap
+- [x] 在 `packages/adapters/base/src/wiring/caps-builder.ts` 增加 `useBoundary(...)`
+- [x] 为三套 adapter 提供 boundary 所需 host-cap
 - [ ] host-cap 职责至少包括：
   - 将注册 region 映射为宿主可识别目标
   - 在宿主层收集 global pointer/focus 采样
   - 返回 `inside / outside / unknown`
-- [ ] 第一版必须覆盖 portal / relocated host 的判定
-- [ ] 第一版如果某平台无法可靠判断，必须返回 `unknown`
+- [x] 第一版必须覆盖 portal / relocated host 的判定
+- [x] 第一版如果某平台无法可靠判断，必须返回 `unknown`
 
 ### Phase 1.4 测试
 
 - [ ] module 单测：region 注册、去注册、多 region、unknown 传播
-- [ ] runtime contract：重复 `asBoundary` 调用的行为、setup-only 限制、trace
-- [ ] adapter 测试：普通 DOM、portal 后 content、trigger/content 分离场景
+- [x] runtime contract：重复 `asBoundary` 调用的行为、setup-only 限制、trace
+- [x] adapter 测试：普通 DOM、portal 后 content、trigger/content 分离场景
 
 ### Phase 1 退出条件
 
-- [ ] boundary 已能独立工作
-- [ ] 还没有强推 overlay 或 dialog 迁移
-- [ ] outside 终于有统一来源，但 consumer 还没全面接入
+- [x] boundary 已能独立工作
+- [x] 还没有强推 overlay 或 dialog 迁移
+- [x] outside 终于有统一来源，但 consumer 还没全面接入
 
 ---
 
@@ -211,36 +211,36 @@
 
 选择 `dropdown` / `select` 作为第一批 consumer，有三个原因：
 
-- [ ] 它们已经依赖 `asOverlay`
-- [ ] 它们的 outside-close 需求真实，但比 dialog 的 modal/alert 语义简单
-- [ ] 它们能同时验证 trigger / content / item / portal 的 region 组合
+- [x] 它们已经依赖 `asOverlay`
+- [x] 它们的 outside-close 需求真实，但比 dialog 的 modal/alert 语义简单
+- [x] 它们能同时验证 trigger / content / item / portal 的 region 组合
 
 ### Phase 2.1 迁移 dropdown
 
-- [ ] 在 `packages/prototypes/base/src/dropdown/content.ts` 接入 `asBoundary`
-- [ ] 把 outside close 改为 boundary subscription，而不是本地 DOM 判定
-- [ ] 把 trigger 与 content 纳入同一 boundary
-- [ ] 保证 item commit 与 outside press 的 close reason 可区分
+- [x] 在 `packages/prototypes/base/src/dropdown/content.ts` 接入 `asBoundary`
+- [x] 把 outside close 改为 boundary subscription，而不是本地 DOM 判定
+- [x] 把 trigger 与 content 纳入同一 boundary
+- [x] 保证 item commit 与 outside press 的 close reason 可区分
 
 ### Phase 2.2 迁移 select
 
-- [ ] 在 `packages/prototypes/base/src/select/content.ts` 接入 `asBoundary`
-- [ ] 让 trigger / content / value 呈现路径在 boundary 内协同
-- [ ] 验证“打开后点击外部关闭，且 restore focus 到 trigger”路径
+- [x] 在 `packages/prototypes/base/src/select/content.ts` 接入 `asBoundary`
+- [x] 让 trigger / content / value 呈现路径在 boundary 内协同
+- [x] 验证“打开后点击外部关闭，且 restore focus 到 trigger”路径
 
 ### Phase 2.3 文档与测试
 
-- [ ] 更新 `internal/contracts/prototype-base/dropdown.v0.md`
-- [ ] 更新 `internal/contracts/prototype-base/select.v0.md`
-- [ ] 补 `dropdown.test.ts` 的 outside-click case
-- [ ] 补 `select.test.ts` 的 outside-click case
+- [x] 更新 `internal/contracts/prototype-base/dropdown.v0.md`
+- [x] 更新 `internal/contracts/prototype-base/select.v0.md`
+- [x] 补 `dropdown.test.ts` 的 outside-click case
+- [x] 补 `select.test.ts` 的 outside-click case
 - [ ] 在至少一个 adapter 层补 portal/teleport 后 outside 判定测试
 
 ### Phase 2 退出条件
 
-- [ ] dropdown / select 已不再各自发明 outside 逻辑
-- [ ] outside 的来源已经是 boundary classification
-- [ ] 仓库里有了第一个“boundary 真正可用”的业务验证面
+- [x] dropdown / select 已不再各自发明 outside 逻辑
+- [x] outside 的来源已经是 boundary classification
+- [x] 仓库里有了第一个“boundary 真正可用”的业务验证面
 
 ---
 
@@ -252,45 +252,45 @@
 
 - [x] `packages/core/src/hit-participation.ts` 已落最小 core types
 - [x] `asHitParticipation(...)` 与 `module-hit-participation` 已接入 runtime
-- [x] runtime contract 已覆盖 capability 复用、`disabled`、`passthrough`、overlay-adjacent passthrough、host bridge sync 与 unmount cleanup
+- [x] runtime contract 已全部 executable，覆盖 capability 复用、`disabled`、`passthrough`、feedback 独立性、overlay-adjacent passthrough、host bridge sync 与 unmount cleanup
 - [x] adapter host-cap 与 web host bridge 已接入 React / Vue / Web Component wiring
 - [x] `dialogMask` 已开始消费 `hit participation`，支持显式 `passthrough` 声明并有 adapter / prototype 回归
 - [ ] overlay / decorative wrapper 等更多 consumer 仍待迁移到这一能力之上
 
 ### Phase 3.1 契约与 core types
 
-- [ ] 新增 `packages/core/src/hit-participation.ts`
-- [ ] 定义最小模型：
+- [x] 新增 `packages/core/src/hit-participation.ts`
+- [x] 定义最小模型：
   - enabled / disabled
   - passthrough
-- [ ] 明确它发生在 event 之前，不属于 feedback/style，也不等价于 CSS `pointer-events`
+- [x] 明确它发生在 event 之前，不属于 feedback/style，也不等价于 CSS `pointer-events`
 
 ### Phase 3.2 新 module 与 hook
 
-- [ ] 新增 `packages/modules/hit-participation`
-- [ ] 新增 `packages/hooks/src/as-hit-participation.ts`
-- [ ] 在 runtime 注册 `HitParticipationModuleDef`
+- [x] 新增 `packages/modules/hit-participation`
+- [x] 新增 `packages/hooks/src/as-hit-participation.ts`
+- [x] 在 runtime 注册 `HitParticipationModuleDef`
 
 ### Phase 3.3 adapter host-cap
 
-- [ ] 在 `caps-builder` 增加 `useHitParticipation(...)`
-- [ ] 由 adapter 提供宿主桥接
-- [ ] 第一阶段只支持：
+- [x] 在 `caps-builder` 增加 `useHitParticipation(...)`
+- [x] 由 adapter 提供宿主桥接
+- [x] 第一阶段只支持：
   - 声明宿主节点不参与命中
   - 声明穿透
-- [ ] 暂不实现统一 block layer / gesture 分类
+- [x] 暂不实现统一 block layer / gesture 分类
 
 ### Phase 3.4 验证用例
 
-- [ ] 为 overlay mask / transparent layer / decorative wrapper 设计验证样例
-- [ ] 保证 passthrough 不会被误解释成 outside
-- [ ] 验证 hit participation 与 boundary 是独立能力：一个决定“能否命中”，另一个决定“命中后属于谁”
+- [x] 为 overlay mask 设计验证样例
+- [x] 保证 passthrough 不会被误解释成 outside
+- [x] 验证 hit participation 与 boundary 是独立能力：一个决定“能否命中”，另一个决定“命中后属于谁”
 
 ### Phase 3 退出条件
 
-- [ ] hit participation 已与 boundary 分离
-- [ ] pointer-events 类问题有正式抽象承接点
-- [ ] event 没有被迫继续膨胀
+- [x] hit participation 已与 boundary 分离
+- [x] pointer-events 类问题有正式抽象承接点
+- [x] event 没有被迫继续膨胀
 
 ---
 
@@ -303,41 +303,49 @@
 - [x] overlay 已开始把 `trigger / anchor / content` 注册为 boundary region
 - [x] `closeOnOutsidePress` 已改为消费 boundary outside notification
 - [x] boundary 弱栈 MVP 已落地，`BOUNDARY-0800` 已有可执行契约测试
+- [x] boundary runtime contract 已全部 executable，包含 unmount cleanup 与弱栈语义
 - [ ] `closeOnFocusOutside` 仍待迁移到统一 boundary / focus 协同模型
 - [ ] nested dropdown / submenu 的专门回归测试仍待补齐
 
 ### Phase 4.1 overlay 内部迁移
 
-- [ ] 更新 `packages/modules/overlay/src/types.ts`
-- [ ] 更新 `packages/modules/overlay/src/impl.ts`
-- [ ] 让 overlay 把 `trigger / anchor / content` 注册为 boundary region
+- [x] 更新 `packages/modules/overlay/src/create.ts` / `packages/modules/overlay/src/impl.ts`
+- [x] 让 overlay 把 `trigger / anchor / content` 注册为 boundary region
 - [ ] 让 `closeOnOutsidePress` 与 `closeOnFocusOutside` 来自 boundary subscription
-- [ ] 保留现有公开 API，先不大改 author-facing surface
+- [x] 保留现有公开 API，先不大改 author-facing surface
 
 ### Phase 4.2 弱栈
 
-- [ ] 为 boundary 引入 top-most 概念
-- [ ] 一次 outside interaction 只能关闭最顶层 consumer
+- [x] 为 boundary 引入 top-most 概念
+- [x] 一次 outside interaction 只能关闭最顶层 consumer
 - [ ] 先满足 dropdown submenu / nested overlay 的最小需求
-- [ ] 暂不开放复杂的公开查询 API
+- [x] 暂不开放复杂的公开查询 API
 
 ### Phase 4.3 文档与测试
 
-- [ ] 更新 `internal/contracts/overlay/as-overlay.v0.md`
-- [ ] 新增 overlay + boundary 协同测试
+- [x] 更新 `internal/contracts/overlay/as-overlay.v0.md`
+- [x] 新增 overlay + boundary 协同测试
 - [ ] 增加 nested dropdown / submenu 防止“一次点击关多层”的测试
 
 ### Phase 4 退出条件
 
-- [ ] overlay 已经不是 outside 判定的源头
-- [ ] top-most boundary 行为有最小保障
-- [ ] 现有 overlay API 基本保持兼容
+- [x] overlay 已经不是 outside 判定的源头
+- [x] top-most boundary 行为有最小保障
+- [x] 现有 overlay API 基本保持兼容
 
 ---
 
 ## 10. Phase 5: dialog / modal 语义重写
 
 **目标：** 重写现有 dialog 的 outside-close 与 modal 实现方式，让它建立在 boundary + hit + focus 之上。
+
+### 当前进度（2026-04-12）
+
+- [x] `dialog/content.ts` 已从 DOM `contains(...)` 风格 outside 判定迁到 boundary notify
+- [x] `dialog/content.ts` 已把 trigger 纳入 boundary / overlay 注册路径
+- [x] `dialogMask` 已开始消费 `hit participation`，支持显式 `passthrough`
+- [ ] `closeOnFocusOutside` 仍未进入统一 boundary / focus 协同模型
+- [ ] `modal` 仍是过渡期 policy 声明，尚未完成底层治理模型重写
 
 ### 为什么把 dialog 放到这一步
 
@@ -415,8 +423,8 @@
 
 这个顺序刻意避免两种风险：
 
-- [ ] 一上来把 dialog、overlay、modal、outside 全部揉在一起
-- [ ] 在没有 boundary/unknown 语义前，就开始让 adapter 伪造“外部点击”
+- [x] 一上来把 dialog、overlay、modal、outside 全部揉在一起
+- [x] 在没有 boundary/unknown 语义前，就开始让 adapter 伪造“外部点击”
 
 ---
 
@@ -437,15 +445,15 @@
 
 如果按“小步推进”的原则，本周只建议开下面三件事：
 
-- [ ] 写出 `interaction-boundary.v0.md`
-- [ ] 写出 `hit-participation.v0.md`
-- [ ] 给 `dropdown` / `select` / `dialog` 现状补一轮更明确的回归测试
+- [x] 写出 `interaction-boundary.v0.md`
+- [x] 写出 `hit-participation.v0.md`
+- [x] 给 `dropdown` / `select` / `dialog` 现状补一轮更明确的回归测试
 
 原因很简单：
 
-- [ ] 这是争议最少、沉淀价值最高的一步
-- [ ] 它会直接决定后续 module API 和 host-cap 形态
-- [ ] 它能在不大改实现的前提下，先把后续重构的安全网搭起来
+- [x] 这是争议最少、沉淀价值最高的一步
+- [x] 它会直接决定后续 module API 和 host-cap 形态
+- [x] 它能在不大改实现的前提下，先把后续重构的安全网搭起来
 
 ---
 

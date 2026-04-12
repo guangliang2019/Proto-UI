@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   HOST_ELEMENT_CAP,
   definePrototype,
+  tw,
   type HitParticipationHandle,
   type HitParticipationRegion,
 } from '@proto.ui/core';
@@ -127,9 +128,53 @@ describe('runtime contract: hit participation (v0)', () => {
     expect(boundaryPort?.notify({ target: outsider })).toBe('unknown');
   });
 
-  it.todo(
-    'HIT-0400: hit participation remains independent from feedback/style even if an adapter uses style as one implementation detail'
-  );
+  it('HIT-0400: hit participation remains independent from feedback/style even if an adapter uses style as one implementation detail', () => {
+    const hostEl = document.createElement('div');
+    const content = document.createElement('div');
+    const syncCalls: Array<readonly HitParticipationRegion[]> = [];
+
+    const P = definePrototype({
+      name: 'x-hit-0400',
+      setup(def) {
+        def.feedback.style.use(tw('pointer-events-auto opacity-50'));
+
+        const hit = asHitParticipation({ mode: 'disabled' });
+        hit.registerRegion(content, { role: 'content' as any });
+
+        return (r) => r.el('div', 'ok');
+      },
+    });
+
+    const { host } = createHost(P.name);
+    const result = executeWithHost(
+      P as any,
+      {
+        ...host,
+        onRuntimeReady(wiring) {
+          wiring.attach('hit-participation', [
+            [HOST_ELEMENT_CAP, hostEl],
+            [
+              HIT_PARTICIPATION_HOST_BRIDGE_CAP,
+              {
+                sync({ regions }: { regions: readonly HitParticipationRegion[] }) {
+                  syncCalls.push(regions);
+                },
+              },
+            ],
+          ]);
+        },
+      } as any
+    );
+
+    const hitPort = result.caps.getPort<HitParticipationPort>('hit-participation');
+
+    expect(hitPort?.getConfig().mode).toBe('disabled');
+    expect(hitPort?.getRegions()).toEqual([{ target: content, role: 'content', mode: 'disabled' }]);
+    expect(syncCalls.at(-1)).toEqual([
+      { target: hostEl, role: 'content', mode: 'disabled' },
+      { target: content, role: 'content', mode: 'disabled' },
+    ]);
+  });
 
   it('HIT-0500: hit participation remains independent from event registration and does not require extra def.event plumbing', () => {
     const hostEl = document.createElement('div');

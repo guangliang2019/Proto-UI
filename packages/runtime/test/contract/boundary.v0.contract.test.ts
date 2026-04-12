@@ -285,9 +285,57 @@ describe('runtime contract: interaction boundary (v0)', () => {
     expect(port?.notify({ target: outsider })).toBe('unknown');
   });
 
-  it.todo(
-    'BOUNDARY-0700: boundary registrations are cleaned up on unmount and stop producing outside-derived notifications afterwards'
-  );
+  it('BOUNDARY-0700: boundary registrations are cleaned up on unmount and stop producing outside-derived notifications afterwards', async () => {
+    const content = document.createElement('div');
+    const outsider = document.createElement('button');
+    let outsideCalls = 0;
+
+    const P = definePrototype({
+      name: 'x-boundary-0700',
+      setup() {
+        const boundary = asBoundary();
+        boundary.registerRegion(content, { role: 'content' });
+        boundary.subscribeOutside(() => {
+          outsideCalls += 1;
+        });
+        return (r) => r.el('div', 'ok');
+      },
+    });
+
+    const { host } = createHost(P.name, {
+      onRuntimeReady(wiring) {
+        wiring.attach('boundary', [
+          [
+            BOUNDARY_HOST_BRIDGE_CAP,
+            {
+              classify({ regions, sample }: any) {
+                const target = sample?.target;
+                if (!(target instanceof Node)) return 'unknown';
+                if (!Array.isArray(regions) || regions.length === 0) return 'unknown';
+                for (const region of regions) {
+                  if (!(region?.target instanceof Node)) return 'unknown';
+                  if (region.target === target || region.target.contains(target)) return 'inside';
+                }
+                return 'outside';
+              },
+            },
+          ],
+        ]);
+      },
+    });
+
+    const result = executeWithHost(P as any, host as any);
+    const port = result.caps.getPort<BoundaryPort>('boundary');
+
+    expect(port?.notify({ target: outsider })).toBe('outside');
+    expect(outsideCalls).toBe(1);
+
+    await result.invokeUnmounted();
+
+    expect(port?.getRegions()).toEqual([]);
+    expect(port?.notify({ target: outsider })).toBe('unknown');
+    expect(outsideCalls).toBe(1);
+  });
 
   it('BOUNDARY-0800: stacked consumers can distinguish the top-most boundary so one outside interaction does not close multiple layers', async () => {
     const outsider = document.createElement('button');
