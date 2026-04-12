@@ -93,7 +93,10 @@ export type SelectItemExposes = {
   focused: ExposeState<boolean>;
   focusVisible: ExposeState<boolean>;
   pressed: ExposeState<boolean>;
+  // `active` follows the committed select value, not the transient roving focus cursor.
+  // When the select still has no value, every item remains inactive.
   active: ExposeState<boolean>;
+  // `selected` mirrors the committed value as the accessibility-facing selected state.
   selected: ExposeState<boolean>;
   focusSelf: ExposeMethod<(options?: FocusRequestOptions) => void>;
   click: ExposeEvent<void>;

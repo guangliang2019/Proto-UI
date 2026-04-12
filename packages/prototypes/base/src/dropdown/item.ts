@@ -4,6 +4,8 @@ import { asButton } from '../button';
 import { DROPDOWN_CONTEXT, DROPDOWN_FAMILY, DROPDOWN_FOCUS_GROUP } from './shared';
 import type { DropdownItemAsHookContract, DropdownItemExposes, DropdownItemProps } from './types';
 
+const DROPDOWN_ROVING_HANDLED = '__dropdownRovingHandled';
+
 function setupDropdownItem(def: DefHandle<DropdownItemProps, DropdownItemExposes>): void {
   asButton();
   const focusable = asFocusable({ groupKey: DROPDOWN_FOCUS_GROUP });
@@ -71,7 +73,6 @@ function setupDropdownItem(def: DefHandle<DropdownItemProps, DropdownItemExposes
       ...prev,
       open: false,
       activeValue: '',
-      suppressItemNavigation: false,
     }));
   });
 
@@ -93,13 +94,8 @@ function setupDropdownItem(def: DefHandle<DropdownItemProps, DropdownItemExposes
     const ctx = run.context.read(DROPDOWN_CONTEXT);
     if (ownDisabled || ctx.disabled) return;
     if (!focusable.isFocused()) return;
-    if (ctx.suppressItemNavigation) {
-      run.context.update(DROPDOWN_CONTEXT, (prev: any) => ({
-        ...prev,
-        suppressItemNavigation: false,
-      }));
-      return;
-    }
+    // Keep one roving move per keyboard event without depending on propagation phase semantics.
+    if ((ev?.detail as any)?.[DROPDOWN_ROVING_HANDLED]) return;
 
     const key = ev?.detail?.key;
     const content = run.anatomy.partsOf(DROPDOWN_FAMILY, 'content')[0] ?? null;
@@ -109,27 +105,27 @@ function setupDropdownItem(def: DefHandle<DropdownItemProps, DropdownItemExposes
     const focusPrev = content?.getExpose('focusPrev') as (() => void) | null;
 
     if (key === 'Home') {
-      queueMicrotask(() => {
-        focusFirst?.();
-      });
+      if (ev?.detail) (ev.detail as any)[DROPDOWN_ROVING_HANDLED] = true;
+      ev?.detail?.preventDefault?.();
+      focusFirst?.();
       return;
     }
     if (key === 'End') {
-      queueMicrotask(() => {
-        focusLast?.();
-      });
+      if (ev?.detail) (ev.detail as any)[DROPDOWN_ROVING_HANDLED] = true;
+      ev?.detail?.preventDefault?.();
+      focusLast?.();
       return;
     }
     if (key === 'ArrowDown') {
-      queueMicrotask(() => {
-        focusNext?.();
-      });
+      if (ev?.detail) (ev.detail as any)[DROPDOWN_ROVING_HANDLED] = true;
+      ev?.detail?.preventDefault?.();
+      focusNext?.();
       return;
     }
     if (key === 'ArrowUp') {
-      queueMicrotask(() => {
-        focusPrev?.();
-      });
+      if (ev?.detail) (ev.detail as any)[DROPDOWN_ROVING_HANDLED] = true;
+      ev?.detail?.preventDefault?.();
+      focusPrev?.();
     }
   });
 }

@@ -86,7 +86,7 @@ description: 'Proto UI 中复合原型家族的角色和结构关系'
 - roving focus 策略
 - `PageUp` / `PageDown` 之类键盘策略
 
-这些能力如果需要，应该继续由上层 `asHook` 来组织。
+这些能力如果需要，应该继续由上层 `asHook` 来组织。其中 `asCollection()` 只负责有序结构语义本身，不负责 roving focus、active item 或 selection。
 
 ## 它和真实元素顺序的关系是什么？
 

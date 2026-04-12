@@ -6,6 +6,7 @@ export type TabsActivationMode = 'automatic' | 'manual';
 
 export type TabsContextValue = {
   value: string;
+  activeValue: string;
   orientation: TabsOrientation;
   activationMode: TabsActivationMode;
   controlled: boolean;

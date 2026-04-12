@@ -4,6 +4,8 @@ import { asButton } from '../button';
 import { SELECT_CONTEXT, SELECT_FAMILY, SELECT_FOCUS_GROUP } from './shared';
 import type { SelectItemAsHookContract, SelectItemExposes, SelectItemProps } from './types';
 
+const SELECT_ROVING_HANDLED = '__selectRovingHandled';
+
 function syncBoolState(
   currentValue: string,
   ownValue: string,
@@ -61,7 +63,9 @@ function setupSelectItem(def: DefHandle<SelectItemProps, SelectItemExposes>): vo
 
   const syncFromContext = (ctx: { value?: string; activeValue?: string }) => {
     syncBoolState(ctx.value ?? '', ownValue, selected, 'reason: select context sync => selected');
-    syncBoolState(ctx.activeValue ?? '', ownValue, active, 'reason: select context sync => active');
+    // Select keeps "active" aligned with the committed value.
+    // `activeValue` is still used as the roving cursor, including the initial no-value open case.
+    syncBoolState(ctx.value ?? '', ownValue, active, 'reason: select context sync => active');
   };
 
   def.context.subscribe(SELECT_CONTEXT, (run, next) => {
@@ -114,7 +118,6 @@ function setupSelectItem(def: DefHandle<SelectItemProps, SelectItemExposes>): vo
     run.context.update(SELECT_CONTEXT, (prev: any) => ({
       ...prev,
       open: false,
-      suppressItemNavigation: false,
     }));
   });
 
@@ -137,14 +140,8 @@ function setupSelectItem(def: DefHandle<SelectItemProps, SelectItemExposes>): vo
     const ctx = run.context.read(SELECT_CONTEXT);
     if (ownDisabled || ctx.disabled) return;
     if (!focusable.isFocused()) return;
-
-    if (ctx.suppressItemNavigation) {
-      run.context.update(SELECT_CONTEXT, (prev: any) => ({
-        ...prev,
-        suppressItemNavigation: false,
-      }));
-      return;
-    }
+    // Keep one roving move per keyboard event without depending on propagation phase semantics.
+    if ((ev?.detail as any)?.[SELECT_ROVING_HANDLED]) return;
 
     const key = ev?.detail?.key;
     const content = run.anatomy.partsOf(SELECT_FAMILY, 'content')[0] ?? null;
@@ -154,35 +151,27 @@ function setupSelectItem(def: DefHandle<SelectItemProps, SelectItemExposes>): vo
     const focusPrev = content?.getExpose('focusPrev') as (() => void) | null;
 
     if (key === 'Home') {
+      if (ev?.detail) (ev.detail as any)[SELECT_ROVING_HANDLED] = true;
       ev?.detail?.preventDefault?.();
-      ev?.detail?.stopPropagation?.();
-      queueMicrotask(() => {
-        focusFirst?.();
-      });
+      focusFirst?.();
       return;
     }
     if (key === 'End') {
+      if (ev?.detail) (ev.detail as any)[SELECT_ROVING_HANDLED] = true;
       ev?.detail?.preventDefault?.();
-      ev?.detail?.stopPropagation?.();
-      queueMicrotask(() => {
-        focusLast?.();
-      });
+      focusLast?.();
       return;
     }
     if (key === 'ArrowDown') {
+      if (ev?.detail) (ev.detail as any)[SELECT_ROVING_HANDLED] = true;
       ev?.detail?.preventDefault?.();
-      ev?.detail?.stopPropagation?.();
-      queueMicrotask(() => {
-        focusNext?.();
-      });
+      focusNext?.();
       return;
     }
     if (key === 'ArrowUp') {
+      if (ev?.detail) (ev.detail as any)[SELECT_ROVING_HANDLED] = true;
       ev?.detail?.preventDefault?.();
-      ev?.detail?.stopPropagation?.();
-      queueMicrotask(() => {
-        focusPrev?.();
-      });
+      focusPrev?.();
     }
   });
 }

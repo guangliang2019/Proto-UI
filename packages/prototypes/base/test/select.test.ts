@@ -159,6 +159,159 @@ describe('prototypes/base: select', () => {
     await Promise.resolve();
   });
 
+  it.each(['Enter', ' '])(
+    'trigger key %j opens select and focuses the selected item',
+    async (key) => {
+      const root = document.createElement('base-select-root') as any;
+      const trigger = document.createElement('base-select-trigger') as any;
+      const content = document.createElement('base-select-content') as any;
+      const itemA = document.createElement('base-select-item') as any;
+      const itemB = document.createElement('base-select-item') as any;
+
+      setElementProps(root, { defaultValue: 'b' });
+      setElementProps(itemA, { value: 'a', textValue: 'Alpha' });
+      setElementProps(itemB, { value: 'b', textValue: 'Beta' });
+
+      content.appendChild(itemA);
+      content.appendChild(itemB);
+      root.appendChild(trigger);
+      root.appendChild(content);
+      document.body.appendChild(root);
+
+      await Promise.resolve();
+      await Promise.resolve();
+
+      trigger.focus();
+      trigger.dispatchEvent(new KeyboardEvent('keydown', { key, bubbles: true }));
+      await Promise.resolve();
+      await Promise.resolve();
+
+      expect(root.getExposes().open.get()).toBe(true);
+      expect(document.activeElement).toBe(itemB);
+      expect(itemB.getExposes().active.get()).toBe(true);
+
+      root.remove();
+      await Promise.resolve();
+    }
+  );
+
+  it('ArrowUp also opens select without losing the selected item', async () => {
+    const root = document.createElement('base-select-root') as any;
+    const trigger = document.createElement('base-select-trigger') as any;
+    const content = document.createElement('base-select-content') as any;
+    const itemA = document.createElement('base-select-item') as any;
+    const itemB = document.createElement('base-select-item') as any;
+
+    setElementProps(root, { defaultValue: 'b' });
+    setElementProps(itemA, { value: 'a', textValue: 'Alpha' });
+    setElementProps(itemB, { value: 'b', textValue: 'Beta' });
+
+    content.appendChild(itemA);
+    content.appendChild(itemB);
+    root.appendChild(trigger);
+    root.appendChild(content);
+    document.body.appendChild(root);
+
+    await Promise.resolve();
+    await Promise.resolve();
+
+    trigger.focus();
+    window.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowUp' }));
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(root.getExposes().open.get()).toBe(true);
+    expect(document.activeElement).toBe(itemB);
+    expect(itemB.getExposes().active.get()).toBe(true);
+
+    root.remove();
+    await Promise.resolve();
+  });
+
+  it('first arrow key after trigger-open continues item roving', async () => {
+    const root = document.createElement('base-select-root') as any;
+    const trigger = document.createElement('base-select-trigger') as any;
+    const content = document.createElement('base-select-content') as any;
+    const itemA = document.createElement('base-select-item') as any;
+    const itemB = document.createElement('base-select-item') as any;
+    const itemC = document.createElement('base-select-item') as any;
+
+    setElementProps(root, { defaultValue: 'b' });
+    setElementProps(itemA, { value: 'a', textValue: 'Alpha' });
+    setElementProps(itemB, { value: 'b', textValue: 'Beta' });
+    setElementProps(itemC, { value: 'c', textValue: 'Gamma' });
+
+    content.appendChild(itemA);
+    content.appendChild(itemB);
+    content.appendChild(itemC);
+    root.appendChild(trigger);
+    root.appendChild(content);
+    document.body.appendChild(root);
+
+    await Promise.resolve();
+    await Promise.resolve();
+
+    trigger.focus();
+    window.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowDown' }));
+    await Promise.resolve();
+    await Promise.resolve();
+    expect(document.activeElement).toBe(itemB);
+
+    window.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowDown' }));
+    await Promise.resolve();
+    await Promise.resolve();
+    expect(document.activeElement).toBe(itemC);
+    expect(itemB.getExposes().active.get()).toBe(true);
+    expect(itemC.getExposes().active.get()).toBe(false);
+
+    root.remove();
+    await Promise.resolve();
+  });
+
+  it('first open without selected value still establishes a roving start point', async () => {
+    const root = document.createElement('base-select-root') as any;
+    const trigger = document.createElement('base-select-trigger') as any;
+    const content = document.createElement('base-select-content') as any;
+    const itemA = document.createElement('base-select-item') as any;
+    const itemB = document.createElement('base-select-item') as any;
+    const itemC = document.createElement('base-select-item') as any;
+
+    setElementProps(itemA, { value: 'a', textValue: 'Alpha' });
+    setElementProps(itemB, { value: 'b', textValue: 'Beta' });
+    setElementProps(itemC, { value: 'c', textValue: 'Gamma' });
+
+    content.appendChild(itemA);
+    content.appendChild(itemB);
+    content.appendChild(itemC);
+    root.appendChild(trigger);
+    root.appendChild(content);
+    document.body.appendChild(root);
+
+    await Promise.resolve();
+    await Promise.resolve();
+
+    trigger.focus();
+    window.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowDown' }));
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(root.getExposes().open.get()).toBe(true);
+    expect(document.activeElement).toBe(itemA);
+    expect(itemA.getExposes().active.get()).toBe(false);
+    expect(itemB.getExposes().active.get()).toBe(false);
+
+    window.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowDown' }));
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(document.activeElement).toBe(itemB);
+    expect(itemA.getExposes().active.get()).toBe(false);
+    expect(itemB.getExposes().active.get()).toBe(false);
+
+    root.remove();
+    await Promise.resolve();
+  });
+
   it('select items support roving focus with arrow and boundary keys', async () => {
     const root = document.createElement('base-select-root') as any;
     const content = document.createElement('base-select-content') as any;
@@ -187,7 +340,8 @@ describe('prototypes/base: select', () => {
     await Promise.resolve();
     await Promise.resolve();
     expect(document.activeElement).toBe(itemC);
-    expect(itemC.getExposes().active.get()).toBe(true);
+    expect(itemB.getExposes().active.get()).toBe(true);
+    expect(itemC.getExposes().active.get()).toBe(false);
 
     window.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowUp' }));
     await Promise.resolve();
@@ -199,13 +353,15 @@ describe('prototypes/base: select', () => {
     await Promise.resolve();
     await Promise.resolve();
     expect(document.activeElement).toBe(itemA);
-    expect(itemA.getExposes().active.get()).toBe(true);
+    expect(itemA.getExposes().active.get()).toBe(false);
+    expect(itemB.getExposes().active.get()).toBe(true);
 
     window.dispatchEvent(new KeyboardEvent('keydown', { key: 'End' }));
     await Promise.resolve();
     await Promise.resolve();
     expect(document.activeElement).toBe(itemC);
-    expect(itemC.getExposes().active.get()).toBe(true);
+    expect(itemB.getExposes().active.get()).toBe(true);
+    expect(itemC.getExposes().active.get()).toBe(false);
 
     root.remove();
     await Promise.resolve();

@@ -9,7 +9,6 @@ export type SelectContextValue = {
   value: string;
   textValue: string;
   activeValue: string;
-  suppressItemNavigation: boolean;
   closeOnSelect: boolean;
 };
 

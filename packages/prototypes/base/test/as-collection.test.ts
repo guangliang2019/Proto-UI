@@ -190,4 +190,114 @@ describe('prototypes/base: asCollection', () => {
     ]);
     expect(itemAExposes.collectionIndex.get()).toBe(0);
   });
+
+  it('keeps live position reads on expose methods', () => {
+    const family = createAnatomyFamily('x-collection-family-live-method');
+    const orderMap = new Map<string, number>([
+      ['root', 0],
+      ['item-a', 1],
+      ['item-b', 2],
+    ]);
+    const rootTarget = createTarget('root', orderMap);
+    const itemATarget = createTarget('item-a', orderMap);
+    const itemBTarget = createTarget('item-b', orderMap);
+    const parents = new Map<unknown, unknown | null>([
+      [rootTarget, null],
+      [itemATarget, rootTarget],
+      [itemBTarget, rootTarget],
+    ]);
+
+    const Root = definePrototype({
+      name: 'x-collection-root-live-method',
+      setup(def) {
+        def.anatomy.family(family, {
+          roles: {
+            root: { cardinality: { min: 1, max: 1 } },
+            item: { cardinality: { min: 0, max: 10 } },
+          },
+        });
+        asCollection({ family, rootRole: 'root' });
+        return (r) => r.el('div', r.slot());
+      },
+    });
+
+    const Item = definePrototype<{ id?: string }>({
+      name: 'x-collection-item-live-method',
+      setup(def) {
+        def.props.define({
+          id: { type: 'string', empty: 'fallback' },
+        });
+        def.props.setDefaults({
+          id: '',
+        });
+        asCollectionItem({
+          family,
+          getMeta: (run) => ({ id: run.props.get().id ?? '' }),
+        });
+        return (r) => r.el('div', r.slot());
+      },
+    });
+
+    const getPrototype = (instance: unknown) => {
+      if (instance === rootTarget) return Root;
+      if (instance === itemATarget || instance === itemBTarget) return Item;
+      return null;
+    };
+
+    const rootCtx = createHost({
+      instance: rootTarget,
+      getParent: (instance) => parents.get(instance) ?? null,
+      getPrototype,
+    });
+    const itemACtx = createHost({
+      instance: itemATarget,
+      getParent: (instance) => parents.get(instance) ?? null,
+      getPrototype,
+    });
+    const itemBCtx = createHost({
+      instance: itemBTarget,
+      getParent: (instance) => parents.get(instance) ?? null,
+      getPrototype,
+    });
+
+    executeWithHost(Root as any, rootCtx.host as any);
+    executeWithHost(
+      Item as any,
+      {
+        ...itemACtx.host,
+        getRawProps: () => ({ id: 'a' }),
+      } as any
+    );
+    executeWithHost(
+      Item as any,
+      {
+        ...itemBCtx.host,
+        getRawProps: () => ({ id: 'b' }),
+      } as any
+    );
+
+    rootCtx.notifyOrderChange();
+    itemACtx.notifyOrderChange();
+
+    const itemAExposes = itemACtx.getExposes();
+    expect(itemAExposes.getCollectionItem()).toEqual({
+      id: 'a',
+      index: 0,
+      total: 2,
+      first: true,
+      last: false,
+    });
+
+    orderMap.set('item-a', 2);
+    orderMap.set('item-b', 1);
+    rootCtx.notifyOrderChange();
+
+    expect(itemAExposes.getCollectionItem()).toEqual({
+      id: 'a',
+      index: 1,
+      total: 2,
+      first: false,
+      last: true,
+    });
+  });
 });

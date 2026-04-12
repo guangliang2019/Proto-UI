@@ -169,6 +169,77 @@ describe('prototypes/base: dropdown', () => {
   });
 
   it.each(['Enter', ' '])(
+    'trigger key %j opens dropdown and focuses the first enabled item',
+    async (key) => {
+      const root = document.createElement('base-dropdown-root') as any;
+      const trigger = document.createElement('base-dropdown-trigger') as any;
+      const content = document.createElement('base-dropdown-content') as any;
+      const itemA = document.createElement('base-dropdown-item') as any;
+      const itemB = document.createElement('base-dropdown-item') as any;
+
+      setElementProps(itemA, { value: 'a', textValue: 'Alpha' });
+      setElementProps(itemB, { value: 'b', textValue: 'Beta' });
+
+      content.appendChild(itemA);
+      content.appendChild(itemB);
+      root.appendChild(trigger);
+      root.appendChild(content);
+      document.body.appendChild(root);
+
+      await Promise.resolve();
+      await Promise.resolve();
+
+      trigger.focus();
+      trigger.dispatchEvent(new KeyboardEvent('keydown', { key, bubbles: true }));
+      await Promise.resolve();
+      await Promise.resolve();
+
+      expect(root.getExposes().open.get()).toBe(true);
+      expect(document.activeElement).toBe(itemA);
+
+      root.remove();
+      await Promise.resolve();
+    }
+  );
+
+  it('first arrow key after trigger-open continues item roving', async () => {
+    const root = document.createElement('base-dropdown-root') as any;
+    const trigger = document.createElement('base-dropdown-trigger') as any;
+    const content = document.createElement('base-dropdown-content') as any;
+    const itemA = document.createElement('base-dropdown-item') as any;
+    const itemB = document.createElement('base-dropdown-item') as any;
+    const itemC = document.createElement('base-dropdown-item') as any;
+
+    setElementProps(itemA, { value: 'a', textValue: 'Alpha' });
+    setElementProps(itemB, { value: 'b', textValue: 'Beta' });
+    setElementProps(itemC, { value: 'c', textValue: 'Gamma' });
+
+    content.appendChild(itemA);
+    content.appendChild(itemB);
+    content.appendChild(itemC);
+    root.appendChild(trigger);
+    root.appendChild(content);
+    document.body.appendChild(root);
+
+    await Promise.resolve();
+    await Promise.resolve();
+
+    trigger.focus();
+    window.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowDown' }));
+    await Promise.resolve();
+    await Promise.resolve();
+    expect(document.activeElement).toBe(itemA);
+
+    window.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowDown' }));
+    await Promise.resolve();
+    await Promise.resolve();
+    expect(document.activeElement).toBe(itemB);
+
+    root.remove();
+    await Promise.resolve();
+  });
+
+  it.each(['Enter', ' '])(
     'trigger keyboard activation %j opens dropdown once even if host synthesizes click',
     async (key) => {
       const root = document.createElement('base-dropdown-root') as any;
@@ -772,8 +843,20 @@ describe('prototypes/base: dropdown', () => {
         last: true,
       },
     ]);
-    expect(itemA.getExposes().collectionIndex.get()).toBe(1);
-    expect(itemB.getExposes().collectionIndex.get()).toBe(0);
+    expect(itemA.getExposes().getCollectionItem()).toMatchObject({
+      value: 'a',
+      index: 1,
+      total: 2,
+      first: false,
+      last: true,
+    });
+    expect(itemB.getExposes().getCollectionItem()).toMatchObject({
+      value: 'b',
+      index: 0,
+      total: 2,
+      first: true,
+      last: false,
+    });
 
     root.remove();
     await Promise.resolve();

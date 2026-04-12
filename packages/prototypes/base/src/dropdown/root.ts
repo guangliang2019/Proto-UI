@@ -29,7 +29,6 @@ function setupDropdownRoot(def: DefHandle<DropdownRootProps, DropdownRootExposes
     controlled: false,
     disabled: false,
     activeValue: '',
-    suppressItemNavigation: false,
     closeOnItemCommit: true,
     openEntry: 'active-or-first',
     openEntryValue: '',
@@ -61,6 +60,8 @@ function setupDropdownRoot(def: DefHandle<DropdownRootProps, DropdownRootExposes
       open?.set(next.open, 'reason: dropdown context sync => open');
     }
     activeValue.set(next.activeValue ?? '', 'reason: dropdown context sync => activeValue');
+    openEntry = next.openEntry ?? openEntry;
+    openEntryValue = next.openEntryValue ?? openEntryValue;
   });
 
   def.lifecycle.onCreated((run) => {

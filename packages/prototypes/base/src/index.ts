@@ -1,4 +1,5 @@
 export * from './button';
+export * from './behaviors';
 export { default as button } from './button';
 export * from './toggle';
 export { default as toggle } from './toggle';

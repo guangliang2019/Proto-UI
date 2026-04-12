@@ -22,7 +22,7 @@ function makeProto(hooks: string[] = []): Prototype<any> {
 }
 
 describe('AnatomyModuleImpl', () => {
-  it('enforces setup-only family/claim and callback-only runtime access', () => {
+  it('enforces setup-only family/claim and runtime-only query access', () => {
     const sys = createSysCaps();
     const instance = {};
     const caps = makeCaps({
@@ -39,12 +39,16 @@ describe('AnatomyModuleImpl', () => {
       roles: { root: { cardinality: { min: 1, max: 1 } } },
     });
     impl.claim(family, { role: 'root' });
+    expect(() => impl.parts(family)).toThrow();
 
-    sys.__setExecPhase('callback');
+    sys.__setExecPhase('render');
     expect(() =>
       impl.family(family, { roles: { root: { cardinality: { min: 1, max: 1 } } } })
     ).toThrow();
     expect(() => impl.claim(family, { role: 'root' })).toThrow();
+    expect(() => impl.parts(family)).not.toThrow();
+
+    sys.__setExecPhase('callback');
     expect(() => impl.parts(family)).not.toThrow();
   });
 
