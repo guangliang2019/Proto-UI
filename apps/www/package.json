@@ -4,6 +4,10 @@
   "version": "0.0.1",
   "scripts": {
     "generate:prototype-tokens": "node ./scripts/generate-prototype-tailwind-sources.mjs",
+    "generate:setup:shadcn:cli": "proto-ui shadcn --styles-dir ./src/styles",
+    "generate:prototype-tokens:cli": "proto-ui tokens --input ../../packages/prototypes --out ./src/styles/prototype-tokens.generated.css",
+    "generate:tailwindcss:cli": "proto-ui tailwindcss --out ./src/styles/tailwindcss.css --theme-import ./shadcn-theme.css --tokens-import ./prototype-tokens.generated.css",
+    "generate:theme:shadcn:cli": "proto-ui theme shadcn --out ./src/styles/shadcn-theme.css",
     "generate-code": "tsx scripts/example_code_generation/cli.ts",
     "dev": "pnpm run generate:prototype-tokens && astro dev",
     "start": "pnpm run dev",
