@@ -1,5 +1,6 @@
 import { defineAsHook, definePrototype, tw, type DefHandle } from '@proto.ui/core';
-import { asFocusGroup, asOverlay } from '@proto.ui/hooks';
+import { asBoundary, asFocusGroup, asOverlay } from '@proto.ui/hooks';
+import { asFocusRoving } from '../behaviors';
 import { DROPDOWN_CONTEXT, DROPDOWN_FAMILY, DROPDOWN_FOCUS_GROUP } from './shared';
 import type {
   DropdownContentAsHookContract,
@@ -7,24 +8,43 @@ import type {
   DropdownContentProps,
 } from './types';
 
+const DROPDOWN_TYPEAHEAD_HANDLED = '__dropdownTypeaheadHandled';
+const DROPDOWN_OPEN_HANDLED = '__dropdownOpenHandled';
+
 function setupDropdownContent(
   def: DefHandle<DropdownContentProps, DropdownContentExposes>,
   _options?: void,
   api?: { store: Record<string, unknown> }
 ): void {
   def.anatomy.claim(DROPDOWN_FAMILY, { role: 'content' });
+  let activeValue = '';
   asFocusGroup({
     key: DROPDOWN_FOCUS_GROUP,
-    navigation: 'arrow',
+    navigation: 'none',
     orientation: 'vertical',
-    entry: 'first',
+    entry: 'manual',
   });
-  const group = asFocusGroup();
+  const roving = asFocusRoving({
+    family: DROPDOWN_FAMILY,
+    itemRole: 'item',
+    loop: false,
+    skipDisabled: true,
+    getId: (snapshot) => {
+      const value = snapshot.value;
+      return typeof value === 'string' && value ? value : null;
+    },
+    getActiveId: () => activeValue,
+  });
+  const focusById = roving.getMethod?.('focusById') as
+    | ((id: string, options?: { reason?: 'programmatic' | 'keyboard' | 'pointer' }) => boolean)
+    | undefined;
+  const focusFirst = roving.getMethod?.('focusFirst') as (() => boolean) | undefined;
 
   const overlay = asOverlay({
     restore: 'trigger',
     entry: 'content',
   });
+  const boundary = asBoundary();
   const open = def.state.bool('open', false);
   const store = (api?.store ?? {}) as {
     typeahead: string;
@@ -51,43 +71,29 @@ function setupDropdownContent(
     focusSelf?.({ reason: 'programmatic' });
   };
 
-  const focusItemByValue = (run: any, value: string): boolean => {
-    if (!value) return false;
-    const items = run.anatomy.partsOf(DROPDOWN_FAMILY, 'item');
-    for (const item of items) {
-      const snapshot = item.getExpose('getCollectionItem') as
-        | (() => Record<string, unknown>)
-        | null;
-      const focusSelf = item.getExpose('focusSelf') as
-        | ((options?: { reason?: 'programmatic' | 'keyboard' | 'pointer' }) => void)
-        | null;
-      const next = snapshot?.();
-      if (!next || next.value !== value || next.disabled) continue;
-      focusSelf?.({ reason: 'keyboard' });
-      return true;
-    }
-    return false;
-  };
-
   const resolveOpenFocusAction = (
-    run: any,
+    _run: any,
     ctx: { activeValue?: string; openEntry?: string; openEntryValue?: string }
   ) => {
-    if (ctx.openEntry === 'value-or-first' && focusItemByValue(run, ctx.openEntryValue ?? '')) {
+    if (ctx.openEntry === 'last') {
+      focusLast?.();
       return;
     }
-    if (ctx.openEntry !== 'first' && focusItemByValue(run, ctx.activeValue ?? '')) {
+    if (
+      ctx.openEntry === 'value-or-first' &&
+      focusById?.(ctx.openEntryValue ?? '', { reason: 'keyboard' })
+    ) {
       return;
     }
-    group.focusFirst();
+    if (ctx.openEntry !== 'first' && focusById?.(ctx.activeValue ?? '', { reason: 'keyboard' })) {
+      return;
+    }
+    focusFirst?.();
   };
 
   def.expose.state('open', open);
-  def.expose.method('focusFirst', () => group.focusFirst());
-  def.expose.method('focusLast', () => group.focusLast());
-  def.expose.method('focusNext', () => group.focusNext());
-  def.expose.method('focusPrev', () => group.focusPrev());
   def.context.subscribe(DROPDOWN_CONTEXT, (_run, next) => {
+    activeValue = next.activeValue ?? '';
     open.set(next.open, 'reason: dropdown context sync => content open');
     if (next.open) {
       overlay.openOverlay('controlled.sync');
@@ -100,7 +106,13 @@ function setupDropdownContent(
 
   def.lifecycle.onMounted((run) => {
     store.run = run;
+    const trigger = run.anatomy.partsOf(DROPDOWN_FAMILY, 'trigger')[0] ?? null;
+    const triggerTarget = trigger?.getRootTarget?.() ?? null;
+    if (triggerTarget) {
+      overlay.registerTrigger(triggerTarget);
+    }
     const ctx = run.context.read(DROPDOWN_CONTEXT);
+    activeValue = ctx.activeValue ?? '';
     open.set(ctx.open, 'reason: lifecycle.onMounted => content open sync');
     if (ctx.open) {
       overlay.openOverlay('controlled.sync');
@@ -124,17 +136,19 @@ function setupDropdownContent(
     clearTypeahead();
     restoreTriggerFocus(run);
     if (ctx.controlled) return;
+    activeValue = '';
     run.context.update(DROPDOWN_CONTEXT, (prev: any) => ({
       ...prev,
       open: false,
       activeValue: '',
-      suppressItemNavigation: false,
     }));
   });
 
   def.event.onGlobal('key.down', (run, ev) => {
     const ctx = run.context.read(DROPDOWN_CONTEXT);
     if (!ctx.open || ctx.disabled) return;
+    if ((ev?.detail as any)?.[DROPDOWN_TYPEAHEAD_HANDLED]) return;
+    if ((ev?.detail as any)?.[DROPDOWN_OPEN_HANDLED]) return;
 
     const key = ev?.detail?.key;
     if (key === 'Escape') {
@@ -143,7 +157,6 @@ function setupDropdownContent(
         ...prev,
         open: false,
         activeValue: '',
-        suppressItemNavigation: false,
       }));
       return;
     }
@@ -163,9 +176,6 @@ function setupDropdownContent(
     const items = run.anatomy.partsOf(DROPDOWN_FAMILY, 'item');
     const snapshots = items
       .map((item) => ({
-        focusSelf: item.getExpose('focusSelf') as
-          | ((options?: { reason?: 'programmatic' | 'keyboard' | 'pointer' }) => void)
-          | null,
         snapshot: (
           item.getExpose('getCollectionItem') as (() => Record<string, unknown>) | null
         )?.(),
@@ -191,14 +201,25 @@ function setupDropdownContent(
 
     const match = findMatch(nextBuffer) ?? findMatch(String(key).toLowerCase());
     if (!match) return;
-    queueMicrotask(() => {
-      match.focusSelf?.({ reason: 'keyboard' });
+    if (ev?.detail) (ev.detail as any)[DROPDOWN_TYPEAHEAD_HANDLED] = true;
+    focusById?.(String(match.snapshot?.value ?? ''), { reason: 'keyboard' });
+  });
+
+  def.event.onGlobal('native:pointerdown', (run, ev) => {
+    const ctx = run.context.read(DROPDOWN_CONTEXT);
+    if (!ctx.open || ctx.disabled || ctx.controlled) return;
+    const classification = boundary.notify({
+      type: 'pointerdown',
+      target: ev?.target,
+      nativeEvent: ev,
     });
+    if (classification !== 'outside') return;
   });
 
   def.lifecycle.onUnmounted(() => {
     clearTypeahead();
     store.run = null;
+    activeValue = '';
   });
 
   def.rule({

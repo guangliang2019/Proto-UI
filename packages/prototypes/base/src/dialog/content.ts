@@ -1,5 +1,5 @@
 import { defineAsHook, definePrototype, tw, type DefHandle } from '@proto.ui/core';
-import { asFocusScope, asOverlay } from '@proto.ui/hooks';
+import { asBoundary, asFocusScope, asOverlay } from '@proto.ui/hooks';
 import { asTransition } from '../tools';
 import { DIALOG_CONTEXT, DIALOG_FAMILY } from './shared';
 import type {
@@ -22,7 +22,7 @@ function setupDialogContent(def: DefHandle<DialogContentProps, DialogContentExpo
 
   const overlay = asOverlay({
     closeOnEscape: true,
-    closeOnOutsidePress: true,
+    closeOnOutsidePress: false,
     closeOnFocusOutside: true,
     restore: 'trigger',
     entry: 'content',
@@ -31,6 +31,7 @@ function setupDialogContent(def: DefHandle<DialogContentProps, DialogContentExpo
     modal: false,
     layerRole: 'dialog-content',
   });
+  const boundary = asBoundary();
 
   const focusScope = asFocusScope({ trap: true });
 
@@ -61,14 +62,13 @@ function setupDialogContent(def: DefHandle<DialogContentProps, DialogContentExpo
     updateOpen(next.open, 'reason: dialog context sync => content');
   });
 
-  let pointerDownInside = false;
-
-  def.event.on('native:pointerdown', () => {
-    pointerDownInside = true;
-  });
-
   def.lifecycle.onMounted((run) => {
     mountedRun = run;
+    const trigger = run.anatomy.partsOf(DIALOG_FAMILY, 'trigger', { missing: 'empty' })[0] ?? null;
+    const triggerTarget = trigger?.getRootTarget?.() ?? null;
+    if (triggerTarget) {
+      overlay.registerTrigger(triggerTarget);
+    }
     syncAlert(run);
     const ctx = run.context.read(DIALOG_CONTEXT);
     updateOpen(ctx.open, 'reason: lifecycle.onMounted => dialog content open sync');
@@ -97,14 +97,17 @@ function setupDialogContent(def: DefHandle<DialogContentProps, DialogContentExpo
     }
   });
 
-  def.event.onGlobal('native:pointerdown', (run, _ev) => {
-    const wasInside = pointerDownInside;
-    pointerDownInside = false;
-
+  def.event.onGlobal('native:pointerdown', (run, ev) => {
     const ctx = run.context.read(DIALOG_CONTEXT);
     if (!ctx.open) return;
     if (alertProp.get()) return;
-    if (wasInside) return;
+
+    const classification = boundary.notify({
+      type: 'pointerdown',
+      target: ev?.target,
+      nativeEvent: ev,
+    });
+    if (classification !== 'outside') return;
 
     if (ctx.controlled) {
       overlay.close('outside.press');

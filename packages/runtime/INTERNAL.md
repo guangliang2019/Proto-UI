@@ -95,6 +95,17 @@
 
 这条规则的目的不是否认 privileged backend 的存在，而是把“特权入口”固定在边界层，避免 Kernel 自身退化成对 module internals 有感知的组织层。
 
+### 3.2 Author-Facing Hook / Behavior 约束
+
+对 `@proto.ui/hooks` 与 prototype library 中的 behavior helper，约束如下：
+
+- 默认依赖 `def` / `run` 的公开语义面，不直接读取内部 port
+- 只读查询能力若属于 runtime 语义，应优先收敛为 runtime-only，而不是要求 callback-only
+- 行为正确性不得依赖宿主线程模型，例如假定 `queueMicrotask()` 才能避免重入
+- 行为正确性不得依赖 host 事件传播阶段语义，例如冒泡或捕获顺序
+- 允许消费跨平台的规范化事件数据，例如键盘 `key`
+- 避免直接读取 `event.target` 等宿主细节；若确有需要，必须在契约/代码注释中显式说明
+
 ---
 
 ## 4. Adapter 入口规则

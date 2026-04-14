@@ -1,4 +1,9 @@
-import { createCapsWiring, createDomOrderObserver } from '@proto.ui/adapter-base';
+import {
+  createCapsWiring,
+  createDomOrderObserver,
+  createWebBoundaryHostBridge,
+  createWebHitParticipationHostBridge,
+} from '@proto.ui/adapter-base';
 import type { EffectsPort } from '@proto.ui/core';
 import type { RawPropsSource } from '@proto.ui/module-props';
 import type { OverlayLayerScheduler } from '@proto.ui/adapter-base';
@@ -82,6 +87,14 @@ export function createReactModules<Props extends PropsBaseType>(args: {
       nativeVariantPolicy: createExposeStateWebNativeVariantPolicy,
     })
     .usePresence(args.presenceBridge ?? { mount: () => {}, unmount: () => {} })
+    .useHitParticipation({
+      host: el,
+      bridge: createWebHitParticipationHostBridge(),
+    })
+    .useBoundary({
+      host: el,
+      bridge: createWebBoundaryHostBridge(),
+    })
     .useOverlay({
       host: el,
       globalMount: {

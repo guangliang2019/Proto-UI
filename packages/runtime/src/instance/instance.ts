@@ -21,6 +21,8 @@ import { ContextModuleDef } from '@proto.ui/module-context';
 import type { ContextPort } from '@proto.ui/module-context';
 import { AsTriggerModuleDef } from '@proto.ui/module-as-trigger';
 import { FocusModuleDef } from '@proto.ui/module-focus';
+import { BoundaryModuleDef } from '@proto.ui/module-boundary';
+import { HitParticipationModuleDef } from '@proto.ui/module-hit-participation';
 import { OverlayModuleDef } from '@proto.ui/module-overlay';
 import { PresenceModuleDef } from '@proto.ui/module-presence';
 import { __RUN_TEST_SYS, TestSysModuleDef, type TestSysPort } from '@proto.ui/module-test-sys';
@@ -80,6 +82,8 @@ export function createRuntimeInstance<P extends PropsBaseType>(
     StateAccessibilityModuleDef,
     ContextModuleDef,
     FocusModuleDef,
+    BoundaryModuleDef,
+    HitParticipationModuleDef,
     OverlayModuleDef,
     PresenceModuleDef,
     TestSysModuleDef,

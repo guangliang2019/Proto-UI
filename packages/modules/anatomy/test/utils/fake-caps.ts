@@ -25,6 +25,9 @@ export function createSysCaps() {
     ensureSetup(op: string) {
       if (execPhase !== 'setup') throw new Error(`[Phase] ${op} setup-only, got ${execPhase}`);
     },
+    ensureRuntime(op: string) {
+      if (execPhase === 'setup') throw new Error(`[Phase] ${op} runtime-only, got setup`);
+    },
     ensureCallback(op: string) {
       if (execPhase !== 'callback')
         throw new Error(`[Phase] ${op} callback-only, got ${execPhase}`);

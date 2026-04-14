@@ -50,6 +50,7 @@ export type AnatomyPartView = {
   readonly role: string;
   hasExpose(key: string): boolean;
   getExpose(key: string): unknown | null;
+  getRootTarget(): unknown | null;
   hasHook(name: string): boolean;
 };
 

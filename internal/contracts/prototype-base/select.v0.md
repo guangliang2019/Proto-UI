@@ -62,7 +62,7 @@ The root MUST provide a shared select coordination surface with at least:
 - open snapshot
 - selected value snapshot
 - selected text snapshot
-- active item snapshot for popup navigation
+- popup navigation cursor snapshot
 
 The exact transport may be:
 
@@ -136,6 +136,8 @@ The exact transport may be:
 - content MUST participate in dismiss rules such as escape and outside press
 - content SHOULD restore focus to trigger on close
 - opening content SHOULD focus the selected item first, and otherwise fall back to a boundary item
+- when no selected value exists yet, opening content MAY still seed a popup navigation cursor from a boundary item so keyboard roving can start immediately
+- seeding that popup navigation cursor MUST NOT by itself expose any item as selected or active
 
 ## Item Surface
 
@@ -158,6 +160,10 @@ The exact transport may be:
 - disabled items MUST suppress selection changes
 - uncontrolled select SHOULD close after selection by default
 - item-level `closeOnSelect` MAY override root close policy
+- `selected` MUST reflect the committed select value
+- `active` MUST reflect the committed select value rather than the transient popup navigation cursor
+- if the select has no committed value, every item MUST expose `active.get() === false` until selection is committed
+- popup roving focus MAY move independently of `active` while the popup is open
 
 ## Value Probe Note
 

@@ -3,6 +3,7 @@ import type { ModuleFactoryArgs } from '@proto.ui/module-base';
 
 import type { OverlayFacade, OverlayModule, OverlayPort } from './types';
 import { OverlayModuleImpl } from './impl';
+import type { BoundaryFacade } from '@proto.ui/module-boundary';
 
 export function createOverlayModule(ctx: ModuleFactoryArgs): OverlayModule {
   const { init, caps, deps } = ctx;
@@ -14,7 +15,8 @@ export function createOverlayModule(ctx: ModuleFactoryArgs): OverlayModule {
     caps,
     deps,
     build: ({ init, caps }) => {
-      const impl = new OverlayModuleImpl(caps, init.prototypeName);
+      const boundaryFacade = deps.requireFacade<BoundaryFacade>('boundary');
+      const impl = new OverlayModuleImpl(caps, init.prototypeName, boundaryFacade.getBoundary());
 
       return {
         facade: {
@@ -44,5 +46,6 @@ export function createOverlayModule(ctx: ModuleFactoryArgs): OverlayModule {
 
 export const OverlayModuleDef = defineModule({
   name: 'overlay',
+  deps: ['boundary'],
   create: createOverlayModule,
 });

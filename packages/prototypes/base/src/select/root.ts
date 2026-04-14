@@ -31,7 +31,6 @@ function setupSelectRoot(def: DefHandle<SelectRootProps, SelectRootExposes>): vo
     value: '',
     textValue: '',
     activeValue: '',
-    suppressItemNavigation: false,
     closeOnSelect: true,
   });
 

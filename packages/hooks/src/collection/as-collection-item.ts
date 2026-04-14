@@ -6,7 +6,6 @@ import type {
   CollectionItemOptions,
   CollectionItemSnapshotExposed as CollectionItemSnapshot,
   RunHandle,
-  State,
 } from '@proto.ui/core';
 import type { AnatomyPort } from '@proto.ui/module-anatomy';
 import { getActiveAsHookContext } from '@proto.ui/core/internal';
@@ -124,24 +123,6 @@ export const asCollectionItem = defineAsHook<
       if (!forceMeta && store.version === version) return;
       writeSnapshot(nextIndex, parts.length, nextMeta, version);
     };
-
-    const wrapGetter = <T>(
-      state: State<T>,
-      select: (position: { index: number; total: number; first: boolean; last: boolean }) => T
-    ) => {
-      const get = state.get.bind(state);
-      (state as any).get = () => {
-        const position = readPositionFromPort();
-        const current = get();
-        const next = select(position);
-        return Object.is(current, next) ? current : next;
-      };
-    };
-
-    wrapGetter(index, (position) => position.index as number);
-    wrapGetter(total, (position) => position.total as number);
-    wrapGetter(first, (position) => position.first as boolean);
-    wrapGetter(last, (position) => position.last as boolean);
 
     def.expose.state(
       (options.exposeIndexStateKey ?? 'collectionIndex') as keyof CollectionItemExposes & string,

@@ -55,6 +55,12 @@ function createHost(args: {
 }
 
 describe('runtime contract: anatomy.order (v0)', () => {
+  /**
+   * Contract note:
+   * - `run.anatomy.order.*` is runtime-only, not setup-only and not callback-only.
+   * - This supports author-facing hooks/behaviors that need readonly order queries
+   *   from exposed methods or other runtime paths without falling back to internal ports.
+   */
   it('ANATOMY-ORDER-RT-0100: run.anatomy.order queries reflect host order and self adjacency', () => {
     const family = createAnatomyFamily('rt-anatomy-order');
     const orderMap = new Map<string, number>([
@@ -305,5 +311,88 @@ describe('runtime contract: anatomy.order (v0)', () => {
     itemExec.controller.update();
 
     expect(afterRoot).toEqual(['a']);
+  });
+
+  it('ANATOMY-ORDER-RT-0400: captured run may query anatomy order outside callback during runtime', () => {
+    const family = createAnatomyFamily('rt-anatomy-order-runtime-read');
+    const orderMap = new Map<string, number>([
+      ['root', 0],
+      ['item-a', 1],
+      ['item-b', 2],
+    ]);
+    const rootTarget = createTarget('root', orderMap);
+    const itemATarget = createTarget('item-a', orderMap);
+    const itemBTarget = createTarget('item-b', orderMap);
+    const parents = new Map<unknown, unknown | null>([
+      [rootTarget, null],
+      [itemATarget, rootTarget],
+      [itemBTarget, rootTarget],
+    ]);
+
+    let readOrderedIds: (() => unknown[]) | null = null;
+
+    const Root = definePrototype({
+      name: 'x-rt-anatomy-order-runtime-read-root',
+      setup(def) {
+        def.anatomy.family(family, {
+          roles: {
+            root: { cardinality: { min: 1, max: 1 } },
+            item: { cardinality: { min: 0, max: 10 } },
+          },
+        });
+        def.anatomy.claim(family, { role: 'root' });
+        def.lifecycle.onCreated((run) => {
+          readOrderedIds = () =>
+            run.anatomy.order
+              .partsOf(family, 'item', { missing: 'empty' })
+              .map((part) => part.getExpose('id'));
+        });
+      },
+    });
+
+    const createItem = (name: string, id: string) =>
+      definePrototype({
+        name,
+        setup(def) {
+          def.anatomy.claim(family, { role: 'item' });
+          def.expose.value('id' as any, id);
+        },
+      });
+
+    const ItemA = createItem('x-rt-anatomy-order-runtime-read-item-a', 'a');
+    const ItemB = createItem('x-rt-anatomy-order-runtime-read-item-b', 'b');
+
+    const getPrototype = (instance: unknown) => {
+      if (instance === rootTarget) return Root;
+      if (instance === itemATarget) return ItemA;
+      if (instance === itemBTarget) return ItemB;
+      return null;
+    };
+
+    const rootCtx = createHost({
+      instance: rootTarget,
+      getParent: (instance) => parents.get(instance) ?? null,
+      getPrototype,
+    });
+    const itemACtx = createHost({
+      instance: itemATarget,
+      getParent: (instance) => parents.get(instance) ?? null,
+      getPrototype,
+    });
+    const itemBCtx = createHost({
+      instance: itemBTarget,
+      getParent: (instance) => parents.get(instance) ?? null,
+      getPrototype,
+    });
+
+    const rootExec = executeWithHost(Root as any, rootCtx.host as any);
+    executeWithHost(ItemA as any, itemACtx.host as any);
+    executeWithHost(ItemB as any, itemBCtx.host as any);
+
+    rootExec.controller.update();
+
+    expect(readOrderedIds).not.toBeNull();
+    expect(() => readOrderedIds?.()).not.toThrow();
+    expect(readOrderedIds?.()).toEqual(['a', 'b']);
   });
 });

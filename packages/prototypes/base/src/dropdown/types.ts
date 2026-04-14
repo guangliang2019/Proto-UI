@@ -101,7 +101,7 @@ export type DropdownItemAsHookContract = {
   };
 };
 
-export type DropdownOpenEntry = 'active-or-first' | 'first' | 'value-or-first';
+export type DropdownOpenEntry = 'active-or-first' | 'first' | 'last' | 'value-or-first';
 
 export type DropdownMenuItemSnapshot = CollectionItemSnapshot &
   Readonly<{

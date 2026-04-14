@@ -134,4 +134,62 @@ describe('adapter-react: dialog integration', () => {
       mounted.unmount();
     }
   });
+
+  it('routes global outside pointerdown through the adapter and closes dialog content', () => {
+    const proto = definePrototype({
+      name: 'react-dialog-outside-pointerdown',
+      setup(def) {
+        def.context.provide(DIALOG_CONTEXT, {
+          open: true,
+          controlled: false,
+          disabled: false,
+          alert: false,
+        });
+        dialogContent.setup(def);
+        return (r) => [r.el('div', 'hello')];
+      },
+    });
+
+    const mounted = createMountedReactAdapter(proto as any, { appear: false });
+
+    try {
+      expect(mounted.ref.current.getExposes().open?.get?.()).toBe(true);
+
+      document.body.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true }));
+      mounted.update();
+
+      expect(mounted.ref.current.getExposes().open?.get?.()).toBe(false);
+    } finally {
+      mounted.unmount();
+    }
+  });
+
+  it('projects dialog mask passthrough to host pointer-events without affecting transition state', async () => {
+    const proto = definePrototype({
+      name: 'react-dialog-mask-passthrough',
+      setup(def) {
+        def.context.provide(DIALOG_CONTEXT, {
+          open: true,
+          controlled: false,
+          disabled: false,
+          alert: false,
+        });
+        dialogMask.setup(def);
+        return (r) => [r.el('div')];
+      },
+    });
+
+    const mounted = createMountedReactAdapter(proto as any, { passthrough: true }, {});
+
+    try {
+      await Promise.resolve();
+      await Promise.resolve();
+      const host = document.body.querySelector(
+        '[style*="pointer-events: none"]'
+      ) as HTMLElement | null;
+      expect(host).not.toBeNull();
+    } finally {
+      mounted.unmount();
+    }
+  });
 });

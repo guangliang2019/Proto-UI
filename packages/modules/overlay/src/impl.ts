@@ -1,4 +1,5 @@
 import type {
+  BoundaryHandle,
   CapsVaultView,
   ObservedStateHandle,
   OverlayConfig,
@@ -88,6 +89,7 @@ export class OverlayModuleImpl extends ModuleBase {
   private config: OverlayConfig = DEFAULT_CONFIG;
   private readonly prototypeName: string;
   private readonly warnings: string[] = [];
+  private readonly boundary: BoundaryHandle<any>;
   private lastReason: OverlayReason | undefined = undefined;
   private registration: OverlayRegistration = Object.freeze({
     trigger: null,
@@ -103,11 +105,26 @@ export class OverlayModuleImpl extends ModuleBase {
   private layerDetach: (() => void) | null = null;
   private layerHost: HTMLElement | null = null;
   private modalLocked = false;
+  private readonly boundaryDisposers: Record<
+    'trigger' | 'anchor' | 'content',
+    (() => void) | null
+  > = {
+    trigger: null,
+    anchor: null,
+    content: null,
+  };
+  private readonly offBoundaryOutside: (() => void) | null;
 
-  constructor(caps: CapsVaultView, prototypeName: string) {
+  constructor(caps: CapsVaultView, prototypeName: string, boundary: BoundaryHandle<any>) {
     super(caps);
     this.prototypeName = prototypeName;
+    this.boundary = boundary;
     this.refreshHostCaps();
+    this.offBoundaryOutside = this.boundary.subscribeOutside(() => {
+      if (!this.isOpen()) return;
+      if (!this.config.closeOnOutsidePress) return;
+      this.close('outside.press');
+    });
   }
 
   protected override onCapsEpoch(_epoch: number): void {
@@ -118,6 +135,8 @@ export class OverlayModuleImpl extends ModuleBase {
     super.onProtoPhase(phase);
     if (phase !== 'unmounted') return;
     this.teardownOpenSideEffects();
+    this.clearBoundaryRegistrations();
+    this.offBoundaryOutside?.();
   }
 
   private refreshHostCaps(): void {
@@ -228,7 +247,10 @@ export class OverlayModuleImpl extends ModuleBase {
     const wasOpen = this.openState.handle.get();
     if (Object.is(wasOpen, next)) {
       if (next) {
+        this.boundary.setStackActive(true);
         this.syncOpenSideEffects();
+      } else {
+        this.boundary.setStackActive(false);
       }
       return;
     }
@@ -236,19 +258,46 @@ export class OverlayModuleImpl extends ModuleBase {
     this.openState.set(next, reason);
 
     if (next) {
+      this.boundary.setStackActive(true);
       this.syncOpenSideEffects();
       return;
     }
 
+    this.boundary.setStackActive(false);
     this.teardownOpenSideEffects();
   }
 
   private replaceRegistration(next: Partial<OverlayRegistration>) {
+    const prev = this.registration;
     this.registration = Object.freeze({
       trigger: typeof next.trigger === 'undefined' ? this.registration.trigger : next.trigger,
       anchor: typeof next.anchor === 'undefined' ? this.registration.anchor : next.anchor,
       content: typeof next.content === 'undefined' ? this.registration.content : next.content,
     });
+    this.syncBoundaryRegistration('trigger', prev.trigger, this.registration.trigger);
+    this.syncBoundaryRegistration('anchor', prev.anchor, this.registration.anchor);
+    this.syncBoundaryRegistration('content', prev.content, this.registration.content);
+  }
+
+  private syncBoundaryRegistration(
+    role: 'trigger' | 'anchor' | 'content',
+    prevTarget: unknown,
+    nextTarget: unknown
+  ) {
+    if (Object.is(prevTarget, nextTarget)) return;
+    this.boundaryDisposers[role]?.();
+    this.boundaryDisposers[role] = null;
+    if (typeof nextTarget === 'undefined' || nextTarget === null) return;
+    this.boundaryDisposers[role] = this.boundary.registerRegion(nextTarget, { role });
+  }
+
+  private clearBoundaryRegistrations(): void {
+    this.boundaryDisposers.trigger?.();
+    this.boundaryDisposers.anchor?.();
+    this.boundaryDisposers.content?.();
+    this.boundaryDisposers.trigger = null;
+    this.boundaryDisposers.anchor = null;
+    this.boundaryDisposers.content = null;
   }
 
   private patchValue<K extends keyof OverlayConfig>(field: K, value: OverlayConfigPatch[K]): void {

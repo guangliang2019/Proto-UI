@@ -5,6 +5,11 @@ import type { WiringSpec } from '../types';
 import { RAW_PROPS_SOURCE_CAP, type RawPropsSource } from '@proto.ui/module-props';
 import { EFFECTS_CAP } from '@proto.ui/module-feedback';
 import { PRESENCE_HOST_BRIDGE_CAP, type PresenceHostBridge } from '@proto.ui/module-presence';
+import { BOUNDARY_HOST_BRIDGE_CAP, type BoundaryHostBridge } from '@proto.ui/module-boundary';
+import {
+  HIT_PARTICIPATION_HOST_BRIDGE_CAP,
+  type HitParticipationHostBridge,
+} from '@proto.ui/module-hit-participation';
 import {
   OVERLAY_GLOBAL_MOUNT_CAP,
   OVERLAY_LAYER_SCHEDULER_CAP,
@@ -122,6 +127,11 @@ export type CapsWiringBuilder = {
     nativeVariantPolicy: RuleExposeStateWebNativeVariantPolicy;
   }): CapsWiringBuilder;
   usePresence(bridge: PresenceHostBridge): CapsWiringBuilder;
+  useHitParticipation(args: {
+    host?: HTMLElement;
+    bridge: HitParticipationHostBridge;
+  }): CapsWiringBuilder;
+  useBoundary(args: { host?: HTMLElement; bridge: BoundaryHostBridge }): CapsWiringBuilder;
   useOverlay(args: {
     host?: HTMLElement;
     globalMount?: OverlayGlobalMount;
@@ -219,6 +229,20 @@ export function createCapsWiring(): CapsWiringBuilder {
 
     usePresence(bridge) {
       return add('presence', () => [[PRESENCE_HOST_BRIDGE_CAP, bridge]]);
+    },
+
+    useHitParticipation({ host, bridge }) {
+      return add('hit-participation', () => [
+        ...(host ? [[HOST_ELEMENT_CAP, host] as const] : []),
+        [HIT_PARTICIPATION_HOST_BRIDGE_CAP, bridge],
+      ]);
+    },
+
+    useBoundary({ host, bridge }) {
+      return add('boundary', () => [
+        ...(host ? [[HOST_ELEMENT_CAP, host] as const] : []),
+        [BOUNDARY_HOST_BRIDGE_CAP, bridge],
+      ]);
     },
 
     useOverlay({ host, globalMount, modal, layerScheduler }) {

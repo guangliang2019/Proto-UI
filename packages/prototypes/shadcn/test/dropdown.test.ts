@@ -51,4 +51,38 @@ describe('prototypes/shadcn: dropdown', () => {
     root.remove();
     await Promise.resolve();
   });
+
+  it('closes on outside pointerdown via inherited boundary behavior', async () => {
+    const root = document.createElement('shadcn-dropdown-root') as any;
+    const trigger = document.createElement('shadcn-dropdown-trigger') as any;
+    const content = document.createElement('shadcn-dropdown-content') as any;
+    const item = document.createElement('shadcn-dropdown-item') as any;
+
+    setElementProps(item, { value: 'new', textValue: 'New File' });
+
+    content.appendChild(item);
+    root.appendChild(trigger);
+    root.appendChild(content);
+    document.body.appendChild(root);
+
+    await Promise.resolve();
+    await Promise.resolve();
+
+    trigger.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(root.getExposes().open.get()).toBe(true);
+    expect(content.classList.contains('hidden')).toBe(false);
+
+    document.body.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true }));
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(root.getExposes().open.get()).toBe(false);
+    expect(content.classList.contains('hidden')).toBe(true);
+
+    root.remove();
+    await Promise.resolve();
+  });
 });

@@ -93,6 +93,7 @@ export interface RunHandle<Props extends PropsBaseType> {
   };
 
   anatomy: {
+    /** runtime-only readonly anatomy query surface; unavailable during setup */
     has(family: AnatomyFamily, role: string): boolean;
     parts(family: AnatomyFamily): ReadonlyArray<AnatomyPartView>;
     partsOf(family: AnatomyFamily, role: string): ReadonlyArray<AnatomyPartView>;

@@ -1,9 +1,11 @@
 import { defineAsHook, definePrototype, type DefHandle } from '@proto.ui/core';
+import { asCollection } from '@proto.ui/hooks';
 import { TABS_CONTEXT, TABS_FAMILY } from './shared';
 import type { TabsRootAsHookContract, TabsRootExposes, TabsRootProps } from './types';
 
 function setupTabsRoot(def: DefHandle<TabsRootProps, TabsRootExposes>): void {
   def.anatomy.claim(TABS_FAMILY, { role: 'root' });
+  asCollection({ family: TABS_FAMILY, itemRole: 'trigger' });
 
   def.props.define({
     value: { type: 'string', empty: 'fallback' },
@@ -19,6 +21,7 @@ function setupTabsRoot(def: DefHandle<TabsRootProps, TabsRootExposes>): void {
 
   const updateContext = def.context.provide(TABS_CONTEXT, {
     value: '',
+    activeValue: '',
     orientation: 'horizontal',
     activationMode: 'automatic',
     controlled: false,
@@ -27,10 +30,12 @@ function setupTabsRoot(def: DefHandle<TabsRootProps, TabsRootExposes>): void {
   let currentOrientation: 'horizontal' | 'vertical' = 'horizontal';
   let currentActivationMode: 'automatic' | 'manual' = 'automatic';
   let controlled = false;
+  let activeValue = '';
 
   def.expose.state('value', value);
 
   def.context.subscribe(TABS_CONTEXT, (_run, next) => {
+    activeValue = next.activeValue ?? '';
     if (controlled) return;
     value.set(next.value, 'reason: context.subscribe => uncontrolled tabs value sync');
   });
@@ -43,8 +48,10 @@ function setupTabsRoot(def: DefHandle<TabsRootProps, TabsRootExposes>): void {
     currentOrientation = run.props.get().orientation ?? 'horizontal';
     currentActivationMode = run.props.get().activationMode ?? 'automatic';
     value.set(initialValue, 'reason: lifecycle.onCreated => initialize tabs value');
+    activeValue = initialValue;
     updateContext({
       value: value.get(),
+      activeValue,
       orientation: currentOrientation,
       activationMode: currentActivationMode,
       controlled,
@@ -60,6 +67,7 @@ function setupTabsRoot(def: DefHandle<TabsRootProps, TabsRootExposes>): void {
     currentActivationMode = next.activationMode ?? 'automatic';
     updateContext({
       value: value.get(),
+      activeValue,
       orientation: currentOrientation,
       activationMode: currentActivationMode,
       controlled,

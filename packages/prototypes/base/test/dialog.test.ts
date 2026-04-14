@@ -235,4 +235,35 @@ describe('prototypes/base: dialog', () => {
     root.remove();
     await Promise.resolve();
   });
+
+  it('mask passthrough projects pointer-events none without changing dialog open state', async () => {
+    const root = document.createElement('base-dialog-root') as any;
+    const trigger = document.createElement('base-dialog-trigger') as any;
+    const mask = document.createElement('base-dialog-mask') as any;
+    const content = document.createElement('base-dialog-content') as any;
+
+    setElementProps(root, { defaultOpen: true });
+    setElementProps(mask, { passthrough: true });
+    root.appendChild(trigger);
+    root.appendChild(mask);
+    root.appendChild(content);
+    document.body.appendChild(root);
+
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(root.getExposes().open.get()).toBe(true);
+    expect(mask.style.pointerEvents).toBe('none');
+    expect(content.classList.contains('hidden')).toBe(false);
+
+    setElementProps(mask, { passthrough: false });
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(root.getExposes().open.get()).toBe(true);
+    expect(mask.style.pointerEvents).toBe('');
+
+    root.remove();
+    await Promise.resolve();
+  });
 });

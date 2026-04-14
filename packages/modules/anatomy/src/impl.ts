@@ -284,12 +284,12 @@ export class AnatomyModuleImpl extends ModuleBase {
   }
 
   has(family: AnatomyFamily, role: string): boolean {
-    this.ensureCallback('run.anatomy.has');
+    this.ensureRuntime('run.anatomy.has');
     return (this.partsOf(family, role) ?? []).length > 0;
   }
 
   parts(family: AnatomyFamily, options?: AnatomyQueryOptions): readonly AnatomyPartView[] | null {
-    this.ensureCallback('run.anatomy.parts');
+    this.ensureRuntime('run.anatomy.parts');
     if (options?.missing === 'null') return this.tryParts(family);
     if (options?.missing === 'empty') return this.tryParts(family) ?? [];
     const domain = this.resolveCurrentDomain(family);
@@ -307,7 +307,7 @@ export class AnatomyModuleImpl extends ModuleBase {
     role: string,
     options?: AnatomyQueryOptions
   ): readonly AnatomyPartView[] | null {
-    this.ensureCallback('run.anatomy.partsOf');
+    this.ensureRuntime('run.anatomy.partsOf');
     if (options?.missing === 'null') return this.tryOrderedPartsOf(family, role);
     if (options?.missing === 'empty') return this.tryOrderedPartsOf(family, role) ?? [];
     const domain = this.resolveCurrentDomain(family);
@@ -320,7 +320,7 @@ export class AnatomyModuleImpl extends ModuleBase {
     family: AnatomyFamily,
     options?: AnatomyQueryOptions
   ): readonly AnatomyPartView[] | null {
-    this.ensureCallback('run.anatomy.order.parts');
+    this.ensureRuntime('run.anatomy.order.parts');
     if (options?.missing === 'null') return this.tryOrderedParts(family);
     if (options?.missing === 'empty') return this.tryOrderedParts(family) ?? [];
     return this.orderedPartsInternal(family);
@@ -333,7 +333,7 @@ export class AnatomyModuleImpl extends ModuleBase {
   }
 
   orderVersion(family: AnatomyFamily, options?: AnatomyQueryOptions): number | null {
-    this.ensureCallback('run.anatomy.order.version');
+    this.ensureRuntime('run.anatomy.order.version');
     if (options?.missing === 'null') return this.tryOrderVersion(family);
     return this.getOrderVersion(family);
   }
@@ -350,7 +350,7 @@ export class AnatomyModuleImpl extends ModuleBase {
     role: string,
     options?: AnatomyQueryOptions
   ): readonly AnatomyPartView[] | null {
-    this.ensureCallback('run.anatomy.order.partsOf');
+    this.ensureRuntime('run.anatomy.order.partsOf');
     if (options?.missing === 'null') return this.tryOrderedPartsOf(family, role);
     if (options?.missing === 'empty') return this.tryOrderedPartsOf(family, role) ?? [];
     return this.orderedPartsOfInternal(family, role);
@@ -365,7 +365,7 @@ export class AnatomyModuleImpl extends ModuleBase {
   }
 
   indexOfSelf(family: AnatomyFamily, role: string, options?: AnatomyQueryOptions): number | null {
-    this.ensureCallback('run.anatomy.order.indexOfSelf');
+    this.ensureRuntime('run.anatomy.order.indexOfSelf');
     if (options?.missing === 'null') return this.tryIndexOfSelf(family, role);
     return this.indexOfSelfInternal(family, role);
   }
@@ -383,7 +383,7 @@ export class AnatomyModuleImpl extends ModuleBase {
     role: string,
     options?: AnatomyQueryOptions
   ): AnatomyPartView | null {
-    this.ensureCallback('run.anatomy.order.prevOfSelf');
+    this.ensureRuntime('run.anatomy.order.prevOfSelf');
     if (options?.missing === 'null') return this.tryPrevOfSelf(family, role);
     return this.prevOfSelfInternal(family, role);
   }
@@ -403,7 +403,7 @@ export class AnatomyModuleImpl extends ModuleBase {
     role: string,
     options?: AnatomyQueryOptions
   ): AnatomyPartView | null {
-    this.ensureCallback('run.anatomy.order.nextOfSelf');
+    this.ensureRuntime('run.anatomy.order.nextOfSelf');
     if (options?.missing === 'null') return this.tryNextOfSelf(family, role);
     return this.nextOfSelfInternal(family, role);
   }
@@ -925,6 +925,7 @@ export class AnatomyModuleImpl extends ModuleBase {
       hasExpose: (key: string) => claim.exposePort.has(key),
       getExpose: (key: string) =>
         claim.exposePort.has(key) ? (claim.exposePort.get(key) ?? null) : null,
+      getRootTarget: () => claim.getRootTarget(claim.instance) ?? null,
       hasHook: (name: string) => getHookNames(claim.prototype).has(name),
     };
   }
@@ -939,6 +940,20 @@ export class AnatomyModuleImpl extends ModuleBase {
       }
     }
     if (this.protoPhase !== 'setup') {
+      throw illegalPhase(op, this.protoPhase, { prototypeName: this.prototypeName });
+    }
+  }
+
+  private ensureRuntime(op: string) {
+    if (this.sys) {
+      try {
+        this.sys.ensureRuntime(op);
+        return;
+      } catch {
+        throw anatomyError(ANATOMY_ERROR.PHASE, `[Anatomy] runtime-only: ${op}`);
+      }
+    }
+    if (this.protoPhase === 'setup') {
       throw illegalPhase(op, this.protoPhase, { prototypeName: this.prototypeName });
     }
   }

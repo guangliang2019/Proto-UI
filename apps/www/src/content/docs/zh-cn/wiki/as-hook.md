@@ -42,12 +42,14 @@ Proto UI 里的 prototype 负责描述交互主体。
 例如：
 
 - `anatomy.order` 提供同 family part 的有序宿主视图
-- `asCollection()`、`asCollectionItem()` 则建立在这层视图上，继续抽出最小 collection 交互核
+- `asCollection()`、`asCollectionItem()` 则建立在这层视图上，抽出有序 collection 的结构语义
 
 这里的关键点是：
 
 - `anatomy.order` 仍然属于结构能力的增强
-- `asCollection` 才是基于这层能力组织出来的行为复用
+- `asCollection` 则是基于这层能力组织出来的结构语义 hook
+
+这个边界需要保持清楚：`asCollection` 负责“谁在集合里、顺序是什么、我排第几个”，但不负责 roving focus、active item 策略或 selection。
 
 也就是说，Proto UI 不是先引入一个新的顶级 `collection` 概念，  
 而是先让 `asHook` 站在已有能力之上，逐步长出更高层语义。
