@@ -1,4 +1,5 @@
 export * from './button';
+export * from './behaviors';
 export { default as button } from './button';
 export * from './toggle';
 export { default as toggle } from './toggle';
@@ -7,7 +8,11 @@ export { default as transition } from './transition';
 export * from './switch';
 export * from './tabs';
 export * from './dropdown';
+export * from './select';
 export * from './hover-card';
+export * from './dialog';
 export * from './tools';
 export { default as dropdown } from './dropdown';
+export { default as select } from './select';
 export { default as hoverCard } from './hover-card';
+export { default as dialog } from './dialog';

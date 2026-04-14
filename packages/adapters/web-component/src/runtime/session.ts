@@ -27,11 +27,12 @@ export function createWebComponentHostSession<Props extends PropsBaseType>(args:
   ensureSlotProjector: () => SlotProjector;
   clearSlotProjector: () => void;
   onAfterUnmount?: () => void;
-}) {
+}): ReturnType<typeof createAdapterHost<Props>> & { host: HTMLElement } {
   const {
     proto,
     tagName,
     shadow,
+    host,
     root,
     schedule,
     rawPropsSource,
@@ -88,7 +89,7 @@ export function createWebComponentHostSession<Props extends PropsBaseType>(args:
   );
 
   capsHub = hostSession.caps;
-  return hostSession;
+  return { ...hostSession, host };
 }
 
 function commitWebComponentChildren(args: {

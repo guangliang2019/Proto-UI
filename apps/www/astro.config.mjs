@@ -62,7 +62,6 @@ export default defineConfig({
       ],
       social: [{ icon: 'github', label: 'GitHub', href: 'https://github.com/withastro/starlight' }],
       sidebar: [
-        // 1) 体验承接：从 Landing Demo 过来的人，先看这里
         {
           label: 'Start Here',
           translations: { en: 'Start Here', 'zh-CN': '从这里开始' },
@@ -98,8 +97,6 @@ export default defineConfig({
             },
           ],
         },
-
-        // 2) 白皮书：扁平化，不要再往下分三级
         {
           label: 'Whitepaper',
           translations: { en: 'Whitepaper', 'zh-CN': '白皮书' },
@@ -149,276 +146,282 @@ export default defineConfig({
             },
           ],
         },
-
-        // 4) 规范层：把 contracts 从“讲道理”里剥离出来
         {
-          label: 'Specifications',
-          translations: { en: 'Specifications', 'zh-CN': '规范（契约）' },
+          label: 'UI Libraries',
+          translations: { en: 'UI Libraries', 'zh-CN': 'UI Libraries' },
           items: [
             {
-              label: '规范导读',
-              translations: { en: 'How to Read Specs', 'zh-CN': '规范导读' },
-              slug: 'specs/introduction',
-              badge: inProgressBadge,
+              label: 'Overview',
+              translations: { en: 'Overview', 'zh-CN': '概览' },
+              slug: 'ui-libraries',
             },
             {
-              label: '核心规范',
-              translations: { en: 'Core', 'zh-CN': '核心' },
-              slug: 'specs/core',
-              badge: inProgressBadge,
+              label: 'Base',
+              translations: { en: 'Base', 'zh-CN': 'Base' },
+              items: [
+                {
+                  label: 'Overview',
+                  translations: { en: 'Overview', 'zh-CN': '概览' },
+                  slug: 'ui-libraries/base',
+                },
+                {
+                  label: 'Hover Card',
+                  translations: { en: 'Hover Card', 'zh-CN': 'Hover Card' },
+                  slug: 'ui-libraries/base/hover-card',
+                },
+                {
+                  label: 'Dialog',
+                  translations: { en: 'Dialog', 'zh-CN': 'Dialog' },
+                  slug: 'ui-libraries/base/dialog',
+                },
+                {
+                  label: 'Transition',
+                  translations: { en: 'Transition', 'zh-CN': 'Transition' },
+                  slug: 'ui-libraries/base/transition',
+                },
+                {
+                  label: 'Select',
+                  translations: { en: 'Select', 'zh-CN': 'Select' },
+                  slug: 'ui-libraries/base/select',
+                },
+              ],
             },
             {
-              label: 'Props',
-              translations: { en: 'Props', 'zh-CN': 'Props' },
-              slug: 'specs/props',
-              badge: inProgressBadge,
-            },
-            {
-              label: 'Event',
-              translations: { en: 'Event', 'zh-CN': 'Event' },
-              slug: 'specs/event',
-              badge: inProgressBadge,
-            },
-            {
-              label: 'Expose',
-              translations: { en: 'Expose', 'zh-CN': 'Expose' },
-              slug: 'specs/expose',
-              badge: inProgressBadge,
-            },
-            {
-              label: 'State',
-              translations: { en: 'State', 'zh-CN': 'State' },
-              slug: 'specs/state',
-              badge: inProgressBadge,
-            },
-            {
-              label: 'Context',
-              translations: { en: 'Context', 'zh-CN': 'Context' },
-              slug: 'specs/context',
-              badge: inProgressBadge,
-            },
-            {
-              label: 'Feedback',
-              translations: { en: 'Feedback', 'zh-CN': 'Feedback' },
-              slug: 'specs/feedback',
-              badge: inProgressBadge,
-            },
-            {
-              label: 'asHook',
-              translations: { en: 'asHook', 'zh-CN': 'asHook' },
-              slug: 'specs/as-hook',
-              badge: inProgressBadge,
-            },
-            {
-              label: 'Rule',
-              translations: { en: 'Rule', 'zh-CN': 'Rule' },
-              slug: 'specs/rule',
-              badge: inProgressBadge,
+              label: 'Shadcn',
+              translations: { en: 'Shadcn', 'zh-CN': 'Shadcn' },
+              items: [
+                {
+                  label: 'Overview',
+                  translations: { en: 'Overview', 'zh-CN': '概览' },
+                  slug: 'ui-libraries/shadcn',
+                },
+                {
+                  label: 'Button',
+                  translations: { en: 'Button', 'zh-CN': 'Button' },
+                  slug: 'ui-libraries/shadcn/button',
+                },
+                {
+                  label: 'Dropdown Menu',
+                  translations: { en: 'Dropdown Menu', 'zh-CN': 'Dropdown Menu' },
+                  slug: 'ui-libraries/shadcn/dropdown-menu',
+                },
+                {
+                  label: 'Hover Card',
+                  translations: { en: 'Hover Card', 'zh-CN': 'Hover Card' },
+                  slug: 'ui-libraries/shadcn/hover-card',
+                },
+                {
+                  label: 'Switch',
+                  translations: { en: 'Switch', 'zh-CN': 'Switch' },
+                  slug: 'ui-libraries/shadcn/switch',
+                },
+                {
+                  label: 'Tabs',
+                  translations: { en: 'Tabs', 'zh-CN': 'Tabs' },
+                  slug: 'ui-libraries/shadcn/tabs',
+                },
+                {
+                  label: 'Toggle',
+                  translations: { en: 'Toggle', 'zh-CN': 'Toggle' },
+                  slug: 'ui-libraries/shadcn/toggle',
+                },
+              ],
             },
           ],
         },
-
-        // 5) 工程实现：给 maintainer / adapter 作者
         {
-          label: 'Engineering',
-          translations: { en: 'Engineering', 'zh-CN': '工程实现' },
+          label: 'Build',
+          translations: { en: 'Build', 'zh-CN': '构建' },
           items: [
             {
-              label: '工程导读',
-              translations: { en: 'Engineering Introduction', 'zh-CN': '工程导读' },
-              slug: 'engineering/introduction',
+              label: 'Overview',
+              translations: { en: 'Overview', 'zh-CN': '概览' },
+              slug: 'build',
               badge: inProgressBadge,
             },
             {
-              label: 'Runtime 架构',
+              label: 'Prototypes',
+              translations: { en: 'Prototypes', 'zh-CN': '原型专题' },
+              items: [
+                {
+                  label: 'Overview',
+                  translations: { en: 'Overview', 'zh-CN': '概览' },
+                  slug: 'build/prototypes',
+                },
+                {
+                  label: 'When Not To Write A New Prototype',
+                  translations: {
+                    en: 'When Not To Write A New Prototype',
+                    'zh-CN': '为什么你通常不需要新写一个原型？',
+                  },
+                  slug: 'build/prototypes/when-not-to-write-a-new-prototype',
+                },
+                {
+                  label: 'Writing A Custom Primitive Prototype',
+                  translations: {
+                    en: 'Writing A Custom Primitive Prototype',
+                    'zh-CN': '编写一个定制的单体原型',
+                  },
+                  slug: 'build/prototypes/writing-a-custom-primitive-prototype',
+                },
+                {
+                  label: 'Writing A Compound Prototype',
+                  translations: {
+                    en: 'Writing A Compound Prototype',
+                    'zh-CN': '编写一个定制的复合原型',
+                  },
+                  slug: 'build/prototypes/writing-a-compound-prototype',
+                },
+                {
+                  label: 'Building A Styled Library On Top Of Base',
+                  translations: {
+                    en: 'Building A Styled Library On Top Of Base',
+                    'zh-CN': '基于 Base 长出一个带风格的原型库',
+                  },
+                  slug: 'build/prototypes/building-a-styled-library-on-top-of-base',
+                },
+                {
+                  label: 'Checklist',
+                  translations: { en: 'Checklist', 'zh-CN': '原型作者检查清单' },
+                  slug: 'build/prototypes/checklist',
+                },
+                {
+                  label: 'Reference Patterns',
+                  translations: { en: 'Reference Patterns', 'zh-CN': '参考实现应该怎么看' },
+                  slug: 'build/prototypes/reference-patterns',
+                },
+              ],
+            },
+            {
+              label: 'Runtime Architecture',
               translations: { en: 'Runtime Architecture', 'zh-CN': 'Runtime 架构' },
-              slug: 'engineering/runtime-architecture',
-              badge: inProgressBadge,
-            },
-            {
-              label: 'Prototype API',
-              translations: { en: 'Prototype API', 'zh-CN': 'Prototype API' },
-              slug: 'engineering/prototype-api',
+              slug: 'build/runtime-architecture',
               badge: inProgressBadge,
             },
             {
               label: 'Adapter Guide',
               translations: { en: 'Adapter Guide', 'zh-CN': 'Adapter 指南' },
-              slug: 'engineering/adapter-guide',
+              slug: 'build/adapter-guide',
               badge: inProgressBadge,
             },
             {
               label: 'Compiler Guide',
               translations: { en: 'Compiler Guide', 'zh-CN': 'Compiler 指南' },
-              slug: 'engineering/compiler-guide',
+              slug: 'build/compiler-guide',
               badge: inProgressBadge,
             },
             {
               label: 'Host Caps',
               translations: { en: 'Host Caps', 'zh-CN': 'Host Caps' },
-              slug: 'engineering/host-caps',
+              slug: 'build/host-caps',
               badge: inProgressBadge,
             },
             {
-              label: '模块与扩展架构',
+              label: 'Module & Extension Architecture',
               translations: { en: 'Module & Extension Architecture', 'zh-CN': '模块与扩展架构' },
-              slug: 'engineering/module-extension-architecture',
-              badge: inProgressBadge,
-            },
-          ],
-        },
-
-        // 6) 原型库：建议作为独立大类，且支持 autogenerate
-        {
-          label: 'Prototypes',
-          translations: { en: 'Prototypes', 'zh-CN': '原型库' },
-          items: [
-            {
-              label: 'Base Library',
-              translations: { en: 'Base Library', 'zh-CN': '基础原型库' },
-              items: [
-                {
-                  label: 'Overview',
-                  translations: { en: 'Overview', 'zh-CN': '概览' },
-                  slug: 'prototypes/base',
-                },
-                {
-                  label: 'Hover Card',
-                  translations: { en: 'Hover Card', 'zh-CN': 'Hover Card' },
-                  slug: 'prototypes/base/hover-card',
-                },
-                {
-                  label: 'Transition',
-                  translations: { en: 'Transition', 'zh-CN': 'Transition' },
-                  slug: 'prototypes/base/transition',
-                },
-              ],
-            },
-            {
-              label: 'Shadcn Library',
-              translations: { en: 'Shadcn Library', 'zh-CN': 'Shadcn 原型库' },
-              items: [
-                {
-                  label: 'Overview',
-                  translations: { en: 'Overview', 'zh-CN': '概览' },
-                  slug: 'prototypes/shadcn',
-                },
-                {
-                  label: 'Hover Card',
-                  translations: { en: 'Hover Card', 'zh-CN': 'Hover Card' },
-                  slug: 'prototypes/shadcn/hover-card',
-                },
-              ],
-            },
-            {
-              label: 'Advanced Examples',
-              translations: { en: 'Advanced Examples', 'zh-CN': '高级示例' },
-              slug: 'prototypes/advanced',
+              slug: 'build/module-extension-architecture',
               badge: inProgressBadge,
             },
             {
-              label: '全部条目',
-              translations: { en: 'All Entries', 'zh-CN': '全部条目' },
-              autogenerate: { directory: 'reference/prototypes' },
-            },
-          ],
-        },
-
-        // 7) 生态：面向想理解或参与 Proto UI 生态建设的人
-        {
-          label: 'Ecosystem',
-          translations: { en: 'Ecosystem', 'zh-CN': '生态建设' },
-          items: [
-            {
-              label: '生态导读',
-              translations: { en: 'Ecosystem Introduction', 'zh-CN': '生态导读' },
-              slug: 'ecosystem',
-              badge: inProgressBadge,
-            },
-            {
-              label: '如何参与贡献',
-              translations: { en: 'How to Contribute', 'zh-CN': '如何参与贡献' },
-              slug: 'ecosystem/contribute',
-              badge: inProgressBadge,
-            },
-            {
-              label: '编写原型',
-              translations: { en: 'Write a Prototype', 'zh-CN': '编写原型' },
-              slug: 'ecosystem/write-prototype',
-              badge: inProgressBadge,
-            },
-            {
-              label: '编写适配器',
-              translations: { en: 'Write an Adapter', 'zh-CN': '编写适配器' },
-              slug: 'ecosystem/write-adapter',
-              badge: inProgressBadge,
-            },
-            {
-              label: '契约与测试',
+              label: 'Contracts & Tests',
               translations: { en: 'Contracts & Tests', 'zh-CN': '契约与测试' },
-              slug: 'ecosystem/contracts',
+              slug: 'build/contracts-and-tests',
               badge: inProgressBadge,
             },
             {
-              label: '原型库（概览）',
-              translations: { en: 'Prototype Library (Overview)', 'zh-CN': '原型库（概览）' },
-              slug: 'ecosystem/prototypes',
-              badge: inProgressBadge,
-            },
-            {
-              label: '适配器库（概览）',
-              translations: { en: 'Adapter Library (Overview)', 'zh-CN': '适配器库（概览）' },
-              slug: 'ecosystem/adapters',
-              badge: inProgressBadge,
-            },
-            {
-              label: '生态建设方向',
-              translations: { en: 'Ecosystem Roadmap', 'zh-CN': '生态建设方向' },
-              slug: 'ecosystem/roadmap',
-              badge: inProgressBadge,
+              label: 'Contribute',
+              translations: { en: 'Contribute', 'zh-CN': '参与贡献' },
+              slug: 'build/contribute',
             },
           ],
         },
         {
-          label: '原型库',
-          translations: { en: 'Prototype Libraries', 'zh-CN': '原型库' },
-          autogenerate: {
-            directory: 'reference/prototypes',
-          },
-        },
-        {
-          label: 'Wiki',
-          translations: { en: 'Wiki', 'zh-CN': 'Wiki' },
+          label: 'Specifications',
+          translations: { en: 'Specifications', 'zh-CN': '规范（契约）' },
           items: [
             {
-              label: 'Wiki 导读',
-              translations: { en: 'Wiki Overview', 'zh-CN': 'Wiki 导读' },
-              slug: 'wiki',
+              label: 'Introduction',
+              translations: { en: 'Introduction', 'zh-CN': '规范导读' },
+              slug: 'specifications/introduction',
+              badge: inProgressBadge,
+            },
+            {
+              label: 'Core',
+              translations: { en: 'Core', 'zh-CN': '核心' },
+              slug: 'specifications/core',
+              badge: inProgressBadge,
+            },
+            {
+              label: 'Props',
+              translations: { en: 'Props', 'zh-CN': 'Props' },
+              slug: 'specifications/props',
+              badge: inProgressBadge,
+            },
+            {
+              label: 'Event',
+              translations: { en: 'Event', 'zh-CN': 'Event' },
+              slug: 'specifications/event',
+              badge: inProgressBadge,
+            },
+            {
+              label: 'Expose',
+              translations: { en: 'Expose', 'zh-CN': 'Expose' },
+              slug: 'specifications/expose',
+              badge: inProgressBadge,
+            },
+            {
+              label: 'State',
+              translations: { en: 'State', 'zh-CN': 'State' },
+              slug: 'specifications/state',
+              badge: inProgressBadge,
+            },
+            {
+              label: 'Context',
+              translations: { en: 'Context', 'zh-CN': 'Context' },
+              slug: 'specifications/context',
+              badge: inProgressBadge,
+            },
+            {
+              label: 'Feedback',
+              translations: { en: 'Feedback', 'zh-CN': 'Feedback' },
+              slug: 'specifications/feedback',
+              badge: inProgressBadge,
             },
             {
               label: 'asHook',
               translations: { en: 'asHook', 'zh-CN': 'asHook' },
-              slug: 'wiki/as-hook',
-            },
-            {
-              label: 'Anatomy',
-              translations: { en: 'Anatomy', 'zh-CN': 'Anatomy' },
-              slug: 'wiki/anatomy',
+              slug: 'specifications/as-hook',
+              badge: inProgressBadge,
             },
             {
               label: 'Rule',
               translations: { en: 'Rule', 'zh-CN': 'Rule' },
-              slug: 'wiki/rule',
+              slug: 'specifications/rule',
+              badge: inProgressBadge,
+            },
+          ],
+        },
+        {
+          label: 'Reference',
+          translations: { en: 'Reference', 'zh-CN': '参考' },
+          items: [
+            {
+              label: 'Overview',
+              translations: { en: 'Overview', 'zh-CN': '概览' },
+              slug: 'reference',
+              badge: inProgressBadge,
             },
             {
-              label: 'Style Token',
-              translations: { en: 'Style Token', 'zh-CN': 'Style Token' },
-              slug: 'wiki/style-tokens',
+              label: 'Prototype API',
+              translations: { en: 'Prototype API', 'zh-CN': 'Prototype API' },
+              slug: 'reference/prototype-api',
+              badge: inProgressBadge,
             },
             {
-              label: '核心能力',
-              translations: { en: 'Core Capabilities', 'zh-CN': '核心能力' },
-              slug: 'wiki/core-capabilities',
+              label: 'Compatibility',
+              translations: { en: 'Compatibility', 'zh-CN': '兼容性' },
+              slug: 'reference/compatibility',
+              badge: inProgressBadge,
             },
           ],
         },
@@ -479,5 +482,34 @@ export default defineConfig({
       fs: { allow: ['../..'] },
     },
     plugins: [tailwindcss()],
+    optimizeDeps: {
+      exclude: [
+        '@proto.ui/core',
+        '@proto.ui/runtime',
+        '@proto.ui/types',
+        '@proto.ui/adapter-base',
+        '@proto.ui/adapter-react',
+        '@proto.ui/adapter-vue',
+        '@proto.ui/adapter-web-component',
+        '@proto.ui/prototypes-base',
+        '@proto.ui/prototypes-shadcn',
+        '@proto.ui/hooks',
+        '@proto.ui/module-overlay',
+        '@proto.ui/module-presence',
+        '@proto.ui/module-feedback',
+        '@proto.ui/module-props',
+        '@proto.ui/module-event',
+        '@proto.ui/module-expose',
+        '@proto.ui/module-expose-state-web',
+        '@proto.ui/module-rule-expose-state-web',
+        '@proto.ui/module-rule-meta',
+        '@proto.ui/module-context',
+        '@proto.ui/module-anatomy',
+        '@proto.ui/module-as-trigger',
+        '@proto.ui/module-focus',
+        '@proto.ui/module-base',
+        '@proto.ui/module-test-sys',
+      ],
+    },
   },
 });

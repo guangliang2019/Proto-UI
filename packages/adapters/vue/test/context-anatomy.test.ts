@@ -60,7 +60,7 @@ describe('adapter-vue: context and anatomy', () => {
       setup(def) {
         registerFamily(def);
         def.anatomy.claim(FAMILY, { role: 'root' });
-        return (r) => [r.r.slot()];
+        return (r) => [r.slot()];
       },
     };
 

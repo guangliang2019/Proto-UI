@@ -20,6 +20,7 @@ export type AdapterHostSession<P extends PropsBaseType> = {
   dispose(): void;
   caps: ExecuteWithHostResult['caps'];
   invokeInCallbackScope: ExecuteWithHostResult['invokeInCallbackScope'];
+  kernel: ExecuteWithHostResult['kernel'];
 };
 
 export function createAdapterHost<P extends PropsBaseType>(
@@ -42,6 +43,7 @@ export function createAdapterHost<P extends PropsBaseType>(
     controller: res.controller,
     caps: res.caps,
     invokeInCallbackScope: res.invokeInCallbackScope,
+    kernel: res.kernel,
     dispose() {
       teardown.run(() => {
         res.invokeUnmounted();

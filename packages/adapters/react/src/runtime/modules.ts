@@ -1,6 +1,12 @@
-import { createCapsWiring, createDomOrderObserver } from '@proto.ui/adapter-base';
+import {
+  createCapsWiring,
+  createDomOrderObserver,
+  createWebBoundaryHostBridge,
+  createWebHitParticipationHostBridge,
+} from '@proto.ui/adapter-base';
 import type { EffectsPort } from '@proto.ui/core';
 import type { RawPropsSource } from '@proto.ui/module-props';
+import type { OverlayLayerScheduler } from '@proto.ui/adapter-base';
 import {
   createExposeStateWebNameMap,
   createExposeStateWebNativeVariantPolicy,
@@ -9,7 +15,7 @@ import {
 import type { PropsBaseType } from '@proto.ui/types';
 import type { PresenceHostBridge } from '@proto.ui/module-presence';
 
-import { getProtoParent, getPrototypeByInstance } from '../platform/instance-tree';
+import { getProtoParent, getPrototypeByInstance, setProtoParent } from '../platform/instance-tree';
 
 export function createReactModules<Props extends PropsBaseType>(args: {
   el: HTMLElement;
@@ -24,6 +30,7 @@ export function createReactModules<Props extends PropsBaseType>(args: {
   exposeStateWebMode?: ExposeStateWebMode;
   setExposes: (record: Record<string, unknown>) => void;
   presenceBridge?: PresenceHostBridge;
+  overlayLayerScheduler?: OverlayLayerScheduler;
 }) {
   const { el, router, emit, rawPropsSource, effectsPort, getMeta, exposeStateWebMode, setExposes } =
     args;
@@ -80,6 +87,43 @@ export function createReactModules<Props extends PropsBaseType>(args: {
       nativeVariantPolicy: createExposeStateWebNativeVariantPolicy,
     })
     .usePresence(args.presenceBridge ?? { mount: () => {}, unmount: () => {} })
+    .useHitParticipation({
+      host: el,
+      bridge: createWebHitParticipationHostBridge(),
+    })
+    .useBoundary({
+      host: el,
+      bridge: createWebBoundaryHostBridge(),
+    })
+    .useOverlay({
+      host: el,
+      globalMount: {
+        mount(hostEl) {
+          if (hostEl.parentElement && hostEl.parentElement !== document.body) {
+            setProtoParent(hostEl, hostEl.parentElement);
+          }
+          if (hostEl.parentNode !== document.body) {
+            document.body.appendChild(hostEl);
+          }
+        },
+        unmount() {
+          /* React unmount handles cleanup */
+        },
+      },
+      modal: {
+        lock() {
+          const original = document.body.style.overflow;
+          (document.body as any).__proto_ui_original_overflow = original;
+          document.body.style.overflow = 'hidden';
+        },
+        unlock() {
+          const original = (document.body as any).__proto_ui_original_overflow ?? '';
+          document.body.style.overflow = original;
+          delete (document.body as any).__proto_ui_original_overflow;
+        },
+      },
+      layerScheduler: args.overlayLayerScheduler,
+    })
     .build();
 }
 

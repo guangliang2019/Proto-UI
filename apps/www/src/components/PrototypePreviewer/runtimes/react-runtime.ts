@@ -1,21 +1,21 @@
 import type { RuntimeAPI } from './registry';
 import { createReactAdapter } from '@proto.ui/adapter-react';
 import type * as ReactTypes from 'react';
-import type * as ReactDOMTypes from 'react-dom/client';
 
 // 我们不直接 import React，而是用 esm.sh 的 ESM 版本懒加载
 // 也可以替换成本地的 "react" / "react-dom/client"（若打包策略允许）
 const REACT_SOURCE = 'https://esm.sh/react@18';
-const REACT_DOM_SOURCE = 'https://esm.sh/react-dom@18/client';
+const REACT_DOM_SOURCE = 'https://esm.sh/react-dom@18';
 
 // 异步加载 React 与 ReactDOM
+// 注意：只从 react-dom 单入口导入，避免 esm.sh 因多入口产生重复的 React 实例
 export async function loadReact(): Promise<{
   React: typeof ReactTypes;
-  ReactDOM: typeof ReactDOMTypes;
+  ReactDOM: any;
 }> {
   const [React, ReactDOM] = await Promise.all([
     import(/* @vite-ignore */ REACT_SOURCE) as Promise<typeof ReactTypes>,
-    import(/* @vite-ignore */ REACT_DOM_SOURCE) as Promise<typeof ReactDOMTypes>,
+    import(/* @vite-ignore */ REACT_DOM_SOURCE) as Promise<any>,
   ]);
   return { React, ReactDOM };
 }

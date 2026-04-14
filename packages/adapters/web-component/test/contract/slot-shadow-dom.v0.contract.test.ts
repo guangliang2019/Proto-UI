@@ -7,7 +7,7 @@ describe('contract: adapter-web-component / slot shadow-dom (v0)', () => {
     const P: Prototype = {
       name: 'x-contract-shadow-slot-1',
       setup() {
-        return (r) => [r.r.slot()];
+        return (r) => [r.slot()];
       },
     };
 

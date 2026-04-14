@@ -142,7 +142,10 @@ async function renderDemoReact(opt: DemoRenderOptions): Promise<DemoRenderResult
   const { host, demo } = opt;
 
   const { React, ReactDOM } = await loadReact();
-  const adapter = createReactAdapter(React as unknown as ReactRuntime);
+  const adapter = createReactAdapter({
+    ...React,
+    createPortal: ReactDOM.createPortal,
+  } as unknown as ReactRuntime);
 
   const existingRoot = reactRoots.get(host);
   if (existingRoot) {

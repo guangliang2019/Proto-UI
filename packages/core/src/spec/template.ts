@@ -182,7 +182,9 @@ export function createRendererPrimitives(opt: RendererPrimitivesOptions = {}) {
     },
   };
 
-  return { el, r };
+  const slot = r.slot;
+
+  return { el, slot, r };
 }
 
 export interface PrototypeRef {

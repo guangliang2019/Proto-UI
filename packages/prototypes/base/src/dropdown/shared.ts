@@ -7,7 +7,6 @@ export type DropdownContextValue = {
   controlled: boolean;
   disabled: boolean;
   activeValue: string;
-  suppressItemNavigation: boolean;
   closeOnItemCommit: boolean;
   openEntry: DropdownOpenEntry;
   openEntryValue: string;

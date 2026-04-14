@@ -27,6 +27,21 @@ It is not responsible for:
 - defining modal/backdrop/scroll-lock policy in general
 - inventing a host-specific portal mechanism
 
+### 0.1 Transitional Semantics Note
+
+Current repository implementations may still expose options such as `modal`, `closeOnOutsidePress`, and `closeOnFocusOutside` through `asOverlay(...)`.
+
+Normative direction:
+
+- `modal` should be treated as a **policy declaration**
+- outside/focus-outside semantics should ultimately derive from a dedicated interaction-boundary capability
+- overlay should remain a consumer of those semantics rather than the foundational owner of them
+
+This means:
+
+- the presence of a `modal` option does **not** imply that overlay is the permanent home of low-level interaction interception semantics
+- temporary implementation details in adapters or prototypes do not redefine the long-term layering model
+
 ---
 
 ## 1. Why It Exists
@@ -175,6 +190,17 @@ Examples:
 - dropdown: usually closes on item commit, escape, and outside press
 - tooltip: usually does not use trigger press toggle semantics
 - context menu: usually closes on outside press and escape
+
+### 7.1 Outside Is a Derived Consumer Signal
+
+The long-term contract direction is:
+
+- `outside` is a derived result of interaction-boundary classification
+
+Therefore:
+
+- `asOverlay(...)` should not require each component to invent its own outside detection logic
+- "outside press" and "focus outside" are overlay consumer behaviors, not foundational overlay-owned primitives
 
 ---
 

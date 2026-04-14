@@ -24,7 +24,7 @@ describe('contract: adapter-web-component / anatomy runtime access (v0)', () => 
       setup(def) {
         registerFamily(def);
         def.anatomy.claim(FAMILY, { role: 'root' });
-        return (r) => [r.r.slot()];
+        return (r) => [r.slot()];
       },
     };
 
@@ -34,7 +34,7 @@ describe('contract: adapter-web-component / anatomy runtime access (v0)', () => 
         registerFamily(def);
         def.anatomy.claim(FAMILY, { role: 'content' });
         def.expose.method('close', () => calls.push('close'));
-        return (r) => [r.r.slot()];
+        return (r) => [r.slot()];
       },
     };
 

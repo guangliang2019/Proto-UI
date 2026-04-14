@@ -18,7 +18,10 @@
     "@proto.ui/module-anatomy": "workspace:*",
     "@proto.ui/module-as-trigger": "workspace:*",
     "@proto.ui/module-focus": "workspace:*",
-    "@proto.ui/module-presence": "workspace:*"
+    "@proto.ui/module-boundary": "workspace:*",
+    "@proto.ui/module-hit-participation": "workspace:*",
+    "@proto.ui/module-presence": "workspace:*",
+    "@proto.ui/module-overlay": "workspace:*"
   },
   "devDependencies": {},
   "exports": {

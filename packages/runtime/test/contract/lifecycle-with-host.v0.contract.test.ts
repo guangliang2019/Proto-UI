@@ -155,7 +155,7 @@ describe('runtime contract: lifecycle-with-host (v0)', () => {
           throw new Error('mounted callback should not run after unmount');
         });
         def.lifecycle.onUnmounted(() => {});
-        return (r: any) => [r.r.slot()];
+        return (r: any) => [r.slot()];
       },
     };
 

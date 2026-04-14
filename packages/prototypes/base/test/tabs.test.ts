@@ -139,4 +139,67 @@ describe('prototypes/base: tabs', () => {
     root.remove();
     await Promise.resolve();
   });
+
+  it('manual activation mode keeps selection stable while roving focus, then commits on click', async () => {
+    const root = document.createElement('base-tabs-root') as any;
+    const list = document.createElement('base-tabs-list') as any;
+    const triggerA = document.createElement('base-tabs-trigger') as any;
+    const triggerB = document.createElement('base-tabs-trigger') as any;
+    const triggerC = document.createElement('base-tabs-trigger') as any;
+    const contentA = document.createElement('base-tabs-content') as any;
+    const contentB = document.createElement('base-tabs-content') as any;
+    const contentC = document.createElement('base-tabs-content') as any;
+
+    setElementProps(root, {
+      defaultValue: 'a',
+      orientation: 'horizontal',
+      activationMode: 'manual',
+    });
+    setElementProps(triggerA, { value: 'a' });
+    setElementProps(triggerB, { value: 'b' });
+    setElementProps(triggerC, { value: 'c' });
+    setElementProps(contentA, { value: 'a' });
+    setElementProps(contentB, { value: 'b' });
+    setElementProps(contentC, { value: 'c' });
+
+    list.appendChild(triggerA);
+    list.appendChild(triggerB);
+    list.appendChild(triggerC);
+    root.appendChild(list);
+    root.appendChild(contentA);
+    root.appendChild(contentB);
+    root.appendChild(contentC);
+    document.body.appendChild(root);
+
+    await Promise.resolve();
+    await Promise.resolve();
+
+    triggerA.focus();
+    window.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight' }));
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(document.activeElement).toBe(triggerB);
+    expect(root.getExposes().value.get()).toBe('a');
+    expect(triggerA.getExposes().selected.get()).toBe(true);
+    expect(triggerB.getExposes().selected.get()).toBe(false);
+
+    window.dispatchEvent(new KeyboardEvent('keydown', { key: 'End' }));
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(document.activeElement).toBe(triggerC);
+    expect(root.getExposes().value.get()).toBe('a');
+
+    triggerC.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(root.getExposes().value.get()).toBe('c');
+    expect(triggerC.getExposes().selected.get()).toBe(true);
+    expect(contentC.getExposes().current.get()).toBe(true);
+
+    root.remove();
+    await Promise.resolve();
+  });
 });

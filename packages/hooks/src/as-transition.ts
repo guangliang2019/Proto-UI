@@ -297,7 +297,11 @@ export function asTransition(options?: TransitionOptions): TransitionHandles {
   store.syncFromProps = syncFromProps;
   store.syncControlled = syncControlled;
 
-  const result: TransitionHandles = { transitionState, isPresent };
+  const result: TransitionHandles = {
+    transitionState,
+    isPresent,
+    controls: { enter: handleEnter, leave: handleLeave, complete: handleComplete },
+  };
   reg.state.result = result;
   return result;
 }

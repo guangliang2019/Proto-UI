@@ -70,6 +70,11 @@ export type Phase = 'setup' | 'render' | 'callback' | 'unknown';
 export interface RunHandle<Props extends PropsBaseType> {
   update(): void;
 
+  /** Optional getter for the host DOM element (provided by adapters). */
+  host?: {
+    get(): unknown;
+  };
+
   props: {
     get(): Readonly<Props>;
     getRaw(): Readonly<Props & PropsBaseType>;
@@ -88,6 +93,7 @@ export interface RunHandle<Props extends PropsBaseType> {
   };
 
   anatomy: {
+    /** runtime-only readonly anatomy query surface; unavailable during setup */
     has(family: AnatomyFamily, role: string): boolean;
     parts(family: AnatomyFamily): ReadonlyArray<AnatomyPartView>;
     partsOf(family: AnatomyFamily, role: string): ReadonlyArray<AnatomyPartView>;
@@ -203,6 +209,7 @@ export interface ElementFactory {
 
 export interface RendererHandle<Props extends PropsBaseType> {
   el: ElementFactory;
+  slot(): TemplateNode;
   r: ReservedFactories;
   read: RenderReadHandle<Props>; // render 阶段可用的 readonly 快照视图
 }

@@ -1,10 +1,23 @@
 // packages/adapters/base/src/wiring/caps-builder.ts
-import type { CapEntries } from '@proto.ui/core';
+import { HOST_ELEMENT_CAP, type CapEntries } from '@proto.ui/core';
 import type { WiringSpec } from '../types';
 
 import { RAW_PROPS_SOURCE_CAP, type RawPropsSource } from '@proto.ui/module-props';
 import { EFFECTS_CAP } from '@proto.ui/module-feedback';
 import { PRESENCE_HOST_BRIDGE_CAP, type PresenceHostBridge } from '@proto.ui/module-presence';
+import { BOUNDARY_HOST_BRIDGE_CAP, type BoundaryHostBridge } from '@proto.ui/module-boundary';
+import {
+  HIT_PARTICIPATION_HOST_BRIDGE_CAP,
+  type HitParticipationHostBridge,
+} from '@proto.ui/module-hit-participation';
+import {
+  OVERLAY_GLOBAL_MOUNT_CAP,
+  OVERLAY_LAYER_SCHEDULER_CAP,
+  OVERLAY_MODAL_CAP,
+  type OverlayGlobalMount,
+  type OverlayLayerScheduler,
+  type OverlayModal,
+} from '@proto.ui/module-overlay';
 import {
   EVENT_GLOBAL_TARGET_CAP,
   EVENT_EMIT_CAP,
@@ -16,7 +29,6 @@ import { EXPOSE_SET_EXPOSES_CAP, type ExposeHostSink } from '@proto.ui/module-ex
 import {
   EXPOSE_STATE_WEB_MAP_CAP,
   EXPOSE_STATE_WEB_MODE_CAP,
-  HOST_ELEMENT_CAP,
   type ExposeStateWebMode,
   type ExposeStateWebNameMap,
 } from '@proto.ui/module-expose-state-web';
@@ -115,6 +127,17 @@ export type CapsWiringBuilder = {
     nativeVariantPolicy: RuleExposeStateWebNativeVariantPolicy;
   }): CapsWiringBuilder;
   usePresence(bridge: PresenceHostBridge): CapsWiringBuilder;
+  useHitParticipation(args: {
+    host?: HTMLElement;
+    bridge: HitParticipationHostBridge;
+  }): CapsWiringBuilder;
+  useBoundary(args: { host?: HTMLElement; bridge: BoundaryHostBridge }): CapsWiringBuilder;
+  useOverlay(args: {
+    host?: HTMLElement;
+    globalMount?: OverlayGlobalMount;
+    modal?: OverlayModal;
+    layerScheduler?: OverlayLayerScheduler;
+  }): CapsWiringBuilder;
   build(): WiringSpec;
 };
 
@@ -206,6 +229,29 @@ export function createCapsWiring(): CapsWiringBuilder {
 
     usePresence(bridge) {
       return add('presence', () => [[PRESENCE_HOST_BRIDGE_CAP, bridge]]);
+    },
+
+    useHitParticipation({ host, bridge }) {
+      return add('hit-participation', () => [
+        ...(host ? [[HOST_ELEMENT_CAP, host] as const] : []),
+        [HIT_PARTICIPATION_HOST_BRIDGE_CAP, bridge],
+      ]);
+    },
+
+    useBoundary({ host, bridge }) {
+      return add('boundary', () => [
+        ...(host ? [[HOST_ELEMENT_CAP, host] as const] : []),
+        [BOUNDARY_HOST_BRIDGE_CAP, bridge],
+      ]);
+    },
+
+    useOverlay({ host, globalMount, modal, layerScheduler }) {
+      return add('overlay', () => [
+        ...(host ? [[HOST_ELEMENT_CAP, host] as const] : []),
+        ...(globalMount ? [[OVERLAY_GLOBAL_MOUNT_CAP, globalMount] as const] : []),
+        ...(modal ? [[OVERLAY_MODAL_CAP, modal] as const] : []),
+        ...(layerScheduler ? [[OVERLAY_LAYER_SCHEDULER_CAP, layerScheduler] as const] : []),
+      ]);
     },
 
     build() {

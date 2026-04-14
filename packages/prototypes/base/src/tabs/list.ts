@@ -1,10 +1,13 @@
 import { defineAsHook, definePrototype, type DefHandle } from '@proto.ui/core';
 import { asFocusGroup } from '@proto.ui/hooks';
-import { TABS_FAMILY, TABS_FOCUS_GROUP } from './shared';
+import { asFocusRoving } from '../behaviors';
+import { TABS_CONTEXT, TABS_FAMILY, TABS_FOCUS_GROUP } from './shared';
 import type { TabsListAsHookContract, TabsListExposes, TabsListProps } from './types';
 
 function setupTabsList(def: DefHandle<TabsListProps, TabsListExposes>): void {
   def.anatomy.claim(TABS_FAMILY, { role: 'list' });
+  let activeValue = '';
+  let selectedValue = '';
 
   def.props.define({
     orientation: { type: 'string', empty: 'fallback', enum: ['horizontal', 'vertical'] },
@@ -17,15 +20,39 @@ function setupTabsList(def: DefHandle<TabsListProps, TabsListExposes>): void {
 
   asFocusGroup({
     key: TABS_FOCUS_GROUP,
-    navigation: 'arrow',
+    navigation: 'none',
     orientation: 'horizontal',
-    entry: 'selected',
+    entry: 'manual',
   });
-  const group = asFocusGroup();
-  def.expose.method('focusFirst', () => group.focusFirst());
-  def.expose.method('focusLast', () => group.focusLast());
-  def.expose.method('focusNext', () => group.focusNext());
-  def.expose.method('focusPrev', () => group.focusPrev());
+  asFocusRoving({
+    family: TABS_FAMILY,
+    itemRole: 'trigger',
+    loop: false,
+    skipDisabled: true,
+    getId: (snapshot) => {
+      const value = snapshot.value;
+      return typeof value === 'string' && value ? value : null;
+    },
+    getActiveId: () => activeValue,
+    getCurrentId: () => selectedValue,
+    exposeFocusCurrentMethodKey: 'focusSelected',
+  });
+
+  def.context.subscribe(TABS_CONTEXT, (_run, next) => {
+    activeValue = next.activeValue ?? '';
+    selectedValue = next.value ?? '';
+  });
+
+  def.lifecycle.onMounted((run) => {
+    const ctx = run.context.read(TABS_CONTEXT);
+    activeValue = ctx.activeValue ?? '';
+    selectedValue = ctx.value ?? '';
+  });
+
+  def.lifecycle.onUnmounted(() => {
+    activeValue = '';
+    selectedValue = '';
+  });
 }
 
 export const asTabsList = defineAsHook<TabsListProps, TabsListExposes, TabsListAsHookContract>({

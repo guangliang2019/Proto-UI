@@ -1,6 +1,12 @@
-import { createCapsWiring, createDomOrderObserver } from '@proto.ui/adapter-base';
+import {
+  createCapsWiring,
+  createDomOrderObserver,
+  createWebBoundaryHostBridge,
+  createWebHitParticipationHostBridge,
+} from '@proto.ui/adapter-base';
 import type { EffectsPort } from '@proto.ui/core';
 import { type RawPropsSource } from '@proto.ui/module-props';
+import type { OverlayLayerScheduler } from '@proto.ui/adapter-base';
 import {
   createExposeStateWebNameMap,
   createExposeStateWebNativeVariantPolicy,
@@ -26,8 +32,13 @@ export function createWebComponentModules<Props extends PropsBaseType>(args: {
   };
   setExposes: (record: Record<string, unknown>) => void;
   presenceBridge?: PresenceHostBridge;
+  overlayLayerScheduler?: OverlayLayerScheduler;
 }) {
   const { el, router, rawPropsSource, effectsPort, getMeta, exposeStateWebMode, setExposes } = args;
+
+  let mountedEl: HTMLElement | null = null;
+  let originalParent: Node | null = null;
+  let originalNext: Node | null = null;
 
   return createCapsWiring()
     .useProps(rawPropsSource)
@@ -89,6 +100,66 @@ export function createWebComponentModules<Props extends PropsBaseType>(args: {
       nativeVariantPolicy: createExposeStateWebNativeVariantPolicy,
     })
     .usePresence(args.presenceBridge ?? { mount: () => {}, unmount: () => {} })
+    .useHitParticipation({
+      host: el,
+      bridge: createWebHitParticipationHostBridge(),
+    })
+    .useBoundary({
+      host: el,
+      bridge: createWebBoundaryHostBridge(),
+    })
+    .useOverlay({
+      host: el,
+      globalMount: {
+        mount(el) {
+          if (el.parentNode === document.body) return;
+          mountedEl = el;
+          originalParent = el.parentNode;
+          originalNext = el.nextSibling;
+          try {
+            Object.defineProperty(el, 'parentNode', {
+              get() {
+                return originalParent;
+              },
+              configurable: true,
+            });
+          } catch {}
+          document.body.appendChild(el);
+        },
+        unmount(el) {
+          if (!mountedEl) return;
+          if (originalParent) {
+            if (originalNext && originalParent.contains(originalNext)) {
+              originalParent.insertBefore(mountedEl, originalNext);
+            } else {
+              originalParent.appendChild(mountedEl);
+            }
+          }
+          try {
+            Object.defineProperty(mountedEl, 'parentNode', {
+              get() {
+                return originalParent;
+              },
+              configurable: true,
+            });
+          } catch {}
+          mountedEl = null;
+        },
+      },
+      modal: {
+        lock() {
+          const original = document.body.style.overflow;
+          document.body.__proto_ui_original_overflow = original;
+          document.body.style.overflow = 'hidden';
+        },
+        unlock() {
+          const original = document.body.__proto_ui_original_overflow ?? '';
+          document.body.style.overflow = original;
+          delete document.body.__proto_ui_original_overflow;
+        },
+      },
+      layerScheduler: args.overlayLayerScheduler,
+    })
     .build();
 }
 

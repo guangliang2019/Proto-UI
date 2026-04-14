@@ -42,7 +42,7 @@ describe('adapter-web-component v0', () => {
     const P: Prototype = {
       name: 'x-slot',
       setup() {
-        return (r) => [r.r.slot()];
+        return (r) => [r.slot()];
       },
     };
 

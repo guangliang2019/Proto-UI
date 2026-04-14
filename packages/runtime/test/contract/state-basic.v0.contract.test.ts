@@ -110,7 +110,7 @@ describe('runtime contract: state basic (v0)', () => {
 
         return (r) => {
           const n = s.get();
-          return Array.from({ length: n }, () => r.r.slot());
+          return Array.from({ length: n }, () => r.slot());
         };
       },
     };
