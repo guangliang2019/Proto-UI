@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { createZIndexOverlayLayerScheduler } from '../src/platform/overlay-layer-scheduler';
+import { createZIndexOverlayLayerScheduler } from '@proto.ui/module-overlay';
 
 function req(role: string) {
   return {
@@ -10,7 +10,7 @@ function req(role: string) {
   };
 }
 
-describe('adapter-base: overlay-layer-scheduler', () => {
+describe('module-overlay: z-index layer scheduler', () => {
   it('keeps dialog mask above generic overlay regardless of attach order', () => {
     const a = document.createElement('div');
     const b = document.createElement('div');

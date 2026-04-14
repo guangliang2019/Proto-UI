@@ -1,6 +1,4 @@
-import type { OverlayLayerScheduler } from '@proto.ui/module-overlay';
-
-export type { OverlayLayerScheduler } from '@proto.ui/module-overlay';
+import type { OverlayLayerScheduler } from '../caps';
 
 export type OverlayZIndexLayerSchedulerOptions = Readonly<{
   baseZIndex?: number;
@@ -12,7 +10,6 @@ const DEFAULT_BASE_Z_INDEX = 10000;
 const DEFAULT_STEP = 1;
 const DEFAULT_ROLE_OFFSETS: Readonly<Record<string, number>> = Object.freeze({
   overlay: 0,
-  // Keep semantic gaps wide so open-order sequence won't collapse role ordering.
   'dialog-mask': 1000,
   'dialog-content': 1010,
 });

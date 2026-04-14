@@ -8,10 +8,12 @@ import {
   createHostWiring,
   createEventGate,
   createWebProtoEventRouter,
+} from '@proto.ui/adapter-base';
+import {
   createZIndexOverlayLayerScheduler,
   type OverlayLayerScheduler,
   type OverlayZIndexLayerSchedulerOptions,
-} from '@proto.ui/adapter-base';
+} from '@proto.ui/module-overlay';
 
 import { bindController, getElementProps, setElementProps, unbindController } from './props';
 import { SlotProjector } from './slot-projector';

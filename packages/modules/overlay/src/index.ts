@@ -7,3 +7,7 @@ export type {
   OverlayLayerRequest,
   OverlayLayerScheduler,
 } from './caps';
+export {
+  createZIndexOverlayLayerScheduler,
+  type OverlayZIndexLayerSchedulerOptions,
+} from './web/z-index-layer-scheduler';

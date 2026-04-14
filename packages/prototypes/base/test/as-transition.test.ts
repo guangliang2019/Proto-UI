@@ -3,7 +3,7 @@ import { definePrototype, type DefHandle, type Prototype } from '@proto.ui/core'
 import type { PropsBaseType } from '@proto.ui/types';
 import type { RuntimeHost } from '@proto.ui/runtime';
 import { executeWithHost } from '@proto.ui/runtime';
-import { EXPOSE_SET_EXPOSES_CAP } from '@proto.ui/module-expose';
+import { EXPOSE_STATE_SET_EXPOSES_CAP } from '@proto.ui/module-expose-state';
 import { PRESENCE_HOST_BRIDGE_CAP } from '@proto.ui/module-presence';
 import { EVENT_EMIT_CAP } from '@proto.ui/module-event';
 import { asTransition, type TransitionProps, type TransitionExposes } from '../src/transition';
@@ -42,9 +42,9 @@ function createHost(
           },
         ],
       ]);
-      wiring.attach('expose', [
+      wiring.attach('expose-state', [
         [
-          EXPOSE_SET_EXPOSES_CAP,
+          EXPOSE_STATE_SET_EXPOSES_CAP,
           (next: Record<string, unknown>) => (exposes = next as TransitionExposes),
         ],
       ]);

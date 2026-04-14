@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { createWebBoundaryHostBridge } from '../src/platform/boundary-host-bridge';
+import { createWebBoundaryHostBridge } from '@proto.ui/module-boundary';
 
 const PROTO_PARENT_INSTANCE_MARK = Symbol.for('@proto.ui/adapter-base/__proto_parent_instance');
 
-describe('adapter-base: boundary host bridge', () => {
+describe('module-boundary: web host bridge', () => {
   it('BOUNDARY-ADAPTER-0100: classifies a descendant of a registered DOM region as inside', () => {
     const bridge = createWebBoundaryHostBridge();
     const region = document.createElement('div');

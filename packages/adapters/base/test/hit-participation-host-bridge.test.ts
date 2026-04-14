@@ -2,9 +2,9 @@ import { describe, expect, it } from 'vitest';
 import {
   __HIT_PARTICIPATION_MODE_MARK,
   createWebHitParticipationHostBridge,
-} from '../src/platform/hit-participation-host-bridge';
+} from '@proto.ui/module-hit-participation';
 
-describe('adapter-base: hit participation host bridge', () => {
+describe('module-hit-participation: web host bridge', () => {
   it('HIT-ADAPTER-0100: disabled regions are projected to host pointer-events none', () => {
     const bridge = createWebHitParticipationHostBridge();
     const el = document.createElement('div') as HTMLElement & Record<symbol, unknown>;

@@ -4,7 +4,6 @@ import { illegalPhase } from '@proto.ui/core';
 
 import { ModuleBase } from '@proto.ui/module-base';
 
-import { EXPOSE_SET_EXPOSES_CAP } from './caps';
 import { ExposeKernel } from './kernel';
 import type { ExposeDiag, ExposeFacade, ExposePort } from './types';
 import {
@@ -61,7 +60,6 @@ export class ExposeModuleImpl extends ModuleBase {
     }
 
     this.kernel.set(key, value);
-    this.publishToHost();
   }
 
   // -------------------------
@@ -108,17 +106,9 @@ export class ExposeModuleImpl extends ModuleBase {
     }
   }
 
-  protected override onCapsEpoch(_epoch: number): void {
-    // If host sink changes, re-publish current exposes.
-    this.publishToHost();
-  }
-
   dispose(): void {
     if (this.disposed) return;
     this.disposed = true;
-
-    // Best-effort: clear host registry if provided.
-    this.publishToHost(true);
 
     this.kernel.clear();
   }
@@ -155,19 +145,6 @@ export class ExposeModuleImpl extends ModuleBase {
       throw exposeDisposed(`[Expose] disposed. op=${op}`, {
         prototypeName: this.prototypeName,
       });
-    }
-  }
-
-  private publishToHost(clear = false): void {
-    if (!this.caps.has(EXPOSE_SET_EXPOSES_CAP)) return;
-    const sink = this.caps.get(EXPOSE_SET_EXPOSES_CAP);
-    if (!sink) return;
-
-    const record = clear ? {} : this.kernel.toRecord();
-    try {
-      sink(record);
-    } catch {
-      // v0: ignore host errors to keep module stable
     }
   }
 

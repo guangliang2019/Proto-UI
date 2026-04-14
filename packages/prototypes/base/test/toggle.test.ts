@@ -13,7 +13,7 @@ import {
   AS_TRIGGER_INSTANCE_CAP,
   AS_TRIGGER_PARENT_CAP,
 } from '@proto.ui/module-as-trigger';
-import { EXPOSE_SET_EXPOSES_CAP } from '@proto.ui/module-expose';
+import { EXPOSE_STATE_SET_EXPOSES_CAP } from '@proto.ui/module-expose-state';
 import toggle from '../src/toggle';
 import { asToggle } from '../src/toggle';
 
@@ -44,8 +44,8 @@ function createHost(initialRaw: Record<string, unknown> = {}) {
         [AS_TRIGGER_PARENT_CAP, () => null],
         [AS_TRIGGER_GET_PROTO_CAP, () => null],
       ]);
-      wiring.attach('expose', [
-        [EXPOSE_SET_EXPOSES_CAP, (next: Record<string, unknown>) => (exposes = next)],
+      wiring.attach('expose-state', [
+        [EXPOSE_STATE_SET_EXPOSES_CAP, (next: Record<string, unknown>) => (exposes = next)],
       ]);
     },
   };

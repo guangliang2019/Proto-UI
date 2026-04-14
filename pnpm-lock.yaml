@@ -122,6 +122,24 @@ importers:
       '@proto.ui/core':
         specifier: workspace:*
         version: link:../../core
+      '@proto.ui/runtime':
+        specifier: workspace:*
+        version: link:../../runtime
+      '@proto.ui/types':
+        specifier: workspace:*
+        version: link:../../types
+
+  packages/adapters/react:
+    dependencies:
+      '@proto.ui/adapter-base':
+        specifier: workspace:*
+        version: link:../base
+      '@proto.ui/core':
+        specifier: workspace:*
+        version: link:../../core
+      '@proto.ui/hooks':
+        specifier: workspace:*
+        version: link:../../hooks
       '@proto.ui/module-anatomy':
         specifier: workspace:*
         version: link:../../modules/anatomy
@@ -137,9 +155,9 @@ importers:
       '@proto.ui/module-event':
         specifier: workspace:*
         version: link:../../modules/event
-      '@proto.ui/module-expose':
+      '@proto.ui/module-expose-state':
         specifier: workspace:*
-        version: link:../../modules/expose
+        version: link:../../modules/expose-state
       '@proto.ui/module-expose-state-web':
         specifier: workspace:*
         version: link:../../modules/expose-state-web
@@ -174,60 +192,6 @@ importers:
         specifier: workspace:*
         version: link:../../types
 
-  packages/adapters/react:
-    dependencies:
-      '@proto.ui/adapter-base':
-        specifier: workspace:*
-        version: link:../base
-      '@proto.ui/core':
-        specifier: workspace:*
-        version: link:../../core
-      '@proto.ui/hooks':
-        specifier: workspace:*
-        version: link:../../hooks
-      '@proto.ui/module-anatomy':
-        specifier: workspace:*
-        version: link:../../modules/anatomy
-      '@proto.ui/module-as-trigger':
-        specifier: workspace:*
-        version: link:../../modules/as-trigger
-      '@proto.ui/module-context':
-        specifier: workspace:*
-        version: link:../../modules/context
-      '@proto.ui/module-event':
-        specifier: workspace:*
-        version: link:../../modules/event
-      '@proto.ui/module-expose':
-        specifier: workspace:*
-        version: link:../../modules/expose
-      '@proto.ui/module-expose-state':
-        specifier: workspace:*
-        version: link:../../modules/expose-state
-      '@proto.ui/module-expose-state-web':
-        specifier: workspace:*
-        version: link:../../modules/expose-state-web
-      '@proto.ui/module-feedback':
-        specifier: workspace:*
-        version: link:../../modules/feedback
-      '@proto.ui/module-focus':
-        specifier: workspace:*
-        version: link:../../modules/focus
-      '@proto.ui/module-props':
-        specifier: workspace:*
-        version: link:../../modules/props
-      '@proto.ui/module-rule-expose-state-web':
-        specifier: workspace:*
-        version: link:../../modules/rule-expose-state-web
-      '@proto.ui/module-rule-meta':
-        specifier: workspace:*
-        version: link:../../modules/rule-meta
-      '@proto.ui/runtime':
-        specifier: workspace:*
-        version: link:../../runtime
-      '@proto.ui/types':
-        specifier: workspace:*
-        version: link:../../types
-
   packages/adapters/vue:
     dependencies:
       '@proto.ui/adapter-base':
@@ -245,15 +209,15 @@ importers:
       '@proto.ui/module-as-trigger':
         specifier: workspace:*
         version: link:../../modules/as-trigger
+      '@proto.ui/module-boundary':
+        specifier: workspace:*
+        version: link:../../modules/boundary
       '@proto.ui/module-context':
         specifier: workspace:*
         version: link:../../modules/context
       '@proto.ui/module-event':
         specifier: workspace:*
         version: link:../../modules/event
-      '@proto.ui/module-expose':
-        specifier: workspace:*
-        version: link:../../modules/expose
       '@proto.ui/module-expose-state':
         specifier: workspace:*
         version: link:../../modules/expose-state
@@ -266,6 +230,15 @@ importers:
       '@proto.ui/module-focus':
         specifier: workspace:*
         version: link:../../modules/focus
+      '@proto.ui/module-hit-participation':
+        specifier: workspace:*
+        version: link:../../modules/hit-participation
+      '@proto.ui/module-overlay':
+        specifier: workspace:*
+        version: link:../../modules/overlay
+      '@proto.ui/module-presence':
+        specifier: workspace:*
+        version: link:../../modules/presence
       '@proto.ui/module-props':
         specifier: workspace:*
         version: link:../../modules/props
@@ -293,15 +266,21 @@ importers:
       '@proto.ui/hooks':
         specifier: workspace:*
         version: link:../../hooks
+      '@proto.ui/module-anatomy':
+        specifier: workspace:*
+        version: link:../../modules/anatomy
+      '@proto.ui/module-as-trigger':
+        specifier: workspace:*
+        version: link:../../modules/as-trigger
+      '@proto.ui/module-boundary':
+        specifier: workspace:*
+        version: link:../../modules/boundary
       '@proto.ui/module-context':
         specifier: workspace:*
         version: link:../../modules/context
       '@proto.ui/module-event':
         specifier: workspace:*
         version: link:../../modules/event
-      '@proto.ui/module-expose':
-        specifier: workspace:*
-        version: link:../../modules/expose
       '@proto.ui/module-expose-state':
         specifier: workspace:*
         version: link:../../modules/expose-state
@@ -311,9 +290,27 @@ importers:
       '@proto.ui/module-feedback':
         specifier: workspace:*
         version: link:../../modules/feedback
+      '@proto.ui/module-focus':
+        specifier: workspace:*
+        version: link:../../modules/focus
+      '@proto.ui/module-hit-participation':
+        specifier: workspace:*
+        version: link:../../modules/hit-participation
+      '@proto.ui/module-overlay':
+        specifier: workspace:*
+        version: link:../../modules/overlay
+      '@proto.ui/module-presence':
+        specifier: workspace:*
+        version: link:../../modules/presence
       '@proto.ui/module-props':
         specifier: workspace:*
         version: link:../../modules/props
+      '@proto.ui/module-rule-expose-state-web':
+        specifier: workspace:*
+        version: link:../../modules/rule-expose-state-web
+      '@proto.ui/module-rule-meta':
+        specifier: workspace:*
+        version: link:../../modules/rule-meta
       '@proto.ui/module-test-sys':
         specifier: workspace:*
         version: link:../../modules/test-sys

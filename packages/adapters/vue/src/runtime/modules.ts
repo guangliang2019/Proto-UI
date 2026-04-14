@@ -1,19 +1,58 @@
+import { createCapsWiring } from '@proto.ui/adapter-base';
+import { HOST_ELEMENT_CAP, type EffectsPort } from '@proto.ui/core';
 import {
-  createCapsWiring,
   createDomOrderObserver,
-  createWebBoundaryHostBridge,
+  ANATOMY_GET_PROTO_CAP,
+  ANATOMY_INSTANCE_TOKEN_CAP,
+  ANATOMY_ORDER_OBSERVER_CAP,
+  ANATOMY_PARENT_CAP,
+  ANATOMY_ROOT_TARGET_CAP,
+} from '@proto.ui/module-anatomy';
+import {
+  AS_TRIGGER_GET_PROTO_CAP,
+  AS_TRIGGER_INSTANCE_CAP,
+  AS_TRIGGER_PARENT_CAP,
+} from '@proto.ui/module-as-trigger';
+import { createWebBoundaryHostBridge, BOUNDARY_HOST_BRIDGE_CAP } from '@proto.ui/module-boundary';
+import { CONTEXT_INSTANCE_TOKEN_CAP, CONTEXT_PARENT_CAP } from '@proto.ui/module-context';
+import { EFFECTS_CAP } from '@proto.ui/module-feedback';
+import {
+  EVENT_EMIT_CAP,
+  EVENT_GLOBAL_TARGET_CAP,
+  EVENT_ROOT_TARGET_CAP,
+} from '@proto.ui/module-event';
+import { EXPOSE_STATE_SET_EXPOSES_CAP } from '@proto.ui/module-expose-state';
+import {
+  FOCUS_BLUR_CAP,
+  FOCUS_INSTANCE_TOKEN_CAP,
+  FOCUS_IS_NATIVELY_FOCUSABLE_CAP,
+  FOCUS_PARENT_CAP,
+  FOCUS_REQUEST_FOCUS_CAP,
+  FOCUS_ROOT_TARGET_CAP,
+  FOCUS_SET_FOCUSABLE_CAP,
+} from '@proto.ui/module-focus';
+import {
   createWebHitParticipationHostBridge,
-} from '@proto.ui/adapter-base';
-import type { EffectsPort } from '@proto.ui/core';
-import type { RawPropsSource } from '@proto.ui/module-props';
-import type { OverlayLayerScheduler } from '@proto.ui/adapter-base';
+  HIT_PARTICIPATION_HOST_BRIDGE_CAP,
+} from '@proto.ui/module-hit-participation';
+import {
+  OVERLAY_GLOBAL_MOUNT_CAP,
+  OVERLAY_LAYER_SCHEDULER_CAP,
+  OVERLAY_MODAL_CAP,
+  type OverlayLayerScheduler,
+} from '@proto.ui/module-overlay';
+import { PRESENCE_HOST_BRIDGE_CAP, type PresenceHostBridge } from '@proto.ui/module-presence';
+import { RAW_PROPS_SOURCE_CAP, type RawPropsSource } from '@proto.ui/module-props';
 import {
   createExposeStateWebNameMap,
   createExposeStateWebNativeVariantPolicy,
+  EXPOSE_STATE_WEB_MAP_CAP,
+  EXPOSE_STATE_WEB_MODE_CAP,
   type ExposeStateWebMode,
 } from '@proto.ui/module-expose-state-web';
+import { RULE_EXPOSE_STATE_WEB_NATIVE_VARIANT_POLICY_CAP } from '@proto.ui/module-rule-expose-state-web';
+import { RULE_META_GET_CAP } from '@proto.ui/module-rule-meta';
 import type { PropsBaseType } from '@proto.ui/types';
-import type { PresenceHostBridge } from '@proto.ui/module-presence';
 
 import { getProtoParent, getPrototypeByInstance, setProtoParent } from '../platform/instance-tree';
 
@@ -36,94 +75,118 @@ export function createVueModules<Props extends PropsBaseType>(args: {
     args;
 
   return createCapsWiring()
-    .useProps(rawPropsSource)
-    .useFeedback(effectsPort)
-    .useEventTargets({
-      root: () => router.rootTarget,
-      global: () => router.globalTarget,
-      emit,
-    })
-    .useFocus({
-      instance: el,
-      parent: (inst: unknown) => getProtoParent(inst as HTMLElement),
-      root: () => el,
-      isNativelyFocusable,
-      setFocusable: (target, enabled) => {
-        target.tabIndex = enabled ? 0 : -1;
-      },
-      requestFocus: (target) => {
-        target.focus();
-      },
-      blur: (target) => {
-        target.blur();
-      },
-    })
-    .useExposeState((record) => {
-      setExposes(record ?? {});
-    })
-    .useExposeStateWeb({
-      host: el,
-      nameMap: createExposeStateWebNameMap,
-      mode: exposeStateWebMode,
-    })
-    .useContext({
-      instance: el,
-      parent: (inst) => getProtoParent(inst as HTMLElement),
-    })
-    .useAnatomy({
-      instance: el,
-      parent: (inst) => getProtoParent(inst as HTMLElement),
-      getPrototype: (inst) => getPrototypeByInstance(inst as HTMLElement),
-      root: (inst) => inst as HTMLElement,
-      orderObserver: createDomOrderObserver,
-    })
-    .useAsTrigger({
-      instance: el,
-      parent: (inst) => getProtoParent(inst as HTMLElement),
-      getPrototype: (inst) => getPrototypeByInstance(inst as HTMLElement),
-    })
-    .useRuleMeta((key) => getMeta(key))
-    .useRuleExposeStateWeb({
-      nativeVariantPolicy: createExposeStateWebNativeVariantPolicy,
-    })
-    .usePresence(args.presenceBridge ?? { mount: () => {}, unmount: () => {} })
-    .useHitParticipation({
-      host: el,
-      bridge: createWebHitParticipationHostBridge(),
-    })
-    .useBoundary({
-      host: el,
-      bridge: createWebBoundaryHostBridge(),
-    })
-    .useOverlay({
-      host: el,
-      globalMount: {
-        mount(hostEl) {
-          if (hostEl.parentElement && hostEl.parentElement !== document.body) {
-            setProtoParent(hostEl, hostEl.parentElement);
-          }
-          if (hostEl.parentNode !== document.body) {
-            document.body.appendChild(hostEl);
-          }
+    .use('props', [[RAW_PROPS_SOURCE_CAP, rawPropsSource]])
+    .use('feedback', [[EFFECTS_CAP, effectsPort]])
+    .use('event', [
+      [EVENT_ROOT_TARGET_CAP, () => router.rootTarget],
+      [EVENT_GLOBAL_TARGET_CAP, () => router.globalTarget],
+      [EVENT_EMIT_CAP, emit],
+    ])
+    .use('focus', [
+      [FOCUS_INSTANCE_TOKEN_CAP, el],
+      [FOCUS_PARENT_CAP, (inst: unknown) => getProtoParent(inst as HTMLElement)],
+      [FOCUS_ROOT_TARGET_CAP, () => el],
+      [FOCUS_IS_NATIVELY_FOCUSABLE_CAP, isNativelyFocusable],
+      [
+        FOCUS_SET_FOCUSABLE_CAP,
+        (target, enabled) => {
+          target.tabIndex = enabled ? 0 : -1;
         },
-        unmount() {
-          /* Vue unmount handles cleanup */
+      ],
+      [
+        FOCUS_REQUEST_FOCUS_CAP,
+        (target) => {
+          target.focus();
         },
-      },
-      modal: {
-        lock() {
-          const original = document.body.style.overflow;
-          (document.body as any).__proto_ui_original_overflow = original;
-          document.body.style.overflow = 'hidden';
+      ],
+      [
+        FOCUS_BLUR_CAP,
+        (target) => {
+          target.blur();
         },
-        unlock() {
-          const original = (document.body as any).__proto_ui_original_overflow ?? '';
-          document.body.style.overflow = original;
-          delete (document.body as any).__proto_ui_original_overflow;
+      ],
+    ])
+    .use('expose-state', [
+      [
+        EXPOSE_STATE_SET_EXPOSES_CAP,
+        (record) => {
+          setExposes(record ?? {});
         },
-      },
-      layerScheduler: args.overlayLayerScheduler,
-    })
+      ],
+    ])
+    .use('expose-state-web', () => [
+      [HOST_ELEMENT_CAP, el],
+      [EXPOSE_STATE_WEB_MAP_CAP, createExposeStateWebNameMap],
+      ...(exposeStateWebMode ? [[EXPOSE_STATE_WEB_MODE_CAP, exposeStateWebMode] as const] : []),
+    ])
+    .use('context', [
+      [CONTEXT_INSTANCE_TOKEN_CAP, el],
+      [CONTEXT_PARENT_CAP, (inst) => getProtoParent(inst as HTMLElement)],
+    ])
+    .use('anatomy', [
+      [ANATOMY_INSTANCE_TOKEN_CAP, el],
+      [ANATOMY_PARENT_CAP, (inst) => getProtoParent(inst as HTMLElement)],
+      [ANATOMY_GET_PROTO_CAP, (inst) => getPrototypeByInstance(inst as HTMLElement)],
+      [ANATOMY_ROOT_TARGET_CAP, (inst) => inst as HTMLElement],
+      [ANATOMY_ORDER_OBSERVER_CAP, createDomOrderObserver],
+    ])
+    .use('as-trigger', [
+      [AS_TRIGGER_INSTANCE_CAP, el],
+      [AS_TRIGGER_PARENT_CAP, (inst) => getProtoParent(inst as HTMLElement)],
+      [AS_TRIGGER_GET_PROTO_CAP, (inst) => getPrototypeByInstance(inst as HTMLElement)],
+    ])
+    .use('rule-meta', [[RULE_META_GET_CAP, (key) => getMeta(key)]])
+    .use('rule-expose-state-web', [
+      [RULE_EXPOSE_STATE_WEB_NATIVE_VARIANT_POLICY_CAP, createExposeStateWebNativeVariantPolicy],
+    ])
+    .use('presence', [
+      [PRESENCE_HOST_BRIDGE_CAP, args.presenceBridge ?? { mount: () => {}, unmount: () => {} }],
+    ])
+    .use('hit-participation', [
+      [HOST_ELEMENT_CAP, el],
+      [HIT_PARTICIPATION_HOST_BRIDGE_CAP, createWebHitParticipationHostBridge()],
+    ])
+    .use('boundary', [
+      [HOST_ELEMENT_CAP, el],
+      [BOUNDARY_HOST_BRIDGE_CAP, createWebBoundaryHostBridge()],
+    ])
+    .use('overlay', () => [
+      [HOST_ELEMENT_CAP, el],
+      [
+        OVERLAY_GLOBAL_MOUNT_CAP,
+        {
+          mount(hostEl) {
+            if (hostEl.parentElement && hostEl.parentElement !== document.body) {
+              setProtoParent(hostEl, hostEl.parentElement);
+            }
+            if (hostEl.parentNode !== document.body) {
+              document.body.appendChild(hostEl);
+            }
+          },
+          unmount() {
+            /* Vue unmount handles cleanup */
+          },
+        },
+      ],
+      [
+        OVERLAY_MODAL_CAP,
+        {
+          lock() {
+            const original = document.body.style.overflow;
+            (document.body as any).__proto_ui_original_overflow = original;
+            document.body.style.overflow = 'hidden';
+          },
+          unlock() {
+            const original = (document.body as any).__proto_ui_original_overflow ?? '';
+            document.body.style.overflow = original;
+            delete (document.body as any).__proto_ui_original_overflow;
+          },
+        },
+      ],
+      ...(args.overlayLayerScheduler
+        ? [[OVERLAY_LAYER_SCHEDULER_CAP, args.overlayLayerScheduler] as const]
+        : []),
+    ])
     .build();
 }
 

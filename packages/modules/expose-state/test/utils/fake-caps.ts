@@ -1,6 +1,6 @@
 // packages/modules/expose-state/test/utils/fake-caps.ts
 import { SYS_CAP } from '@proto.ui/module-base';
-import { EXPOSE_SET_EXPOSES_CAP } from '@proto.ui/module-expose';
+import { EXPOSE_STATE_SET_EXPOSES_CAP } from '../../src/caps';
 
 type ExecPhase = 'setup' | 'render' | 'callback' | 'unknown';
 
@@ -79,7 +79,7 @@ export function makeCaps(args: { sys?: any; setExposes?: any }) {
   store.set(SYS_CAP.id, sys);
 
   if (args.setExposes !== undefined) {
-    store.set(EXPOSE_SET_EXPOSES_CAP.id, args.setExposes);
+    store.set(EXPOSE_STATE_SET_EXPOSES_CAP.id, args.setExposes);
   }
 
   const api = {
@@ -97,8 +97,8 @@ export function makeCaps(args: { sys?: any; setExposes?: any }) {
     },
 
     __set(key: 'setExposes', val: any) {
-      if (val === undefined) store.delete(EXPOSE_SET_EXPOSES_CAP.id);
-      else store.set(EXPOSE_SET_EXPOSES_CAP.id, val);
+      if (val === undefined) store.delete(EXPOSE_STATE_SET_EXPOSES_CAP.id);
+      else store.set(EXPOSE_STATE_SET_EXPOSES_CAP.id, val);
     },
 
     __bumpEpoch() {
