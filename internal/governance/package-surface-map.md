@@ -170,22 +170,25 @@ As a rule of thumb, if another package wants to depend directly on `@proto.ui/ru
 
 ### 6.2 `@proto.ui/adapter-base`
 
-`@proto.ui/adapter-base` is the facade and template layer for adapter authoring.
+`@proto.ui/adapter-base` is the module-neutral construction layer for adapter authoring.
 
-It packages runtime-backed capabilities into a structure that is easier for `Adapter Author` work.
+It packages runtime-backed adapter scaffolding into a structure that is easier for `Adapter Author` work, without deciding which concrete modules an adapter supports.
 
 Its role is:
 
 - adapter construction template
-- adapter wiring guidance
+- generic wiring, host, and lifecycle utilities
 - runtime-to-adapter facade
+- shared adapter scaffolding that stays independent from concrete module packages
 
 Primary audience:
 
 - `Adapter Author`
 - contributors working on adapter structure
 
-Concrete adapters should normally be built on this layer rather than reaching past it.
+`@proto.ui/adapter-base` should not aggregate concrete module dependencies or re-export module-specific helpers.
+
+Concrete adapters should normally be built on this layer, but they should import the caps and helpers of the modules they choose to support directly from those module packages.
 
 ---
 
@@ -346,6 +349,8 @@ The usual center of gravity is:
 
 Only depend directly on `@proto.ui/runtime` when there is a clear architectural reason.
 
+If an adapter supports a module, that dependency should be visible in the concrete adapter package itself rather than being hidden behind `@proto.ui/adapter-base`.
+
 ### 10.3 Adding a new privileged `asHook`
 
 This kind of work typically crosses multiple layers:
@@ -383,7 +388,9 @@ Use the following default dependency expectations.
 - `Prototype Author` should mostly work through prototype libraries, hooks, and core surfaces
 - `Adapter Author` should mostly work through adapter-base and module packages
 - `@proto.ui/runtime` should normally sit behind `@proto.ui/adapter-base`
+- `@proto.ui/adapter-base` should remain module-neutral; concrete adapters own the dependency surface of the modules they support
 - `@proto.ui/module-*` packages should usually be consumed by adapters, not by ordinary product code
+- module-specific host helpers should usually live with the module package they serve, not in `@proto.ui/adapter-base`
 
 If a dependency crosses too many layers downward, treat that as a design smell worth reviewing.
 
@@ -408,7 +415,7 @@ Proto UI package layers are intentionally different in audience and purpose:
 - `core` and `types` define shared concepts
 - `hooks` shape author-facing capability syntax
 - `runtime` realizes generic orchestration
-- `adapter-base` structures adapter authoring
+- `adapter-base` structures adapter authoring without acting as a concrete module aggregator
 - concrete adapters expose host-specific consumption surfaces
 - prototype libraries expose reusable component behavior
 - module packages define capability families and adapter wiring boundaries

@@ -45,14 +45,24 @@ Proto UI 的 module 是主要由 adapter 消费的能力单元。
 
 1. 基于 `@proto.ui/adapter-base` 构建 adapter
 2. 决定这个 adapter 打算支持哪些 module
-3. 通过 adapter-base 提供的 helper，或等价的 `wiring.attach(moduleName, entries)` 方式接入 module
-4. 为对应 module 提供它所需的 host-cap
+3. 通过通用 wiring，例如 `createCapsWiring().use(moduleName, entries)` 或等价的 `wiring.attach(moduleName, entries)` 方式接入选定 module
+4. 直接从对应 module package 导入所需的 caps 或宿主 helper
+5. 为对应 module 提供它所需的 host-cap
 
 最重要的实践规则是：
 
 - adapter 负责决定“接哪些 module”
 - adapter 负责提供这些 module 所需的 host-cap
 - module 通过 runtime wiring 消费这些 host-cap
+
+还需要额外遵守几条边界规则：
+
+- `@proto.ui/adapter-base` 只提供通用 adapter 骨架，不再拥有面向每个 module 的具体 `useXxx()` helper
+- 如果某个 helper 是宿主相关且只服务于某个 module，它通常应回到该 module package 内
+- 对于不同依赖链路、但宿主语义本质相同的能力，可以复用同一个 host-cap 实现
+- 但在同一条依赖链路内，下游 module 应优先复用上游 module 的输出或 facade，而不是再次索取同一个原始 host-cap
+
+例如，`@proto.ui/module-expose` 负责内部 expose 注册表，而 `@proto.ui/module-expose-state` 负责对外发布最终 expose 结果的宿主 sink。
 
 因此，这份文档既是一份能力索引，也是一份 host-cap 检查表。
 
@@ -70,23 +80,23 @@ Proto UI 的 module 是主要由 adapter 消费的能力单元。
 
 | Package | 状态 | 能力 | Host-cap | 依赖 | 不接的影响 | 接入提示 |
 | --- | --- | --- | --- | --- | --- | --- |
-| `@proto.ui/module-anatomy` | 必选 | 为 prototype 提供 anatomy 能力，使其在更大的 family 结构中查询其他部分并订阅暴露出的状态或方法 | `ANATOMY_INSTANCE_TOKEN_CAP`、`ANATOMY_PARENT_CAP`、`ANATOMY_GET_PROTO_CAP`、`ANATOMY_ROOT_TARGET_CAP`，可选 `ANATOMY_ORDER_OBSERVER_CAP` | 无 | prototype 将失去跨部分结构感知与 family 级协同能力 | 通常通过 adapter-base 的 `useAnatomy(...)` 接入 |
-| `@proto.ui/module-as-trigger` | 必选 | 为特权 `asTrigger` 提供支持，使连续嵌套的 trigger 结构可以合并事件通路 | `AS_TRIGGER_INSTANCE_CAP`、`AS_TRIGGER_PARENT_CAP`、`AS_TRIGGER_GET_PROTO_CAP` | `@proto.ui/module-event` | 嵌套 trigger 的组合与统一触发通路将无法正确工作 | 通常通过 adapter-base 的 `useAsTrigger(...)` 接入，并确保 event module 已接入 |
-| `@proto.ui/module-boundary` | 必选 | 提供交互边界相关能力，例如 click outside、focus outside 等判定 | `BOUNDARY_HOST_BRIDGE_CAP`，并且在“当前宿主节点自动视为 region”的场景中通常还会配合 `HOST_ELEMENT_CAP` | 无 | 跨平台交互边界判断将缺失或变得不可靠 | 通常通过 adapter-base 的 `useBoundary(...)` 接入 |
-| `@proto.ui/module-context` | 必选 | 提供 context 这条 prototype 之间的信息通路 | `CONTEXT_INSTANCE_TOKEN_CAP`、`CONTEXT_PARENT_CAP` | 无 | prototype 之间无法通过 Proto UI context 机制通信 | 通常通过 adapter-base 的 `useContext(...)` 接入 |
-| `@proto.ui/module-event` | 必选 | 提供 event 这条用户交互信息通路 | `EVENT_ROOT_TARGET_CAP`、`EVENT_GLOBAL_TARGET_CAP`，可选 `EVENT_EMIT_CAP` | 无 | prototype 无法沿标准 Proto UI event 通路产生交互响应 | 通常通过 adapter-base 的 `useEventTargets(...)` 接入 |
-| `@proto.ui/module-expose` | 必选 | 允许 prototype 主动向外暴露行为和状态，并让外部订阅这些信号 | `EXPOSE_SET_EXPOSES_CAP` | 无 | adapter 无法把对外暴露语义稳定地翻译成宿主 API | 通常与对外 host sink 逻辑一起接入 |
-| `@proto.ui/module-expose-state` | 必选 | 统一 prototype 暴露 state 时的 DX 与宿主协同方式 | 当前没有独立的 module-local `caps.ts`；在现有 adapter-base helper 里，这条路径会通过 expose-style host sink 桥接 | `@proto.ui/module-expose`、`@proto.ui/module-state` | expose 出去的 state 会失去统一订阅与宿主协同模型 | 它更像 expose 与 state 之间的桥接层，扩展时要明确宿主 sink 的设计 |
-| `@proto.ui/module-expose-state-web` | Web 强烈推荐 | 在 Web 宿主中把 expose state 同步到 DOM Attribute 与 CSS 变量 | `HOST_ELEMENT_CAP`、`EXPOSE_STATE_WEB_MAP_CAP`，可选 `EXPOSE_STATE_WEB_MODE_CAP` | `@proto.ui/module-expose-state` | Web 产物会失去这套方便的 DOM 或 CSS 映射能力 | 通常通过 adapter-base 的 `useExposeStateWeb(...)` 接入 |
-| `@proto.ui/module-feedback` | 必选 | 提供 feedback 这条用户可感知的信息通路，当前尤其是视觉反馈 | `EFFECTS_CAP` | 无 | prototype 将失去标准的可感知反馈路径 | 通常通过 adapter-base 的 `useFeedback(...)` 接入 |
-| `@proto.ui/module-focus` | 必选 | 为 `asFocusable`、`asFocusScope`、`asFocusGroup` 等特权 asHook 提供焦点体系支持 | `FOCUS_INSTANCE_TOKEN_CAP`、`FOCUS_PARENT_CAP`、`FOCUS_ROOT_TARGET_CAP`、`FOCUS_IS_NATIVELY_FOCUSABLE_CAP`、`FOCUS_SET_FOCUSABLE_CAP`、`FOCUS_REQUEST_FOCUS_CAP`、`FOCUS_BLUR_CAP` | 无 | 焦点体系相关能力将无法被正确表达 | 通常通过 adapter-base 的 `useFocus(...)` 接入 |
-| `@proto.ui/module-hit-participation` | 必选 | 提供可靠的 hit testing 语义以及对齐宿主点击参与解释方式的能力 | `HIT_PARTICIPATION_HOST_BRIDGE_CAP`，通常还会配合 `HOST_ELEMENT_CAP` | 无 | 依赖 hit testing 的交互判断会变得不可靠 | 通常通过 adapter-base 的 `useHitParticipation(...)` 接入 |
-| `@proto.ui/module-overlay` | 必选 | 为特权 `asOverlay` 提供支持，让浮层以更符合宿主习惯的方式渲染 | 可选 `HOST_ELEMENT_CAP`、`OVERLAY_GLOBAL_MOUNT_CAP`、`OVERLAY_MODAL_CAP`、`OVERLAY_LAYER_SCHEDULER_CAP` | 无 | 浮层类 prototype 将无法按预期渲染或协同 | 通常通过 adapter-base 的 `useOverlay(...)` 接入 |
-| `@proto.ui/module-presence` | 可选 | 为 `asTransition` 提供软卸载能力，把 dismount 延迟到动画结束 | `PRESENCE_HOST_BRIDGE_CAP` | 无 | 基于 transition 的入场或出场时序将无法成立，但其他交互能力仍可工作 | 通常通过 adapter-base 的 `usePresence(...)` 接入 |
-| `@proto.ui/module-props` | 必选 | 提供 props 这条信息通路，让 Maker 可以配置 prototype | `RAW_PROPS_SOURCE_CAP` | 无 | prototype 将无法接受标准 Proto UI 配置输入 | 通常通过 adapter-base 的 `useProps(...)` 接入 |
+| `@proto.ui/module-anatomy` | 必选 | 为 prototype 提供 anatomy 能力，使其在更大的 family 结构中查询其他部分并订阅暴露出的状态或方法 | `ANATOMY_INSTANCE_TOKEN_CAP`、`ANATOMY_PARENT_CAP`、`ANATOMY_GET_PROTO_CAP`、`ANATOMY_ROOT_TARGET_CAP`，可选 `ANATOMY_ORDER_OBSERVER_CAP` | 无 | prototype 将失去跨部分结构感知与 family 级协同能力 | 通过通用 wiring 显式接入；Web adapter 可直接使用本包提供的 `createDomOrderObserver` |
+| `@proto.ui/module-as-trigger` | 必选 | 为特权 `asTrigger` 提供支持，使连续嵌套的 trigger 结构可以合并事件通路 | `AS_TRIGGER_INSTANCE_CAP`、`AS_TRIGGER_PARENT_CAP`、`AS_TRIGGER_GET_PROTO_CAP` | `@proto.ui/module-event` | 嵌套 trigger 的组合与统一触发通路将无法正确工作 | 通过通用 wiring 显式接入，并确保 `@proto.ui/module-event` 已一并接入 |
+| `@proto.ui/module-boundary` | 必选 | 提供交互边界相关能力，例如 click outside、focus outside 等判定 | `BOUNDARY_HOST_BRIDGE_CAP`，并且在“当前宿主节点自动视为 region”的场景中通常还会配合 `HOST_ELEMENT_CAP` | 无 | 跨平台交互边界判断将缺失或变得不可靠 | 通过通用 wiring 显式接入；Web adapter 可直接使用本包提供的 `createWebBoundaryHostBridge` |
+| `@proto.ui/module-context` | 必选 | 提供 context 这条 prototype 之间的信息通路 | `CONTEXT_INSTANCE_TOKEN_CAP`、`CONTEXT_PARENT_CAP` | 无 | prototype 之间无法通过 Proto UI context 机制通信 | 通过通用 wiring 显式接入 |
+| `@proto.ui/module-event` | 必选 | 提供 event 这条用户交互信息通路 | `EVENT_ROOT_TARGET_CAP`、`EVENT_GLOBAL_TARGET_CAP`，可选 `EVENT_EMIT_CAP` | 无 | prototype 无法沿标准 Proto UI event 通路产生交互响应 | 通过通用 wiring 显式接入 |
+| `@proto.ui/module-expose` | 必选 | 允许 prototype 注册对外暴露的行为与值 | 无直接 host-cap | 无 | expose 声明仍可在内部成立，但 adapter 将没有对外发布最终 expose 句柄的通路 | 这里不应再挂接对外 host sink；若 adapter 需要真正向外发布 expose，应与 `@proto.ui/module-expose-state` 配套接入 |
+| `@proto.ui/module-expose-state` | 必选 | 统一 prototype 暴露 state 时的 DX 与宿主协同方式 | `EXPOSE_STATE_SET_EXPOSES_CAP` | `@proto.ui/module-expose`、`@proto.ui/module-state` | expose 出去的 state 会失去统一订阅与宿主协同模型 | 该 module 拥有 adapter-facing expose sink；它应消费 expose 与 state 的产物，而不是再次索取同一上游宿主语义 |
+| `@proto.ui/module-expose-state-web` | Web 强烈推荐 | 在 Web 宿主中把 expose state 同步到 DOM Attribute 与 CSS 变量 | `HOST_ELEMENT_CAP`、`EXPOSE_STATE_WEB_MAP_CAP`，可选 `EXPOSE_STATE_WEB_MODE_CAP` | `@proto.ui/module-expose-state` | Web 产物会失去这套方便的 DOM 或 CSS 映射能力 | 通过通用 wiring 显式接入；如需 Web 专用映射 helper，应直接从本包导入 |
+| `@proto.ui/module-feedback` | 必选 | 提供 feedback 这条用户可感知的信息通路，当前尤其是视觉反馈 | `EFFECTS_CAP` | 无 | prototype 将失去标准的可感知反馈路径 | 通过通用 wiring 显式接入 |
+| `@proto.ui/module-focus` | 必选 | 为 `asFocusable`、`asFocusScope`、`asFocusGroup` 等特权 asHook 提供焦点体系支持 | `FOCUS_INSTANCE_TOKEN_CAP`、`FOCUS_PARENT_CAP`、`FOCUS_ROOT_TARGET_CAP`、`FOCUS_IS_NATIVELY_FOCUSABLE_CAP`、`FOCUS_SET_FOCUSABLE_CAP`、`FOCUS_REQUEST_FOCUS_CAP`、`FOCUS_BLUR_CAP` | 无 | 焦点体系相关能力将无法被正确表达 | 通过通用 wiring 显式接入 |
+| `@proto.ui/module-hit-participation` | 必选 | 提供可靠的 hit testing 语义以及对齐宿主点击参与解释方式的能力 | `HIT_PARTICIPATION_HOST_BRIDGE_CAP`，通常还会配合 `HOST_ELEMENT_CAP` | 无 | 依赖 hit testing 的交互判断会变得不可靠 | 通过通用 wiring 显式接入；Web adapter 可直接使用本包提供的 `createWebHitParticipationHostBridge` |
+| `@proto.ui/module-overlay` | 必选 | 为特权 `asOverlay` 提供支持，让浮层以更符合宿主习惯的方式渲染 | 可选 `HOST_ELEMENT_CAP`、`OVERLAY_GLOBAL_MOUNT_CAP`、`OVERLAY_MODAL_CAP`、`OVERLAY_LAYER_SCHEDULER_CAP` | 无 | 浮层类 prototype 将无法按预期渲染或协同 | 通过通用 wiring 显式接入；Web adapter 可直接使用本包提供的 `createZIndexOverlayLayerScheduler` |
+| `@proto.ui/module-presence` | 可选 | 为 `asTransition` 提供软卸载能力，把 dismount 延迟到动画结束 | `PRESENCE_HOST_BRIDGE_CAP` | 无 | 基于 transition 的入场或出场时序将无法成立，但其他交互能力仍可工作 | 通过通用 wiring 显式接入 |
+| `@proto.ui/module-props` | 必选 | 提供 props 这条信息通路，让 Maker 可以配置 prototype | `RAW_PROPS_SOURCE_CAP` | 无 | prototype 将无法接受标准 Proto UI 配置输入 | 通过通用 wiring 显式接入 |
 | `@proto.ui/module-rule` | 必选 | 提供 rule 语法，以更语义化的方式描述 prototype 的逻辑与状态或样式反应 | 无直接 host-cap | 无 | 基于 rule 编写的 prototype 逻辑将无法沿预期路径运行 | 它更依赖 props、state、context、feedback 等模块协同，而不是单独的 host-cap 注入 |
-| `@proto.ui/module-rule-expose-state-web` | Web 强烈推荐 | 将一部分动态样式 rule 预编译为静态 CSS，减少 Web 运行时样式替换开销 | `RULE_EXPOSE_STATE_WEB_NATIVE_VARIANT_POLICY_CAP` | `@proto.ui/module-rule`、`@proto.ui/module-expose-state-web` | Web adapter 将失去这项优化，只能更多依赖运行时样式路径 | 通常通过 adapter-base 的 `useRuleExposeStateWeb(...)` 接入 |
-| `@proto.ui/module-rule-meta` | 可选 | 为 rule 的 `when` 表达式补充系统级元信息，例如系统明暗主题偏好 | `RULE_META_GET_CAP` | 无 | rule 表达式无法依赖这些额外系统状态 | 通常通过 adapter-base 的 `useRuleMeta(...)` 接入 |
+| `@proto.ui/module-rule-expose-state-web` | Web 强烈推荐 | 将一部分动态样式 rule 预编译为静态 CSS，减少 Web 运行时样式替换开销 | `RULE_EXPOSE_STATE_WEB_NATIVE_VARIANT_POLICY_CAP` | `@proto.ui/module-rule`、`@proto.ui/module-expose-state-web` | Web adapter 将失去这项优化，只能更多依赖运行时样式路径 | 通过通用 wiring 显式接入 |
+| `@proto.ui/module-rule-meta` | 可选 | 为 rule 的 `when` 表达式补充系统级元信息，例如系统明暗主题偏好 | `RULE_META_GET_CAP` | 无 | rule 表达式无法依赖这些额外系统状态 | 通过通用 wiring 显式接入 |
 | `@proto.ui/module-state` | 必选 | 提供统一的 Proto UI state 模型 | 无直接 host-cap | 无 | prototype 将失去标准 state 语法与类状态机的行为模型 | 当前设计里它更像纯能力层，不依赖单独的 module host-cap |
 | `@proto.ui/module-state-accessibility` | 必选 | 为 state 增加 `fromAccessibility` 一类 accessibility 派生能力 | 无直接 host-cap | `@proto.ui/module-state` | state 将无法表达标准 accessibility 派生子 API | 当前更依赖 state 语义本身，而不是额外 host-cap |
 | `@proto.ui/module-state-interaction` | 必选 | 为 state 增加 hover、focus 等 interaction 派生能力 | 无直接 host-cap | `@proto.ui/module-state`、`@proto.ui/module-event` | state 将无法表达官方维护的 interaction 派生状态 | 当前更依赖 event 与 state 流，而不是独立 host-cap |

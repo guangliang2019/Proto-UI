@@ -167,22 +167,25 @@ Proto UI 的 package surface 可以大致理解为以下几层：
 
 ### 6.2 `@proto.ui/adapter-base`
 
-`@proto.ui/adapter-base` 是面向 adapter 编写的 facade 与模版层。
+`@proto.ui/adapter-base` 是面向 adapter 编写的、与具体 module 无关的构建层。
 
-它将 runtime 支撑的能力包装成更适合 `Adapter Author` 使用的结构。
+它把 runtime 支撑的 adapter 骨架包装成更适合 `Adapter Author` 使用的结构，但不负责替具体 adapter 决定要支持哪些 module。
 
 它的职责是：
 
 - 提供 adapter 构建模版
-- 引导 adapter wiring
+- 提供通用 wiring、host 与生命周期工具
 - 作为 runtime 面向 adapter 作者的 facade
+- 提供不依赖具体 module package 的共享 adapter 骨架
 
 它主要面向：
 
 - `Adapter Author`
 - 处理 adapter 结构的贡献者
 
-具体 adapter 应优先建立在这一层之上，而不是绕过它直接向下耦合。
+`@proto.ui/adapter-base` 不应聚合具体 module 依赖，也不应再导出面向具体 module 的 helper。
+
+具体 adapter 应优先建立在这一层之上，但它实际支持哪些 module，应该由具体 adapter 自己直接依赖对应 module package，并显式导入其 caps 或 helper。
 
 ---
 
@@ -347,6 +350,8 @@ module 包不是通用 end-user package。
 
 除非有明确架构理由，否则不要直接依赖 `@proto.ui/runtime`。
 
+如果一个 adapter 支持某个 module，这个依赖应直接体现在该 adapter package 本身，而不是藏在 `@proto.ui/adapter-base` 后面。
+
 ### 10.3 新增一个特权 `asHook`
 
 这类工作通常会横跨多层：
@@ -384,7 +389,9 @@ module 包不是通用 end-user package。
 - `Prototype Author` 应主要通过 prototype library、hooks 与 core surface 工作
 - `Adapter Author` 应主要通过 adapter-base 与 module package 工作
 - `@proto.ui/runtime` 正常情况下应位于 `@proto.ui/adapter-base` 背后
+- `@proto.ui/adapter-base` 应保持对具体 module 中立；支持哪些 module 及其依赖面应由具体 adapter 自己承担
 - `@proto.ui/module-*` package 通常应由 adapter 消费，而不是由普通业务代码直接消费
+- 当某个宿主 helper 只服务于特定 module 时，它通常应与该 module package 放在一起，而不是集中塞进 `@proto.ui/adapter-base`
 
 如果一个依赖关系一口气跨越过多层级向下耦合，应把它视为值得 review 的设计味道。
 
@@ -409,7 +416,7 @@ Proto UI 的 package 分层在受众和职责上是有意区分的：
 - `core` 与 `types` 负责定义共享概念
 - `hooks` 负责塑造作者语法层
 - `runtime` 负责通用编排落地
-- `adapter-base` 负责组织 adapter 编写方式
+- `adapter-base` 负责组织 adapter 编写方式，但不应充当具体 module 的聚合层
 - 具体 adapter 负责暴露面向宿主的消费能力
 - prototype library 负责暴露可复用的组件行为
 - module package 负责定义能力家族与 adapter wiring 边界
