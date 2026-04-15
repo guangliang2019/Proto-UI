@@ -1,0 +1,32 @@
+{
+  "name": "@proto.ui/cli",
+  "version": "0.0.2",
+  "private": false,
+  "type": "module",
+  "bin": {
+    "proto-ui": "./bin/proto-ui.mjs"
+  },
+  "dependencies": {
+    "typescript": "^5.0.0"
+  },
+  "description": "Proto UI command line helpers for generating Tailwind token sources and theme css files.",
+  "license": "MIT",
+  "homepage": "https://github.com/guangliang2019/Prototype-UI/tree/main/packages/cli",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/guangliang2019/Prototype-UI.git",
+    "directory": "packages/cli"
+  },
+  "bugs": {
+    "url": "https://github.com/guangliang2019/Prototype-UI/issues"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "keywords": [
+    "proto-ui",
+    "cli",
+    "tailwind",
+    "tokens"
+  ]
+}
