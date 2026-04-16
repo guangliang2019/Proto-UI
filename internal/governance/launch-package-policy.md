@@ -249,3 +249,25 @@ The `v0.1.0` launch commitment package list is currently:
 - `@proto.ui/prototypes-shadcn`
 
 Everything else should be judged against whether it supports that frozen first-release story, rather than against whether it exists in the workspace.
+
+---
+
+## 11. Machine-Executable Governance Source (from 2026-04-16)
+
+To prevent drift between docs and release automation, launch package governance now has a machine-readable source:
+
+- `internal/governance/launch-package-governance.json`
+
+This file drives `scripts/release/scan.mjs` and `scripts/release/publish.mjs` when running with `--profile launch`.
+
+Operational constraints:
+
+- `launchCommitmentPackages`: included in the default launch release set
+- `candidatePackages`: candidate set that must be decided package by package
+- Candidate statuses are restricted to:
+  - `approved`: may join release selection only with `--include-approved-candidates`
+  - `pending`: not yet admitted; must not be published as part of launch set
+  - `deferred`: explicitly postponed; must not be published as part of launch set
+- New packages never auto-enter launch: they must be added to governance and explicitly decided
+
+This keeps launch scope governance explicit and enforceable while still leaving room for hard launch additions (for example packages needed by `input` work that introduces new modules or lower-level APIs).

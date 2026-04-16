@@ -141,3 +141,52 @@ Proto UI's current release workflow is:
 - create the final `v0.1.0` tag from `main`
 
 This keeps the preparation workflow flexible while keeping the public release identity clean.
+
+---
+
+## 9. GitHub Manual/Semi-Automated Package Release Flow (from 2026-04-16)
+
+To align launch package governance with npm rate-limit risk, a manual GitHub Actions release workflow is introduced:
+
+- `.github/workflows/release-packages.yml`
+- trigger: `workflow_dispatch`
+- modes:
+  - `scan`: governance-aware scan, optionally archived as JSON artifact
+  - `stage`: dry-run publish rehearsal
+  - `publish`: real npm publish (requires explicit version input)
+
+### 9.1 Launch Governance Enforcement
+
+The workflow supports `--profile launch` with `--check-governance` by default.
+
+That means:
+
+- release selection is tied to `internal/governance/launch-package-governance.json`
+- if workspace packages are added without governance mapping, the run fails
+- candidate packages only join the release set when status is `approved` and `--include-approved-candidates` is explicitly enabled
+
+### 9.2 npm 429 Mitigation
+
+The publish flow now includes throttling and retry controls:
+
+- `--publish-delay-ms`: delay between package publish requests
+- `--max-publish-retries`: retry count for 429/rate-limit failures
+- `--retry-delay-ms`: wait time before each retry (with incremental backoff)
+
+Recommended launch defaults:
+
+- `publish_delay_ms=3000`
+- `max_publish_retries=2`
+- `retry_delay_ms=15000`
+
+If 429 errors appear, increase delay values first instead of increasing request pressure.
+
+### 9.3 Management Policy
+
+`publish` mode should remain maintainer-triggered (manual or semi-automated), not fully automatic.
+
+Recommended controls:
+
+- keep publish runs scoped to controlled branches (for example `feat/v0-release-prep` and final `main` release state)
+- store npm credentials in GitHub Secrets (`NPM_TOKEN`)
+- enforce who can publish through repository permissions or environment approvals

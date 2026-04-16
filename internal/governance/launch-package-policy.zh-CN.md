@@ -251,3 +251,29 @@ release note 与 launch messaging 应明确区分：
 - `@proto.ui/prototypes-shadcn`
 
 其他 package 是否进入当前发版范围，不应由“它是否存在于 workspace 中”决定，而应由“它是否支撑这条已冻结的首发故事”决定。
+
+---
+
+## 11. 机器可执行治理源（2026-04-16 起）
+
+为避免“文档与流水线口径漂移”，首发 package 治理从 2026-04-16 起新增一份机器可读配置：
+
+- `internal/governance/launch-package-governance.json`
+
+该文件用于驱动 `scripts/release/scan.mjs` 与 `scripts/release/publish.mjs` 的 `--profile launch` 模式。
+
+关键约束如下：
+
+- `launchCommitmentPackages`：首发承诺包，默认进入首发发布集合
+- `candidatePackages`：候选包集合，必须逐个标注状态
+- 候选包状态仅允许：
+  - `approved`：允许通过 `--include-approved-candidates` 进入发布集合
+  - `pending`：尚未准入，不得进入发布集合
+  - `deferred`：明确后置，不得进入发布集合
+- 新增 package 不会自动上车，必须先进入治理文件并完成准入决策
+
+这保证了：
+
+- 首发范围可被 CI/发布流水线直接执行
+- `input` 这类可能引入新 module 或底层 API 的项可以逐个决策上车
+- 首发范围扩展是“显式治理动作”，而不是“仓库里出现了就默认发布”

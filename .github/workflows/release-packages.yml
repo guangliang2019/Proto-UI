@@ -1,0 +1,131 @@
+name: Release Packages
+
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: 'scan, stage(dry-run), or publish'
+        required: true
+        type: choice
+        options:
+          - scan
+          - stage
+          - publish
+        default: scan
+      profile:
+        description: 'release profile'
+        required: true
+        type: choice
+        options:
+          - launch
+          - workspace
+        default: launch
+      include_approved_candidates:
+        description: 'include approved candidate packages'
+        required: true
+        type: boolean
+        default: false
+      version:
+        description: 'override package version, e.g. 0.1.0'
+        required: false
+        type: string
+      tag:
+        description: 'npm dist-tag'
+        required: true
+        default: latest
+        type: string
+      only:
+        description: 'optional package names/paths separated by commas'
+        required: false
+        type: string
+      publish_delay_ms:
+        description: 'delay between package publish requests'
+        required: true
+        default: '3000'
+        type: string
+      max_publish_retries:
+        description: 'retries when npm returns 429/rate-limit'
+        required: true
+        default: '2'
+        type: string
+      retry_delay_ms:
+        description: 'delay before each retry'
+        required: true
+        default: '15000'
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.32.1
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+          registry-url: https://registry.npmjs.org
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      - name: Run Release Command
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          set -euo pipefail
+
+          ARGS=(
+            --profile "${{ inputs.profile }}"
+            --check-governance
+            --tag "${{ inputs.tag }}"
+            --publish-delay-ms "${{ inputs.publish_delay_ms }}"
+            --max-publish-retries "${{ inputs.max_publish_retries }}"
+            --retry-delay-ms "${{ inputs.retry_delay_ms }}"
+          )
+
+          if [[ "${{ inputs.include_approved_candidates }}" == "true" ]]; then
+            ARGS+=(--include-approved-candidates)
+          fi
+
+          if [[ -n "${{ inputs.only }}" ]]; then
+            ARGS+=(--only "${{ inputs.only }}")
+          fi
+
+          if [[ -n "${{ inputs.version }}" ]]; then
+            ARGS+=(--version "${{ inputs.version }}")
+          fi
+
+          case "${{ inputs.mode }}" in
+            scan)
+              node scripts/release/scan.mjs "${ARGS[@]}" --json | tee release-scan.json
+              ;;
+            stage)
+              node scripts/release/publish.mjs --dry-run "${ARGS[@]}"
+              ;;
+            publish)
+              if [[ -z "${{ inputs.version }}" ]]; then
+                echo "inputs.version is required for publish mode"
+                exit 1
+              fi
+              node scripts/release/publish.mjs --publish "${ARGS[@]}"
+              ;;
+            *)
+              echo "unsupported mode: ${{ inputs.mode }}"
+              exit 1
+              ;;
+          esac
+
+      - name: Upload Release Scan Artifact
+        if: ${{ inputs.mode == 'scan' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-scan
+          path: release-scan.json

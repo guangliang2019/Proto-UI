@@ -141,3 +141,52 @@ Proto UI 当前的发版工作流可概括为：
 - 最终从 `main` 打出 `v0.1.0` tag
 
 这样既保留了准备期的灵活性，也保证了公开 release 身份足够清晰。
+
+---
+
+## 9. GitHub 手动/半自动发包流程（2026-04-16 起）
+
+为适配首发窗口内的 package 治理与 npm 限流风险，新增 GitHub Actions 发布工作流：
+
+- `.github/workflows/release-packages.yml`
+- 触发方式：`workflow_dispatch`（手动触发）
+- 运行模式：
+  - `scan`：只扫描（可产出 JSON 工件）
+  - `stage`：dry-run 发包演练
+  - `publish`：真实发布（要求显式提供版本号）
+
+### 9.1 首发治理口径
+
+发布工作流默认支持 `--profile launch`，并启用 `--check-governance`。
+
+这意味着：
+
+- 发布集合与 `internal/governance/launch-package-governance.json` 对齐
+- 若 workspace 新增 package 但未进入治理文件，流程会失败并提示补齐治理映射
+- 候选包只有在状态为 `approved` 且显式开启 `--include-approved-candidates` 时才允许上车
+
+### 9.2 npm 429 风险控制
+
+发布流程内建三个限流控制参数：
+
+- `--publish-delay-ms`：包与包之间的请求间隔
+- `--max-publish-retries`：遇到 429/限流报错时重试次数
+- `--retry-delay-ms`：每次重试前等待时间（含递增退避）
+
+推荐首发默认值：
+
+- `publish_delay_ms=3000`
+- `max_publish_retries=2`
+- `retry_delay_ms=15000`
+
+若观察到 429，可优先提高 `publish_delay_ms` 与 `retry_delay_ms`，而不是继续提高并发或缩短节奏。
+
+### 9.3 管理策略要求
+
+`publish` 模式应由维护者手动触发，不建议纯自动触发。
+
+建议治理动作：
+
+- 将 `publish` 操作绑定到受控分支（如 `feat/v0-release-prep` 与后续 `main` release 点）
+- 使用 GitHub Secrets 管理 `NPM_TOKEN`
+- 通过仓库权限或环境审批控制“谁可以按下 publish”
