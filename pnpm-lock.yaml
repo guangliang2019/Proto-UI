@@ -64,6 +64,9 @@ importers:
       '@proto.ui/prototypes-shadcn':
         specifier: workspace:*
         version: link:../../packages/prototypes/shadcn
+      '@proto.ui/types':
+        specifier: workspace:*
+        version: link:../../packages/types
       '@tailwindcss/vite':
         specifier: ^4.1.11
         version: 4.1.18(vite@6.4.1)
