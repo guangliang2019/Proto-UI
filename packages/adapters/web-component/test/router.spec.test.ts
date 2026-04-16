@@ -111,8 +111,10 @@ describe('WC router: createWebProtoEventRouter', () => {
   });
 
   it('routes press.commit from globally mounted node linked to current root', async () => {
-    const rootEl = document.createElement('div') as HTMLElement & Record<symbol, unknown>;
-    const portalHost = document.createElement('div') as HTMLElement & Record<symbol, unknown>;
+    const rootEl = document.createElement('div') as unknown as HTMLElement &
+      Record<symbol, unknown>;
+    const portalHost = document.createElement('div') as unknown as HTMLElement &
+      Record<symbol, unknown>;
     const trigger = document.createElement('button');
 
     const protoInstance = Symbol.for('@proto.ui/adapter-web-component/__proto_instance');

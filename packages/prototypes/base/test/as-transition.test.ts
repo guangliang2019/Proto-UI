@@ -13,7 +13,7 @@ function createHost(
   opts: { bridge?: { mount?: () => void; unmount?: () => void } } = {}
 ) {
   let raw: Partial<TransitionProps> = { ...initialRaw };
-  let exposes: TransitionExposes | null = null;
+  let exposes: any = null;
   const bridgeCalls = { mount: 0, unmount: 0 };
   const emitted: Array<{ key: string; payload: unknown }> = [];
 
@@ -43,10 +43,7 @@ function createHost(
         ],
       ]);
       wiring.attach('expose-state', [
-        [
-          EXPOSE_STATE_SET_EXPOSES_CAP,
-          (next: Record<string, unknown>) => (exposes = next as TransitionExposes),
-        ],
+        [EXPOSE_STATE_SET_EXPOSES_CAP, (next: Record<string, unknown>) => (exposes = next as any)],
       ]);
       wiring.attach('event', [
         [EVENT_EMIT_CAP, (key: string, payload: unknown) => emitted.push({ key, payload })],
@@ -59,7 +56,7 @@ function createHost(
     applyRawProps(next: Partial<TransitionProps>) {
       raw = { ...next };
     },
-    getExposes() {
+    getExposes(): any {
       return exposes!;
     },
     getBridgeCalls() {

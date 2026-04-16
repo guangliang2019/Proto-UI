@@ -1,6 +1,8 @@
 import { setElementProps } from '@proto.ui/adapter-web-component';
 import { createReactAdapter, type ReactRuntime } from '@proto.ui/adapter-react';
-import { createVueAdapter } from '@proto.ui/adapter-vue';
+import { createVueAdapter, type VueRuntime as AdapterVueRuntime } from '@proto.ui/adapter-vue';
+import type { Prototype } from '@proto.ui/core';
+import type { PropsBaseType } from '@proto.ui/types';
 import { getPrototype } from './registry';
 import { loadReact } from './runtimes/react-runtime';
 import { loadVue } from './runtimes/vue-runtime';
@@ -11,8 +13,8 @@ const reactRoots = new WeakMap<
   HTMLElement,
   { unmount: () => void; render: (el: unknown) => void }
 >();
-const reactComponentCache = new WeakMap<object, Map<string, object>>();
-const vueComponentCache = new WeakMap<object, Map<string, object>>();
+const reactComponentCache = new WeakMap<object, Map<string, any>>();
+const vueComponentCache = new WeakMap<object, Map<string, any>>();
 
 function getScopedComponentCache<T extends object>(
   cache: WeakMap<object, Map<string, T>>,
@@ -166,7 +168,7 @@ async function renderDemoReact(opt: DemoRenderOptions): Promise<DemoRenderResult
   }
   initProps(demo.root);
 
-  function renderNode(node: DemoChild): unknown {
+  function renderNode(node: DemoChild): any {
     if (typeof node === 'string') return node;
     if (node.kind === 'text') return node.text;
     if (node.kind === 'box') {
@@ -259,7 +261,7 @@ async function renderDemoVue(opt: DemoRenderOptions): Promise<DemoRenderResult> 
   const { host, demo } = opt;
 
   const Vue = await loadVue();
-  const adapter = createVueAdapter(Vue);
+  const adapter = createVueAdapter(Vue as unknown as AdapterVueRuntime);
 
   const existingApp = vueApps.get(host);
   if (existingApp) {
@@ -280,7 +282,7 @@ async function renderDemoVue(opt: DemoRenderOptions): Promise<DemoRenderResult> 
   }
   initProps(demo.root);
 
-  function renderNode(node: DemoChild): unknown {
+  function renderNode(node: DemoChild): any {
     if (typeof node === 'string') return node;
     if (node.kind === 'text') return node.text;
     if (node.kind === 'box') {

@@ -55,6 +55,10 @@ import { type PropsBaseType } from '@proto.ui/types';
 
 import { getProtoParent, getPrototypeByInstance } from '../platform/instance-tree';
 
+type BodyWithOverflowSnapshot = HTMLElement & {
+  __proto_ui_original_overflow?: string;
+};
+
 export function createWebComponentModules<Props extends PropsBaseType>(args: {
   el: HTMLElement;
   router: {
@@ -86,7 +90,7 @@ export function createWebComponentModules<Props extends PropsBaseType>(args: {
       [EVENT_GLOBAL_TARGET_CAP, () => router.globalTarget],
       [
         EVENT_EMIT_CAP,
-        (key, payload, options) => {
+        (key: string, payload?: unknown, options?: Record<string, unknown>) => {
           const ev = new CustomEvent(key, {
             detail: payload,
             bubbles: true,
@@ -170,7 +174,7 @@ export function createWebComponentModules<Props extends PropsBaseType>(args: {
       [
         OVERLAY_GLOBAL_MOUNT_CAP,
         {
-          mount(el) {
+          mount(el: HTMLElement) {
             if (el.parentNode === document.body) return;
             mountedEl = el;
             originalParent = el.parentNode;
@@ -185,7 +189,7 @@ export function createWebComponentModules<Props extends PropsBaseType>(args: {
             } catch {}
             document.body.appendChild(el);
           },
-          unmount(el) {
+          unmount(_el: HTMLElement) {
             if (!mountedEl) return;
             if (originalParent) {
               if (originalNext && originalParent.contains(originalNext)) {
@@ -210,14 +214,16 @@ export function createWebComponentModules<Props extends PropsBaseType>(args: {
         OVERLAY_MODAL_CAP,
         {
           lock() {
-            const original = document.body.style.overflow;
-            document.body.__proto_ui_original_overflow = original;
-            document.body.style.overflow = 'hidden';
+            const body = document.body as BodyWithOverflowSnapshot;
+            const original = body.style.overflow;
+            body.__proto_ui_original_overflow = original;
+            body.style.overflow = 'hidden';
           },
           unlock() {
-            const original = document.body.__proto_ui_original_overflow ?? '';
-            document.body.style.overflow = original;
-            delete document.body.__proto_ui_original_overflow;
+            const body = document.body as BodyWithOverflowSnapshot;
+            const original = body.__proto_ui_original_overflow ?? '';
+            body.style.overflow = original;
+            delete body.__proto_ui_original_overflow;
           },
         },
       ],

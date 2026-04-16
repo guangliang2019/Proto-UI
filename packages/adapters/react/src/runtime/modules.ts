@@ -90,19 +90,19 @@ export function createReactModules<Props extends PropsBaseType>(args: {
       [FOCUS_IS_NATIVELY_FOCUSABLE_CAP, isNativelyFocusable],
       [
         FOCUS_SET_FOCUSABLE_CAP,
-        (target, enabled) => {
+        (target: HTMLElement, enabled: boolean) => {
           target.tabIndex = enabled ? 0 : -1;
         },
       ],
       [
         FOCUS_REQUEST_FOCUS_CAP,
-        (target) => {
+        (target: HTMLElement) => {
           target.focus();
         },
       ],
       [
         FOCUS_BLUR_CAP,
-        (target) => {
+        (target: HTMLElement) => {
           target.blur();
         },
       ],
@@ -110,7 +110,7 @@ export function createReactModules<Props extends PropsBaseType>(args: {
     .use('expose-state', [
       [
         EXPOSE_STATE_SET_EXPOSES_CAP,
-        (record) => {
+        (record: Record<string, unknown>) => {
           setExposes(record ?? {});
         },
       ],
@@ -122,21 +122,21 @@ export function createReactModules<Props extends PropsBaseType>(args: {
     ])
     .use('context', [
       [CONTEXT_INSTANCE_TOKEN_CAP, el],
-      [CONTEXT_PARENT_CAP, (inst) => getProtoParent(inst as HTMLElement)],
+      [CONTEXT_PARENT_CAP, (inst: unknown) => getProtoParent(inst as HTMLElement)],
     ])
     .use('anatomy', [
       [ANATOMY_INSTANCE_TOKEN_CAP, el],
-      [ANATOMY_PARENT_CAP, (inst) => getProtoParent(inst as HTMLElement)],
-      [ANATOMY_GET_PROTO_CAP, (inst) => getPrototypeByInstance(inst as HTMLElement)],
-      [ANATOMY_ROOT_TARGET_CAP, (inst) => inst as HTMLElement],
+      [ANATOMY_PARENT_CAP, (inst: unknown) => getProtoParent(inst as HTMLElement)],
+      [ANATOMY_GET_PROTO_CAP, (inst: unknown) => getPrototypeByInstance(inst as HTMLElement)],
+      [ANATOMY_ROOT_TARGET_CAP, (inst: unknown) => inst as HTMLElement],
       [ANATOMY_ORDER_OBSERVER_CAP, createDomOrderObserver],
     ])
     .use('as-trigger', [
       [AS_TRIGGER_INSTANCE_CAP, el],
-      [AS_TRIGGER_PARENT_CAP, (inst) => getProtoParent(inst as HTMLElement)],
-      [AS_TRIGGER_GET_PROTO_CAP, (inst) => getPrototypeByInstance(inst as HTMLElement)],
+      [AS_TRIGGER_PARENT_CAP, (inst: unknown) => getProtoParent(inst as HTMLElement)],
+      [AS_TRIGGER_GET_PROTO_CAP, (inst: unknown) => getPrototypeByInstance(inst as HTMLElement)],
     ])
-    .use('rule-meta', [[RULE_META_GET_CAP, (key) => getMeta(key)]])
+    .use('rule-meta', [[RULE_META_GET_CAP, (key: string) => getMeta(key)]])
     .use('rule-expose-state-web', [
       [RULE_EXPOSE_STATE_WEB_NATIVE_VARIANT_POLICY_CAP, createExposeStateWebNativeVariantPolicy],
     ])
@@ -156,7 +156,7 @@ export function createReactModules<Props extends PropsBaseType>(args: {
       [
         OVERLAY_GLOBAL_MOUNT_CAP,
         {
-          mount(hostEl) {
+          mount(hostEl: HTMLElement) {
             if (hostEl.parentElement && hostEl.parentElement !== document.body) {
               setProtoParent(hostEl, hostEl.parentElement);
             }

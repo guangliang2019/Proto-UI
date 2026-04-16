@@ -7,7 +7,7 @@ export function createPresenceModule(
   ctx: ModuleFactoryArgs
 ): ReturnType<typeof createModule<'presence', 'instance', PresenceFacade, PresencePort>> {
   const { init, caps } = ctx;
-  const impl = new PresenceModuleImpl(caps, init.prototypeName);
+  const impl = new PresenceModuleImpl(caps);
 
   return createModule<'presence', 'instance', PresenceFacade, PresencePort>({
     name: 'presence',

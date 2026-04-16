@@ -7,7 +7,7 @@ import {
 describe('module-hit-participation: web host bridge', () => {
   it('HIT-ADAPTER-0100: disabled regions are projected to host pointer-events none', () => {
     const bridge = createWebHitParticipationHostBridge();
-    const el = document.createElement('div') as HTMLElement & Record<symbol, unknown>;
+    const el = document.createElement('div') as unknown as HTMLElement & Record<symbol, unknown>;
 
     bridge.sync({
       config: { mode: 'disabled' },
@@ -20,7 +20,7 @@ describe('module-hit-participation: web host bridge', () => {
 
   it('HIT-ADAPTER-0200: passthrough remains distinguishable from disabled at the host bridge layer', () => {
     const bridge = createWebHitParticipationHostBridge();
-    const el = document.createElement('div') as HTMLElement & Record<symbol, unknown>;
+    const el = document.createElement('div') as unknown as HTMLElement & Record<symbol, unknown>;
 
     bridge.sync({
       config: { mode: 'passthrough' },
@@ -33,7 +33,7 @@ describe('module-hit-participation: web host bridge', () => {
 
   it('HIT-ADAPTER-0300: participating restores the previous host pointer-events value', () => {
     const bridge = createWebHitParticipationHostBridge();
-    const el = document.createElement('div') as HTMLElement & Record<symbol, unknown>;
+    const el = document.createElement('div') as unknown as HTMLElement & Record<symbol, unknown>;
     el.style.pointerEvents = 'auto';
 
     bridge.sync({
@@ -51,7 +51,7 @@ describe('module-hit-participation: web host bridge', () => {
 
   it('HIT-ADAPTER-0400: removing a region clears the previously projected host state', () => {
     const bridge = createWebHitParticipationHostBridge();
-    const el = document.createElement('div') as HTMLElement & Record<symbol, unknown>;
+    const el = document.createElement('div') as unknown as HTMLElement & Record<symbol, unknown>;
 
     bridge.sync({
       config: { mode: 'disabled' },

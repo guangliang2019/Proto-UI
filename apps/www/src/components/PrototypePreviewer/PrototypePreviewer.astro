@@ -83,13 +83,13 @@ const codeMapModules = import.meta.glob('../../content/docs/demo_components/**/*
   eager: true,
 });
 
-function findCodeMapForDemo(targetDemoId: string): Record<RuntimeId, string> | undefined {
+function findCodeMapForDemo(targetDemoId: string): Partial<Record<RuntimeId, string>> | undefined {
   for (const mod of Object.values(codeMapModules)) {
     const map = (mod as { codeMap?: Record<RuntimeId, Record<string, string>> }).codeMap;
     if (!map) continue;
     const hasDemo = Object.values(map).some((runtimeMap) => targetDemoId in runtimeMap);
     if (!hasDemo) continue;
-    const result: Record<RuntimeId, string> = {};
+    const result: Partial<Record<RuntimeId, string>> = {};
     for (const [runtime, runtimeMap] of Object.entries(map)) {
       if (runtimeMap[targetDemoId]) {
         result[runtime as RuntimeId] = runtimeMap[targetDemoId];

@@ -14,7 +14,7 @@ describe('PresenceModuleImpl', () => {
       },
       onChange: () => () => {},
     };
-    return new PresenceModuleImpl(caps as any, 'test-proto');
+    return new PresenceModuleImpl(caps as any);
   };
 
   it('starts as absent', () => {
@@ -72,12 +72,12 @@ describe('PresenceModuleImpl', () => {
   });
 
   it('ignores stale unmount completion after enter cancels pending unmount', async () => {
-    let resolveUnmount: (() => void) | null = null;
+    const resolveUnmountRef: { current?: () => void } = {};
     const mount = vi.fn();
     const unmount = vi.fn(
       () =>
         new Promise<void>((resolve) => {
-          resolveUnmount = resolve;
+          resolveUnmountRef.current = resolve;
         })
     );
     const impl = createImpl({ mount, unmount });
@@ -100,7 +100,7 @@ describe('PresenceModuleImpl', () => {
     expect(mount).toHaveBeenCalledTimes(2);
 
     // Late completion of the canceled unmount must be ignored.
-    resolveUnmount?.();
+    resolveUnmountRef.current?.();
     await Promise.resolve();
     expect(handle.getPhase()).toBe('present');
   });

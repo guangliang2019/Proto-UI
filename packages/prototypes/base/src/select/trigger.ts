@@ -25,7 +25,7 @@ function setupSelectTrigger(def: DefHandle<SelectTriggerProps, SelectTriggerExpo
   def.context.subscribe(SELECT_CONTEXT);
 
   const requestOpen = (run: any) => {
-    run.context.update(SELECT_CONTEXT, (prev) => ({
+    run.context.update(SELECT_CONTEXT, (prev: any) => ({
       ...prev,
       activeValue: prev.value,
       open: prev.controlledOpen ? prev.open : true,

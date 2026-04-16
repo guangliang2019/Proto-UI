@@ -1,5 +1,5 @@
 import type { RuntimeAPI } from './registry';
-import { createVueAdapter } from '@proto.ui/adapter-vue';
+import { createVueAdapter, type VueRuntime as AdapterVueRuntime } from '@proto.ui/adapter-vue';
 import type * as VueTypes from 'vue';
 
 // 使用 esm.sh 的 ESM 版本懒加载 Vue
@@ -43,7 +43,7 @@ export const runtime: RuntimeAPI = {
     const Vue = await loadVue();
 
     // 通过适配器获得 Vue 组件
-    const Component = createVueAdapter(Vue)(prototype);
+    const Component = createVueAdapter(Vue as unknown as AdapterVueRuntime)(prototype);
 
     // 创建 Vue 应用实例
     const app = Vue.createApp(Component, options?.props ?? {});

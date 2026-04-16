@@ -26,7 +26,7 @@ function setupDialogContent(def: DefHandle<DialogContentProps, DialogContentExpo
     closeOnFocusOutside: true,
     restore: 'trigger',
     entry: 'content',
-    placement: 'center',
+    placement: 'center' as any,
     portal: true,
     modal: false,
     layerRole: 'dialog-content',
@@ -64,7 +64,8 @@ function setupDialogContent(def: DefHandle<DialogContentProps, DialogContentExpo
 
   def.lifecycle.onMounted((run) => {
     mountedRun = run;
-    const trigger = run.anatomy.partsOf(DIALOG_FAMILY, 'trigger', { missing: 'empty' })[0] ?? null;
+    const trigger =
+      (run.anatomy as any).partsOf(DIALOG_FAMILY, 'trigger', { missing: 'empty' })[0] ?? null;
     const triggerTarget = trigger?.getRootTarget?.() ?? null;
     if (triggerTarget) {
       overlay.registerTrigger(triggerTarget);

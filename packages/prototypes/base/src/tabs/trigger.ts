@@ -60,7 +60,7 @@ function setupTabsTrigger(def: DefHandle<TabsTriggerProps, TabsTriggerExposes>):
 
   const updateActiveValue = (run: any) => {
     const nextValue = run.props.get().value ?? '';
-    run.context.update(TABS_CONTEXT, (prev) => {
+    run.context.update(TABS_CONTEXT, (prev: any) => {
       if (prev.activeValue === nextValue) return prev;
       return { ...prev, activeValue: nextValue };
     });

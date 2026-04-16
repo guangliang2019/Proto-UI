@@ -150,7 +150,7 @@ describe('runtime contract: hit participation (v0)', () => {
       P as any,
       {
         ...host,
-        onRuntimeReady(wiring) {
+        onRuntimeReady(wiring: any) {
           wiring.attach('hit-participation', [
             [HOST_ELEMENT_CAP, hostEl],
             [
@@ -195,7 +195,7 @@ describe('runtime contract: hit participation (v0)', () => {
       P as any,
       {
         ...host,
-        onRuntimeReady(wiring) {
+        onRuntimeReady(wiring: any) {
           wiring.attach('hit-participation', [
             [HOST_ELEMENT_CAP, hostEl],
             [
@@ -244,7 +244,7 @@ describe('runtime contract: hit participation (v0)', () => {
       P as any,
       {
         ...host,
-        onRuntimeReady(wiring) {
+        onRuntimeReady(wiring: any) {
           wiring.attach('hit-participation', [
             [HOST_ELEMENT_CAP, hostEl],
             [
@@ -290,7 +290,7 @@ describe('runtime contract: hit participation (v0)', () => {
       P as any,
       {
         ...host,
-        onRuntimeReady(wiring) {
+        onRuntimeReady(wiring: any) {
           wiring.attach('hit-participation', [
             [HOST_ELEMENT_CAP, hostEl],
             [
