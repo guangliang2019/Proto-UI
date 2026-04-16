@@ -45,14 +45,14 @@ jobs:
           esac
 
           corepack enable
-          corepack prepare "pnpm@${PNPM_VERSION}" --activate
-          pnpm --version
+          echo "PROTO_PNPM_VERSION=${PNPM_VERSION}" >> "$GITHUB_ENV"
+          corepack pnpm@"${PNPM_VERSION}" --version
 
       - name: Install
-        run: pnpm install --frozen-lockfile
+        run: corepack pnpm@"${PROTO_PNPM_VERSION}" install --frozen-lockfile
 
       - name: Type check
-        run: pnpm -s check:types
+        run: corepack pnpm@"${PROTO_PNPM_VERSION}" -s check:types
 
   test:
     runs-on: ubuntu-latest
@@ -86,11 +86,11 @@ jobs:
           esac
 
           corepack enable
-          corepack prepare "pnpm@${PNPM_VERSION}" --activate
-          pnpm --version
+          echo "PROTO_PNPM_VERSION=${PNPM_VERSION}" >> "$GITHUB_ENV"
+          corepack pnpm@"${PNPM_VERSION}" --version
 
       - name: Install
-        run: pnpm install --frozen-lockfile
+        run: corepack pnpm@"${PROTO_PNPM_VERSION}" install --frozen-lockfile
 
       - name: Test
-        run: pnpm -s test
+        run: corepack pnpm@"${PROTO_PNPM_VERSION}" -s test

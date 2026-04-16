@@ -95,11 +95,11 @@ jobs:
           esac
 
           corepack enable
-          corepack prepare "pnpm@${PNPM_VERSION}" --activate
-          pnpm --version
+          echo "PROTO_PNPM_VERSION=${PNPM_VERSION}" >> "$GITHUB_ENV"
+          corepack pnpm@"${PNPM_VERSION}" --version
 
       - name: Install
-        run: pnpm install --frozen-lockfile
+        run: corepack pnpm@"${PROTO_PNPM_VERSION}" install --frozen-lockfile
 
       - name: Validate Publish Branch
         if: ${{ inputs.mode == 'publish' }}
