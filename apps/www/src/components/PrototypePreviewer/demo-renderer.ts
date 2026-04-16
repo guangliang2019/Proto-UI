@@ -2,12 +2,13 @@ import { setElementProps } from '@proto.ui/adapter-web-component';
 import { createReactAdapter, type ReactRuntime } from '@proto.ui/adapter-react';
 import { createVueAdapter, type VueRuntime as AdapterVueRuntime } from '@proto.ui/adapter-vue';
 import type { Prototype } from '@proto.ui/core';
-import type { PropsBaseType } from '@proto.ui/types';
 import { getPrototype } from './registry';
 import { loadReact } from './runtimes/react-runtime';
 import { loadVue } from './runtimes/vue-runtime';
 import type { DemoChild, DemoRenderOptions, DemoRenderResult, DemoRuntimeApi } from './demo-types';
 import { ensurePreviewWcRegistered } from './wc-registry';
+
+type PropsBaseType = Record<string, unknown>;
 
 const reactRoots = new WeakMap<
   HTMLElement,
