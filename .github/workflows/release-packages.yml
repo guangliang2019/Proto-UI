@@ -57,9 +57,14 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: release-packages-${{ github.ref }}
+  cancel-in-progress: false
+
 jobs:
   release:
     runs-on: ubuntu-latest
+    timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
 
@@ -75,6 +80,30 @@ jobs:
 
       - name: Install
         run: pnpm install --frozen-lockfile
+
+      - name: Validate Publish Branch
+        if: ${{ inputs.mode == 'publish' }}
+        run: |
+          set -euo pipefail
+          case "${GITHUB_REF_NAME}" in
+            main|feat/v0-release-prep)
+              echo "publish allowed on ${GITHUB_REF_NAME}"
+              ;;
+            *)
+              echo "publish mode is only allowed on main or feat/v0-release-prep"
+              exit 1
+              ;;
+          esac
+
+      - name: Validate npm token for publish
+        if: ${{ inputs.mode == 'publish' }}
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          if [[ -z "${NODE_AUTH_TOKEN}" ]]; then
+            echo "NPM_TOKEN is required for publish mode"
+            exit 1
+          fi
 
       - name: Run Release Command
         env:
