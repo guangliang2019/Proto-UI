@@ -1,16 +1,15 @@
 # @proto.ui/cli
 
-Local CLI package for generating Proto UI Tailwind assets.
+用于生成 Proto UI 的 Tailwind 相关资源，以及初始化一个最小化 `proto-ui/` 工作区的本地 CLI 工具。
 
-## Commands
+---
 
-- `proto-ui shadcn [--styles-dir <dir>]`
-- `proto-ui tokens --input <dir> --out <file>`
-- `proto-ui tailwindcss --out <file> [--theme-import <path>] [--tokens-import <path>]`
-- `proto-ui theme shadcn --out <file>`
+## 用户使用
 
-`proto-ui shadcn` writes these preset files directly:
+```bash
+  npx @proto.ui/cli init
+```
 
-- `prototype-tokens.generated.css`
-- `tailwindcss.css`
-- `shadcn-theme.css`
+使用这个命令之后会在用户端写入 prototype-tokens.generated.css shadcn-theme.css tailwindcss.css （ 这些东西目前固定写在
+
+---

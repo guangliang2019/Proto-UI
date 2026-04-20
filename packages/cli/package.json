@@ -1,12 +1,13 @@
 {
   "name": "@proto.ui/cli",
-  "version": "0.0.2",
+  "version": "0.0.4",
   "private": false,
   "type": "module",
   "bin": {
-    "proto-ui": "./bin/proto-ui.mjs"
+    "proto-ui": "bin/proto-ui.js"
   },
   "dependencies": {
+    "prompts": "^2.4.2",
     "typescript": "^5.0.0"
   },
   "description": "Proto UI command line helpers for generating Tailwind token sources and theme css files.",

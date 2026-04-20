@@ -1,4 +1,5 @@
 import {
+  cpSync,
   existsSync,
   mkdirSync,
   readdirSync,
@@ -266,6 +267,8 @@ export function stagePackage(pkg, options) {
     '--declaration',
     '--emitDeclarationOnly',
     'false',
+    '--allowJs',
+    'true',
     '--rootDir',
     join(pkg.dir, 'src'),
     '--outDir',
@@ -288,6 +291,11 @@ export function stagePackage(pkg, options) {
   const manifest = createPublishManifest(pkg, { version, access });
   writeFileSync(join(stageDir, 'package.json'), `${JSON.stringify(manifest, null, 2)}\n`);
   writeSupportingFiles(pkg, stageDir);
+
+  const binDir = join(pkg.dir, 'bin');
+  if (existsSync(binDir)) {
+    cpSync(binDir, join(stageDir, 'bin'), { recursive: true });
+  }
 
   let publishResult = null;
   if (publish || dryRun) {
@@ -333,7 +341,9 @@ export function createPublishManifest(pkg, options) {
 
   manifest.version = version ?? manifest.version;
   manifest.license ??= readRootLicenseId();
-  manifest.files = ['dist', 'README.md', 'LICENSE'];
+  const files = ['dist', 'README.md', 'LICENSE'];
+  if (manifest.bin && !files.includes('bin')) files.push('bin');
+  manifest.files = files;
   manifest.publishConfig = {
     access,
     ...manifest.publishConfig,
