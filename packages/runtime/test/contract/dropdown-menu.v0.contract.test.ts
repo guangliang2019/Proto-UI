@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import type { Prototype } from '@proto.ui/core';
 import type { RuntimeHost } from '../../src';
 import { executeWithHost } from '../../src';
-import { EXPOSE_SET_EXPOSES_CAP } from '@proto.ui/module-expose';
+import { EXPOSE_STATE_SET_EXPOSES_CAP } from '@proto.ui/module-expose-state';
 import { EVENT_GLOBAL_TARGET_CAP, EVENT_ROOT_TARGET_CAP } from '@proto.ui/module-event';
 import {
   ANATOMY_GET_PROTO_CAP,
@@ -92,8 +92,8 @@ function createDropdownRuntimeTree(options?: {
         scheduled.push(task);
       },
       onRuntimeReady(wiring) {
-        wiring.attach('expose', [
-          [EXPOSE_SET_EXPOSES_CAP, (next: Record<string, unknown>) => (exposes = next)],
+        wiring.attach('expose-state', [
+          [EXPOSE_STATE_SET_EXPOSES_CAP, (next: Record<string, unknown>) => (exposes = next)],
         ]);
         wiring.attach('event', [
           [EVENT_ROOT_TARGET_CAP, () => args.target],

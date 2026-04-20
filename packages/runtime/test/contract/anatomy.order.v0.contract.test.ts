@@ -201,17 +201,18 @@ describe('runtime contract: anatomy.order (v0)', () => {
         });
         def.anatomy.claim(family, { role: 'item' });
         def.lifecycle.onUpdated((run) => {
+          const anatomyAny = run.anatomy as any;
           seen = {
-            parts: run.anatomy.parts(family, { missing: 'null' }),
-            emptyParts: run.anatomy.parts(family, { missing: 'empty' }),
-            roleParts: run.anatomy.partsOf(family, 'item', { missing: 'null' }),
-            emptyRoleParts: run.anatomy.partsOf(family, 'item', { missing: 'empty' }),
-            version: run.anatomy.order.version(family, { missing: 'null' }),
-            ordered: run.anatomy.order.parts(family, { missing: 'null' }),
-            orderedRole: run.anatomy.order.partsOf(family, 'item', { missing: 'null' }),
-            index: run.anatomy.order.indexOfSelf(family, 'item', { missing: 'null' }),
-            prev: run.anatomy.order.prevOfSelf(family, 'item', { missing: 'null' }),
-            next: run.anatomy.order.nextOfSelf(family, 'item', { missing: 'null' }),
+            parts: anatomyAny.parts(family, { missing: 'null' }),
+            emptyParts: anatomyAny.parts(family, { missing: 'empty' }),
+            roleParts: anatomyAny.partsOf(family, 'item', { missing: 'null' }),
+            emptyRoleParts: anatomyAny.partsOf(family, 'item', { missing: 'empty' }),
+            version: anatomyAny.order.version(family, { missing: 'null' }),
+            ordered: anatomyAny.order.parts(family, { missing: 'null' }),
+            orderedRole: anatomyAny.order.partsOf(family, 'item', { missing: 'null' }),
+            index: anatomyAny.order.indexOfSelf(family, 'item', { missing: 'null' }),
+            prev: anatomyAny.order.prevOfSelf(family, 'item', { missing: 'null' }),
+            next: anatomyAny.order.nextOfSelf(family, 'item', { missing: 'null' }),
           };
         });
         return (r) => r.el('div', r.slot());
@@ -342,10 +343,11 @@ describe('runtime contract: anatomy.order (v0)', () => {
         });
         def.anatomy.claim(family, { role: 'root' });
         def.lifecycle.onCreated((run) => {
+          const orderAny = run.anatomy.order as any;
           readOrderedIds = () =>
-            run.anatomy.order
+            orderAny
               .partsOf(family, 'item', { missing: 'empty' })
-              .map((part) => part.getExpose('id'));
+              .map((part: any) => part.getExpose('id'));
         });
       },
     });
@@ -392,7 +394,11 @@ describe('runtime contract: anatomy.order (v0)', () => {
     rootExec.controller.update();
 
     expect(readOrderedIds).not.toBeNull();
-    expect(() => readOrderedIds?.()).not.toThrow();
-    expect(readOrderedIds?.()).toEqual(['a', 'b']);
+    if (!readOrderedIds) {
+      throw new Error('expected readOrderedIds to be initialized');
+    }
+    const read = readOrderedIds as unknown as () => unknown[];
+    expect(() => read()).not.toThrow();
+    expect(read()).toEqual(['a', 'b']);
   });
 });

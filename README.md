@@ -44,6 +44,7 @@ Adapters are already usable and help validate feasibility. Compilers will provid
 
 - **v0 (now):** Validate the protocol and build adapters for major Web technologies. Research adapters for non-Web tech (e.g., Flutter).
 - **v1 (next):** Shift to compiler-first output, ensure zero runtime overhead, and extend support to non-Web platforms.
+- **Current launch target:** CLI availability and first public launch are both currently targeted for **May 14, 2026**.
 
 The architecture is stable enough to move from v0 to v1 without destructive rewrites.
 

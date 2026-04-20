@@ -11,6 +11,7 @@ import { tmpdir } from 'node:os';
 import { dirname, join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { spawnSync } from 'node:child_process';
+import { getLaunchProfilePackageNames, loadLaunchPackageGovernance } from './governance.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 export const ROOT_DIR = resolve(__dirname, '..', '..');
@@ -30,12 +31,18 @@ export function parseArgs(argv) {
     includeLegacy: false,
     includeTest: false,
     checkBuild: false,
+    checkGovernance: false,
     publish: false,
     tag: 'latest',
     access: 'public',
     otp: undefined,
     outDir: join(tmpdir(), 'proto-ui-npm-release'),
     only: [],
+    profile: 'workspace',
+    includeApprovedCandidates: false,
+    publishDelayMs: 3000,
+    maxPublishRetries: 2,
+    retryDelayMs: 15000,
   };
 
   for (let i = 0; i < argv.length; i += 1) {
@@ -45,12 +52,19 @@ export function parseArgs(argv) {
     else if (arg === '--json') args.json = true;
     else if (arg === '--include-legacy') args.includeLegacy = true;
     else if (arg === '--include-test') args.includeTest = true;
+    else if (arg === '--include-approved-candidates') args.includeApprovedCandidates = true;
     else if (arg === '--check-build') args.checkBuild = true;
+    else if (arg === '--check-governance') args.checkGovernance = true;
     else if (arg === '--publish') args.publish = true;
     else if (arg === '--version') args.version = argv[++i];
     else if (arg === '--tag') args.tag = argv[++i];
     else if (arg === '--access') args.access = argv[++i];
     else if (arg === '--otp') args.otp = argv[++i];
+    else if (arg === '--profile') args.profile = argv[++i];
+    else if (arg === '--publish-delay-ms') args.publishDelayMs = parseIntegerArg(argv[++i], arg);
+    else if (arg === '--max-publish-retries')
+      args.maxPublishRetries = parseIntegerArg(argv[++i], arg);
+    else if (arg === '--retry-delay-ms') args.retryDelayMs = parseIntegerArg(argv[++i], arg);
     else if (arg === '--registry') args.registry = argv[++i];
     else if (arg === '--out-dir') args.outDir = resolve(ROOT_DIR, argv[++i]);
     else if (arg === '--only')
@@ -60,6 +74,19 @@ export function parseArgs(argv) {
         .filter(Boolean);
     else if (arg === '--help' || arg === '-h') args.help = true;
     else throw new Error(`Unknown argument: ${arg}`);
+  }
+
+  if (!['workspace', 'launch'].includes(args.profile)) {
+    throw new Error(`Unknown --profile value: ${args.profile}`);
+  }
+  if (args.publishDelayMs < 0) {
+    throw new Error('--publish-delay-ms must be >= 0');
+  }
+  if (args.maxPublishRetries < 0) {
+    throw new Error('--max-publish-retries must be >= 0');
+  }
+  if (args.retryDelayMs < 0) {
+    throw new Error('--retry-delay-ms must be >= 0');
   }
 
   return args;
@@ -152,8 +179,48 @@ export function getAllPackages() {
 }
 
 export function selectPackages(packages, options = {}) {
-  const { includeLegacy = false, includeTest = false, only = [] } = options;
+  const {
+    includeLegacy = false,
+    includeTest = false,
+    only = [],
+    profile = 'workspace',
+    includeApprovedCandidates = false,
+    launchGovernance = null,
+  } = options;
   const onlySet = new Set(only);
+
+  if (profile === 'launch') {
+    const governance = launchGovernance ?? loadLaunchPackageGovernance();
+    const launchPackageSet = getLaunchProfilePackageNames(governance, {
+      includeApprovedCandidates,
+    });
+    const selected = packages.filter((pkg) => {
+      if (!launchPackageSet.has(pkg.name)) return false;
+      if (onlySet.size > 0 && !onlySet.has(pkg.name) && !onlySet.has(pkg.relDir)) return false;
+      return true;
+    });
+
+    if (onlySet.size > 0) {
+      const workspaceBySelector = new Set();
+      const launchBySelector = new Set();
+      for (const pkg of packages) {
+        if (onlySet.has(pkg.name) || onlySet.has(pkg.relDir)) {
+          workspaceBySelector.add(pkg.name);
+          if (launchPackageSet.has(pkg.name)) launchBySelector.add(pkg.name);
+        }
+      }
+      const disallowed = [...workspaceBySelector]
+        .filter((name) => !launchBySelector.has(name))
+        .sort();
+      if (disallowed.length > 0) {
+        throw new Error(
+          `--only contains packages outside launch profile: ${disallowed.join(', ')}`
+        );
+      }
+    }
+
+    return selected;
+  }
 
   return packages.filter((pkg) => {
     if (onlySet.size > 0 && !onlySet.has(pkg.name) && !onlySet.has(pkg.relDir)) return false;
@@ -244,6 +311,10 @@ export function stagePackage(pkg, options) {
     tag = 'latest',
     registry,
     otp,
+    publishDelayMs = 0,
+    maxPublishRetries = 2,
+    retryDelayMs = 15000,
+    publishSequenceIndex = 0,
   } = options;
   const stageDir = join(outDir, sanitizePackageName(pkg.name));
   const npmCacheDir = join(tmpdir(), 'proto-ui-npm-cache');
@@ -291,26 +362,45 @@ export function stagePackage(pkg, options) {
 
   let publishResult = null;
   if (publish || dryRun) {
+    if (publishSequenceIndex > 0 && publishDelayMs > 0) {
+      sleepMs(publishDelayMs);
+    }
+
     const publishArgs = ['publish', '--access', access, '--tag', tag];
     if (dryRun) publishArgs.push('--dry-run');
     if (otp) publishArgs.push('--otp', otp);
     if (registry) publishArgs.push('--registry', registry);
-    const result = spawnSync('npm', publishArgs, {
-      cwd: stageDir,
-      encoding: 'utf8',
-      env: {
-        ...process.env,
-        npm_config_cache: npmCacheDir,
-      },
-    });
-    publishResult = {
-      code: result.status ?? 0,
-      stdout: result.stdout,
-      stderr: result.stderr,
-      errors: collectNonEmptyLines(`${result.stdout}\n${result.stderr}`),
-    };
-    if (result.status !== 0) {
-      throw new Error(`npm publish failed for ${pkg.name}\n${result.stderr || result.stdout}`);
+
+    const maxAttempts = Math.max(1, Number(maxPublishRetries) + 1);
+    for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
+      const result = spawnSync('npm', publishArgs, {
+        cwd: stageDir,
+        encoding: 'utf8',
+        env: {
+          ...process.env,
+          npm_config_cache: npmCacheDir,
+        },
+      });
+      const errors = collectNonEmptyLines(`${result.stdout}\n${result.stderr}`);
+      const code = result.status ?? 0;
+      const rateLimited = isRateLimitedPublishError(errors);
+      publishResult = {
+        code,
+        stdout: result.stdout,
+        stderr: result.stderr,
+        errors,
+        attempt,
+        maxAttempts,
+        rateLimited,
+      };
+      if (code === 0) break;
+      if (!rateLimited || attempt >= maxAttempts) {
+        throw new Error(`npm publish failed for ${pkg.name}\n${result.stderr || result.stdout}`);
+      }
+
+      if (retryDelayMs > 0) {
+        sleepMs(retryDelayMs * attempt);
+      }
     }
   }
 
@@ -445,4 +535,23 @@ function collectNonEmptyLines(value) {
     .split('\n')
     .map((line) => line.trimEnd())
     .filter((line) => line.trim().length > 0);
+}
+
+function parseIntegerArg(value, argName) {
+  const parsed = Number.parseInt(value, 10);
+  if (!Number.isFinite(parsed)) {
+    throw new Error(`${argName} expects an integer value`);
+  }
+  return parsed;
+}
+
+function isRateLimitedPublishError(lines) {
+  const text = lines.join('\n');
+  return /\b429\b/i.test(text) || /too many requests/i.test(text) || /rate limit/i.test(text);
+}
+
+function sleepMs(ms) {
+  if (!Number.isFinite(ms) || ms <= 0) return;
+  const waitMs = Math.floor(ms);
+  Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, waitMs);
 }

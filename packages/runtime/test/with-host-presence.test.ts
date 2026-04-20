@@ -39,13 +39,14 @@ function createMockHost() {
   return { host, calls, scheduled };
 }
 
+let capturedPresenceFacade: PresenceFacade | undefined;
+
 // Helper asHook to capture the presence facade during prototype setup
 const capturePresenceFacade = defineAsHook({
   name: 'capturePresence',
   setup() {
     const { facades } = getActiveAsHookContext('capturePresence');
-    const facade = facades.presence as PresenceFacade | undefined;
-    return () => facade;
+    capturedPresenceFacade = facades.presence as PresenceFacade | undefined;
   },
 });
 
@@ -58,8 +59,8 @@ describe('runtime integration: with-host presence wiring', () => {
     const P: Prototype = {
       name: 'x-presence-mount-delay',
       setup(def) {
-        const result = capturePresenceFacade();
-        const facade = result.render?.(() => []) as PresenceFacade | undefined;
+        capturePresenceFacade();
+        const facade = capturedPresenceFacade;
         expect(facade).toBeTruthy();
         handle = facade!.createHandle();
         def.lifecycle.onMounted(() => calls.push('mounted'));

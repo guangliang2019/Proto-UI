@@ -29,17 +29,6 @@ npm install @proto.ui/adapter-base@0.0.1
 ## Related Internal Packages
 
 - `@proto.ui/core`
-- `@proto.ui/module-anatomy`
-- `@proto.ui/module-as-trigger`
-- `@proto.ui/module-context`
-- `@proto.ui/module-event`
-- `@proto.ui/module-expose`
-- `@proto.ui/module-expose-state-web`
-- `@proto.ui/module-feedback`
-- `@proto.ui/module-focus`
-- `@proto.ui/module-props`
-- `@proto.ui/module-rule-expose-state-web`
-- `@proto.ui/module-rule-meta`
 - `@proto.ui/runtime`
 - `@proto.ui/types`
 

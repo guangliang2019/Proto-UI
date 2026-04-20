@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { createAnatomyFamily, definePrototype, type Prototype } from '@proto.ui/core';
 import { asCollection, asCollectionItem } from '@proto.ui/hooks';
 import { executeWithHost, type RuntimeHost } from '@proto.ui/runtime';
-import { EXPOSE_SET_EXPOSES_CAP } from '@proto.ui/module-expose';
+import { EXPOSE_STATE_SET_EXPOSES_CAP } from '@proto.ui/module-expose-state';
 import {
   ANATOMY_GET_PROTO_CAP,
   ANATOMY_INSTANCE_TOKEN_CAP,
@@ -47,8 +47,8 @@ function createHost(args: {
       task();
     },
     onRuntimeReady(wiring) {
-      wiring.attach('expose', [
-        [EXPOSE_SET_EXPOSES_CAP, (next: Record<string, unknown>) => (exposes = next)],
+      wiring.attach('expose-state', [
+        [EXPOSE_STATE_SET_EXPOSES_CAP, (next: Record<string, unknown>) => (exposes = next)],
       ]);
       wiring.attach('anatomy', [
         [ANATOMY_INSTANCE_TOKEN_CAP, args.instance],

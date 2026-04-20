@@ -39,6 +39,7 @@ function setupDropdownContent(
     | ((id: string, options?: { reason?: 'programmatic' | 'keyboard' | 'pointer' }) => boolean)
     | undefined;
   const focusFirst = roving.getMethod?.('focusFirst') as (() => boolean) | undefined;
+  const focusLast = roving.getMethod?.('focusLast') as (() => boolean) | undefined;
 
   const overlay = asOverlay({
     restore: 'trigger',

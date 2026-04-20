@@ -4,11 +4,11 @@ import { ModuleBase } from '@proto.ui/module-base';
 import type { ModuleDeps } from '@proto.ui/module-base';
 import type { StateEvent, StateSpec } from '@proto.ui/types';
 
-import { EXPOSE_SET_EXPOSES_CAP } from '@proto.ui/module-expose';
 import type { ExposePort } from '@proto.ui/module-expose';
 import type { StatePort } from '@proto.ui/module-state';
 
 import type { ExposeStateDiag, ExposeStateExternalHandle, ExposeStatePort } from './types';
+import { EXPOSE_STATE_SET_EXPOSES_CAP } from './caps';
 
 const STATE_ID = '__stateId';
 const STATE_SPEC = '__stateSpec';
@@ -153,8 +153,8 @@ export class ExposeStateModuleImpl extends ModuleBase {
   }
 
   private publishToHost(clear = false): void {
-    if (!this.caps.has(EXPOSE_SET_EXPOSES_CAP)) return;
-    const sink = this.caps.get(EXPOSE_SET_EXPOSES_CAP);
+    if (!this.caps.has(EXPOSE_STATE_SET_EXPOSES_CAP)) return;
+    const sink = this.caps.get(EXPOSE_STATE_SET_EXPOSES_CAP);
     if (!sink) return;
 
     if (clear) {

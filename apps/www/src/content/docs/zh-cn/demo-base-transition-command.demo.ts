@@ -1,4 +1,4 @@
-import type { DemoSetupContext } from '@/components/PrototypePreviewer/demo-types';
+import type { DemoSetupContext } from '../../../components/PrototypePreviewer/demo-types';
 
 export default {
   type: 'demo',

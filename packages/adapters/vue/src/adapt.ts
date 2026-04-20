@@ -5,11 +5,13 @@ import {
   createEventGate,
   createWebProtoEventRouter,
   createSoftUnmountScheduler,
+} from '@proto.ui/adapter-base';
+import type { ExposeStateWebMode } from '@proto.ui/module-expose-state-web';
+import {
   createZIndexOverlayLayerScheduler,
   type OverlayLayerScheduler,
   type OverlayZIndexLayerSchedulerOptions,
-} from '@proto.ui/adapter-base';
-import type { ExposeStateWebMode } from '@proto.ui/module-expose-state-web';
+} from '@proto.ui/module-overlay';
 import type { RawPropsSource } from '@proto.ui/module-props';
 import { PropsBaseType } from '@proto.ui/types';
 

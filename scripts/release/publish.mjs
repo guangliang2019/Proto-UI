@@ -9,22 +9,29 @@ import {
   stagePackage,
   topoSortPackages,
 } from './lib.mjs';
+import { collectLaunchGovernanceDiagnostics, loadLaunchPackageGovernance } from './governance.mjs';
 
 function printHelp() {
   console.log(`Usage: node scripts/release/publish.mjs [options]
 
 Options:
-  --version <semver>  Override package version for this release batch
-  --dry-run           Run npm publish --dry-run against staged packages
-  --publish           Run npm publish for real
-  --tag <tag>         npm dist-tag, defaults to latest
-  --otp <code>        npm one-time password for accounts requiring 2FA
-  --registry <url>    Custom npm registry
-  --access <mode>     npm access, defaults to public
-  --include-legacy    Include packages under packages/legacy
-  --include-test      Include test-only packages such as module-test-sys
-  --only <list>       Comma-separated package names or package paths
-  --out-dir <path>    Staging directory, defaults to .codex/npm-release
+  --version <semver>            Override package version for this release batch
+  --dry-run                     Run npm publish --dry-run against staged packages
+  --publish                     Run npm publish for real
+  --tag <tag>                   npm dist-tag, defaults to latest
+  --otp <code>                  npm one-time password for accounts requiring 2FA
+  --registry <url>              Custom npm registry
+  --access <mode>               npm access, defaults to public
+  --profile <name>              workspace (default) or launch
+  --include-approved-candidates Include candidate packages marked approved
+  --check-governance            Fail if governance map and workspace are out of sync
+  --publish-delay-ms <ms>       Delay between package publish requests
+  --max-publish-retries <n>     Retries when npm returns rate-limit errors
+  --retry-delay-ms <ms>         Delay before each retry
+  --include-legacy              Include packages under packages/legacy (workspace profile only)
+  --include-test                Include test-only packages such as module-test-sys
+  --only <list>                 Comma-separated package names or package paths
+  --out-dir <path>              Staging directory, defaults to .codex/npm-release
 `);
 }
 
@@ -39,7 +46,37 @@ if (!args.publish && !args.dryRun) {
 }
 
 const packages = getAllPackages();
-const selected = selectPackages(packages, args);
+const launchGovernance =
+  args.profile === 'launch' || args.checkGovernance ? loadLaunchPackageGovernance() : null;
+const governance = launchGovernance
+  ? collectLaunchGovernanceDiagnostics(packages, launchGovernance)
+  : null;
+
+if (args.checkGovernance && governance && governance.errors.length > 0) {
+  console.error('Launch governance check failed:');
+  for (const error of governance.errors) {
+    console.error(`- ${error}`);
+  }
+  if (governance.unclassifiedWorkspacePackages.length > 0) {
+    console.error(`  unclassified: ${governance.unclassifiedWorkspacePackages.join(', ')}`);
+  }
+  if (governance.missingLaunchCommitmentPackages.length > 0) {
+    console.error(
+      `  missing launch commitment packages: ${governance.missingLaunchCommitmentPackages.join(', ')}`
+    );
+  }
+  if (governance.missingApprovedCandidates.length > 0) {
+    console.error(
+      `  missing approved candidates: ${governance.missingApprovedCandidates.join(', ')}`
+    );
+  }
+  process.exit(1);
+}
+
+const selected = selectPackages(packages, {
+  ...args,
+  launchGovernance,
+});
 const ordered = topoSortPackages(selected);
 
 if (ordered.length === 0) {
@@ -73,8 +110,11 @@ mkdirSync(args.outDir, { recursive: true });
 ensureCleanDir(args.outDir);
 
 const results = [];
-for (const pkg of ordered) {
-  const result = stagePackage(pkg, args);
+for (const [index, pkg] of ordered.entries()) {
+  const result = stagePackage(pkg, {
+    ...args,
+    publishSequenceIndex: index,
+  });
   results.push(result);
 }
 
@@ -89,6 +129,12 @@ if (prerequisiteResults.length > 0) {
   console.log('');
 }
 
+if (governance) {
+  console.log(`Governance release line: ${governance.releaseLine}`);
+  console.log(`Approved candidates included: ${args.includeApprovedCandidates ? 'yes' : 'no'}`);
+  console.log('');
+}
+
 for (const result of results) {
   console.log(`- ${result.name}`);
   console.log(`  stage: ${result.stageDir}`);
@@ -100,6 +146,9 @@ for (const result of results) {
   }
   if (result.publishResult) {
     console.log(`  npm publish exit code: ${result.publishResult.code}`);
+    console.log(
+      `  npm publish attempt: ${result.publishResult.attempt}/${result.publishResult.maxAttempts}`
+    );
   }
 }
 

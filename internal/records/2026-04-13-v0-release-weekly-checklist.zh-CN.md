@@ -13,6 +13,8 @@
 - `T-2`：距离公开发布约 2 周
 - `T-1`：距离公开发布约 1 周
 
+当前目标公开发布时间：**2026-05-14**（CLI 上线目标同日）。
+
 如果实际节奏更快或更慢，可以整体平移，但顺序尽量不要变。
 
 核心原则：
@@ -44,10 +46,10 @@
 
 ### Checklist
 
-- [ ] 决定官方 Quick Start 路线是 `manual install` 还是 `CLI`
+- [x] 决定官方 Quick Start 路线是 `manual install` 还是 `CLI`
 - [ ] 明确首发推荐 onboarding adapter，建议 React
-- [ ] 明确首发 package 子集
-- [ ] 明确首发 prototype 子集
+- [x] 明确首发 package 子集
+- [x] 明确首发 prototype 子集
 - [ ] 把未纳入首发的 adapter / prototype / CLI 能力标记为 post-launch
 - [ ] 确认 README / docs / release note 的一句话定位口径
 - [ ] 为后续 3 周建立 issue board 或 milestone

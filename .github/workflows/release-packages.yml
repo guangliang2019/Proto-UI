@@ -1,0 +1,180 @@
+name: Release Packages
+
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: 'scan, stage(dry-run), or publish'
+        required: true
+        type: choice
+        options:
+          - scan
+          - stage
+          - publish
+        default: scan
+      profile:
+        description: 'release profile'
+        required: true
+        type: choice
+        options:
+          - launch
+          - workspace
+        default: launch
+      include_approved_candidates:
+        description: 'include approved candidate packages'
+        required: true
+        type: boolean
+        default: false
+      version:
+        description: 'override package version, e.g. 0.1.0'
+        required: false
+        type: string
+      tag:
+        description: 'npm dist-tag'
+        required: true
+        default: latest
+        type: string
+      only:
+        description: 'optional package names/paths separated by commas'
+        required: false
+        type: string
+      publish_delay_ms:
+        description: 'delay between package publish requests'
+        required: true
+        default: '3000'
+        type: string
+      max_publish_retries:
+        description: 'retries when npm returns 429/rate-limit'
+        required: true
+        default: '2'
+        type: string
+      retry_delay_ms:
+        description: 'delay before each retry'
+        required: true
+        default: '15000'
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-packages-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          registry-url: https://registry.npmjs.org
+
+      - name: Setup pnpm (corepack)
+        run: |
+          set -euo pipefail
+          PACKAGE_MANAGER=$(node -p "require('./package.json').packageManager || ''")
+          LOCKFILE_VERSION=$(node -e "const fs=require('fs');const text=fs.readFileSync('pnpm-lock.yaml','utf8');const m=text.match(/^lockfileVersion:\\s*['\\\"]?([^'\\\"\\n]+)['\\\"]?/m);if(!m){throw new Error('lockfileVersion not found');}process.stdout.write(m[1]);")
+          echo "packageManager=${PACKAGE_MANAGER}"
+          echo "lockfileVersion=${LOCKFILE_VERSION}"
+
+          case "${LOCKFILE_VERSION}" in
+            6* )
+              PNPM_VERSION="8.13.1"
+              ;;
+            9* )
+              PNPM_VERSION="10.32.1"
+              ;;
+            * )
+              echo "Unsupported pnpm lockfileVersion: ${LOCKFILE_VERSION}"
+              exit 1
+              ;;
+          esac
+
+          corepack enable
+          echo "PROTO_PNPM_VERSION=${PNPM_VERSION}" >> "$GITHUB_ENV"
+          corepack pnpm@"${PNPM_VERSION}" --version
+
+      - name: Install
+        run: corepack pnpm@"${PROTO_PNPM_VERSION}" install --frozen-lockfile
+
+      - name: Validate Publish Branch
+        if: ${{ inputs.mode == 'publish' }}
+        run: |
+          set -euo pipefail
+          case "${GITHUB_REF_NAME}" in
+            main|feat/v0-release-prep)
+              echo "publish allowed on ${GITHUB_REF_NAME}"
+              ;;
+            *)
+              echo "publish mode is only allowed on main or feat/v0-release-prep"
+              exit 1
+              ;;
+          esac
+
+      - name: Validate npm token for publish
+        if: ${{ inputs.mode == 'publish' }}
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          if [[ -z "${NODE_AUTH_TOKEN}" ]]; then
+            echo "NPM_TOKEN is required for publish mode"
+            exit 1
+          fi
+
+      - name: Run Release Command
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          set -euo pipefail
+
+          ARGS=(
+            --profile "${{ inputs.profile }}"
+            --check-governance
+            --tag "${{ inputs.tag }}"
+            --publish-delay-ms "${{ inputs.publish_delay_ms }}"
+            --max-publish-retries "${{ inputs.max_publish_retries }}"
+            --retry-delay-ms "${{ inputs.retry_delay_ms }}"
+          )
+
+          if [[ "${{ inputs.include_approved_candidates }}" == "true" ]]; then
+            ARGS+=(--include-approved-candidates)
+          fi
+
+          if [[ -n "${{ inputs.only }}" ]]; then
+            ARGS+=(--only "${{ inputs.only }}")
+          fi
+
+          if [[ -n "${{ inputs.version }}" ]]; then
+            ARGS+=(--version "${{ inputs.version }}")
+          fi
+
+          case "${{ inputs.mode }}" in
+            scan)
+              node scripts/release/scan.mjs "${ARGS[@]}" --json | tee release-scan.json
+              ;;
+            stage)
+              node scripts/release/publish.mjs --dry-run "${ARGS[@]}"
+              ;;
+            publish)
+              if [[ -z "${{ inputs.version }}" ]]; then
+                echo "inputs.version is required for publish mode"
+                exit 1
+              fi
+              node scripts/release/publish.mjs --publish "${ARGS[@]}"
+              ;;
+            *)
+              echo "unsupported mode: ${{ inputs.mode }}"
+              exit 1
+              ;;
+          esac
+
+      - name: Upload Release Scan Artifact
+        if: ${{ inputs.mode == 'scan' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-scan
+          path: release-scan.json

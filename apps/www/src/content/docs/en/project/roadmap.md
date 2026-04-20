@@ -5,7 +5,7 @@ description: 'The current stage of Proto UI and the main direction of its evolut
 
 # Roadmap
 
-Proto UI is currently in its v0 stage.
+Proto UI is currently in its v0 stage. The CLI availability and first public launch are both currently targeted for **May 14, 2026**.
 
 At this stage, the priority is not to expand surface-level features as quickly as possible. Instead, the focus is on completing the foundational protocol loop first: making sure the core information pathways, execution semantics, and cross-host translation model have a stable and verifiable basis.
 

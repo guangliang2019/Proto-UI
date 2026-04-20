@@ -3,7 +3,7 @@ import type { Prototype } from '@proto.ui/core';
 import type { RuntimeHost } from '../../src';
 import { executeWithHost } from '../../src';
 import { EVENT_EMIT_CAP } from '@proto.ui/module-event';
-import { EXPOSE_SET_EXPOSES_CAP } from '@proto.ui/module-expose';
+import { EXPOSE_STATE_SET_EXPOSES_CAP } from '@proto.ui/module-expose-state';
 
 function createMockHost() {
   const emitted: Array<{ key: string; payload: any; options: any }> = [];
@@ -29,8 +29,8 @@ function createMockHost() {
           },
         ],
       ]);
-      wiring.attach('expose', [
-        [EXPOSE_SET_EXPOSES_CAP, (r: Record<string, unknown>) => exposes.push(r)],
+      wiring.attach('expose-state', [
+        [EXPOSE_STATE_SET_EXPOSES_CAP, (r: Record<string, unknown>) => exposes.push(r)],
       ]);
     },
   };

@@ -1,4 +1,4 @@
-import type { AnatomyOrderObserver, AnatomyRootTarget } from '@proto.ui/module-anatomy';
+import type { AnatomyOrderObserver, AnatomyRootTarget } from '../caps';
 
 function isNodeLike(value: unknown): value is Node {
   return !!value && typeof (value as Node).nodeType === 'number';

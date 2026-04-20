@@ -41,7 +41,7 @@ function setupDropdownTrigger(def: DefHandle<DropdownTriggerProps, DropdownTrigg
 
   const requestOpen = (run: any, direction: 'first' | 'last') => {
     const boundaryValue = resolveBoundaryValue(run, direction);
-    run.context.update(DROPDOWN_CONTEXT, (prev) => ({
+    run.context.update(DROPDOWN_CONTEXT, (prev: any) => ({
       ...prev,
       open: prev.controlled ? prev.open : true,
       activeValue: boundaryValue,

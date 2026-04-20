@@ -1,5 +1,5 @@
 import type { BoundaryClassification, BoundaryRegion, BoundarySample } from '@proto.ui/core';
-import type { BoundaryHostBridge } from '@proto.ui/module-boundary';
+import type { BoundaryHostBridge } from '../caps';
 
 const PROTO_PARENT_INSTANCE_MARK = Symbol.for('@proto.ui/adapter-base/__proto_parent_instance');
 

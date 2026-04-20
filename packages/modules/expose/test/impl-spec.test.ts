@@ -57,29 +57,6 @@ describe('ExposeModuleImpl (contract-ish)', () => {
     expect([...impl.port.keys()].sort()).toEqual(['a', 'b']);
   });
 
-  it('publishes to host sink when available', () => {
-    const sys = createSysCaps();
-    const calls: Array<Record<string, unknown>> = [];
-    const caps = makeCaps({
-      sys,
-      setExposes: (r: Record<string, unknown>) => calls.push(r),
-    });
-
-    const impl = new ExposeModuleImpl(caps, 'p-x');
-
-    sys.__setExecPhase('setup');
-    impl.expose('a', 1);
-    impl.expose('b', 2);
-
-    expect(calls.length).toBeGreaterThan(0);
-    expect(calls[calls.length - 1]).toEqual({ a: 1, b: 2 });
-
-    // cap epoch change should republish
-    calls.length = 0;
-    (caps as any).__bumpEpoch();
-    expect(calls.length).toBe(1);
-  });
-
   it('getDiagnostics returns basic shape', () => {
     const sys = createSysCaps();
     const caps = makeCaps({ sys });
@@ -108,22 +85,5 @@ describe('ExposeModuleImpl (contract-ish)', () => {
 
     impl.dispose();
     expect(() => impl.port.getAll()).toThrow();
-  });
-
-  it('dispose publishes empty exposes to host sink', () => {
-    const sys = createSysCaps();
-    const calls: Array<Record<string, unknown>> = [];
-    const caps = makeCaps({
-      sys,
-      setExposes: (r: Record<string, unknown>) => calls.push(r),
-    });
-
-    const impl = new ExposeModuleImpl(caps, 'p-x');
-
-    sys.__setExecPhase('setup');
-    impl.expose('a', 1);
-
-    impl.dispose();
-    expect(calls[calls.length - 1]).toEqual({});
   });
 });

@@ -1,0 +1,44 @@
+{
+  "releaseLine": "v0.1.0",
+  "targetDate": "2026-05-14",
+  "cliLaunchDate": "2026-05-14",
+  "launchCommitmentPackages": [
+    "@proto.ui/adapter-react",
+    "@proto.ui/adapter-vue",
+    "@proto.ui/adapter-web-component",
+    "@proto.ui/prototypes-base",
+    "@proto.ui/prototypes-shadcn"
+  ],
+  "publicNonLaunchCommitmentPackages": [
+    "@proto.ui/adapter-base",
+    "@proto.ui/core",
+    "@proto.ui/types",
+    "@proto.ui/hooks"
+  ],
+  "internalOrDependencyDirectedPackages": [
+    "@proto.ui/runtime",
+    "@proto.ui/module-base",
+    "@proto.ui/module-anatomy",
+    "@proto.ui/module-as-trigger",
+    "@proto.ui/module-boundary",
+    "@proto.ui/module-context",
+    "@proto.ui/module-event",
+    "@proto.ui/module-expose",
+    "@proto.ui/module-expose-state",
+    "@proto.ui/module-expose-state-web",
+    "@proto.ui/module-feedback",
+    "@proto.ui/module-focus",
+    "@proto.ui/module-hit-participation",
+    "@proto.ui/module-overlay",
+    "@proto.ui/module-presence",
+    "@proto.ui/module-props",
+    "@proto.ui/module-rule",
+    "@proto.ui/module-rule-expose-state-web",
+    "@proto.ui/module-rule-meta",
+    "@proto.ui/module-state",
+    "@proto.ui/module-state-accessibility",
+    "@proto.ui/module-state-interaction",
+    "@proto.ui/module-test-sys"
+  ],
+  "candidatePackages": []
+}

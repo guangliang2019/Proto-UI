@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { definePrototype, type Prototype } from '@proto.ui/core';
 import type { RuntimeHost } from '@proto.ui/runtime';
 import { executeWithHost } from '@proto.ui/runtime';
-import { EXPOSE_SET_EXPOSES_CAP } from '@proto.ui/module-expose';
+import { EXPOSE_STATE_SET_EXPOSES_CAP } from '@proto.ui/module-expose-state';
 import { asOpenState } from '../src/tools';
 
 function createHost(initialRaw: Record<string, unknown> = {}) {
@@ -19,8 +19,8 @@ function createHost(initialRaw: Record<string, unknown> = {}) {
       task();
     },
     onRuntimeReady(wiring) {
-      wiring.attach('expose', [
-        [EXPOSE_SET_EXPOSES_CAP, (next: Record<string, unknown>) => (exposes = next)],
+      wiring.attach('expose-state', [
+        [EXPOSE_STATE_SET_EXPOSES_CAP, (next: Record<string, unknown>) => (exposes = next)],
       ]);
     },
   };

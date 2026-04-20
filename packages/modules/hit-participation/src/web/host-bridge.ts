@@ -1,9 +1,9 @@
 import type { HitParticipationMode, HitParticipationRegion } from '@proto.ui/core';
-import type { HitParticipationHostBridge } from '@proto.ui/module-hit-participation';
+import type { HitParticipationHostBridge } from '../caps';
 
-const HIT_PARTICIPATION_MODE_MARK = Symbol.for('@proto.ui/adapter-base/__hit_participation_mode');
+const HIT_PARTICIPATION_MODE_MARK = Symbol.for('@proto.ui/module-hit-participation/__mode');
 const HIT_PARTICIPATION_PREV_POINTER_EVENTS_MARK = Symbol.for(
-  '@proto.ui/adapter-base/__hit_participation_prev_pointer_events'
+  '@proto.ui/module-hit-participation/__prev_pointer_events'
 );
 
 type HostElement = HTMLElement & Record<symbol, unknown>;

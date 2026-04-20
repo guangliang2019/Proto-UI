@@ -1,0 +1,96 @@
+name: CI
+
+on:
+  pull_request:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+      - feat/v0-release-prep
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  type-check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Setup pnpm (corepack)
+        run: |
+          set -euo pipefail
+          PACKAGE_MANAGER=$(node -p "require('./package.json').packageManager || ''")
+          LOCKFILE_VERSION=$(node -e "const fs=require('fs');const text=fs.readFileSync('pnpm-lock.yaml','utf8');const m=text.match(/^lockfileVersion:\\s*['\\\"]?([^'\\\"\\n]+)['\\\"]?/m);if(!m){throw new Error('lockfileVersion not found');}process.stdout.write(m[1]);")
+          echo "packageManager=${PACKAGE_MANAGER}"
+          echo "lockfileVersion=${LOCKFILE_VERSION}"
+
+          case "${LOCKFILE_VERSION}" in
+            6* )
+              PNPM_VERSION="8.13.1"
+              ;;
+            9* )
+              PNPM_VERSION="10.32.1"
+              ;;
+            * )
+              echo "Unsupported pnpm lockfileVersion: ${LOCKFILE_VERSION}"
+              exit 1
+              ;;
+          esac
+
+          corepack enable
+          echo "PROTO_PNPM_VERSION=${PNPM_VERSION}" >> "$GITHUB_ENV"
+          corepack pnpm@"${PNPM_VERSION}" --version
+
+      - name: Install
+        run: corepack pnpm@"${PROTO_PNPM_VERSION}" install --frozen-lockfile
+
+      - name: Type check
+        run: corepack pnpm@"${PROTO_PNPM_VERSION}" -s check:types
+
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Setup pnpm (corepack)
+        run: |
+          set -euo pipefail
+          PACKAGE_MANAGER=$(node -p "require('./package.json').packageManager || ''")
+          LOCKFILE_VERSION=$(node -e "const fs=require('fs');const text=fs.readFileSync('pnpm-lock.yaml','utf8');const m=text.match(/^lockfileVersion:\\s*['\\\"]?([^'\\\"\\n]+)['\\\"]?/m);if(!m){throw new Error('lockfileVersion not found');}process.stdout.write(m[1]);")
+          echo "packageManager=${PACKAGE_MANAGER}"
+          echo "lockfileVersion=${LOCKFILE_VERSION}"
+
+          case "${LOCKFILE_VERSION}" in
+            6* )
+              PNPM_VERSION="8.13.1"
+              ;;
+            9* )
+              PNPM_VERSION="10.32.1"
+              ;;
+            * )
+              echo "Unsupported pnpm lockfileVersion: ${LOCKFILE_VERSION}"
+              exit 1
+              ;;
+          esac
+
+          corepack enable
+          echo "PROTO_PNPM_VERSION=${PNPM_VERSION}" >> "$GITHUB_ENV"
+          corepack pnpm@"${PNPM_VERSION}" --version
+
+      - name: Install
+        run: corepack pnpm@"${PROTO_PNPM_VERSION}" install --frozen-lockfile
+
+      - name: Test
+        run: corepack pnpm@"${PROTO_PNPM_VERSION}" -s test
