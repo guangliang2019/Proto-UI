@@ -6,6 +6,8 @@ import {
   type TemplateNode,
   type TemplateType,
   type ReservedType,
+  type SvgTemplateNode,
+  isSvgTemplateNode,
 } from '@proto.ui/core';
 
 export const ERR_TEMPLATE_PROTOTYPE_REF_V0 =
@@ -36,6 +38,14 @@ function isPrototypeRef(t: any): t is { kind: 'prototype'; name: string; ref?: a
   return t && typeof t === 'object' && t.kind === 'prototype' && typeof t.name === 'string';
 }
 
+function svgTagAllowsChildren(tag: SvgTemplateNode['tag']): boolean {
+  return tag === 'svg' || tag === 'g';
+}
+
+function buildSvgProps(node: SvgTemplateNode): Record<string, unknown> {
+  return { ...node.props };
+}
+
 function renderChild(
   runtime: ReactRuntime,
   child: TemplateChild,
@@ -46,6 +56,14 @@ function renderChild(
 
   if (typeof child === 'string' || typeof child === 'number') {
     return child;
+  }
+
+  if (isSvgTemplateNode(child)) {
+    const kids = toArray(child.children ?? null).map((k) => renderChild(runtime, k, opt, ctx));
+    if (!svgTagAllowsChildren(child.tag) && kids.length > 0) {
+      throw new Error(`[React Adapter] svg node <${child.tag}> must not have children.`);
+    }
+    return runtime.createElement(child.tag, buildSvgProps(child), ...kids);
   }
 
   if (!isTemplateNode(child)) {

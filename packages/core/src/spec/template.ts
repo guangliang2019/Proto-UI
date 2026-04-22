@@ -18,6 +18,59 @@ export type TemplateProps = {
   style?: TemplateStyleHandle;
 };
 
+export type SvgScalar = string | number;
+
+export type SvgSharedProps = {
+  fill?: SvgScalar;
+  stroke?: SvgScalar;
+  strokeWidth?: SvgScalar;
+  strokeLinecap?: SvgScalar;
+  strokeLinejoin?: SvgScalar;
+  fillRule?: SvgScalar;
+  clipRule?: SvgScalar;
+  opacity?: SvgScalar;
+};
+
+export type SvgRootProps = SvgSharedProps & {
+  viewBox: string;
+  width?: SvgScalar;
+  height?: SvgScalar;
+};
+
+export type SvgGroupProps = SvgSharedProps;
+
+export type SvgPathProps = SvgSharedProps & {
+  d: string;
+};
+
+export type SvgCircleProps = SvgSharedProps & {
+  cx: SvgScalar;
+  cy: SvgScalar;
+  r: SvgScalar;
+};
+
+export type SvgRectProps = SvgSharedProps & {
+  width: SvgScalar;
+  height: SvgScalar;
+  x?: SvgScalar;
+  y?: SvgScalar;
+  rx?: SvgScalar;
+  ry?: SvgScalar;
+};
+
+export type SvgLineProps = SvgSharedProps & {
+  x1: SvgScalar;
+  y1: SvgScalar;
+  x2: SvgScalar;
+  y2: SvgScalar;
+};
+
+export type SvgPolylineProps = SvgSharedProps & {
+  points: string;
+};
+
+export type SvgTemplateTag = 'svg' | 'g' | 'path' | 'circle' | 'rect' | 'line' | 'polyline';
+
 export type ReservedType = { kind: 'slot' };
 
 export interface TemplateNode {
@@ -26,8 +79,32 @@ export interface TemplateNode {
   children?: TemplateChildren;
 }
 
+interface SvgTemplateNodeBase<TTag extends SvgTemplateTag, TProps> {
+  kind: 'svg-node';
+  tag: TTag;
+  props: Readonly<TProps>;
+  children?: TemplateChildren;
+}
+
+export type SvgRootNode = SvgTemplateNodeBase<'svg', SvgRootProps>;
+export type SvgGroupNode = SvgTemplateNodeBase<'g', SvgGroupProps>;
+export type SvgPathNode = SvgTemplateNodeBase<'path', SvgPathProps>;
+export type SvgCircleNode = SvgTemplateNodeBase<'circle', SvgCircleProps>;
+export type SvgRectNode = SvgTemplateNodeBase<'rect', SvgRectProps>;
+export type SvgLineNode = SvgTemplateNodeBase<'line', SvgLineProps>;
+export type SvgPolylineNode = SvgTemplateNodeBase<'polyline', SvgPolylineProps>;
+
+export type SvgTemplateNode =
+  | SvgRootNode
+  | SvgGroupNode
+  | SvgPathNode
+  | SvgCircleNode
+  | SvgRectNode
+  | SvgLineNode
+  | SvgPolylineNode;
+
 // NOTE: undefined is intentionally excluded to keep authoring syntax portable.
-export type TemplateChild = TemplateNode | string | number | null;
+export type TemplateChild = TemplateNode | SvgTemplateNode | string | number | null;
 export type TemplateChildren = TemplateChild | TemplateChild[] | null;
 
 export interface NormalizeOptions {
@@ -134,6 +211,170 @@ export interface RendererPrimitivesOptions {
   normalize?: NormalizeOptions;
 }
 
+export interface SvgFactories {
+  root(props: SvgRootProps, children?: TemplateChildren): SvgRootNode;
+  g(props?: SvgGroupProps, children?: TemplateChildren): SvgGroupNode;
+  path(props: SvgPathProps): SvgPathNode;
+  circle(props: SvgCircleProps): SvgCircleNode;
+  rect(props: SvgRectProps): SvgRectNode;
+  line(props: SvgLineProps): SvgLineNode;
+  polyline(props: SvgPolylineProps): SvgPolylineNode;
+}
+
+function isSvgNodeTag(tag: unknown): tag is SvgTemplateTag {
+  return (
+    tag === 'svg' ||
+    tag === 'g' ||
+    tag === 'path' ||
+    tag === 'circle' ||
+    tag === 'rect' ||
+    tag === 'line' ||
+    tag === 'polyline'
+  );
+}
+
+export function isSvgTemplateNode(value: unknown): value is SvgTemplateNode {
+  if (!value || typeof value !== 'object') return false;
+  const node = value as { kind?: unknown; tag?: unknown; props?: unknown };
+  return node.kind === 'svg-node' && isSvgNodeTag(node.tag) && !!node.props;
+}
+
+const SVG_ALLOWED_KEYS: Record<SvgTemplateTag, ReadonlyArray<string>> = {
+  svg: [
+    'viewBox',
+    'width',
+    'height',
+    'fill',
+    'stroke',
+    'strokeWidth',
+    'strokeLinecap',
+    'strokeLinejoin',
+    'fillRule',
+    'clipRule',
+    'opacity',
+  ],
+  g: [
+    'fill',
+    'stroke',
+    'strokeWidth',
+    'strokeLinecap',
+    'strokeLinejoin',
+    'fillRule',
+    'clipRule',
+    'opacity',
+  ],
+  path: [
+    'd',
+    'fill',
+    'stroke',
+    'strokeWidth',
+    'strokeLinecap',
+    'strokeLinejoin',
+    'fillRule',
+    'clipRule',
+    'opacity',
+  ],
+  circle: [
+    'cx',
+    'cy',
+    'r',
+    'fill',
+    'stroke',
+    'strokeWidth',
+    'strokeLinecap',
+    'strokeLinejoin',
+    'fillRule',
+    'clipRule',
+    'opacity',
+  ],
+  rect: [
+    'x',
+    'y',
+    'width',
+    'height',
+    'rx',
+    'ry',
+    'fill',
+    'stroke',
+    'strokeWidth',
+    'strokeLinecap',
+    'strokeLinejoin',
+    'fillRule',
+    'clipRule',
+    'opacity',
+  ],
+  line: [
+    'x1',
+    'y1',
+    'x2',
+    'y2',
+    'fill',
+    'stroke',
+    'strokeWidth',
+    'strokeLinecap',
+    'strokeLinejoin',
+    'fillRule',
+    'clipRule',
+    'opacity',
+  ],
+  polyline: [
+    'points',
+    'fill',
+    'stroke',
+    'strokeWidth',
+    'strokeLinecap',
+    'strokeLinejoin',
+    'fillRule',
+    'clipRule',
+    'opacity',
+  ],
+};
+
+const SVG_REQUIRED_KEYS: Partial<Record<SvgTemplateTag, ReadonlyArray<string>>> = {
+  svg: ['viewBox'],
+  path: ['d'],
+  circle: ['cx', 'cy', 'r'],
+  rect: ['width', 'height'],
+  line: ['x1', 'y1', 'x2', 'y2'],
+  polyline: ['points'],
+};
+
+function assertSvgProps(tag: SvgTemplateTag, props: unknown): void {
+  if (!props || typeof props !== 'object' || Array.isArray(props)) {
+    throw new Error(`[Template][SVG] ${tag} props must be an object.`);
+  }
+
+  const allowed = new Set(SVG_ALLOWED_KEYS[tag]);
+  const keys = Object.keys(props as Record<string, unknown>);
+  for (const key of keys) {
+    if (!allowed.has(key)) {
+      throw new Error(`[Template][SVG] ${tag} does not support prop '${key}'.`);
+    }
+  }
+
+  const required = SVG_REQUIRED_KEYS[tag] ?? [];
+  for (const key of required) {
+    const value = (props as Record<string, unknown>)[key];
+    if (value === undefined || value === null || value === '') {
+      throw new Error(`[Template][SVG] ${tag} requires non-empty prop '${key}'.`);
+    }
+  }
+}
+
+function createSvgNode<TTag extends SvgTemplateTag, TProps>(
+  tag: TTag,
+  props: TProps,
+  children: TemplateChildren
+): SvgTemplateNodeBase<TTag, TProps> {
+  assertSvgProps(tag, props);
+  return {
+    kind: 'svg-node',
+    tag,
+    props: Object.freeze({ ...(props as any) }),
+    children,
+  };
+}
+
 /**
  * Create platform-agnostic renderer primitives used by runtime/adapters.
  * - `el` builds TemplateNode
@@ -183,8 +424,31 @@ export function createRendererPrimitives(opt: RendererPrimitivesOptions = {}) {
   };
 
   const slot = r.slot;
+  const svg: SvgFactories = {
+    root(props, children = null) {
+      return createSvgNode('svg', props, normalizeChildren(children, normOpt));
+    },
+    g(props = {}, children = null) {
+      return createSvgNode('g', props, normalizeChildren(children, normOpt));
+    },
+    path(props) {
+      return createSvgNode('path', props, null);
+    },
+    circle(props) {
+      return createSvgNode('circle', props, null);
+    },
+    rect(props) {
+      return createSvgNode('rect', props, null);
+    },
+    line(props) {
+      return createSvgNode('line', props, null);
+    },
+    polyline(props) {
+      return createSvgNode('polyline', props, null);
+    },
+  };
 
-  return { el, slot, r };
+  return { el, slot, r, svg };
 }
 
 export interface PrototypeRef {

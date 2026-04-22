@@ -12,12 +12,23 @@ import type {
   DropdownTriggerExposes,
   DropdownTriggerProps,
 } from '@proto.ui/prototypes-base';
+import type { LucideIconName } from '@proto.ui/prototypes-lucide';
+
+export type ShadcnDropdownTriggerIndicatorIcon = Extract<
+  LucideIconName,
+  'chevron-down' | 'chevrons-up-down'
+>;
 
 export type ShadcnDropdownRootProps = DropdownRootProps;
 export type ShadcnDropdownRootExposes = DropdownRootExposes;
 export type ShadcnDropdownRootAsHookContract = DropdownRootAsHookContract;
 
-export type ShadcnDropdownTriggerProps = DropdownTriggerProps;
+export interface ShadcnDropdownTriggerProps extends DropdownTriggerProps {
+  indicator?: boolean;
+  indicatorIcon?: ShadcnDropdownTriggerIndicatorIcon;
+  indicatorSize?: number;
+  indicatorStrokeWidth?: number;
+}
 export type ShadcnDropdownTriggerExposes = DropdownTriggerExposes;
 export type ShadcnDropdownTriggerAsHookContract = DropdownTriggerAsHookContract;
 

@@ -1,17 +1,16 @@
 {
-  "name": "@proto.ui/prototypes-shadcn",
+  "name": "@proto.ui/prototypes-lucide",
   "version": "0.0.1",
   "private": false,
   "type": "module",
   "dependencies": {
     "@proto.ui/core": "workspace:*",
-    "@proto.ui/prototypes-base": "workspace:*",
-    "@proto.ui/prototypes-lucide": "workspace:*"
+    "lucide-static": "^1.8.0"
+  },
+  "scripts": {
+    "generate:icons": "node ./scripts/generate-icons.mjs"
   },
   "devDependencies": {
-    "@proto.ui/module-as-trigger": "workspace:*",
-    "@proto.ui/module-event": "workspace:*",
-    "@proto.ui/module-rule-meta": "workspace:*",
     "@proto.ui/runtime": "workspace:*"
   },
   "exports": {
@@ -20,13 +19,13 @@
       "default": "./src/index.ts"
     }
   },
-  "description": "shadcn-style Proto UI prototype library for adapter-driven components.",
+  "description": "Lucide-based Proto UI icon prototype library and svg render helpers.",
   "license": "MIT",
-  "homepage": "https://github.com/guangliang2019/Prototype-UI/tree/main/packages/prototypes/shadcn",
+  "homepage": "https://github.com/guangliang2019/Prototype-UI/tree/main/packages/prototypes/lucide",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/guangliang2019/Prototype-UI.git",
-    "directory": "packages/prototypes/shadcn"
+    "directory": "packages/prototypes/lucide"
   },
   "bugs": {
     "url": "https://github.com/guangliang2019/Prototype-UI/issues"
@@ -39,8 +38,8 @@
     "proto",
     "ui",
     "prototypes",
-    "shadcn",
-    "prototype-library",
-    "shadcn-style"
+    "icon",
+    "lucide",
+    "svg"
   ]
 }

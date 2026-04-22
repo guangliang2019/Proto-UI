@@ -28,6 +28,9 @@ describe('prototypes/shadcn: dropdown', () => {
     await Promise.resolve();
 
     expect(trigger.className.includes('rounded-md')).toBe(true);
+    const indicator = trigger.querySelector('svg');
+    expect(indicator?.getAttribute('viewBox')).toBe('0 0 24 24');
+    expect(indicator?.querySelector('path')?.getAttribute('d')).toBe('m6 9 6 6 6-6');
     expect(content.classList.contains('hidden')).toBe(true);
     expect(itemA.className.includes('rounded-lg')).toBe(true);
 
@@ -81,6 +84,26 @@ describe('prototypes/shadcn: dropdown', () => {
 
     expect(root.getExposes().open.get()).toBe(false);
     expect(content.classList.contains('hidden')).toBe(true);
+
+    root.remove();
+    await Promise.resolve();
+  });
+
+  it('allows disabling built-in indicator icon on trigger', async () => {
+    const root = document.createElement('shadcn-dropdown-root') as any;
+    const trigger = document.createElement('shadcn-dropdown-trigger') as any;
+    const content = document.createElement('shadcn-dropdown-content') as any;
+
+    setElementProps(trigger, { indicator: false });
+
+    root.appendChild(trigger);
+    root.appendChild(content);
+    document.body.appendChild(root);
+
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(trigger.querySelector('svg')).toBeNull();
 
     root.remove();
     await Promise.resolve();
