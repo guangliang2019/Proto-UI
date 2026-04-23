@@ -131,13 +131,43 @@ const icons = [...LUCIDE_ICON_MANIFEST].sort((a, b) => a.name.localeCompare(b.na
 
 <script>
   import { loadLucideIconShape } from '@proto.ui/prototypes-lucide/loaders';
+  import type { LucideIconName } from '@proto.ui/prototypes-lucide';
 
   const SVG_NS = 'http://www.w3.org/2000/svg';
-  const SHAPE_TAGS = new Set(['path', 'circle', 'line', 'rect', 'polyline', 'ellipse', 'polygon']);
-  const shapeCache = new Map();
-  const shapeLoading = new Map();
+  type ShapeTag = 'path' | 'circle' | 'line' | 'rect' | 'polyline' | 'ellipse' | 'polygon';
+  type ShapeAttrs = Record<string, string | number | boolean | null | undefined>;
+  type CopyKind = 'asHook' | 'render';
 
-  function toPascalCase(value) {
+  interface ShapeNode {
+    tag: ShapeTag;
+    attrs?: ShapeAttrs;
+  }
+
+  type ShapeTree = ShapeNode | ShapeTree[] | null;
+  type ShapeFactories = {
+    path: (attrs?: ShapeAttrs) => ShapeNode;
+    circle: (attrs?: ShapeAttrs) => ShapeNode;
+    line: (attrs?: ShapeAttrs) => ShapeNode;
+    rect: (attrs?: ShapeAttrs) => ShapeNode;
+    polyline: (attrs?: ShapeAttrs) => ShapeNode;
+    ellipse: (attrs?: ShapeAttrs) => ShapeNode;
+    polygon: (attrs?: ShapeAttrs) => ShapeNode;
+  };
+  type ShapeFactory = (svg: ShapeFactories) => ShapeTree;
+
+  const SHAPE_TAGS = new Set<ShapeTag>([
+    'path',
+    'circle',
+    'line',
+    'rect',
+    'polyline',
+    'ellipse',
+    'polygon',
+  ]);
+  const shapeCache = new Map<LucideIconName, ShapeFactory | null>();
+  const shapeLoading = new Map<LucideIconName, Promise<ShapeFactory | null>>();
+
+  function toPascalCase(value: string): string {
     return value
       .split(/[^a-zA-Z0-9]+/)
       .filter(Boolean)
@@ -145,12 +175,12 @@ const icons = [...LUCIDE_ICON_MANIFEST].sort((a, b) => a.name.localeCompare(b.na
       .join('');
   }
 
-  function toKebabCase(value) {
+  function toKebabCase(value: string): string {
     return value.replace(/([a-z0-9])([A-Z])/g, '$1-$2').toLowerCase();
   }
 
-  function createShapeFactories() {
-    const make = (tag, attrs = {}) => ({ tag, attrs });
+  function createShapeFactories(): ShapeFactories {
+    const make = (tag: ShapeTag, attrs: ShapeAttrs = {}): ShapeNode => ({ tag, attrs });
     return {
       path: (attrs) => make('path', attrs),
       circle: (attrs) => make('circle', attrs),
@@ -162,7 +192,11 @@ const icons = [...LUCIDE_ICON_MANIFEST].sort((a, b) => a.name.localeCompare(b.na
     };
   }
 
-  function appendShapeNode(parent, node) {
+  function isShapeTag(value: unknown): value is ShapeTag {
+    return typeof value === 'string' && SHAPE_TAGS.has(value as ShapeTag);
+  }
+
+  function appendShapeNode(parent: SVGElement, node: ShapeTree): void {
     if (!node) return;
     if (Array.isArray(node)) {
       node.forEach((child) => appendShapeNode(parent, child));
@@ -171,10 +205,10 @@ const icons = [...LUCIDE_ICON_MANIFEST].sort((a, b) => a.name.localeCompare(b.na
     if (typeof node !== 'object') return;
 
     const tag = node.tag;
-    if (!SHAPE_TAGS.has(tag)) return;
+    if (!isShapeTag(tag)) return;
 
     const element = document.createElementNS(SVG_NS, tag);
-    const attrs = node.attrs || {};
+    const attrs = node.attrs ?? {};
     for (const [key, value] of Object.entries(attrs)) {
       if (value == null || value === false) continue;
       const attrName = toKebabCase(key);
@@ -187,7 +221,7 @@ const icons = [...LUCIDE_ICON_MANIFEST].sort((a, b) => a.name.localeCompare(b.na
     parent.appendChild(element);
   }
 
-  function createIconSvg(shapeFactory, size = 20) {
+  function createIconSvg(shapeFactory: ShapeFactory, size = 20): SVGSVGElement {
     const svg = document.createElementNS(SVG_NS, 'svg');
     svg.setAttribute('viewBox', '0 0 24 24');
     svg.setAttribute('width', String(size));
@@ -204,20 +238,27 @@ const icons = [...LUCIDE_ICON_MANIFEST].sort((a, b) => a.name.localeCompare(b.na
     return svg;
   }
 
-  function findShapeFactory(moduleExports) {
-    for (const [key, value] of Object.entries(moduleExports)) {
+  function findShapeFactory(moduleExports: unknown): ShapeFactory | null {
+    if (!moduleExports || typeof moduleExports !== 'object') return null;
+    for (const [key, value] of Object.entries(moduleExports as Record<string, unknown>)) {
       if (key.endsWith('_SHAPE_FACTORY') && typeof value === 'function') {
-        return value;
+        return value as ShapeFactory;
       }
     }
     return null;
   }
 
-  async function getShapeFactory(iconName) {
-    if (shapeCache.has(iconName)) return shapeCache.get(iconName);
-    if (shapeLoading.has(iconName)) return shapeLoading.get(iconName);
+  async function getShapeFactory(iconName: LucideIconName): Promise<ShapeFactory | null> {
+    if (shapeCache.has(iconName)) {
+      const cached = shapeCache.get(iconName);
+      if (cached !== undefined) return cached;
+    }
+    if (shapeLoading.has(iconName)) {
+      const loading = shapeLoading.get(iconName);
+      if (loading !== undefined) return loading;
+    }
 
-    const task = loadLucideIconShape(iconName)
+    const task: Promise<ShapeFactory | null> = loadLucideIconShape(iconName)
       .then((mod) => findShapeFactory(mod))
       .catch((error) => {
         console.error('[LucideIconGallery] failed to load icon shape:', iconName, error);
@@ -233,7 +274,7 @@ const icons = [...LUCIDE_ICON_MANIFEST].sort((a, b) => a.name.localeCompare(b.na
     return task;
   }
 
-  function snippetForCard(card, kind) {
+  function snippetForCard(card: HTMLElement, kind: CopyKind): string {
     const iconName = card.dataset.iconName || '';
     const importPath = card.dataset.importPath || `@proto.ui/prototypes-lucide/icons/${iconName}`;
     const asHookExport = card.dataset.asHookExport || `asLucide${toPascalCase(iconName)}Icon`;
@@ -246,7 +287,7 @@ const icons = [...LUCIDE_ICON_MANIFEST].sort((a, b) => a.name.localeCompare(b.na
     return `import { definePrototype } from '@proto.ui/core';\nimport { ${asHookExport}, ${renderExport} } from '${importPath}';\n\nconst iconLikeTrigger = definePrototype({\n  name: 'my-trigger',\n  setup() {\n    ${asHookExport}();\n    return (renderer) => [\n      renderer.r.slot(),\n      ${renderExport}(renderer, { size: 16 }),\n    ];\n  },\n});`;
   }
 
-  function flashCopied(button) {
+  function flashCopied(button: HTMLButtonElement): void {
     const normal = button.dataset.label || button.textContent || 'Copy';
     const copied = button.dataset.copiedLabel || 'Copied';
     button.textContent = copied;
@@ -255,7 +296,11 @@ const icons = [...LUCIDE_ICON_MANIFEST].sort((a, b) => a.name.localeCompare(b.na
     }, 1400);
   }
 
-  async function copySnippet(card, button, kind) {
+  async function copySnippet(
+    card: HTMLElement,
+    button: HTMLButtonElement,
+    kind: CopyKind
+  ): Promise<void> {
     const text = snippetForCard(card, kind);
     try {
       await navigator.clipboard.writeText(text);
@@ -265,8 +310,11 @@ const icons = [...LUCIDE_ICON_MANIFEST].sort((a, b) => a.name.localeCompare(b.na
     }
   }
 
-  async function fillPreview(preview, iconName, size) {
-    if (!(preview instanceof HTMLElement)) return false;
+  async function fillPreview(
+    preview: HTMLElement,
+    iconName: LucideIconName,
+    size: number
+  ): Promise<boolean> {
     const shapeFactory = await getShapeFactory(iconName);
     preview.textContent = '';
     if (!shapeFactory) {
@@ -277,10 +325,10 @@ const icons = [...LUCIDE_ICON_MANIFEST].sort((a, b) => a.name.localeCompare(b.na
     return true;
   }
 
-  async function ensureIconLoaded(card) {
+  async function ensureIconLoaded(card: HTMLElement): Promise<void> {
     if (card.dataset.iconLoaded === '1' || card.dataset.iconLoading === '1') return;
 
-    const iconName = card.dataset.iconName;
+    const iconName = card.dataset.iconName as LucideIconName | undefined;
     const preview = card.querySelector('[data-icon-preview]');
     if (!iconName || !(preview instanceof HTMLElement)) return;
 
@@ -290,15 +338,15 @@ const icons = [...LUCIDE_ICON_MANIFEST].sort((a, b) => a.name.localeCompare(b.na
     delete card.dataset.iconLoading;
   }
 
-  function initSearch(root) {
-    const input = root.querySelector('[data-icon-search]');
-    const cards = Array.from(root.querySelectorAll('[data-icon-card]'));
-    const empty = root.querySelector('[data-empty]');
-    const count = root.querySelector('[data-visible-count]');
+  function initSearch(root: HTMLElement): void {
+    const input = root.querySelector<HTMLInputElement>('[data-icon-search]');
+    const cards = Array.from(root.querySelectorAll<HTMLElement>('[data-icon-card]'));
+    const empty = root.querySelector<HTMLElement>('[data-empty]');
+    const count = root.querySelector<HTMLElement>('[data-visible-count]');
 
-    if (!(input instanceof HTMLInputElement) || cards.length === 0) return;
+    if (!input || cards.length === 0) return;
 
-    const apply = () => {
+    const apply = (): void => {
       const query = input.value.trim().toLowerCase();
       let visible = 0;
 
@@ -321,15 +369,13 @@ const icons = [...LUCIDE_ICON_MANIFEST].sort((a, b) => a.name.localeCompare(b.na
     apply();
   }
 
-  function initLazyLoad(root) {
-    const cards = Array.from(root.querySelectorAll('[data-icon-card]'));
+  function initLazyLoad(root: HTMLElement): void {
+    const cards = Array.from(root.querySelectorAll<HTMLElement>('[data-icon-card]'));
     if (cards.length === 0) return;
 
     if (typeof IntersectionObserver === 'undefined') {
       cards.forEach((card) => {
-        if (card instanceof HTMLElement) {
-          void ensureIconLoaded(card);
-        }
+        void ensureIconLoaded(card);
       });
       return;
     }
@@ -340,9 +386,7 @@ const icons = [...LUCIDE_ICON_MANIFEST].sort((a, b) => a.name.localeCompare(b.na
           if (!entry.isIntersecting) return;
           const card = entry.target;
           observer.unobserve(card);
-          if (card instanceof HTMLElement) {
-            void ensureIconLoaded(card);
-          }
+          if (card instanceof HTMLElement) void ensureIconLoaded(card);
         });
       },
       { rootMargin: '220px 0px' }
@@ -351,21 +395,21 @@ const icons = [...LUCIDE_ICON_MANIFEST].sort((a, b) => a.name.localeCompare(b.na
     cards.forEach((card) => observer.observe(card));
   }
 
-  function initModal(root) {
-    const modal = root.querySelector('[data-icon-modal]');
-    const panel = modal?.querySelector('.lucide-modal__panel');
-    const preview = modal?.querySelector('[data-modal-preview]');
-    const title = modal?.querySelector('[data-modal-title]');
-    const importPath = modal?.querySelector('[data-modal-import-path]');
+  function initModal(root: HTMLElement): void {
+    const modal = root.querySelector<HTMLElement>('[data-icon-modal]');
+    const panel = modal?.querySelector<HTMLElement>('.lucide-modal__panel');
+    const preview = modal?.querySelector<HTMLElement>('[data-modal-preview]');
+    const title = modal?.querySelector<HTMLElement>('[data-modal-title]');
+    const importPath = modal?.querySelector<HTMLElement>('[data-modal-import-path]');
 
-    if (!(modal instanceof HTMLElement) || !(panel instanceof HTMLElement)) return;
+    if (!modal || !panel) return;
     if (modal.parentElement !== document.body) {
       document.body.appendChild(modal);
     }
 
-    let activeCard = null;
+    let activeCard: HTMLElement | null = null;
 
-    const close = () => {
+    const close = (): void => {
       if (modal.hidden) return;
       modal.hidden = true;
       document.body.style.removeProperty('overflow');
@@ -374,8 +418,8 @@ const icons = [...LUCIDE_ICON_MANIFEST].sort((a, b) => a.name.localeCompare(b.na
       }
     };
 
-    const open = async (card) => {
-      const iconName = card.dataset.iconName;
+    const open = async (card: HTMLElement): Promise<void> => {
+      const iconName = card.dataset.iconName as LucideIconName | undefined;
       if (!iconName) return;
 
       activeCard = card;
@@ -399,7 +443,7 @@ const icons = [...LUCIDE_ICON_MANIFEST].sort((a, b) => a.name.localeCompare(b.na
       panel.focus();
     };
 
-    root.addEventListener('click', (event) => {
+    root.addEventListener('click', (event: MouseEvent) => {
       const target = event.target;
       if (!(target instanceof Element)) return;
 
@@ -409,7 +453,7 @@ const icons = [...LUCIDE_ICON_MANIFEST].sort((a, b) => a.name.localeCompare(b.na
       }
     });
 
-    modal.addEventListener('click', (event) => {
+    modal.addEventListener('click', (event: MouseEvent) => {
       const target = event.target;
       if (!(target instanceof Element)) return;
 
@@ -422,19 +466,19 @@ const icons = [...LUCIDE_ICON_MANIFEST].sort((a, b) => a.name.localeCompare(b.na
       const copyBtn = target.closest('button[data-modal-copy-kind]');
       if (copyBtn && copyBtn instanceof HTMLButtonElement) {
         if (!(activeCard instanceof HTMLElement)) return;
-        const kind = copyBtn.dataset.modalCopyKind === 'render' ? 'render' : 'asHook';
+        const kind: CopyKind = copyBtn.dataset.modalCopyKind === 'render' ? 'render' : 'asHook';
         void copySnippet(activeCard, copyBtn, kind);
       }
     });
 
-    modal.addEventListener('keydown', (event) => {
+    modal.addEventListener('keydown', (event: KeyboardEvent) => {
       if (event.key === 'Escape' && !modal.hidden) {
         close();
       }
     });
   }
 
-  function initGallery(root) {
+  function initGallery(root: HTMLElement): void {
     if (root.dataset.galleryInit === '1') return;
     root.dataset.galleryInit = '1';
 
@@ -443,11 +487,9 @@ const icons = [...LUCIDE_ICON_MANIFEST].sort((a, b) => a.name.localeCompare(b.na
     initModal(root);
   }
 
-  function initAll() {
-    document.querySelectorAll('[data-lucide-gallery]').forEach((root) => {
-      if (root instanceof HTMLElement) {
-        initGallery(root);
-      }
+  function initAll(): void {
+    document.querySelectorAll<HTMLElement>('[data-lucide-gallery]').forEach((root) => {
+      initGallery(root);
     });
   }
 
