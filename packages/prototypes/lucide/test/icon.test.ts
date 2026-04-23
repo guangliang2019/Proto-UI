@@ -4,6 +4,14 @@ import type { RuntimeHost } from '@proto.ui/runtime';
 import { executeWithHost } from '@proto.ui/runtime';
 import lucideIcon from '../src/icon/icon';
 import { renderLucideIcon } from '../src/icon/render';
+import {
+  asLucideChevronDownIcon,
+  lucideChevronDownIcon,
+  renderLucideChevronDownIcon,
+} from '../src/icons/chevron-down';
+import { LUCIDE_ICON_MANIFEST, LUCIDE_ICON_MANIFEST_MAP } from '../src/manifest.generated';
+import { getLucideIconSnippet } from '../src/snippets.generated';
+import { loadLucideIcon } from '../src/loaders.generated';
 
 describe('prototypes/lucide: icon', () => {
   it('renderLucideIcon() returns svg root node from renderer.svg', () => {
@@ -74,5 +82,31 @@ describe('prototypes/lucide: icon', () => {
     expect(nextRoot.props.strokeWidth).toBe(1.25);
     expect(nextRoot.props.stroke).toBe('red');
     expect(nextRoot.children?.tag).toBe('path');
+  });
+
+  it('single icon module exposes render helper and fixed prototype exports', () => {
+    const { svg } = createRendererPrimitives();
+    const node = renderLucideChevronDownIcon({ svg } as any, { size: 14, strokeWidth: 1.25 });
+    expect(isSvgTemplateNode(node)).toBe(true);
+    if (!isSvgTemplateNode(node)) return;
+    expect(node.tag).toBe('svg');
+    if (node.tag !== 'svg') return;
+    expect(node.props.width).toBe(14);
+    expect(typeof asLucideChevronDownIcon).toBe('function');
+    expect(typeof lucideChevronDownIcon).toBe('object');
+  });
+
+  it('provides manifest/snippet metadata for docs code copy', () => {
+    const entry = LUCIDE_ICON_MANIFEST_MAP['chevron-down'];
+    expect(entry.importPath).toBe('@proto.ui/prototypes-lucide/icons/chevron-down');
+    expect(LUCIDE_ICON_MANIFEST.length).toBeGreaterThan(1000);
+    const snippet = getLucideIconSnippet('chevron-down', 'asHook');
+    expect(snippet.includes('asLucideChevronDownIcon')).toBe(true);
+  });
+
+  it('supports dynamic per-icon module loading', async () => {
+    const mod = await loadLucideIcon('check');
+    expect(typeof mod.renderLucideCheckIcon).toBe('function');
+    expect(typeof mod.asLucideCheckIcon).toBe('function');
   });
 });

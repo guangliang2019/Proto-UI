@@ -5,8 +5,7 @@
   "type": "module",
   "dependencies": {
     "@proto.ui/core": "workspace:*",
-    "@proto.ui/prototypes-base": "workspace:*",
-    "@proto.ui/prototypes-lucide": "workspace:*"
+    "@proto.ui/prototypes-base": "workspace:*"
   },
   "devDependencies": {
     "@proto.ui/module-as-trigger": "workspace:*",

@@ -69,7 +69,27 @@ export type SvgPolylineProps = SvgSharedProps & {
   points: string;
 };
 
-export type SvgTemplateTag = 'svg' | 'g' | 'path' | 'circle' | 'rect' | 'line' | 'polyline';
+export type SvgEllipseProps = SvgSharedProps & {
+  cx: number;
+  cy: number;
+  rx: number;
+  ry: number;
+};
+
+export type SvgPolygonProps = SvgSharedProps & {
+  points: string;
+};
+
+export type SvgTemplateTag =
+  | 'svg'
+  | 'g'
+  | 'path'
+  | 'circle'
+  | 'rect'
+  | 'line'
+  | 'polyline'
+  | 'ellipse'
+  | 'polygon';
 
 export type ReservedType = { kind: 'slot' };
 
@@ -93,6 +113,8 @@ export type SvgCircleNode = SvgTemplateNodeBase<'circle', SvgCircleProps>;
 export type SvgRectNode = SvgTemplateNodeBase<'rect', SvgRectProps>;
 export type SvgLineNode = SvgTemplateNodeBase<'line', SvgLineProps>;
 export type SvgPolylineNode = SvgTemplateNodeBase<'polyline', SvgPolylineProps>;
+export type SvgEllipseNode = SvgTemplateNodeBase<'ellipse', SvgEllipseProps>;
+export type SvgPolygonNode = SvgTemplateNodeBase<'polygon', SvgPolygonProps>;
 
 export type SvgTemplateNode =
   | SvgRootNode
@@ -101,7 +123,9 @@ export type SvgTemplateNode =
   | SvgCircleNode
   | SvgRectNode
   | SvgLineNode
-  | SvgPolylineNode;
+  | SvgPolylineNode
+  | SvgEllipseNode
+  | SvgPolygonNode;
 
 // NOTE: undefined is intentionally excluded to keep authoring syntax portable.
 export type TemplateChild = TemplateNode | SvgTemplateNode | string | number | null;
@@ -219,6 +243,8 @@ export interface SvgFactories {
   rect(props: SvgRectProps): SvgRectNode;
   line(props: SvgLineProps): SvgLineNode;
   polyline(props: SvgPolylineProps): SvgPolylineNode;
+  ellipse(props: SvgEllipseProps): SvgEllipseNode;
+  polygon(props: SvgPolygonProps): SvgPolygonNode;
 }
 
 function isSvgNodeTag(tag: unknown): tag is SvgTemplateTag {
@@ -229,7 +255,9 @@ function isSvgNodeTag(tag: unknown): tag is SvgTemplateTag {
     tag === 'circle' ||
     tag === 'rect' ||
     tag === 'line' ||
-    tag === 'polyline'
+    tag === 'polyline' ||
+    tag === 'ellipse' ||
+    tag === 'polygon'
   );
 }
 
@@ -328,6 +356,31 @@ const SVG_ALLOWED_KEYS: Record<SvgTemplateTag, ReadonlyArray<string>> = {
     'clipRule',
     'opacity',
   ],
+  ellipse: [
+    'cx',
+    'cy',
+    'rx',
+    'ry',
+    'fill',
+    'stroke',
+    'strokeWidth',
+    'strokeLinecap',
+    'strokeLinejoin',
+    'fillRule',
+    'clipRule',
+    'opacity',
+  ],
+  polygon: [
+    'points',
+    'fill',
+    'stroke',
+    'strokeWidth',
+    'strokeLinecap',
+    'strokeLinejoin',
+    'fillRule',
+    'clipRule',
+    'opacity',
+  ],
 };
 
 const SVG_REQUIRED_KEYS: Partial<Record<SvgTemplateTag, ReadonlyArray<string>>> = {
@@ -337,6 +390,8 @@ const SVG_REQUIRED_KEYS: Partial<Record<SvgTemplateTag, ReadonlyArray<string>>> 
   rect: ['width', 'height'],
   line: ['x1', 'y1', 'x2', 'y2'],
   polyline: ['points'],
+  ellipse: ['cx', 'cy', 'rx', 'ry'],
+  polygon: ['points'],
 };
 
 function assertSvgProps(tag: SvgTemplateTag, props: unknown): void {
@@ -445,6 +500,12 @@ export function createRendererPrimitives(opt: RendererPrimitivesOptions = {}) {
     },
     polyline(props) {
       return createSvgNode('polyline', props, null);
+    },
+    ellipse(props) {
+      return createSvgNode('ellipse', props, null);
+    },
+    polygon(props) {
+      return createSvgNode('polygon', props, null);
     },
   };
 

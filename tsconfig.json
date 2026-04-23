@@ -7,6 +7,8 @@
       "@proto.ui/adapter-*": ["packages/adapters/*/src"],
       "@proto.ui/prototypes-base": ["packages/prototypes/base/src/index.ts"],
       "@proto.ui/prototypes-shadcn": ["packages/prototypes/shadcn/src/index.ts"],
+      "@proto.ui/prototypes-lucide": ["packages/prototypes/lucide/src/index.ts"],
+      "@proto.ui/prototypes-lucide/*": ["packages/prototypes/lucide/src/*"],
       "@proto.ui/prototypes-*": ["packages/prototypes/*/src"],
       "@proto.ui/*": [
         "packages/*/src",

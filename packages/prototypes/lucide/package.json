@@ -17,6 +17,30 @@
     ".": {
       "types": "./src/index.ts",
       "default": "./src/index.ts"
+    },
+    "./icons": {
+      "types": "./src/icons/index.ts",
+      "default": "./src/icons/index.ts"
+    },
+    "./icons/*": {
+      "types": "./src/icons/*.ts",
+      "default": "./src/icons/*.ts"
+    },
+    "./manifest": {
+      "types": "./src/manifest.generated.ts",
+      "default": "./src/manifest.generated.ts"
+    },
+    "./snippets": {
+      "types": "./src/snippets.generated.ts",
+      "default": "./src/snippets.generated.ts"
+    },
+    "./loaders": {
+      "types": "./src/loaders.generated.ts",
+      "default": "./src/loaders.generated.ts"
+    },
+    "./all": {
+      "types": "./src/icons/index.generated.ts",
+      "default": "./src/icons/index.generated.ts"
     }
   },
   "description": "Lucide-based Proto UI icon prototype library and svg render helpers.",
