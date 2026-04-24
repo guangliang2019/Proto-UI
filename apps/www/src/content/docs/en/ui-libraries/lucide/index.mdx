@@ -1,0 +1,15 @@
+---
+title: 'Lucide Library'
+description: 'Lucide-based icon prototype library for Proto UI.'
+---
+
+The Lucide library provides icon prototypes generated from `lucide-static`.
+
+Its usage model follows Proto UI constraints:
+
+- Use `asHook` when the icon itself is treated as a standalone interaction subject.
+- Use `render` helper when the icon is only a visual fragment embedded into another prototype's template.
+
+For bundle control, each icon can be imported from its own entry (`@proto.ui/prototypes-lucide/icons/<name>`), so consumers do not need to load all icons upfront.
+
+Continue to the [icon catalog](./icons/) for per-icon preview and copyable prototype snippets.
