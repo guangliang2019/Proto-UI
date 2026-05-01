@@ -12,9 +12,7 @@ import DocStageNotice from '@/components/DocStageNotice.astro';
   body="Core ideas are already visible, but component coverage and ecosystem readiness are still being built up."
 />
 
-:::caution[Not Installable Yet] The Proto UI CLI is not ready yet, so it is **not currently installable and should not be used via the commands below**.
-
-The CLI is expected to be ready by **May 14, 2026**, and the first public launch is also currently targeted for **May 14, 2026**. For now, the commands, folder structure, and setup flow in this document are provided only to explain the intended future workflow. Do not run these installation commands yet. :::
+:::caution[Pre-release Stage] The Proto UI CLI is still converging for v0. This page describes the intended first onboarding path, and command behavior or generated file structure may still change before the v0 launch. :::
 
 ## Install the Proto UI CLI
 
@@ -44,18 +42,34 @@ your-project/
 ├── proto-ui/
 │   ├── adapters/
 │   ├── prototypes/
-│   └── components/
+│   ├── components/
+│   │   ├── react/
+│   │   │   └── index.ts
+│   │   └── index.ts
+│   └── config.json
 ├── package.json
 └── ...
 ```
 
 Where:
 
-- `adapters/`: the adapters used by the current project
-- `prototypes/`: the prototypes installed in the current project
-- `components/`: the assembled entry point for ready-to-use components
+- `config.json`: project configuration read by later CLI commands
+- `components/`: generated component entries you import from your app
+- `adapters/` and `prototypes/`: CLI-managed areas, not user-facing import surfaces
 
 You usually do not need to maintain these files manually. The CLI manages them for you.
+
+---
+
+## Import the styles
+
+`init` generates Proto UI style preset files by default. Import the generated stylesheet once from your app entry:
+
+```ts
+import './styles/tailwindcss.css';
+```
+
+Adjust the relative path if your app entry is not next to `src/styles`.
 
 ---
 
@@ -72,25 +86,34 @@ npx @proto.ui/cli add react shadcn-button
 This command will:
 
 1. Detect the host adapter you selected (`react`)
-2. Install the corresponding Prototype (`shadcn-button`)
-3. Assemble everything locally
-4. Generate a component entry point that your current project can use directly
+2. Check that the React runtime exists in your project
+3. Install the corresponding adapter and prototype packages
+4. Assemble everything locally
+5. Generate a component entry point that your current project can use directly
+
+If you want to inspect what will be generated without letting the CLI install dependencies, run:
+
+```bash
+npx @proto.ui/cli add react shadcn-button --no-install
+```
+
+This prints the Proto UI packages you still need to install and still generates the local component entry.
 
 ---
 
 ## Use it in your project
 
-After installation, you can import the component directly in your project:
+After installation, import the component from the generated host entry:
 
 ```tsx
-import { Button } from 'proto-ui/components';
+import { Button } from '../proto-ui/components/react';
 
 export function Demo() {
   return <Button>Click me</Button>;
 }
 ```
 
-If you install multiple components, they will all be exposed from `proto-ui/components`.
+The relative import is intentional. Projects do not share the same path aliases or directory depth, so the CLI does not assume that a bare specifier such as `proto-ui/components` is already configured.
 
 ---
 
@@ -101,15 +124,40 @@ Proto UI is adopted one component at a time.
 You can continue with commands like:
 
 ```bash
-npx @proto.ui/cli add react shadcn-input
+npx @proto.ui/cli add react shadcn-toggle
 npx @proto.ui/cli add react shadcn-dialog
 ```
 
-Then keep using them from the same entry point:
+Then keep using them from the same host entry:
 
 ```tsx
-import { Button, Input, Dialog } from 'proto-ui/components';
+import { Button, DialogRoot, Toggle } from '../proto-ui/components/react';
 ```
+
+---
+
+## Use multiple hosts
+
+If the same project needs both React and Web Components, add them separately:
+
+```bash
+npx @proto.ui/cli add react shadcn-button
+npx @proto.ui/cli add wc shadcn-button
+```
+
+React components are exported from the React host entry:
+
+```tsx
+import { Button } from '../proto-ui/components/react';
+```
+
+Web Component constructors are exported from the Web Component host entry:
+
+```ts
+import { ButtonElement } from '../proto-ui/components/wc';
+```
+
+`proto-ui/components/index.ts` also re-exports host-prefixed or explicit names to avoid naming conflicts when multiple hosts are used in the same project.
 
 ---
 
@@ -123,6 +171,14 @@ A more common way to start is:
 2. Install the simplest component first, such as Button
 3. Try it in one local page or feature
 4. Then decide whether to keep expanding
+
+---
+
+## Current boundary
+
+The current CLI onboarding path installs official prototype packages and generates local component facades.
+
+It does not yet write shadcn styled prototype source into your project for direct editing. That direction is already planned, but it is not part of the first v0 onboarding path.
 
 ---
 

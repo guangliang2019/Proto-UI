@@ -1,2 +1,2 @@
-// @ts-nocheck — publish build entry; runtime implementation is cli.mjs (JS).
-export { run } from './cli.mjs';
+// @ts-nocheck — publish build entry; runtime implementation is index.js (JS).
+export { run } from './index.js';
