@@ -54,8 +54,11 @@ The architecture is stable enough to move from v0 to v1 without destructive rewr
 
 - **Contracts (like RFCs):** `/internal/contracts`
 - **Adapters:** `/packages/adapters`
-- **Prototype libraries (planned):** `/packages/prototypes`
-- **Docs / website content:** `/apps/www/src/content`
+- **Prototype libraries:** `/packages/prototypes` (`base` and `shadcn` are the current launch libraries)
+- **CLI helpers:** `/packages/cli`
+- **Docs / website app:** `/apps/www`
+- **Launch governance:** `/internal/governance`
+- **CI/CD guide:** `/internal/governance/ci-cd.md`
 
 ---
 
