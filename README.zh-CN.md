@@ -54,8 +54,11 @@ v0 用 Adapter 验证可行性，v1 将用 Compiler 保证零运行时开销。
 
 - **契约（类似 RFC）：** `/internal/contracts`
 - **Adapters：** `/packages/adapters`
-- **Prototype libs（计划中）：** `/packages/prototypes`
-- **官网/文档内容：** `/apps/www/src/content`
+- **Prototype libs：** `/packages/prototypes`（当前首发库为 `base` 与 `shadcn`）
+- **CLI 辅助工具：** `/packages/cli`
+- **官网/文档应用：** `/apps/www`
+- **首发治理：** `/internal/governance`
+- **CI/CD 说明：** `/internal/governance/ci-cd.zh-CN.md`
 
 ---
 

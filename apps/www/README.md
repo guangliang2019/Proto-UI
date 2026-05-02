@@ -1,49 +1,35 @@
-# Starlight Starter Kit: Basics
+# Proto UI Website
 
-[![Built with Starlight](https://astro.badg.es/v2/built-with-starlight/tiny.svg)](https://starlight.astro.build)
+This app contains the Proto UI documentation site, whitepaper, examples, and live prototype previews.
 
-```
-pnpm create astro@latest -- --template starlight
-```
+It is built with Astro and Starlight, but the app is not a generic Starlight starter. Its job is to explain Proto UI as an interaction protocol and show how the current prototype libraries can be rendered through React, Vue, and Web Component adapters.
 
-> 🧑‍🚀 **Seasoned astronaut?** Delete this file. Have fun!
+## Project Structure
 
-## 🚀 Project Structure
-
-Inside of your Astro + Starlight project, you'll see the following folders and files:
-
-```
-.
-├── public/
-├── src/
-│   ├── assets/
-│   ├── content/
-│   │   └── docs/
-│   └── content.config.ts
-├── astro.config.mjs
-├── package.json
-└── tsconfig.json
+```txt
+apps/www/
+├── src/content/docs/        # bilingual docs, specifications, whitepaper, and demos
+├── src/components/          # site components and prototype preview infrastructure
+├── src/styles/              # generated Proto UI tokens, shadcn theme, and global styles
+├── scripts/                 # docs-side generation helpers
+└── astro.config.mjs
 ```
 
-Starlight looks for `.md` or `.mdx` files in the `src/content/docs/` directory. Each file is exposed as a route based on its file name.
+## Commands
 
-Images can be added to `src/assets/` and embedded in Markdown with a relative link.
+Run commands from the repository root:
 
-Static assets, like favicons, can be placed in the `public/` directory.
+| Command                        | Action                                   |
+| :----------------------------- | :--------------------------------------- |
+| `pnpm docs:dev`                | Start the docs dev server                |
+| `pnpm docs:build`              | Build the production docs site           |
+| `pnpm docs:preview`            | Preview a production build               |
+| `pnpm --filter apps-www check` | Run Astro type and content checks        |
+| `pnpm --filter apps-www astro` | Run Astro/Starlight maintenance commands |
 
-## 🧞 Commands
+## Content Notes
 
-All commands are run from the repo root (monorepo), from a terminal:
-
-| Command                                  | Action                                           |
-| :--------------------------------------- | :----------------------------------------------- |
-| `pnpm install`                           | Installs dependencies                            |
-| `pnpm --filter apps-www dev`             | Starts local dev server at `localhost:4321`      |
-| `pnpm --filter apps-www build`           | Build your production site to `./dist/`          |
-| `pnpm --filter apps-www preview`         | Preview your build locally, before deploying     |
-| `pnpm --filter apps-www astro ...`       | Run CLI commands like `astro add`, `astro check` |
-| `pnpm --filter apps-www astro -- --help` | Get help using the Astro CLI                     |
-
-## 👀 Want to learn more?
-
-Check out [Starlight’s docs](https://starlight.astro.build/), read [the Astro documentation](https://docs.astro.build), or jump into the [Astro Discord server](https://astro.build/chat).
+- English docs live under `src/content/docs/en/`.
+- Chinese docs live under `src/content/docs/zh-cn/`.
+- Prototype demos are registered through `src/components/PrototypePreviewer/`.
+- Generated CSS token files in `src/styles/` should be regenerated through package scripts instead of edited by hand.
