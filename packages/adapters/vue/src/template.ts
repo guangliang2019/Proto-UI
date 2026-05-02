@@ -6,6 +6,8 @@ import {
   type TemplateNode,
   type TemplateType,
   type ReservedType,
+  type SvgTemplateNode,
+  isSvgTemplateNode,
 } from '@proto.ui/core';
 
 export const ERR_TEMPLATE_PROTOTYPE_REF_V0 =
@@ -36,6 +38,27 @@ function isPrototypeRef(t: any): t is { kind: 'prototype'; name: string; ref?: a
   return t && typeof t === 'object' && t.kind === 'prototype' && typeof t.name === 'string';
 }
 
+const SVG_ATTR_NAMES: Record<string, string> = {
+  strokeWidth: 'stroke-width',
+  strokeLinecap: 'stroke-linecap',
+  strokeLinejoin: 'stroke-linejoin',
+  fillRule: 'fill-rule',
+  clipRule: 'clip-rule',
+};
+
+function svgTagAllowsChildren(tag: SvgTemplateNode['tag']): boolean {
+  return tag === 'svg' || tag === 'g';
+}
+
+function buildSvgProps(node: SvgTemplateNode): Record<string, unknown> {
+  const out: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(node.props as Record<string, unknown>)) {
+    if (value === undefined || value === null) continue;
+    out[SVG_ATTR_NAMES[key] ?? key] = value;
+  }
+  return out;
+}
+
 function renderChild(
   runtime: VueRuntime,
   child: TemplateChild,
@@ -46,6 +69,14 @@ function renderChild(
 
   if (typeof child === 'string' || typeof child === 'number') {
     return child;
+  }
+
+  if (isSvgTemplateNode(child)) {
+    const kids = toArray(child.children ?? null).map((k) => renderChild(runtime, k, opt, ctx));
+    if (!svgTagAllowsChildren(child.tag) && kids.length > 0) {
+      throw new Error(`[Vue Adapter] svg node <${child.tag}> must not have children.`);
+    }
+    return runtime.h(child.tag, buildSvgProps(child), kids as any);
   }
 
   if (!isTemplateNode(child)) {

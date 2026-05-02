@@ -1,4 +1,10 @@
-import { definePrototype, tw } from '@proto.ui/core';
+import {
+  definePrototype,
+  type RendererHandle,
+  type SvgFactories,
+  type TemplateChildren,
+  tw,
+} from '@proto.ui/core';
 import { asDropdownTrigger } from '@proto.ui/prototypes-base';
 import type { ShadcnDropdownTriggerExposes, ShadcnDropdownTriggerProps } from './types';
 
@@ -21,9 +27,69 @@ const TRIGGER_BASE_TOKENS = [
   'select-none',
 ].join(' ');
 
+const DEFAULT_INDICATOR_ICON = 'chevron-down';
+const DEFAULT_INDICATOR_SIZE = 16;
+const DEFAULT_INDICATOR_STROKE_WIDTH = 2;
+
+type IndicatorIconShape = (svg: SvgFactories) => TemplateChildren;
+
+const INDICATOR_ICON_SHAPES: Record<'chevron-down' | 'chevrons-up-down', IndicatorIconShape> = {
+  'chevron-down': (svg) => svg.path({ d: 'm6 9 6 6 6-6' }),
+  'chevrons-up-down': (svg) => [svg.path({ d: 'm7 15 5 5 5-5' }), svg.path({ d: 'm7 9 5-5 5 5' })],
+};
+
+function toPositiveNumber(value: unknown, fallback: number): number {
+  if (typeof value !== 'number') return fallback;
+  if (!Number.isFinite(value)) return fallback;
+  if (value <= 0) return fallback;
+  return value;
+}
+
+function renderIndicatorIcon(
+  renderer: Pick<RendererHandle<any>, 'svg'>,
+  options: {
+    icon: 'chevron-down' | 'chevrons-up-down';
+    size: number;
+    strokeWidth: number;
+  }
+) {
+  return renderer.svg.root(
+    {
+      viewBox: '0 0 24 24',
+      width: options.size,
+      height: options.size,
+      fill: 'none',
+      stroke: 'currentColor',
+      strokeWidth: options.strokeWidth,
+      strokeLinecap: 'round',
+      strokeLinejoin: 'round',
+    },
+    INDICATOR_ICON_SHAPES[options.icon](renderer.svg)
+  );
+}
+
 const dropdownTrigger = definePrototype<ShadcnDropdownTriggerProps, ShadcnDropdownTriggerExposes>({
   name: 'shadcn-dropdown-trigger',
   setup(def) {
+    def.props.define({
+      disabled: { type: 'boolean', empty: 'fallback' },
+      indicator: { type: 'boolean', empty: 'fallback' },
+      indicatorIcon: {
+        type: 'string',
+        empty: 'fallback',
+        enum: ['chevron-down', 'chevrons-up-down'],
+      },
+      indicatorSize: { type: 'number', empty: 'fallback' },
+      indicatorStrokeWidth: { type: 'number', empty: 'fallback' },
+    });
+    def.props.setDefaults({
+      disabled: false,
+      indicator: true,
+      indicatorIcon: DEFAULT_INDICATOR_ICON,
+      indicatorSize: DEFAULT_INDICATOR_SIZE,
+      indicatorStrokeWidth: DEFAULT_INDICATOR_STROKE_WIDTH,
+    });
+
     asDropdownTrigger();
     const disabled = def.state.fromInteraction('disabled');
     const hovered = def.state.fromInteraction('hovered');
@@ -51,6 +117,29 @@ const dropdownTrigger = definePrototype<ShadcnDropdownTriggerProps, ShadcnDropdo
       when: (w: any) => w.state(disabled).eq(true),
       intent: (i: any) => i.feedback.style.use(tw('pointer-events-none opacity-50')),
     });
+
+    return (renderer) => {
+      const props = renderer.read.props.get();
+      const indicatorEnabled = props.indicator !== false;
+      const indicatorIcon =
+        props.indicatorIcon === 'chevrons-up-down' ? props.indicatorIcon : DEFAULT_INDICATOR_ICON;
+      const indicatorSize = toPositiveNumber(props.indicatorSize, DEFAULT_INDICATOR_SIZE);
+      const indicatorStrokeWidth = toPositiveNumber(
+        props.indicatorStrokeWidth,
+        DEFAULT_INDICATOR_STROKE_WIDTH
+      );
+
+      return [
+        renderer.r.slot(),
+        indicatorEnabled
+          ? renderIndicatorIcon(renderer, {
+              icon: indicatorIcon,
+              size: indicatorSize,
+              strokeWidth: indicatorStrokeWidth,
+            })
+          : null,
+      ];
+    };
   },
 });
 

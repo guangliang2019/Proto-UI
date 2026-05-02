@@ -61,6 +61,9 @@ importers:
       '@proto.ui/prototypes-base':
         specifier: workspace:*
         version: link:../../packages/prototypes/base
+      '@proto.ui/prototypes-lucide':
+        specifier: workspace:*
+        version: link:../../packages/prototypes/lucide
       '@proto.ui/prototypes-shadcn':
         specifier: workspace:*
         version: link:../../packages/prototypes/shadcn
@@ -660,6 +663,19 @@ importers:
       '@proto.ui/module-focus':
         specifier: workspace:*
         version: link:../../modules/focus
+      '@proto.ui/runtime':
+        specifier: workspace:*
+        version: link:../../runtime
+
+  packages/prototypes/lucide:
+    dependencies:
+      '@proto.ui/core':
+        specifier: workspace:*
+        version: link:../../core
+      lucide-static:
+        specifier: ^1.8.0
+        version: 1.8.0
+    devDependencies:
       '@proto.ui/runtime':
         specifier: workspace:*
         version: link:../../runtime
@@ -3899,6 +3915,12 @@ packages:
     resolution:
       {
         integrity: sha512-CdzqowRJCeLU72bHvWqwRBBlLcMEtIvGrlvef74kMnV2AolS9Y8xUv1I0U/MNAWMhBlKIoyuEgoJ0t/bbwHbLQ==,
+      }
+
+  lucide-static@1.8.0:
+    resolution:
+      {
+        integrity: sha512-eQJCJuDg3tyQrjP0PwD5eIA4ePd5CMdxkrfyqk3iUQA4VOtsJ0v5T6IBJ5UyR3SYHzUn8HOAEL+I+SLVnOJNIA==,
       }
 
   lru-cache@11.2.7:
@@ -7610,6 +7632,8 @@ snapshots:
   longest-streak@3.1.0: {}
 
   loupe@3.2.1: {}
+
+  lucide-static@1.8.0: {}
 
   lru-cache@11.2.7: {}
 

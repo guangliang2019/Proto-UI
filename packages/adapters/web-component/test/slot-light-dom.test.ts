@@ -122,4 +122,27 @@ describe('adapter-web-component light DOM slot (v0)', () => {
 
     expect(el.innerHTML).toBe('<div><span>k</span></div>');
   });
+
+  it('does not re-project endlessly when template has slot plus owned siblings', async () => {
+    const P: Prototype = {
+      name: 'x-light-slot-with-sibling',
+      setup() {
+        return (r) => [r.slot(), r.el('i', 'owned')];
+      },
+    };
+
+    AdaptToWebComponent(P);
+
+    const el = document.createElement('x-light-slot-with-sibling') as any;
+    el.appendChild(document.createTextNode('Actions'));
+    document.body.appendChild(el);
+
+    await new Promise<void>((r) => setTimeout(r, 0));
+    expect(el.innerHTML).toBe('Actions<i>owned</i>');
+
+    // A follow-up update must stay stable (no duplicate/mutation loop side effects).
+    el.update();
+    await new Promise<void>((r) => setTimeout(r, 0));
+    expect(el.innerHTML).toBe('Actions<i>owned</i>');
+  });
 });

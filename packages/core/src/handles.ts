@@ -16,6 +16,7 @@ import {
   TemplateProps,
   TemplateChildren,
   TemplateNode,
+  SvgFactories,
 } from './spec';
 import type {
   AnatomyClaimDecl,
@@ -211,6 +212,7 @@ export interface RendererHandle<Props extends PropsBaseType> {
   el: ElementFactory;
   slot(): TemplateNode;
   r: ReservedFactories;
+  svg: SvgFactories;
   read: RenderReadHandle<Props>; // render 阶段可用的 readonly 快照视图
 }
 

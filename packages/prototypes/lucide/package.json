@@ -1,0 +1,69 @@
+{
+  "name": "@proto.ui/prototypes-lucide",
+  "version": "0.0.1",
+  "private": false,
+  "type": "module",
+  "dependencies": {
+    "@proto.ui/core": "workspace:*",
+    "lucide-static": "^1.8.0"
+  },
+  "scripts": {
+    "generate:icons": "node ./scripts/generate-icons.mjs"
+  },
+  "devDependencies": {
+    "@proto.ui/runtime": "workspace:*"
+  },
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "default": "./src/index.ts"
+    },
+    "./icons": {
+      "types": "./src/icons/index.ts",
+      "default": "./src/icons/index.ts"
+    },
+    "./icons/*": {
+      "types": "./src/icons/*.ts",
+      "default": "./src/icons/*.ts"
+    },
+    "./manifest": {
+      "types": "./src/manifest.generated.ts",
+      "default": "./src/manifest.generated.ts"
+    },
+    "./snippets": {
+      "types": "./src/snippets.generated.ts",
+      "default": "./src/snippets.generated.ts"
+    },
+    "./loaders": {
+      "types": "./src/loaders.generated.ts",
+      "default": "./src/loaders.generated.ts"
+    },
+    "./all": {
+      "types": "./src/icons/index.generated.ts",
+      "default": "./src/icons/index.generated.ts"
+    }
+  },
+  "description": "Lucide-based Proto UI icon prototype library and svg render helpers.",
+  "license": "MIT",
+  "homepage": "https://github.com/guangliang2019/Prototype-UI/tree/main/packages/prototypes/lucide",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/guangliang2019/Prototype-UI.git",
+    "directory": "packages/prototypes/lucide"
+  },
+  "bugs": {
+    "url": "https://github.com/guangliang2019/Prototype-UI/issues"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "keywords": [
+    "proto-ui",
+    "proto",
+    "ui",
+    "prototypes",
+    "icon",
+    "lucide",
+    "svg"
+  ]
+}

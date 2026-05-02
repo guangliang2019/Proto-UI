@@ -87,6 +87,9 @@ export class SlotProjector {
       if (m.target !== this.el) continue; // 只处理 direct children 的新增
       for (const n of Array.from(m.addedNodes)) {
         if (this.owned.has(n)) continue;
+        // Ignore nodes that are already projected in-place before slotEnd.
+        // This prevents re-moving the same node and creating a mutation loop.
+        if (!this.shouldMoveToSlot(n)) continue;
         toMove.push(n);
       }
     }
@@ -103,7 +106,7 @@ export class SlotProjector {
           if (n.parentNode === this.el) this.el.removeChild(n);
 
           parent.insertBefore(n, end);
-          this.projected.push(n);
+          if (!this.projected.includes(n)) this.projected.push(n);
         }
       } finally {
         this.suppress--;
@@ -114,5 +117,25 @@ export class SlotProjector {
     if (this.projected.length) {
       this.projected = this.projected.filter((n) => !!n.parentNode);
     }
+  }
+
+  private shouldMoveToSlot(node: Node): boolean {
+    const end = this.slotEnd;
+    if (!end) return false;
+    const slotParent = end.parentNode;
+    if (!slotParent) return false;
+
+    const fromHostDirectChild = node.parentNode === this.el;
+    const alreadyInSlotParent = node.parentNode === slotParent;
+    if (!fromHostDirectChild && !alreadyInSlotParent) return false;
+
+    // If node is already before slotEnd in the same parent, it is already projected.
+    if (alreadyInSlotParent) {
+      const pos = node.compareDocumentPosition(end);
+      const isBeforeEnd = (pos & Node.DOCUMENT_POSITION_FOLLOWING) !== 0;
+      if (isBeforeEnd) return false;
+    }
+
+    return true;
   }
 }

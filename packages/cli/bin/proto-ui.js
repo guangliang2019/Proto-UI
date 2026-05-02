@@ -6,7 +6,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const dir = path.dirname(fileURLToPath(import.meta.url));
 const distEntry = path.join(dir, '../dist/index.js');
-const srcEntry = path.join(dir, '../src/cli.mjs');
+const srcEntry = path.join(dir, '../src/index.js');
 const entryUrl = pathToFileURL(existsSync(distEntry) ? distEntry : srcEntry).href;
 
 const { run } = await import(entryUrl);

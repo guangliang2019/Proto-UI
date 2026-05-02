@@ -1,88 +1,57 @@
 # @proto.ui/cli
 
-Proto UI command line helpers for initializing a local `proto-ui/` workspace and generating CSS resources used by Proto UI prototype libraries.
-
-The CLI currently focuses on launch preparation tasks:
-
-- create a minimal `proto-ui/` workspace with adapter, prototype, and component folders
-- install the selected adapter and prototype library packages when requested
-- generate prototype token CSS
-- generate the shadcn theme CSS
-- generate a Tailwind entry CSS file that imports the theme and token files
-
-It does not yet implement the full component add/generation flow described in the public Quick Start draft.
+Proto UI command line tooling for initializing a local `proto-ui/` workspace and generating adapter-specific component facades.
 
 ## Usage
 
+Initialize the local workspace:
+
 ```bash
-npx @proto.ui/cli --help
 npx @proto.ui/cli init
-npx @proto.ui/cli init --adapter react --prototypes shadcn --install
-npx @proto.ui/cli shadcn --styles-dir ./src/styles
+```
+
+Add a component for a host adapter:
+
+```bash
+npx @proto.ui/cli add react shadcn-button
+```
+
+The generated component facade is written under:
+
+```txt
+proto-ui/components/<host>/index.ts
+```
+
+For example, React users can import from the generated host entry:
+
+```tsx
+import { Button } from '../proto-ui/components/react';
 ```
 
 ## Commands
 
-### `init`
-
-Creates a local `proto-ui/` folder:
-
-```txt
-proto-ui/
-├── adapters/
-├── prototypes/
-└── components/
+```bash
+proto-ui init [--root-dir <dir>] [--styles-dir <dir>] [--no-styles] [--no-interactive]
+proto-ui add <host> <component> [--root-dir <dir>] [--no-install] [--no-interactive]
 ```
 
-It also writes `proto-ui/config.json` and, unless `--no-tailwind` is passed, generates the default shadcn CSS preset under `./src/styles`.
+Supported hosts:
+
+- `react`
+- `vue`
+- `wc`
+
+The CLI also keeps the legacy style-generation commands available for existing docs and build flows:
 
 ```bash
-npx @proto.ui/cli init --adapter vue --prototypes shadcn --install
-npx @proto.ui/cli init --defaults --no-tailwind
+proto-ui shadcn --styles-dir ./src/styles
+proto-ui tokens --input ./packages/prototypes --out ./src/styles/prototype-tokens.generated.css
+proto-ui tailwindcss --out ./src/styles/tailwindcss.css
+proto-ui theme shadcn --out ./src/styles/shadcn-theme.css
 ```
 
-### `shadcn`
+## Current Scope
 
-Generates the launch CSS preset files into a styles directory:
+The v0 CLI installs Proto UI adapter/prototype packages through the project package manager and generates local component facade files.
 
-```bash
-npx @proto.ui/cli shadcn --styles-dir ./src/styles
-```
-
-This writes:
-
-- `prototype-tokens.generated.css`
-- `shadcn-theme.css`
-- `tailwindcss.css`
-
-### `tokens`
-
-Scans prototype source files for Proto UI Tailwind-style tokens and writes a generated CSS file.
-
-```bash
-npx @proto.ui/cli tokens --input ./packages/prototypes --out ./src/styles/prototype-tokens.generated.css
-```
-
-### `theme`
-
-Writes a supported theme file.
-
-```bash
-npx @proto.ui/cli theme shadcn --out ./src/styles/shadcn-theme.css
-```
-
-### `tailwindcss`
-
-Writes a Tailwind entry file that imports the generated theme and token CSS files.
-
-```bash
-npx @proto.ui/cli tailwindcss --out ./src/styles/tailwindcss.css
-```
-
-## Package Role
-
-This package is a tooling surface for Proto UI launch workflows. It supports adapters and prototype libraries, but it is not itself the interaction protocol or a runtime adapter.
-
-## License
-
-MIT
+It does not yet vendor styled prototype source into the user project. That remains a planned follow-up path for editable styled libraries such as shadcn.

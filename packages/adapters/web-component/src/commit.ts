@@ -7,7 +7,9 @@ import type {
   TemplateNode,
   TemplateType,
   ReservedType,
+  SvgTemplateNode,
 } from '@proto.ui/core';
+import { isSvgTemplateNode } from '@proto.ui/core';
 
 export type CommitOptions = {
   mode?: 'light' | 'shadow';
@@ -39,6 +41,15 @@ function isPrototypeRef(t: any): t is { kind: 'prototype'; name: string; ref?: a
 }
 
 export const ERR_TEMPLATE_PROTOTYPE_REF_V0 = `[Template] PrototypeRef is not allowed in Template v0.`;
+const SVG_NS = 'http://www.w3.org/2000/svg';
+
+const SVG_ATTR_NAMES: Record<string, string> = {
+  strokeWidth: 'stroke-width',
+  strokeLinecap: 'stroke-linecap',
+  strokeLinejoin: 'stroke-linejoin',
+  fillRule: 'fill-rule',
+  clipRule: 'clip-rule',
+};
 
 function createElementForType(type: TemplateType, doc: Document): Node | null {
   if (typeof type === 'string') return doc.createElement(type);
@@ -64,6 +75,11 @@ function appendCommittedChild(
 
   if (typeof child === 'string' || typeof child === 'number') {
     parent.appendChild(doc.createTextNode(String(child)));
+    return;
+  }
+
+  if (isSvgTemplateNode(child)) {
+    appendSvgChild(parent, child, doc, opt, ctx);
     return;
   }
 
@@ -128,6 +144,42 @@ function appendCommittedChild(
   }
 
   parent.appendChild(node);
+}
+
+function svgTagAllowsChildren(tag: SvgTemplateNode['tag']): boolean {
+  return tag === 'svg' || tag === 'g';
+}
+
+function setSvgAttribute(el: Element, key: string, value: unknown): void {
+  if (value === undefined || value === null) return;
+  const name = SVG_ATTR_NAMES[key] ?? key;
+  el.setAttribute(name, String(value));
+}
+
+function appendSvgChild(
+  parent: Node,
+  child: SvgTemplateNode,
+  doc: Document,
+  opt: Required<CommitOptions>,
+  ctx: { slotUsed: boolean; slotStart?: Text; slotEnd?: Text }
+): void {
+  const el = doc.createElementNS(SVG_NS, child.tag);
+  opt.owned?.add(el);
+
+  for (const [key, value] of Object.entries(child.props as Record<string, unknown>)) {
+    setSvgAttribute(el, key, value);
+  }
+
+  const kids = toArray(child.children ?? null);
+  if (!svgTagAllowsChildren(child.tag) && kids.length > 0) {
+    throw new Error(`[WC Adapter] svg node <${child.tag}> must not have children.`);
+  }
+
+  for (const kid of kids) {
+    appendCommittedChild(el, kid, doc, opt, ctx);
+  }
+
+  parent.appendChild(el);
 }
 
 export function commitChildren(

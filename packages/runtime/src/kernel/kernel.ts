@@ -122,8 +122,8 @@ export function createKernel<P extends PropsBaseType>(
     props: propsFacade as any,
   };
 
-  const { el, slot, r } = createRendererPrimitives();
-  const renderer: RendererHandle<P> = { el, slot, r, read };
+  const { el, slot, r, svg } = createRendererPrimitives();
+  const renderer: RendererHandle<P> = { el, slot, r, svg, read };
 
   // ----------------
   // render

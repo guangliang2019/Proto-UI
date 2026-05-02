@@ -11,9 +11,7 @@ import DocStageNotice from '@/components/DocStageNotice.astro';
   body="核心思路已经清晰可见，但组件储备与生态能力仍在持续补齐。"
 />
 
-:::caution[当前暂不可安装] Proto UI CLI 目前尚未就绪，暂时**不可安装，也不可按本文命令直接使用**。
-
-CLI 预计在 **2026 年 5 月 14 日前**就绪，首次公开发布也暂定为 **2026 年 5 月 14 日**。当前这篇文档的命令、目录结构和接入方式，仅用于提前说明 Proto UI 未来的使用方式，避免误导，现阶段请不要实际执行这些安装命令。:::
+:::caution[预发布阶段] Proto UI CLI 仍在 v0 收敛中。本文描述的是当前计划中的首条上手路径，命令和生成结构会继续随 v0 发布准备调整。:::
 
 ## 安装 Proto UI CLI
 
@@ -43,18 +41,34 @@ your-project/
 ├── proto-ui/
 │   ├── adapters/
 │   ├── prototypes/
-│   └── components/
+│   ├── components/
+│   │   ├── react/
+│   │   │   └── index.ts
+│   │   └── index.ts
+│   └── config.json
 ├── package.json
 └── ...
 ```
 
 其中：
 
-- `adapters/`：当前项目使用到的适配器
-- `prototypes/`：当前项目安装的原型
-- `components/`：组装后的可用组件入口
+- `config.json`：CLI 后续命令会读取的项目配置
+- `components/`：当前项目可直接导入的组件入口
+- `adapters/`、`prototypes/`：CLI 管理区，不作为用户导入入口
 
 你通常不需要手动维护这些文件，CLI 会负责管理它们。
+
+---
+
+## 引入样式
+
+`init` 会默认生成 Proto UI 的样式预设文件。你需要在应用入口引入一次：
+
+```ts
+import './styles/tailwindcss.css';
+```
+
+如果你的项目入口与 `src/styles` 的相对位置不同，请按实际路径调整。
 
 ---
 
@@ -71,25 +85,34 @@ npx @proto.ui/cli add react shadcn-button
 这个命令会：
 
 1. 识别你选择的宿主适配器（`react`）
-2. 安装对应的 Prototype（`shadcn-button`）
-3. 在本地完成组装
-4. 生成当前项目可以直接使用的组件入口
+2. 检查 React runtime 是否已经存在
+3. 安装对应的 adapter 与 prototype package
+4. 在本地完成组装
+5. 生成当前项目可以直接使用的组件入口
+
+如果你想先查看会生成什么，而不让 CLI 安装依赖，可以使用：
+
+```bash
+npx @proto.ui/cli add react shadcn-button --no-install
+```
+
+这会打印需要安装的 Proto UI package，并仍然生成本地组件入口。
 
 ---
 
 ## 在项目中使用它
 
-安装完成后，你可以直接在项目中导入组件：
+安装完成后，你可以从生成的 host 入口导入组件：
 
 ```tsx
-import { Button } from 'proto-ui/components';
+import { Button } from '../proto-ui/components/react';
 
 export function Demo() {
   return <Button>Click me</Button>;
 }
 ```
 
-如果你安装了多个组件，它们会统一从 `proto-ui/components` 暴露出来。
+这里使用相对路径是有意的。不同项目的路径别名和目录层级并不相同，CLI 不会默认假设你已经配置了 `proto-ui/components` 这样的裸导入路径。
 
 ---
 
@@ -100,15 +123,40 @@ Proto UI 的接入是按组件进行的。
 你可以继续执行：
 
 ```bash
-npx @proto.ui/cli add react shadcn-input
+npx @proto.ui/cli add react shadcn-toggle
 npx @proto.ui/cli add react shadcn-dialog
 ```
 
-然后继续从同一个入口使用它们：
+然后继续从同一个 host 入口使用它们：
 
 ```tsx
-import { Button, Input, Dialog } from 'proto-ui/components';
+import { Button, DialogRoot, Toggle } from '../proto-ui/components/react';
 ```
+
+---
+
+## 同时使用多个宿主
+
+如果同一个项目里同时需要 React 与 Web Component，也可以分别添加：
+
+```bash
+npx @proto.ui/cli add react shadcn-button
+npx @proto.ui/cli add wc shadcn-button
+```
+
+React 组件会从 React 子入口导出：
+
+```tsx
+import { Button } from '../proto-ui/components/react';
+```
+
+Web Component 构造会从 Web Component 子入口导出：
+
+```ts
+import { ButtonElement } from '../proto-ui/components/wc';
+```
+
+`proto-ui/components/index.ts` 也会生成带宿主前缀或明确名称的再导出，避免多宿主场景下命名冲突。
 
 ---
 
@@ -122,6 +170,14 @@ import { Button, Input, Dialog } from 'proto-ui/components';
 2. 先安装一个最简单的组件（如 Button）
 3. 在局部页面里试用
 4. 再决定是否继续扩展
+
+---
+
+## 当前边界
+
+当前 CLI 的首个闭环会安装官方 prototype package，并在本地生成 component facade。
+
+它暂时还不会把 shadcn 这类 styled prototype 的源码写入到你的项目里供你直接二次修改。这个方向已经在规划中，但不会阻塞当前 v0 的第一条上手路径。
 
 ---
 

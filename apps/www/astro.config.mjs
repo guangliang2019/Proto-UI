@@ -227,6 +227,22 @@ export default defineConfig({
                 },
               ],
             },
+            {
+              label: 'Lucide',
+              translations: { en: 'Lucide', 'zh-CN': 'Lucide' },
+              items: [
+                {
+                  label: 'Overview',
+                  translations: { en: 'Overview', 'zh-CN': '概览' },
+                  slug: 'ui-libraries/lucide',
+                },
+                {
+                  label: 'Icons',
+                  translations: { en: 'Icons', 'zh-CN': '图标列表' },
+                  slug: 'ui-libraries/lucide/icons',
+                },
+              ],
+            },
           ],
         },
         {

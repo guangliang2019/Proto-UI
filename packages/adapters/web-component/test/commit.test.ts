@@ -55,6 +55,32 @@ describe('adapter-web-component v0', () => {
     expect(root.innerHTML).toBe('<slot></slot>');
   });
 
+  it('renders svg nodes from renderer.svg namespace', () => {
+    const P: Prototype = {
+      name: 'x-svg',
+      setup() {
+        return (r) => [
+          r.svg.root(
+            { viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 2 },
+            [r.svg.path({ d: 'M6 9l6 6 6-6' })]
+          ),
+        ];
+      },
+    };
+
+    AdaptToWebComponent(P);
+
+    const el = document.createElement('x-svg') as any;
+    document.body.appendChild(el);
+
+    const root = el.shadowRoot ?? el;
+    const svg = root.querySelector('svg');
+    expect(svg).toBeTruthy();
+    expect(svg?.getAttribute('viewBox')).toBe('0 0 24 24');
+    expect(svg?.getAttribute('stroke-width')).toBe('2');
+    expect(svg?.querySelector('path')?.getAttribute('d')).toBe('M6 9l6 6 6-6');
+  });
+
   it('lifecycle created/mounted ordering: created before mounted', async () => {
     const calls: string[] = [];
 
