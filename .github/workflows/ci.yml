@@ -94,3 +94,140 @@ jobs:
 
       - name: Test
         run: corepack pnpm@"${PROTO_PNPM_VERSION}" -s test
+
+  release-scan:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Setup pnpm (corepack)
+        run: |
+          set -euo pipefail
+          PACKAGE_MANAGER=$(node -p "require('./package.json').packageManager || ''")
+          LOCKFILE_VERSION=$(node -e "const fs=require('fs');const text=fs.readFileSync('pnpm-lock.yaml','utf8');const m=text.match(/^lockfileVersion:\\s*['\\\"]?([^'\\\"\\n]+)['\\\"]?/m);if(!m){throw new Error('lockfileVersion not found');}process.stdout.write(m[1]);")
+          echo "packageManager=${PACKAGE_MANAGER}"
+          echo "lockfileVersion=${LOCKFILE_VERSION}"
+
+          case "${LOCKFILE_VERSION}" in
+            6* )
+              PNPM_VERSION="8.13.1"
+              ;;
+            9* )
+              PNPM_VERSION="10.32.1"
+              ;;
+            * )
+              echo "Unsupported pnpm lockfileVersion: ${LOCKFILE_VERSION}"
+              exit 1
+              ;;
+          esac
+
+          corepack enable
+          echo "PROTO_PNPM_VERSION=${PNPM_VERSION}" >> "$GITHUB_ENV"
+          corepack pnpm@"${PNPM_VERSION}" --version
+
+      - name: Install
+        run: corepack pnpm@"${PROTO_PNPM_VERSION}" install --frozen-lockfile
+
+      - name: Release scan
+        run: |
+          SCAN_OUTPUT=$(corepack pnpm@"${PROTO_PNPM_VERSION}" -s release:scan 2>&1)
+          echo "$SCAN_OUTPUT"
+          # Fail if any package has issues other than workspace deps
+          if echo "$SCAN_OUTPUT" | grep -E 'issues:' | grep -v 'issues: none' | grep -v 'workspace deps:' | grep -q 'issues:'; then
+            echo "::error::Release scan found issues that need attention"
+            exit 1
+          fi
+
+  release-stage:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Setup pnpm (corepack)
+        run: |
+          set -euo pipefail
+          PACKAGE_MANAGER=$(node -p "require('./package.json').packageManager || ''")
+          LOCKFILE_VERSION=$(node -e "const fs=require('fs');const text=fs.readFileSync('pnpm-lock.yaml','utf8');const m=text.match(/^lockfileVersion:\\s*['\\\"]?([^'\\\"\\n]+)['\\\"]?/m);if(!m){throw new Error('lockfileVersion not found');}process.stdout.write(m[1]);")
+          echo "packageManager=${PACKAGE_MANAGER}"
+          echo "lockfileVersion=${LOCKFILE_VERSION}"
+
+          case "${LOCKFILE_VERSION}" in
+            6* )
+              PNPM_VERSION="8.13.1"
+              ;;
+            9* )
+              PNPM_VERSION="10.32.1"
+              ;;
+            * )
+              echo "Unsupported pnpm lockfileVersion: ${LOCKFILE_VERSION}"
+              exit 1
+              ;;
+          esac
+
+          corepack enable
+          echo "PROTO_PNPM_VERSION=${PNPM_VERSION}" >> "$GITHUB_ENV"
+          corepack pnpm@"${PNPM_VERSION}" --version
+
+      - name: Install
+        run: corepack pnpm@"${PROTO_PNPM_VERSION}" install --frozen-lockfile
+
+      - name: Release stage (tsc + npm publish --dry-run for all packages)
+        run: corepack pnpm@"${PROTO_PNPM_VERSION}" -s release:stage
+
+  cli-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Pack CLI tarball
+        run: |
+          set -euo pipefail
+          cd packages/cli
+          TARBALL_NAME=$(npm pack --silent)
+          echo "CLI_TARBALL=$PWD/$TARBALL_NAME" >> "$GITHUB_ENV"
+          echo "Packed: $TARBALL_NAME"
+
+      - name: Smoke (init + add) in clean project
+        run: |
+          set -euo pipefail
+          SMOKE_DIR=$(mktemp -d -t proto-ui-smoke-XXXXXX)
+          cd "$SMOKE_DIR"
+          npm init -y > /dev/null
+          npm install --silent react react-dom "$CLI_TARBALL"
+
+          BIN="node node_modules/@proto.ui/cli/bin/proto-ui.js"
+
+          $BIN --help > /dev/null
+          $BIN init --yes --no-interactive
+          $BIN add react shadcn-button --no-install --no-interactive
+
+          test -f proto-ui/config.json
+          test -f proto-ui/components/index.ts
+          test -f proto-ui/components/react/index.ts
+
+          # Config shape per onboarding decision §4.2
+          grep -q '"@proto.ui/adapter-react"' proto-ui/config.json
+          grep -q '"shadcn-button"' proto-ui/config.json
+
+          # React facade per onboarding decision §4.5
+          grep -q "createReactAdapter(React)" proto-ui/components/react/index.ts
+          grep -q "export const Button = adapt(shadcnButton)" proto-ui/components/react/index.ts
+
+          # Host-prefixed root re-export per onboarding decision §4.6
+          grep -q "Button as ReactButton" proto-ui/components/index.ts
+          echo "cli-smoke: ok ($SMOKE_DIR)"
