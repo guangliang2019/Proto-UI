@@ -500,7 +500,8 @@ export default defineConfig({
       // 允许 dev server 读取到仓库根（否则访问 workspace 包会被拦）
       fs: { allow: ['../..'] },
     },
-    plugins: [tailwindcss()],
+    // @tailwindcss/vite 的类型版本与 Astro 内部 Vite 类型可能不一致（运行时兼容即可）
+    plugins: /** @type {any} */ ([tailwindcss()]),
     optimizeDeps: {
       exclude: [
         '@proto.ui/core',
