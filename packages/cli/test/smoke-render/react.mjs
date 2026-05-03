@@ -3,22 +3,47 @@
 // repo, so tsc must not pick this up — keep the extension as .mjs (Node ESM,
 // JS).
 //
-// We import from the per-host facade rather than the root re-export because
-// the root index also re-exports the wc facade, whose AdaptToWebComponent
-// extends HTMLElement at module load and would crash plain Node before any
-// DOM shim is in scope. SSR users would hit the same trap; that decoupling
-// is its own concern, out of this PR's scope.
-import * as React from 'react';
-import { renderToString } from 'react-dom/server';
-import { Button, BaseButton } from './proto-ui/components/react/index.ts';
+// We don't use react-dom/server here: the v0 React adapter renders a
+// client-only host placeholder during SSR (output is `<div></div>`), so SSR
+// would only test the placeholder, not the real button. happy-dom's
+// GlobalRegistrator gives us a real DOM, then react-dom/client + a microtask
+// flush lets the prototype mount and produce an actual `<button>` — matching
+// what an SPA user sees in a browser.
+//
+// We also import from the per-host facade rather than the root re-export
+// because the root index also re-exports the wc facade, whose
+// AdaptToWebComponent extends HTMLElement at module load. Even with happy-dom
+// registered globally, importing the root facade would still register
+// customElements as a side effect of importing react bits, which we keep
+// scoped to wc.mjs.
+import { GlobalRegistrator } from '@happy-dom/global-registrator';
 
-const shadcnHtml = renderToString(React.createElement(Button, null, 'click'));
-const baseHtml = renderToString(React.createElement(BaseButton, null, 'click'));
+GlobalRegistrator.register();
 
-if (!shadcnHtml.includes('<button')) {
-  throw new Error('react smoke: shadcn Button did not render <button>: ' + shadcnHtml);
+const React = await import('react');
+const ReactDOMClient = await import('react-dom/client');
+const { Button, BaseButton } = await import('./proto-ui/components/react/index.ts');
+
+const flush = () => new Promise((resolve) => setTimeout(resolve, 50));
+
+async function renderAndQueryButton(label, Component) {
+  const container = document.createElement('div');
+  document.body.appendChild(container);
+  const root = ReactDOMClient.createRoot(container);
+  root.render(React.createElement(Component, null, 'click'));
+  await flush();
+  const btn = container.querySelector('button');
+  if (!btn) {
+    throw new Error(
+      'react smoke: ' + label + ' did not produce <button>; container=' + container.innerHTML
+    );
+  }
+  return btn;
 }
-if (!baseHtml.includes('<button')) {
-  throw new Error('react smoke: base BaseButton did not render <button>: ' + baseHtml);
-}
-console.log('react smoke ok | shadcn=' + shadcnHtml.length + 'B base=' + baseHtml.length + 'B');
+
+const shadcn = await renderAndQueryButton('shadcn Button', Button);
+const base = await renderAndQueryButton('base BaseButton', BaseButton);
+
+console.log(
+  'react smoke ok | shadcn=' + shadcn.outerHTML.length + 'B base=' + base.outerHTML.length + 'B'
+);
