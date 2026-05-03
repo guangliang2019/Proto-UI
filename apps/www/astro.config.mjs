@@ -2,10 +2,12 @@
 import { defineConfig } from 'astro/config';
 import mdx from '@astrojs/mdx';
 import starlight from '@astrojs/starlight';
+import remarkDirective from 'remark-directive';
 
 import tailwindcss from '@tailwindcss/vite';
 import { fileURLToPath } from 'node:url';
 import { rehypeEnhancedImage } from './src/utils/rehype-enhanced-image.js';
+import { remarkConceptDirective } from './src/utils/remark-concept-directive.js';
 
 const inProgressBadge = {
   text: { en: 'WIP', 'zh-CN': '施工中' },
@@ -485,6 +487,7 @@ export default defineConfig({
     mdx(),
   ],
   markdown: {
+    remarkPlugins: [remarkDirective, remarkConceptDirective],
     rehypePlugins: [rehypeEnhancedImage],
   },
   vite: {
