@@ -4,11 +4,11 @@
 // JS).
 //
 // We don't use react-dom/server here: the v0 React adapter renders a
-// client-only host placeholder during SSR (output is `<div></div>`), so SSR
-// would only test the placeholder, not the real button. happy-dom's
-// GlobalRegistrator gives us a real DOM, then react-dom/client + a microtask
-// flush lets the prototype mount and produce an actual `<button>` — matching
-// what an SPA user sees in a browser.
+// client-only host placeholder during SSR (output is `<div></div>` with no
+// prototype tokens applied), so SSR would only test the placeholder, not the
+// real prototype output. happy-dom's GlobalRegistrator gives us a real DOM,
+// then react-dom/client + a microtask flush lets the prototype mount and
+// stamp its feedback tokens onto the host — matching what an SPA user sees.
 //
 // We also import from the per-host facade rather than the root re-export
 // because the root index also re-exports the wc facade, whose
@@ -16,6 +16,12 @@
 // registered globally, importing the root facade would still register
 // customElements as a side effect of importing react bits, which we keep
 // scoped to wc.mjs.
+//
+// What we assert: v0's React adapter renders the host as `rootTag` (default
+// `div`), so we don't query for `<button>`. Both shadcn-button and base-button
+// pull in asFocusable via asButton, so the focus module stamps `tabindex="0"`
+// onto the host. Shadcn additionally stamps its feedback.style class tokens,
+// so we assert `group/button` only on the shadcn host.
 import { GlobalRegistrator } from '@happy-dom/global-registrator';
 
 GlobalRegistrator.register();
@@ -26,23 +32,44 @@ const { Button, BaseButton } = await import('./proto-ui/components/react/index.t
 
 const flush = () => new Promise((resolve) => setTimeout(resolve, 50));
 
-async function renderAndQueryButton(label, Component) {
+async function renderHost(label, Component) {
   const container = document.createElement('div');
   document.body.appendChild(container);
   const root = ReactDOMClient.createRoot(container);
   root.render(React.createElement(Component, null, 'click'));
   await flush();
-  const btn = container.querySelector('button');
-  if (!btn) {
+  const host = container.firstElementChild;
+  if (!host) {
     throw new Error(
-      'react smoke: ' + label + ' did not produce <button>; container=' + container.innerHTML
+      'react smoke: ' + label + ' did not render a host element; container=' + container.innerHTML
     );
   }
-  return btn;
+  if (host.getAttribute('tabindex') !== '0') {
+    throw new Error(
+      'react smoke: ' +
+        label +
+        ' host missing tabindex="0" (focus module did not attach); host=' +
+        host.outerHTML
+    );
+  }
+  if (!host.textContent || !host.textContent.includes('click')) {
+    throw new Error(
+      'react smoke: ' + label + ' host did not render slot text; host=' + host.outerHTML
+    );
+  }
+  return host;
 }
 
-const shadcn = await renderAndQueryButton('shadcn Button', Button);
-const base = await renderAndQueryButton('base BaseButton', BaseButton);
+const shadcn = await renderHost('shadcn Button', Button);
+const shadcnClass = shadcn.getAttribute('class') || '';
+if (!shadcnClass.includes('group/button')) {
+  throw new Error(
+    'react smoke: shadcn Button host missing prototype tokens (feedback.style did not stamp); host=' +
+      shadcn.outerHTML
+  );
+}
+
+const base = await renderHost('base BaseButton', BaseButton);
 
 console.log(
   'react smoke ok | shadcn=' + shadcn.outerHTML.length + 'B base=' + base.outerHTML.length + 'B'
