@@ -144,6 +144,20 @@ if (failedBuilds.length > 0) {
 
 `pnpm-lock.yaml` 用 pnpm 10.32.1 重生成(lockfile 9.0 必须配 pnpm 10),只增量加入 `@proto.ui/module-overlay` → `@proto.ui/module-boundary` 这条 workspace 依赖。仓库 `packageManager` 字段声明的还是 pnpm 8.13.1,与 lockfile 9.0 不匹配——这是预先存在的不一致,**不归本 PR 治理**(参见 `feedback_no_unrelated_fixes`)。CI 的 lockfile 自适应步骤已经能正确 fallback 到 pnpm 10。
 
+### 3.11 release-packages.yml 同步 corepack pin
+
+`.github/workflows/release-packages.yml` 的 "Setup pnpm (corepack)" step 之前与 ci.yml 的四个 setup block 漂移:只跑 `corepack enable`,没跑 `corepack prepare pnpm@"${PNPM_VERSION}" --activate`,也没设 `COREPACK_ENABLE_PROJECT_SPEC=0`。现在补齐到与 ci.yml 完全一致(line-for-line)。
+
+为什么要修:`scripts/release/publish.mjs → scripts/release/lib.mjs:285 / lib.mjs:356` spawn 裸 `pnpm`。没 `--activate` 时,这些子进程会落回 `package.json#packageManager`(pnpm 8.13.1),但 lockfile 是 v9(需要 pnpm 10.32.1)。结果就是 PR 的三道闸是绿的,但真正 manual 触发 `release-packages.yml` 走 stage/publish 的时候,跑的 pnpm 版本与 PR CI 不一致,可能再次踩 lockfile-与-工具版本不匹配。
+
+为什么之前没修:本 PR 早期把 corepack pin 加到 ci.yml 的 PR-gate 链路上时,以为只有 PR CI 跑 release 脚本;后来维护者 review 指出 `release-packages.yml` 也走同一个 lib.mjs spawn 路径,需要同样的 pin。
+
+### 3.12 vue transition test 去 flake
+
+`packages/adapters/vue/test/previewer-transition-command.demo.test.ts` 之前用固定 `flushFrames(N)` + `expect(getStateLabel(host)).toBe('X')` 推进每一步状态机断言,本地 ~40% flake。flake 来源是 demo 通过 `MutationObserver` 把 `data-transition-state` 属性变化映射成 `stateLabel.textContent`,但 happy-dom 的 MutationObserver 回调派发不与 rAF/microtask 边界对齐,造成 attr 已经变了但 label 还没刷出来的中间态。
+
+改:不再读 demo 的 stateLabel,直接读原型 host 上的 `data-transition-state` 属性(状态机 source of truth);`flushFrames(N)` 换成 `waitForState(host, target, maxFrames=32)` poll-until-match。本地 50/50 通过,full test suite 仍是 574 passed。
+
 ---
 
 ## 4）验证状态
@@ -162,6 +176,8 @@ if (failedBuilds.length > 0) {
 | Windows spawnSync npm | ✅ | shell:true 修复后 add 命令在 win32 可跑 |
 | publish.mjs build 失败退出码 | ✅ | 改为 process.exit(1) |
 | ci.yml YAML 语法 | ✅ | 5 jobs 全部解析成功 |
+| release-packages.yml YAML 语法 | ✅ | 1 job 8 steps,Setup pnpm block 与 ci.yml line-for-line 一致 |
+| vue transition demo test | ✅ | 50/50 通过,改读 `data-transition-state` 属性 + `waitForState` poll |
 
 ---
 
@@ -185,8 +201,13 @@ if (failedBuilds.length > 0) {
 CI / 仓库基础:
 
 10. `.github/workflows/ci.yml` — 加 release-scan / release-stage / cli-smoke 三个 job
-11. `.prettierignore` — 加 `pnpm-lock.yaml`
-12. `pnpm-lock.yaml` — 用 pnpm 10.32.1 重生成,新增 overlay→boundary 依赖
+11. `.github/workflows/release-packages.yml` — 同步 ci.yml 的 corepack pnpm activation block
+12. `.prettierignore` — 加 `pnpm-lock.yaml`
+13. `pnpm-lock.yaml` — 用 pnpm 10.32.1 重生成,新增 overlay→boundary 依赖
+
+测试基础设施:
+
+14. `packages/adapters/vue/test/previewer-transition-command.demo.test.ts` — 去 happy-dom MutationObserver flake
 
 ---
 
