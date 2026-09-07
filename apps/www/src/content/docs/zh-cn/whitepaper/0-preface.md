@@ -3,6 +3,30 @@ title: '序章：我们还要发明多少次 Button？'
 description: '从反复重写同一种组件出发，追问交互知识能否脱离具体技术被长期保存、复用和检验。'
 ---
 
+<p id="1-proto-ui-是框架吗" class="whitepaper-legacy-topic">这一主题现已移至 <a href="/zh-cn/whitepaper/7-evolving-within-boundaries/#一条可行路径而不是唯一答案">一条可行路径，而不是唯一答案</a>。</p>
+
+<p id="2-proto-ui-和跨端框架有什么区别" class="whitepaper-legacy-topic">这一主题现已移至 <a href="/zh-cn/whitepaper/5-translation-layer/#prototype-还不是宿主中的组件">Prototype 还不是宿主中的组件</a>。</p>
+
+<p id="3-proto-ui-和组件库是什么关系" class="whitepaper-legacy-topic">这一主题现已移至 <a href="/zh-cn/whitepaper/7-evolving-within-boundaries/#原型库">原型库</a>。</p>
+
+<p id="4-为什么-proto-ui-不提供原型级别的组合能力" class="whitepaper-legacy-topic">这一主题现已移至 <a href="/zh-cn/whitepaper/3-component-boundary/#从-component-到-prototype">从 Component 到 Prototype</a>。</p>
+
+<p id="5-为什么子结构一旦承担独立信息通路就必须拆分" class="whitepaper-legacy-topic">这一主题现已移至 <a href="/zh-cn/whitepaper/3-component-boundary/#用信息通路判断组件边界">用信息通路判断组件边界</a>。</p>
+
+<p id="6-为什么-feedback-only-可以不拆" class="whitepaper-legacy-topic">这一主题现已移至 <a href="/zh-cn/whitepaper/3-component-boundary/#为什么-feedback-only-可拆可不拆">为什么 feedback-only 可拆可不拆？</a>。</p>
+
+<p id="7-proto-ui-所说的一致性到底严格到什么程度" class="whitepaper-legacy-topic">这一主题现已移至 <a href="/zh-cn/whitepaper/6-consistency-boundary/#共同条件越多比较越细">共同条件越多，比较越细</a>。</p>
+
+<p id="8-为什么同为-web-宿主时要求更严格而跨平台时允许差异" class="whitepaper-legacy-topic">这一主题现已移至 <a href="/zh-cn/whitepaper/6-consistency-boundary/#共同条件越多比较越细">共同条件越多，比较越细</a>。</p>
+
+<p id="9-官方如何看待社区适配器" class="whitepaper-legacy-topic">这一主题现已移至 <a href="/zh-cn/whitepaper/7-evolving-within-boundaries/#翻译层与生态">翻译层与生态</a>。</p>
+
+<p id="10-官方如何看待社区原型" class="whitepaper-legacy-topic">这一主题现已移至 <a href="/zh-cn/whitepaper/7-evolving-within-boundaries/#原型库">原型库</a>。</p>
+
+<p id="还有别的问题" class="whitepaper-legacy-topic">这一主题现已移至 <a href="/zh-cn/whitepaper/7-evolving-within-boundaries/#实践怎样修正当前近似">实践怎样修正当前近似</a>。</p>
+
+<div id="这页是做什么的" class="whitepaper-legacy-anchor" aria-hidden="true"></div>
+
 毫不夸张地说，在 UI 交互组件的基础建设中，重复工作随处可见。
 
 - 许多对 UI 有明确设计要求的团队都会定制自己的组件库。在这个过程中，Button、Switch、Select 等组件的基础行为经常被一遍遍重新实现。

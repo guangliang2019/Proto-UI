@@ -3,7 +3,15 @@ title: '第六章：一致性的边界'
 description: '说明一致性为何是 realization context 之间的条件比较，以及不同上下文应采用怎样的比较强度。'
 ---
 
+<p id="proto-ui-不把自己做成框架" class="whitepaper-legacy-topic">这一主题现已移至 <a href="/zh-cn/whitepaper/7-evolving-within-boundaries/#一条可行路径而不是唯一答案">一条可行路径，而不是唯一答案</a>。</p>
+
+<p id="边界不只靠文档说明也会体现在语法能力里" class="whitepaper-legacy-topic">这一主题现已移至 <a href="/zh-cn/whitepaper/4-semantics-beyond-channels/#只有通路还不够">只有通路还不够</a>。</p>
+
+<p id="宿主特有能力更适合作为强宿主相关能力处理" class="whitepaper-legacy-topic">这一主题现已移至 <a href="/zh-cn/whitepaper/5-translation-layer/#四个不该混在一起的问题">四个不该混在一起的问题</a>。</p>
+
 > 当两个 Host artifact 使用不同的结构、事件系统和渲染方式时，我们凭什么说它们仍然实现了同一个 Component，又应要求它们一致到行为、结构还是像素？
+
+<div id="这篇文章要回答什么" class="whitepaper-legacy-anchor" aria-hidden="true"></div> <div id="proto-ui-先保护交互主体再考虑表达自由" class="whitepaper-legacy-anchor" aria-hidden="true"></div>
 
 ## Prototype 是一致性的第一把尺度
 
@@ -20,6 +28,16 @@ description: '说明一致性为何是 realization context 之间的条件比较
 对 Switch 来说，Prototype 可以规定 Root 拥有 `checked`，activation 怎样触发 State transition，变化又怎样通过 Feedback、Context 和 Expose 到达各个参与者。这些义务不能因为落到 React、Flutter 或 Qt 就改变；Host tree 使用什么对象、outward signal 表现成 callback 还是平台事件则可以不同。
 
 Prototype 是判断一致性的第一把尺度：它先决定为了仍然成为同一个 Component，哪些语义必须保留。
+
+<div id="proto-ui-的取舍顺序" class="whitepaper-legacy-anchor" aria-hidden="true"></div> <div id="语义一致" class="whitepaper-legacy-anchor" aria-hidden="true"></div> <div id="user-体验" class="whitepaper-legacy-anchor" aria-hidden="true"></div> <div id="maker-体验" class="whitepaper-legacy-anchor" aria-hidden="true"></div> <div id="原型-author-体验" class="whitepaper-legacy-anchor" aria-hidden="true"></div> <div id="可序列化是一个长期方向约束" class="whitepaper-legacy-anchor" aria-hidden="true"></div> <div id="这些约束保护的是什么" class="whitepaper-legacy-anchor" aria-hidden="true"></div>
+
+## 设计取舍与可移植性
+
+Proto UI 当前的草案设计方向，在目标发生冲突时采用这样的取舍顺序：**语义一致性 > User 体验 > Maker 体验 > 原型 Author 体验**。同一个 Prototype 在不同适配结果中，应仍然保持同一个交互主体身份。这个顺序用于指导取舍，并不表示当前所有实现都已经达到这一目标。
+
+可移植性是语义一致性的一部分。依赖不可移植的数据，会削弱跨 Host 的一致性保证。因此，协议层默认优先采用可序列化表达，即使这会降低原型作者的表达便利性。这是长期的设计约束，并不是说当前每个 API 或 runtime 值都可以序列化。宿主特有能力需要明确的边界，不能被直接当作可移植语义。
+
+<div id="约束不是补丁而是边界" class="whitepaper-legacy-anchor" aria-hidden="true"></div> <div id="这不是保守主义" class="whitepaper-legacy-anchor" aria-hidden="true"></div>
 
 ## Prototype 没有说明意味着什么？
 
@@ -53,6 +71,8 @@ State transition、information channel 的方向和 Component identity 同样属
 
 Prototype 对物理细节保持克制，不同 Host 的产物仍可能非常接近。React、Vue 和 Web Component 共享 Web 基础，官方 Adapter 也可能采用共同的 projection policy。只是这种接近可能来自 Prototype、Adapter/profile 约束，也可能只是当前实现恰好相同；只有明确治理的部分才是稳定要求。
 
+<div id="这一篇没有展开什么" class="whitepaper-legacy-anchor" aria-hidden="true"></div> <div id="下一步" class="whitepaper-legacy-anchor" aria-hidden="true"></div>
+
 ## 共同条件越多，比较越细
 
 Prototype 决定了不可失去的语义底线，但它还不能独自回答两个 Host artifact 应该相似到什么程度。这个问题取决于我们正在比较的两个 realization context。
@@ -75,6 +95,13 @@ realization context 至少要说明 Prototype revision 与输入、交互媒介�
 2. 两个 realization context 共享且受控的条件，决定我们还能够把行为、结构与表现比较到多细。
 
 这既不要求所有平台无条件一模一样，也不允许把“语义一致”降成“功能大致可用”。两个实现之所以仍是同一个 Component，是因为它们保留了同一 Prototype 的身份和必要义务；共享条件越多，剩余差异越需要被解释。
+
+<figure class="whitepaper-figure">
+  <button type="button" data-diagram-open aria-haspopup="dialog" aria-label="点击查看大图">
+    <img src="/diagrams/whitepaper-conditional-consistency.zh-cn.svg" alt="Prototype 与 profile 定义必要义务，共享的输入、投影与渲染条件决定可以进一步比较到什么细度。" width="960" height="862" class="whitepaper-diagram" loading="lazy" />
+  </button>
+  <figcaption>点击查看大图</figcaption>
+</figure>
 
 这里描述的是比较原则，不代表当前所有 Adapter 或 Host 都已经具备相应的 comparison profile 与证据。当前可靠证据仍然主要来自 Web family，comparison profile、normalized DOM 与 image evidence 也尚未形成完整的治理身份；未 catalog 或未经验证的目标不能自动继承一致性结论。
 

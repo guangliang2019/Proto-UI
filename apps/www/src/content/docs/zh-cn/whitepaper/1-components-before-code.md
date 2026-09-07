@@ -3,6 +3,20 @@ title: '第一章：代码之前的组件'
 description: '当 class、function、DOM、widget 或渲染树都改变后，我们凭什么仍说两个实现属于同一种组件？'
 ---
 
+<p id="proto-ui-为什么使用-prototypeadapter-和-host" class="whitepaper-legacy-topic">这一主题现已移至 <a href="/zh-cn/whitepaper/5-translation-layer/#prototype-还不是宿主中的组件">Prototype 还不是宿主中的组件</a>。</p>
+
+<p id="prototype原型" class="whitepaper-legacy-topic">这一主题现已移至 <a href="/zh-cn/whitepaper/3-component-boundary/#从-component-到-prototype">从 Component 到 Prototype</a>。</p>
+
+<p id="adapter适配器" class="whitepaper-legacy-topic">这一主题现已移至 <a href="/zh-cn/whitepaper/5-translation-layer/#adapter">Adapter</a>。</p>
+
+<p id="host宿主" class="whitepaper-legacy-topic">这一主题现已移至 <a href="/zh-cn/whitepaper/5-translation-layer/#prototype-还不是宿主中的组件">Prototype 还不是宿主中的组件</a>。</p>
+
+<p id="三者之间的关系" class="whitepaper-legacy-topic">这一主题现已移至 <a href="/zh-cn/whitepaper/5-translation-layer/#prototype-还不是宿主中的组件">Prototype 还不是宿主中的组件</a>。</p>
+
+<p id="原型可以开放协议可以稳定" class="whitepaper-legacy-topic">这一主题现已移至 <a href="/zh-cn/whitepaper/7-evolving-within-boundaries/#proto-ui-选择的三条主线">Proto UI 选择的三条主线</a>。</p>
+
+<div id="这篇文章要回答什么" class="whitepaper-legacy-anchor" aria-hidden="true"></div> <div id="组件并不只存在于代码里" class="whitepaper-legacy-anchor" aria-hidden="true"></div> <div id="组件的预期往往先于实现而存在" class="whitepaper-legacy-anchor" aria-hidden="true"></div>
+
 ## 开发者在“还原”和“实现”什么？
 
 让我们从软件开发里一件很普通的事情说起。
@@ -18,6 +32,8 @@ description: '当 class、function、DOM、widget 或渲染树都改变后，我
 这个假设场景也是序章提到的重复劳动之一。我们常常需要用不同的技术反复实现相似的组件，还需要判断它们在哪些地方应该保持一致。Switch 还算是一个简单的例子；如果换成弹窗，那视觉、常见操作、焦点管理、辅助技术相关行为等方面在 Flutter 和 Web 之间都可能出现难以调和的差异。对于确实需要保持跨技术产品体验一致的团队来说，解决这些差异并不轻松。
 
 本章暂时不讨论“一致”到底要精确到什么程度。在这个假设场景里，我们只需要先注意到：不同实现之间存在一组可以比较的预期，而它们不等于其中任何一份代码。
+
+<div id="原型不是漂浮的能力清单" class="whitepaper-legacy-anchor" aria-hidden="true"></div>
 
 ## 组件到底是什么？
 
@@ -38,6 +54,8 @@ Proto UI 给出的工作假设是：我们可以先把组件看作一个相对�
 因此，Proto UI 的工作不是用一套自顶向下的哲学替代实践归纳，而是在两者之间反复工作：先用一套模型组织我们正在寻找的东西，再通过真实组件和不同技术实现检查这套模型，发现错误以后继续修正。
 
 如果后文偶尔使用组件“本质”这样的说法，它指的也是一种用于跨技术检验、并接受实践修正的当前近似，而不是一个已经被证明、永远不会改变的终极答案。
+
+<div id="可抽象不等于已经成为协议" class="whitepaper-legacy-anchor" aria-hidden="true"></div> <div id="为什么这里会出现协议这个词" class="whitepaper-legacy-anchor" aria-hidden="true"></div> <div id="这一篇没有展开什么" class="whitepaper-legacy-anchor" aria-hidden="true"></div> <div id="下一步" class="whitepaper-legacy-anchor" aria-hidden="true"></div>
 
 ## 但我们如何描述它？
 

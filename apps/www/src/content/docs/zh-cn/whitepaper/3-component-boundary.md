@@ -5,6 +5,8 @@ description: '通过独立参与者关系与 feedback-only 例外，判断 Compo
 
 > 视觉树中的 Root、Thumb、Caret、Arrow、Content、Trigger……和普通容器，哪些是独立组件，哪些只是一个组件的附属结构？
 
+<div id="这篇文章要回答什么" class="whitepaper-legacy-anchor" aria-hidden="true"></div> <div id="proto-ui-关心的不是切块而是交互主体" class="whitepaper-legacy-anchor" aria-hidden="true"></div>
+
 ## 组件应该怎么拆分？
 
 如果我们问“组件什么时候需要拆分”，大概能得到许多种答案：按照代码量、逻辑复杂度、功能的原子性，或单纯按照团队习惯。毕竟组件拆分一直是个仁者见仁、智者见智的话题。
@@ -16,6 +18,8 @@ description: '通过独立参与者关系与 feedback-only 例外，判断 Compo
 Proto UI 想再往前一步：这些结构为什么值得被拆出来？如果我们能够找到一个更稳定的判断方式，就可以把它用在更多组件上，而不必每次都照着某个框架或组件库的 API 重新猜一遍。
 
 上一章介绍的信息通路，刚好可以作为判断这个问题的起点。
+
+<div id="一个子结构何时应被视为独立原型" class="whitepaper-legacy-anchor" aria-hidden="true"></div> <div id="proto-ui-的拆分判断" class="whitepaper-legacy-anchor" aria-hidden="true"></div> <div id="1-当一个子结构存在除-feedback-之外的任一信息通路需求时它必须拆成独立原型" class="whitepaper-legacy-anchor" aria-hidden="true"></div> <div id="3-当一个子结构没有激活任何信息通路时它必须不拆" class="whitepaper-legacy-anchor" aria-hidden="true"></div>
 
 ## 用信息通路判断组件边界
 
@@ -49,6 +53,15 @@ Proto UI 想再往前一步：这些结构为什么值得被拆出来？如果�
 
 它可能仍然是某个具体技术实现中不可缺少的容器或辅助节点，但“实现需要它”并不等于“它是一个组件”。
 
+<figure class="whitepaper-figure">
+  <button type="button" data-diagram-open aria-haspopup="dialog" aria-label="点击查看大图">
+    <img src="/diagrams/whitepaper-component-boundary.zh-cn.svg" alt="从独立信息通路判断组件是否应当拆分；只有 Feedback 时可拆可不拆。" width="743" height="575" class="whitepaper-diagram" loading="lazy" />
+  </button>
+  <figcaption>点击查看大图</figcaption>
+</figure>
+
+<div id="2-当一个子结构仅激活-feedback-通路时它可拆可不拆" class="whitepaper-legacy-anchor" aria-hidden="true"></div> <div id="为什么-feedback-only-可以不拆" class="whitepaper-legacy-anchor" aria-hidden="true"></div> <div id="原型拆分不是为了追求越细越好" class="whitepaper-legacy-anchor" aria-hidden="true"></div>
+
 ## 为什么 feedback-only 可拆可不拆？
 
 `Feedback` 也是当前工作模型中的一条信息通路。所以如果只追求形式上的整齐，只要一个子结构产生了独立的视觉、听觉或其他可感知效果，它就应该被拆成独立的 Component。
@@ -64,6 +77,8 @@ Proto UI 想再往前一步：这些结构为什么值得被拆出来？如果�
 因此，Proto UI 对 feedback-only 结构做了一个明确的工程妥协：如果一个子结构只帮助父 Component 向 User 呈现信息，它可以继续附属于父 Component，不强制拆分。
 
 相应地，这个例外也有明确的边界。附属结构可以设置 `Feedback`，但不能偷偷拥有自己的 `Event`、`Props`、`Expose` 或 `Context`。一旦其中任意一种独立关系出现，它就不再符合 feedback-only 这项要求，从而应该从父 Component 中拆分出来。
+
+<div id="一旦独立通路出现拆分就不再是风格问题" class="whitepaper-legacy-anchor" aria-hidden="true"></div> <div id="子结构响应独立-event" class="whitepaper-legacy-anchor" aria-hidden="true"></div> <div id="子结构拥有独立-props" class="whitepaper-legacy-anchor" aria-hidden="true"></div> <div id="子结构向外-expose-状态或方法" class="whitepaper-legacy-anchor" aria-hidden="true"></div> <div id="子结构订阅或分发-context" class="whitepaper-legacy-anchor" aria-hidden="true"></div>
 
 ## 运用上述规则
 
@@ -122,6 +137,15 @@ Content 和 Item 也是类似的情况：Content 要根据 Root 的状态决定�
 
 这里的 Caret 只是用于解释边界的设计案例，不是在给当前 Base Select 增加一个正式组成部分。如果类似扩展以后进入设计，仍然需要按照同样的关系逐项判断，而不能因为其他组件库有同名 part 就直接照搬。
 
+<figure class="whitepaper-figure">
+  <button type="button" data-diagram-open aria-haspopup="dialog" aria-label="点击查看大图">
+    <img src="/diagrams/whitepaper-component-anatomy.zh-cn.svg" alt="Switch Root 与 Thumb 通过 Context 协作；Select 各 part 具有独立责任，而固定 Caret 可以附属于 Trigger。" width="960" height="920" class="whitepaper-diagram" loading="lazy" />
+  </button>
+  <figcaption>点击查看大图</figcaption>
+</figure>
+
+<div id="原型不能失去自己的依附结构" class="whitepaper-legacy-anchor" aria-hidden="true"></div> <div id="proto-ui-如何强制原型边界成立" class="whitepaper-legacy-anchor" aria-hidden="true"></div> <div id="拆分之后组合回到宿主侧" class="whitepaper-legacy-anchor" aria-hidden="true"></div> <div id="原型边界的真正含义" class="whitepaper-legacy-anchor" aria-hidden="true"></div>
+
 ## 从 Component 到 Prototype
 
 到这里，我们一直在判断的都是 Component：一个视觉结构什么时候开始以自己的身份与 User、Maker 或其他 Component 建立关系。
@@ -129,6 +153,8 @@ Content 和 Item 也是类似的情况：Content 要根据 Root 的状态决定�
 一旦这种独立关系成立，Proto UI 就需要把这个交互主体单独记录下来。Proto UI 把这份记录称为 `Prototype`，中文可以称为组件原型，简称原型。
 
 Prototype 是 Proto UI 对一个可移植 Component 身份给出的当前可执行近似。它记录我们希望在不同实现中保持的交互责任与依赖，但不是一份足以自动适配所有技术的万能施工图。具体实现仍然需要翻译层、Host Capability 和目标环境共同完成。
+
+<div id="这一篇没有展开什么" class="whitepaper-legacy-anchor" aria-hidden="true"></div> <div id="下一步" class="whitepaper-legacy-anchor" aria-hidden="true"></div>
 
 ## 骨架、边界，然后是内部规则
 

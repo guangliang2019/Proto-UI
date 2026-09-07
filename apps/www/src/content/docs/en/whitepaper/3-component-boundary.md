@@ -5,6 +5,8 @@ description: 'Using independent participant relations and the feedback-only exce
 
 > In a visual tree containing Root, Thumb, Caret, Arrow, Content, Trigger, and ordinary containers, which structures are independent components and which merely belong to another component?
 
+<div id="what-does-this-article-answer" class="whitepaper-legacy-anchor" aria-hidden="true"></div> <div id="proto-ui-cares-about-interactive-subjects-not-just-chopping-structure" class="whitepaper-legacy-anchor" aria-hidden="true"></div>
+
 ## How Should Components Be Divided?
 
 Ask when a component should be split, and many answers are possible: by amount of code, complexity of logic, atomicity of capability, or simply team convention. Component decomposition has always admitted more than one reasonable opinion.
@@ -16,6 +18,8 @@ But a popular library's part inventory can only show that a decomposition is val
 Proto UI asks a further question: why are these structures worth separating? If we can find a more stable test, we can apply it to more components without guessing again from the API of each framework or component library.
 
 The information channels introduced in the previous chapter give us a starting point.
+
+<div id="when-should-a-substructure-be-treated-as-an-independent-prototype" class="whitepaper-legacy-anchor" aria-hidden="true"></div> <div id="proto-uis-splitting-rules" class="whitepaper-legacy-anchor" aria-hidden="true"></div> <div id="1-if-a-substructure-has-any-information-flow-requirement-other-than-feedback-it-must-be-split-into-an-independent-prototype" class="whitepaper-legacy-anchor" aria-hidden="true"></div> <div id="3-if-a-substructure-activates-no-information-flow-at-all-it-must-not-be-split" class="whitepaper-legacy-anchor" aria-hidden="true"></div>
 
 ## Using Information Channels to Find Component Boundaries
 
@@ -49,6 +53,15 @@ If none of these conditions applies, the substructure should not be split into a
 
 It may still be an indispensable container or helper node in a concrete implementation. But “the implementation needs it” is not the same as “it is a component.”
 
+<figure class="whitepaper-figure">
+  <button type="button" data-diagram-open aria-haspopup="dialog" aria-label="Open full-size diagram">
+    <img src="/diagrams/whitepaper-component-boundary.en.svg" alt="Independent information channels determine component boundaries; Feedback-only structures may remain attached." width="743" height="575" class="whitepaper-diagram" loading="lazy" />
+  </button>
+  <figcaption>Open full-size diagram</figcaption>
+</figure>
+
+<div id="2-if-a-substructure-activates-only-the-feedback-flow-splitting-is-optional" class="whitepaper-legacy-anchor" aria-hidden="true"></div> <div id="why-can-feedback-only-remain-unsplit" class="whitepaper-legacy-anchor" aria-hidden="true"></div> <div id="prototype-splitting-is-not-about-making-things-as-fine-grained-as-possible" class="whitepaper-legacy-anchor" aria-hidden="true"></div>
+
 ## Why May a Feedback-Only Structure Be Split or Kept Attached?
 
 `Feedback` is one of the information channels in the current working model. If formal uniformity were our only goal, every substructure that creates an independently perceptible visual, auditory, or other effect would need to become an independent Component.
@@ -64,6 +77,8 @@ At that rate, even a Switch might become many parts that each own a small piece 
 Proto UI therefore makes an explicit engineering compromise for feedback-only structures: if a substructure only helps its parent Component present information to the User, it may remain attached to that parent and does not have to be split out.
 
 The exception has an equally explicit boundary. An attached structure may produce `Feedback`, but it may not quietly acquire its own `Event`, `Props`, `Expose`, or `Context`. As soon as any of those independent relations appears, the structure no longer satisfies the feedback-only condition and should be separated from its parent Component.
+
+<div id="once-an-independent-flow-appears-splitting-is-no-longer-a-matter-of-style" class="whitepaper-legacy-anchor" aria-hidden="true"></div> <div id="a-substructure-responds-to-its-own-event" class="whitepaper-legacy-anchor" aria-hidden="true"></div> <div id="a-substructure-has-independent-props" class="whitepaper-legacy-anchor" aria-hidden="true"></div> <div id="a-substructure-exposes-state-or-methods-outward" class="whitepaper-legacy-anchor" aria-hidden="true"></div> <div id="a-substructure-subscribes-to-or-distributes-context" class="whitepaper-legacy-anchor" aria-hidden="true"></div>
 
 ## Applying the Rules
 
@@ -122,6 +137,15 @@ If a Maker can replace, configure, or observe Caret as an independent object—o
 
 This Caret is only a design example used to explain the boundary. It does not add a formal part to the current Base Select. If a similar extension enters the design later, each relation must still be evaluated under the same rules; it cannot be copied merely because another component library exposes a part with the same name.
 
+<figure class="whitepaper-figure">
+  <button type="button" data-diagram-open aria-haspopup="dialog" aria-label="Open full-size diagram">
+    <img src="/diagrams/whitepaper-component-anatomy.en.svg" alt="Switch Root and Thumb cooperate through Context; Select parts have independent responsibilities while a fixed Caret may remain inside Trigger." width="960" height="920" class="whitepaper-diagram" loading="lazy" />
+  </button>
+  <figcaption>Open full-size diagram</figcaption>
+</figure>
+
+<div id="a-prototype-cannot-lose-its-own-anchoring-structure" class="whitepaper-legacy-anchor" aria-hidden="true"></div> <div id="how-proto-ui-enforces-prototype-boundaries" class="whitepaper-legacy-anchor" aria-hidden="true"></div> <div id="after-splitting-composition-returns-to-the-host-side" class="whitepaper-legacy-anchor" aria-hidden="true"></div> <div id="the-real-meaning-of-a-prototype-boundary" class="whitepaper-legacy-anchor" aria-hidden="true"></div>
+
 ## From Component to Prototype
 
 So far, we have been deciding when a visual structure begins to form relations with User, Maker, or Other Component under its own identity—in other words, when it becomes a Component.
@@ -129,6 +153,8 @@ So far, we have been deciding when a visual structure begins to form relations w
 Once an independent relation exists, Proto UI needs to record that interactive subject separately. Proto UI calls this record a `Prototype`.
 
 A Prototype is Proto UI's current executable approximation of the identity of a portable Component. It records the interaction responsibilities and dependencies we want to preserve across implementations, but it is not a universal construction plan that automatically adapts itself to every technology. Concrete implementations still require the translation layer, Host Capability, and target environment to work together.
+
+<div id="what-does-this-article-not-expand-on" class="whitepaper-legacy-anchor" aria-hidden="true"></div> <div id="next" class="whitepaper-legacy-anchor" aria-hidden="true"></div>
 
 ## Skeleton, Boundary, Then Internal Rules
 

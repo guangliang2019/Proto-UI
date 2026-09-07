@@ -3,6 +3,30 @@ title: 'Preface: How Many More Times Must We Reinvent the Button?'
 description: 'Starting from the repeated rebuilding of the same components, we ask whether interaction knowledge can outlive a particular technology and remain reusable, testable, and maintainable.'
 ---
 
+<p id="1-is-proto-ui-a-framework" class="whitepaper-legacy-topic">This topic is now discussed in <a href="/en/whitepaper/7-evolving-within-boundaries/#one-viable-path-not-the-only-answer">One Viable Path, Not the Only Answer</a>.</p>
+
+<p id="2-what-is-the-difference-between-proto-ui-and-cross-platform-frameworks" class="whitepaper-legacy-topic">This topic is now discussed in <a href="/en/whitepaper/5-translation-layer/#a-prototype-is-not-yet-a-component-in-a-host">A Prototype Is Not Yet a Component in a Host</a>.</p>
+
+<p id="3-what-is-the-relationship-between-proto-ui-and-component-libraries" class="whitepaper-legacy-topic">This topic is now discussed in <a href="/en/whitepaper/7-evolving-within-boundaries/#prototype-libraries">Prototype Libraries</a>.</p>
+
+<p id="4-why-doesnt-proto-ui-provide-prototype-level-composition" class="whitepaper-legacy-topic">This topic is now discussed in <a href="/en/whitepaper/3-component-boundary/#from-component-to-prototype">From Component to Prototype</a>.</p>
+
+<p id="5-why-must-a-substructure-be-split-once-it-takes-on-an-independent-information-flow" class="whitepaper-legacy-topic">This topic is now discussed in <a href="/en/whitepaper/3-component-boundary/#using-information-channels-to-find-component-boundaries">Using Information Channels to Find Component Boundaries</a>.</p>
+
+<p id="6-why-can-feedback-only-remain-unsplit" class="whitepaper-legacy-topic">This topic is now discussed in <a href="/en/whitepaper/3-component-boundary/#why-may-a-feedback-only-structure-be-split-or-kept-attached">Why May a Feedback-Only Structure Be Split or Kept Attached?</a>.</p>
+
+<p id="7-how-strict-is-the-consistency-proto-ui-talks-about" class="whitepaper-legacy-topic">This topic is now discussed in <a href="/en/whitepaper/6-consistency-boundary/#more-shared-conditions-permit-finer-comparison">More Shared Conditions Permit Finer Comparison</a>.</p>
+
+<p id="8-why-are-requirements-stricter-among-web-hosts-while-cross-platform-scenarios-allow-more-difference" class="whitepaper-legacy-topic">This topic is now discussed in <a href="/en/whitepaper/6-consistency-boundary/#more-shared-conditions-permit-finer-comparison">More Shared Conditions Permit Finer Comparison</a>.</p>
+
+<p id="9-how-does-the-official-project-view-community-adapters" class="whitepaper-legacy-topic">This topic is now discussed in <a href="/en/whitepaper/7-evolving-within-boundaries/#translation-layer-and-ecosystem">Translation Layer and Ecosystem</a>.</p>
+
+<p id="10-how-does-the-official-project-view-community-prototypes" class="whitepaper-legacy-topic">This topic is now discussed in <a href="/en/whitepaper/7-evolving-within-boundaries/#prototype-libraries">Prototype Libraries</a>.</p>
+
+<p id="still-have-other-questions" class="whitepaper-legacy-topic">This topic is now discussed in <a href="/en/whitepaper/7-evolving-within-boundaries/#how-practice-revises-the-current-approximation">How Practice Revises the Current Approximation</a>.</p>
+
+<div id="what-is-this-page-for" class="whitepaper-legacy-anchor" aria-hidden="true"></div>
+
 It is no exaggeration to say that foundational UI component work is full of repetition.
 
 - Many teams with specific UI design requirements build their own component libraries. In the process, they repeatedly reimplement the basic behavior of components such as Button, Switch, and Select.

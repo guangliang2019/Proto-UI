@@ -5,6 +5,8 @@ description: '从 User、Maker、Other Component 以及关系方向出发，说�
 
 > 不从某个框架的 API 列表出发，怎样系统地描述一个组件与外界的关系？
 
+<div id="这篇文章要回答什么" class="whitepaper-legacy-anchor" aria-hidden="true"></div>
+
 ## 未实现的组件该如何描述？
 
 上一章把组件暂时看作一个相对稳定的交互主体。我们已经发现，虽然组件不能真的脱离实现运行，但在我们决定使用 React、Flutter 或其他技术实现组件之前，通常已经能描述它的一部分交互预期了。
@@ -22,6 +24,8 @@ description: '从 User、Maker、Other Component 以及关系方向出发，说�
 
 Proto UI 选择从交互关系出发。
 
+<div id="组件并不是孤立存在的" class="whitepaper-legacy-anchor" aria-hidden="true"></div> <div id="proto-ui-先从使用者切分组件关系" class="whitepaper-legacy-anchor" aria-hidden="true"></div> <div id="user" class="whitepaper-legacy-anchor" aria-hidden="true"></div> <div id="maker" class="whitepaper-legacy-anchor" aria-hidden="true"></div> <div id="other-component" class="whitepaper-legacy-anchor" aria-hidden="true"></div>
+
 ## 组件都在和谁交互？
 
 当我们把 Component 看作交互主体时，它所承载的属性和行为就不再是平白无故出现的：有些是给使用者看的，有些要接受调用者的配置，有些用于把结果报告给上层应用，还有些用于和其他组件协作。
@@ -35,6 +39,8 @@ Proto UI 当前首先区分三类参与者：
 - Other Component：与当前 Component 交换信息、共同完成交互的其他组件。
 
 这些词描述的是一段交互关系里的角色，不是人的职位，也不是固定的身份。同一个人可以先作为 Maker 配置一个组件，再作为 User 使用它；AI Agent 也可以在一些场景里制作 UI，在另一些场景中使用 UI。我们关心的是它此刻怎样与 Component 发生关系。
+
+<div id="什么是信息通路" class="whitepaper-legacy-anchor" aria-hidden="true"></div> <div id="由信息通路可以导出哪些核心能力" class="whitepaper-legacy-anchor" aria-hidden="true"></div> <div id="user--component" class="whitepaper-legacy-anchor" aria-hidden="true"></div> <div id="maker--component" class="whitepaper-legacy-anchor" aria-hidden="true"></div> <div id="other-component--component" class="whitepaper-legacy-anchor" aria-hidden="true"></div> <div id="为什么这些能力不是随意枚举出来的" class="whitepaper-legacy-anchor" aria-hidden="true"></div>
 
 ## 从关系得到信息通路
 
@@ -55,6 +61,14 @@ Proto UI 把这样识别出的关系称为 `information channel`，也就是“�
 信息通路不是实际存在的数据管道，也不专指事件总线、数据流或某一种 API。它更像是一种组织组件交互关系的方式：不管一项能力在具体框架里表现为参数、回调、对象方法、样式还是别的形式，我们先看它究竟在连接哪些参与者、信息朝哪里传递，以及它在完成什么责任。
 
 在 Proto UI 当前仍待实践检验的工作模型中，这种方式导出了五条核心可移植信息通路：
+
+<img
+  src="/diagrams/whitepaper-information-channels.svg"
+  alt="五条信息通路：User 通过 Event 向 Component 输入，Component 通过 Feedback 向 User 反馈；Maker 通过 Props 配置 Component，Component 通过 Expose 向 Maker 暴露能力；Component 之间通过 Context 双向协作。"
+  width="757"
+  height="511"
+  class="whitepaper-diagram"
+/>
 
 | 信息通路   | 方向                  | 主要责任                               |
 | ---------- | --------------------- | -------------------------------------- |
@@ -102,6 +116,8 @@ Switch Root --Context { checked, disabled }-> Switch Thumb
 这张草图也能说明，宿主 API 的外形不等于通路。在某个框架里（例如 React），配置值和用于承接变化通知的回调入口可能都出现在一个名为 props 的对象中；但配置语义是 App Maker → Component，由回调承接的变化通知则是 Component → App Maker，所以它们仍然属于不同的通路。
 
 Switch 在交互过程中通常还要保存状态。不过 State 本身并不是信息通路：保存一个值，并没有新的参与者向 Component 发送信息或从它接收信息。State 会参与这些关系怎样运转，但其并非信息通路，它有自己的语义责任。这类并非信息通路但仍然必要的概念，我们会在第四章展开讲解。
+
+<div id="信息通路并不等于组件的全部" class="whitepaper-legacy-anchor" aria-hidden="true"></div> <div id="信息通路可以扩展吗" class="whitepaper-legacy-anchor" aria-hidden="true"></div> <div id="这一篇没有展开什么" class="whitepaper-legacy-anchor" aria-hidden="true"></div> <div id="下一步" class="whitepaper-legacy-anchor" aria-hidden="true"></div>
 
 ## 这只是一副骨架
 

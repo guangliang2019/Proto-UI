@@ -5,6 +5,8 @@ description: '说明当前近似如何以明确边界接受理论、原型库和
 
 > 如果 Prototype 只是我们对组件“本质”的当前近似，Proto UI 应该怎样发展它，又该如何看待没有被官方选择的其他可能？
 
+<div id="这篇文章要回答什么" class="whitepaper-legacy-anchor" aria-hidden="true"></div> <div id="proto-ui-不会一步到位" class="whitepaper-legacy-anchor" aria-hidden="true"></div>
+
 ## 一条可行路径，而不是唯一答案
 
 白皮书的前两部分共六章，提出了 Prototype 模型，也讨论了它的翻译层。它们共同组成了 Proto UI 对跨技术复用交互语义的一份回答。
@@ -33,6 +35,8 @@ Proto UI 维护 Base 原型库，用它记录尽可能不依赖某种设计语�
 
 原型的采用也可以是渐进的。Maker 可以只在确实需要跨技术一致性的局部使用某些 Prototype，而不必先把整个应用改造成另一套框架。
 
+<div id="第一阶段先在-web-站稳" class="whitepaper-legacy-anchor" aria-hidden="true"></div> <div id="工具链也会随着协议层一起成长" class="whitepaper-legacy-anchor" aria-hidden="true"></div>
+
 ### 翻译层与生态
 
 没有翻译层，Prototype 就无法进入新的 Host；而一个新的翻译器也不只服务于一个组件，它可能同时扩大一批既有 Prototype 的落地范围。
@@ -42,6 +46,8 @@ Proto UI 维护 Base 原型库，用它记录尽可能不依赖某种设计语�
 不过，这并不是无条件的笛卡尔积。一个 Adapter 存在，不代表它已经支持所有 Prototype；一个 Host artifact 能够生成，也不代表所有语义都已得到忠实翻译。能够组合到什么范围，仍然取决于具体能力、翻译结果和证据。
 
 翻译器本身也有持续探索的空间。不同 Adapter 可以用不同方式对接同一个 Host，Compiler 也可能承担更多静态工作。更好的性能、更自然的宿主 API 或更高的保真度，都需要具体实现和证据，而不会仅仅因为采用了某种翻译形式就自动获得。
+
+<div id="有一条工作会贯穿所有阶段" class="whitepaper-legacy-anchor" aria-hidden="true"></div>
 
 ### 理论与内核
 
@@ -53,6 +59,8 @@ Proto UI 维护 Base 原型库，用它记录尽可能不依赖某种设计语�
 
 因此，这三条主线不是互相等待的阶段：理论与内核提供表达基础，原型库探索具体的 Component identity，翻译层让这些近似面对真实 Host；三者又把各自发现的问题送回同一个演进过程。
 
+<div id="这一篇没有展开什么" class="whitepaper-legacy-anchor" aria-hidden="true"></div>
+
 ## 没有进入主线，依然可能颇具价值
 
 Proto UI 没有选择的方向，同样可能产生有价值的结果。
@@ -62,6 +70,8 @@ Proto UI 没有选择的方向，同样可能产生有价值的结果。
 也可以为特定业务维护定制 Prototype 和定制 Adapter，或者从 Proto UI fork 出更激进、更垂直的版本。甚至完全可以出现另一个同样关注交互知识复用、却使用不同模型和语法的项目。
 
 这些方向不必先获得 Proto UI 的认可才具有价值。反过来，它们的成功、失败和不同取舍，也可能帮助我们发现官方路线忽略了什么。Proto UI 选择维护一条公共主线，并不意味着它是这片问题空间里唯一合法的版本。
+
+<div id="第二阶段向原生宿主扩展" class="whitepaper-legacy-anchor" aria-hidden="true"></div> <div id="更长期的方向从覆盖宿主到影响宿主选择" class="whitepaper-legacy-anchor" aria-hidden="true"></div> <div id="下一步" class="whitepaper-legacy-anchor" aria-hidden="true"></div>
 
 ## 实践怎样修正当前近似
 
@@ -85,6 +95,13 @@ Proto UI 所期望的演进循环是：提出近似，将其写成 Prototype，�
 一次实现与预期不符，不会自动把当前实现变成新标准；一份 Prototype 已经能够运行，也不意味着其中的每个判断都是稳定真理；实践中的反例值得认真对待，但仍需判断它揭示的是局部缺陷，还是足以修正更普遍的理论。
 
 白皮书负责给出哲学方向，Spec 把其中可以工程治理的部分细化成可检查的义务，实现和测试再提供当前行为的证据。实践可以推动白皮书、Spec、Prototype 或翻译边界发生变化，却不应该静默覆盖它们。否则，我们无法分辨自己是在修正认识，还是只是在替偶然的实现结果寻找解释。
+
+<figure class="whitepaper-figure">
+  <button type="button" data-diagram-open aria-haspopup="dialog" aria-label="点击查看大图">
+    <img src="/diagrams/whitepaper-evolution-feedback.zh-cn.svg" alt="理论与内核、原型库、翻译层共同接受实践检验；证据经过归因，推动对应层的明确修正。" width="960" height="928" class="whitepaper-diagram" loading="lazy" />
+  </button>
+  <figcaption>点击查看大图</figcaption>
+</figure>
 
 ## 仍然需要更远的检验
 

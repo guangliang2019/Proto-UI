@@ -3,7 +3,19 @@ title: 'Chapter 4: Semantics Beyond Channels'
 description: 'Using State, Anatomy, and Lifecycle to add internal continuity, composite structure, and temporal order, bringing a Prototype closer to execution.'
 ---
 
+<p id="consistency-of-feedback" class="whitepaper-legacy-topic">This topic is now discussed in <a href="/en/whitepaper/6-consistency-boundary/#which-details-matter-to-a-prototype">Which Details Matter to a Prototype?</a>.</p>
+
+<p id="consistency-of-event" class="whitepaper-legacy-topic">This topic is now discussed in <a href="/en/whitepaper/6-consistency-boundary/#which-details-matter-to-a-prototype">Which Details Matter to a Prototype?</a>.</p>
+
+<p id="proto-uis-consistency-requirements-are-not-always-equally-strict" class="whitepaper-legacy-topic">This topic is now discussed in <a href="/en/whitepaper/6-consistency-boundary/#more-shared-conditions-permit-finer-comparison">More Shared Conditions Permit Finer Comparison</a>.</p>
+
+<p id="consistency-is-stricter-among-hosts-with-stronger-common-foundations" class="whitepaper-legacy-topic">This topic is now discussed in <a href="/en/whitepaper/6-consistency-boundary/#more-shared-conditions-permit-finer-comparison">More Shared Conditions Permit Finer Comparison</a>.</p>
+
+<p id="in-cross-platform-scenarios-consistency-is-determined-by-prototype-rules" class="whitepaper-legacy-topic">This topic is now discussed in <a href="/en/whitepaper/6-consistency-boundary/#more-shared-conditions-permit-finer-comparison">More Shared Conditions Permit Finer Comparison</a>.</p>
+
 > If information channels already organize a component's relations with the outside world, why can a Prototype not run on those channels alone?
+
+<div id="what-does-this-article-answer" class="whitepaper-legacy-anchor" aria-hidden="true"></div> <div id="a-prototype-is-not-static-structure" class="whitepaper-legacy-anchor" aria-hidden="true"></div> <div id="execution-semantics-are-not-only-about-lifecycle" class="whitepaper-legacy-anchor" aria-hidden="true"></div>
 
 ## Channels Alone Are Not Enough
 
@@ -64,6 +76,8 @@ Although neither State nor Anatomy is an information channel, they solve differe
 
 Both eventually reconnect to information channels. Values stored in State produce external results through Feedback, Expose, or Context. The structural scope established by Anatomy lets capabilities such as Context coordinate the correct Components.
 
+<div id="what-role-does-lifecycle-play-here" class="whitepaper-legacy-anchor" aria-hidden="true"></div> <div id="consistency-of-lifecycle-and-capability-activation" class="whitepaper-legacy-anchor" aria-hidden="true"></div> <div id="what-do-execution-semantics-really-constrain" class="whitepaper-legacy-anchor" aria-hidden="true"></div>
+
 ## Lifecycle: How a Prototype Is Established in Time
 
 A component is ultimately a program. Programs run, and execution necessarily unfolds over time.
@@ -72,16 +86,24 @@ State changes. Anatomy parts appear, temporarily leave, or are ultimately destro
 
 A Prototype must therefore describe not only which semantics exist, but also when they become available, when they occur, and when they end. This is the problem Lifecycle addresses.
 
+<div id="why-must-setup-and-runtime-be-distinguished" class="whitepaper-legacy-anchor" aria-hidden="true"></div> <div id="setup" class="whitepaper-legacy-anchor" aria-hidden="true"></div> <div id="runtime" class="whitepaper-legacy-anchor" aria-hidden="true"></div> <div id="why-does-this-staging-matter" class="whitepaper-legacy-anchor" aria-hidden="true"></div> <div id="setup-and-lifecycle-are-not-the-same-thing" class="whitepaper-legacy-anchor" aria-hidden="true"></div>
+
 ### One Setup, a Continuing Runtime
 
 The most important division in Proto UI's lifecycle model is between `setup` and `runtime`:
 
-```text
-Proto instance
-
-[ setup once ] → [-------------------- runtime --------------------] → [ dispose complete ]
-                  mounted → detached → mounted → … → disposing
-```
+<figure class="whitepaper-figure">
+  <button type="button" data-diagram-open aria-haspopup="dialog" aria-label="Open full-size diagram">
+<img
+  src="/diagrams/whitepaper-lifecycle.svg"
+  alt="Prototype lifecycle illustration: setup runs once, followed by runtime with repeatable mount, update, and detach cycles until final disposal completes."
+  width="982"
+  height="499"
+  class="whitepaper-diagram"
+/>
+  </button>
+  <figcaption>Open full-size diagram</figcaption>
+</figure>
 
 `setup` is the period in which one particular Proto instance is materialized, and it executes only once. Its governing mode is planning and declaration:
 
@@ -254,17 +276,16 @@ This Maker-side pseudocode could also be expressed through the composition conve
 
 When the User activates an uncontrolled Switch, execution proceeds roughly as follows:
 
-```text
-Event activate
-  → Root reads checked
-  → Root stores nextChecked
-  → Root emits checkedChange
-  → Root updates Context and requests Feedback reevaluation
-  → Thumb receives Context
-  → Thumb stores derived display state and requests Feedback reevaluation
-```
+<figure class="whitepaper-figure">
+  <button type="button" data-diagram-open aria-haspopup="dialog" aria-label="Open full-size diagram">
+    <img src="/diagrams/whitepaper-switch-activation.en.svg" alt="An uncontrolled Switch activation stores Root state, emits Expose, updates Context and refreshes Feedback, followed by Thumb derived display state." width="960" height="920" class="whitepaper-diagram" loading="lazy" />
+  </button>
+  <figcaption>Open full-size diagram</figcaption>
+</figure>
 
 Every channel in the relation map can now participate in an execution process with internal facts, structural identity, and temporal order.
+
+<div id="what-does-this-article-not-expand-on" class="whitepaper-legacy-anchor" aria-hidden="true"></div> <div id="next" class="whitepaper-legacy-anchor" aria-hidden="true"></div>
 
 ## How Is a Prototype Translated?
 

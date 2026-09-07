@@ -3,7 +3,15 @@ title: 'Chapter 6: The Boundaries of Consistency'
 description: 'Why consistency is a conditional comparison between realization contexts, and how comparison strength should vary across contexts.'
 ---
 
+<p id="proto-ui-does-not-make-itself-into-a-framework" class="whitepaper-legacy-topic">This topic is now discussed in <a href="/en/whitepaper/7-evolving-within-boundaries/#one-viable-path-not-the-only-answer">One Viable Path, Not the Only Answer</a>.</p>
+
+<p id="boundaries-are-not-explained-only-in-docs-they-also-appear-in-syntax" class="whitepaper-legacy-topic">This topic is now discussed in <a href="/en/whitepaper/4-semantics-beyond-channels/#channels-alone-are-not-enough">Channels Alone Are Not Enough</a>.</p>
+
+<p id="host-specific-capabilities-are-better-treated-as-strongly-host-related-capabilities" class="whitepaper-legacy-topic">This topic is now discussed in <a href="/en/whitepaper/5-translation-layer/#four-questions-that-must-not-be-confused">Four Questions That Must Not Be Confused</a>.</p>
+
 > When two Host artifacts use different structures, event systems, and rendering methods, what lets us say that they still implement the same Component—and should they be consistent in behavior, structure, or pixels?
+
+<div id="what-does-this-article-answer" class="whitepaper-legacy-anchor" aria-hidden="true"></div> <div id="proto-ui-protects-the-interactive-subject-first-then-expression-freedom" class="whitepaper-legacy-anchor" aria-hidden="true"></div>
 
 ## Prototype Is the First Measure of Consistency
 
@@ -20,6 +28,16 @@ Before deciding what responsibility a translator bears for consistency, we can f
 For Switch, a Prototype can require Root to own `checked`, define how activation triggers a State transition, and specify how that change reaches participants through Feedback, Context, and Expose. These obligations cannot change merely because the realization uses React, Flutter, or Qt. The objects used in the Host tree, and whether an outward signal appears as a callback or a platform event, may differ.
 
 Prototype is the first measure of consistency: it decides which semantics must remain in order for a realization to still be the same Component.
+
+<div id="proto-uis-order-of-tradeoffs" class="whitepaper-legacy-anchor" aria-hidden="true"></div> <div id="semantic-consistency" class="whitepaper-legacy-anchor" aria-hidden="true"></div> <div id="user-experience" class="whitepaper-legacy-anchor" aria-hidden="true"></div> <div id="maker-experience" class="whitepaper-legacy-anchor" aria-hidden="true"></div> <div id="prototype-author-experience" class="whitepaper-legacy-anchor" aria-hidden="true"></div> <div id="serializability-is-a-long-term-directional-constraint" class="whitepaper-legacy-anchor" aria-hidden="true"></div> <div id="what-do-these-constraints-protect" class="whitepaper-legacy-anchor" aria-hidden="true"></div>
+
+## Design Tradeoffs and Portability
+
+Proto UI's current draft design direction orders conflicting goals as **semantic consistency > User experience > Maker experience > prototype Author experience**. The same Prototype should remain the same interactive subject across adaptations. This ordering guides tradeoffs; it is not a claim that every current implementation already meets that goal.
+
+Portability is part of semantic consistency. Depending on non-portable data weakens the cross-Host guarantee. The protocol layer therefore prefers serializable expressions by default, even when that reduces convenience for Prototype authors. This is a long-term design constraint, not a claim that every current API or runtime value is serializable. Host-specific capabilities need explicit boundaries rather than being treated as portable semantics.
+
+<div id="constraints-are-not-patches-they-are-boundaries" class="whitepaper-legacy-anchor" aria-hidden="true"></div> <div id="this-is-not-conservatism" class="whitepaper-legacy-anchor" aria-hidden="true"></div>
 
 ## What Does It Mean When a Prototype Says Nothing?
 
@@ -53,6 +71,8 @@ State transitions, information-channel direction, and Component identity are lik
 
 Even when a Prototype is restrained about physical details, artifacts in different Hosts may remain extremely close. React, Vue, and Web Component share Web foundations, and official Adapters may use a common projection policy. But that similarity may come from the Prototype, from Adapter/profile constraints, or simply from current implementations happening to match. Only what is explicitly governed is a stable requirement.
 
+<div id="what-does-this-article-not-expand-on" class="whitepaper-legacy-anchor" aria-hidden="true"></div> <div id="next" class="whitepaper-legacy-anchor" aria-hidden="true"></div>
+
 ## More Shared Conditions Permit Finer Comparison
 
 Prototype determines the semantic floor that cannot be lost, but it cannot by itself say how closely two Host artifacts should resemble each other. That depends on the two realization contexts being compared.
@@ -75,6 +95,13 @@ Consistency therefore has two boundaries:
 2. The shared, controlled conditions of the two realization contexts determine how finely behavior, structure, and presentation can be compared.
 
 This neither requires every platform to be unconditionally identical nor allows “semantic consistency” to collapse into “roughly functional.” Two implementations remain the same Component because they preserve the identity and required obligations of the same Prototype. The more conditions they share, the more their remaining differences need to be explained.
+
+<figure class="whitepaper-figure">
+  <button type="button" data-diagram-open aria-haspopup="dialog" aria-label="Open full-size diagram">
+    <img src="/diagrams/whitepaper-conditional-consistency.en.svg" alt="Prototype and profile obligations define the baseline; shared input, projection and rendering conditions determine finer comparison." width="960" height="862" class="whitepaper-diagram" loading="lazy" />
+  </button>
+  <figcaption>Open full-size diagram</figcaption>
+</figure>
 
 These are principles for comparison, not a claim that every current Adapter or Host already has the corresponding comparison profile and evidence. Reliable evidence still comes mainly from the Web family. Comparison profiles, normalized DOM, and image evidence have not yet formed complete governed identities. An uncataloged or unverified target cannot automatically inherit a consistency conclusion.
 

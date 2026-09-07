@@ -3,11 +3,14 @@ import context from 'virtual:starlight/project-context';
 import { localizedUrl } from '../../utils/localizedUrl';
 import '../../styles/global.css';
 import AdapterSelect from './AdapterSelect.astro';
+import WhitepaperDiagramViewer from '../WhitepaperDiagramViewer.astro';
 
 const { hasSidebar, locale } = Astro.locals.starlightRoute;
 const localizedPath = (path: string) =>
   localizedUrl(new URL(path, Astro.url), locale || 'en', context.trailingSlash).pathname;
 ---
+
+{Astro.url.pathname.includes('/whitepaper/') && <WhitepaperDiagramViewer />}
 
 <div
   class="bg-background text-foreground group/body overscroll-none font-sans antialiased [--footer-height:calc(var(--spacing)*14)] [--header-height:calc(var(--spacing)*14)] xl:[--footer-height:calc(var(--spacing)*24)]"

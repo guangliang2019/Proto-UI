@@ -5,6 +5,8 @@ description: 'Starting from User, Maker, Other Component, and the direction of a
 
 > Without starting from the API list of a particular framework, how can we systematically describe a component's relationships with the outside world?
 
+<div id="what-does-this-article-answer" class="whitepaper-legacy-anchor" aria-hidden="true"></div>
+
 ## How Do We Describe a Component That Has Not Been Implemented?
 
 The previous chapter provisionally treated a component as a relatively stable interactive subject. We observed that although a component cannot actually run without an implementation, we can usually describe some of its expected interactions before deciding whether to implement it in React, Flutter, or another technology.
@@ -22,6 +24,8 @@ This chapter addresses the second question first: if we do not classify a compon
 
 Proto UI chooses to begin with interaction relations.
 
+<div id="components-do-not-exist-in-isolation" class="whitepaper-legacy-anchor" aria-hidden="true"></div> <div id="proto-ui-starts-by-splitting-component-relations-through-users" class="whitepaper-legacy-anchor" aria-hidden="true"></div> <div id="user" class="whitepaper-legacy-anchor" aria-hidden="true"></div> <div id="maker" class="whitepaper-legacy-anchor" aria-hidden="true"></div> <div id="other-component" class="whitepaper-legacy-anchor" aria-hidden="true"></div>
+
 ## With Whom Does a Component Interact?
 
 When we treat a Component as an interactive subject, its properties and behavior no longer appear from nowhere. Some are meant to be perceived by the person using it; some accept configuration from its caller; some report results to an application; and some support cooperation with other components.
@@ -35,6 +39,8 @@ Proto UI currently begins by distinguishing three kinds of participants:
 - **Other Component**: another component that exchanges information with the current Component so that they can complete an interaction together.
 
 These terms describe roles within an interaction, not job titles or fixed identities. The same person may configure a component as a Maker and later use it as a User. An AI Agent may produce a UI in one setting and use a UI in another. What matters is how that participant relates to the Component at that moment.
+
+<div id="what-is-an-information-flow" class="whitepaper-legacy-anchor" aria-hidden="true"></div> <div id="which-core-capabilities-follow-from-the-information-flows" class="whitepaper-legacy-anchor" aria-hidden="true"></div> <div id="user--component" class="whitepaper-legacy-anchor" aria-hidden="true"></div> <div id="maker--component" class="whitepaper-legacy-anchor" aria-hidden="true"></div> <div id="other-component--component" class="whitepaper-legacy-anchor" aria-hidden="true"></div> <div id="why-are-these-capabilities-not-arbitrarily-enumerated" class="whitepaper-legacy-anchor" aria-hidden="true"></div>
 
 ## Deriving Information Channels from Relations
 
@@ -55,6 +61,14 @@ Proto UI calls a relation identified in this way an `information channel`.
 An information channel is not a literal data pipe, nor does it refer specifically to an event bus, data flow, or one kind of API. It is a way of organizing a component's interaction relations. Whether a capability appears in a concrete framework as a parameter, callback, object method, style, or something else, we first ask which participants it connects, in which direction the information moves, and what responsibility it fulfills.
 
 In Proto UI's current working model, which still needs to be tested in practice, this approach derives five core portable information channels:
+
+<img
+  src="/diagrams/whitepaper-information-channels.svg"
+  alt="Five information channels: User sends Event to Component and receives Feedback; Maker sends Props to Component and receives Expose; components exchange information through Context."
+  width="757"
+  height="511"
+  class="whitepaper-diagram"
+/>
 
 | Information channel | Direction | Primary responsibility |
 | --- | --- | --- |
@@ -102,6 +116,8 @@ The first four lines say, respectively, that the App Maker configures Switch, th
 The sketch also shows why the shape of a Host API is not the same thing as a channel. In a framework such as React, configuration values and callback entry points that receive change notifications may both appear in an object called props. But configuration has the semantics App Maker → Component, while a change notification received through a callback has the semantics Component → App Maker. They therefore belong to different channels.
 
 Switch usually preserves state during an interaction as well. But State is not itself an information channel: preserving a value does not introduce a new participant that sends information to the Component or receives information from it. State affects how these relations operate, but it has its own semantic responsibility rather than being an information channel. Chapter 4 examines this and other concepts that are necessary even though they are not channels.
+
+<div id="information-flows-are-not-the-whole-component" class="whitepaper-legacy-anchor" aria-hidden="true"></div> <div id="can-information-flows-be-extended" class="whitepaper-legacy-anchor" aria-hidden="true"></div> <div id="what-does-this-article-not-expand-on" class="whitepaper-legacy-anchor" aria-hidden="true"></div> <div id="next" class="whitepaper-legacy-anchor" aria-hidden="true"></div>
 
 ## This Is Only a Skeleton
 

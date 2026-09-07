@@ -5,6 +5,8 @@ description: '说明 Prototype 如何经由翻译层进入具体 Host，并明�
 
 > 有了 Prototype，如何将它落地到 React、Flutter、Qt，以及其他我们所熟悉的技术中？
 
+<div id="这篇文章要回答什么" class="whitepaper-legacy-anchor" aria-hidden="true"></div> <div id="原型不是宿主实现的别名" class="whitepaper-legacy-anchor" aria-hidden="true"></div>
+
 ## Prototype 还不是宿主中的组件
 
 截至上一章，我们已经得到了一份接近可执行的 Component 描述。
@@ -31,6 +33,8 @@ Prototype 所声明的义务
 
 Prototype 与 Host artifact 并不是同一种东西换了一个名字。前者描述跨技术成立的交互身份与义务，后者则是这些义务在一个具体 Host 中的实现。
 
+<div id="为什么需要翻译层" class="whitepaper-legacy-anchor" aria-hidden="true"></div> <div id="翻译层意味着什么" class="whitepaper-legacy-anchor" aria-hidden="true"></div>
+
 ## 翻译层的挑战
 
 现在，我们的任务看起来很直接：写一个工具，在语义损耗可控的前提下，把已经明确的 Prototype 映射到不同 Host。
@@ -45,6 +49,8 @@ Proto UI 从两侧控制这件事的复杂度：
 - 翻译层一侧则把反复出现的语义责任与 Host 对接点拆开，使不同翻译器能够复用前者，只实现后者。
 
 这就是 Module 与 Host Capability 发挥作用的地方。
+
+<div id="翻译层不只是语法转换" class="whitepaper-legacy-anchor" aria-hidden="true"></div>
 
 ## Module 与 Host Capability
 
@@ -76,13 +82,22 @@ React、Vue 或其他 Host 可以用完全不同的对象和结构回答这两�
 
 当然，这离“全部打勾就自动正确”还有不短的距离，但它让翻译器的工作可以被拆分、复用和审查。相近的 Host 还可以进一步共享实现，例如 React 与 Vue 的翻译器可以复用一部分 Web 平台能力，而只分别处理框架自己的组件生命周期与调用惯例。
 
+<figure class="whitepaper-figure">
+  <button type="button" data-diagram-open aria-haspopup="dialog" aria-label="点击查看大图">
+    <img src="/diagrams/whitepaper-translation-responsibility.zh-cn.svg" alt="Runtime Adapter 路径中，Module 复用语义实现，Runtime 与 Adapter 协作并按需接入 Host Capability，形成 Host artifact。" width="743" height="502" class="whitepaper-diagram" loading="lazy" />
+  </button>
+  <figcaption>右侧图标表示目标宿主。点击查看大图</figcaption>
+</figure>
+
+<div id="adapter-与-compiler-分别意味着什么" class="whitepaper-legacy-anchor" aria-hidden="true"></div> <div id="两者共享同一套语义基线" class="whitepaper-legacy-anchor" aria-hidden="true"></div>
+
 ## 翻译可以发生在不同阶段
 
 ### Adapter
 
 Adapter 在目标 Host 的 runtime 中解释和执行 Prototype。它能够读取本次 Component instance 的真实输入，与 Host 生命周期同步，建立动态事件绑定，并根据当前可用的 Host Capability 完成投影。
 
-这是 Proto UI 当前已经实现并纳入治理的主要翻译路径。现有的 official React Web、Vue 与 Web Component profiles 都属于 runtime Adapter；它们提供的证据目前主要覆盖 Web family。
+这是 Proto UI 当前已经实现并纳入治理的主要翻译路径。现有的 official React Web、Vue 2.6 Web、Vue 3 Web 与 Web Component profiles 都属于 runtime Adapter；它们提供的证据目前主要覆盖 Web family。
 
 ### Compiler
 
@@ -95,6 +110,8 @@ Compiler 在程序运行之前分析 Prototype，把已经明确的内容转换�
 实际工程也可以同时采用两者：让 Compiler 生成静态结构与可预先分析的部分，再由 Runtime 与 Adapter 处理动态 State、Lifecycle、Host binding 与能力协商。
 
 Adapter、Compiler 与 hybrid 回答的是“翻译在什么时候、以什么工程形式发生”。它们并不自动决定翻译质量。Compiler 不会仅仅因为生成了代码就天然更快、更 faithful 或更“原生”；Adapter 也不意味着只能得到低效的间接实现。
+
+<div id="翻译为什么可能有损" class="whitepaper-legacy-anchor" aria-hidden="true"></div>
 
 ## 形式改变不等于语义损失
 
@@ -124,6 +141,8 @@ faithful 表示在已经声明的 Host、profile 与运行条件下，Prototype 
 
 不同义务之间也不能简单取平均分。一个 Switch 即使在视觉上完全还原，如果 activation 无法工作，或者 `checked` 不再由正确的交互主体拥有，它仍然不是 faithful 的 Switch。关键义务的缺失，不能由另一个维度的高保真抵消。
 
+<div id="宿主边界会怎样影响还原" class="whitepaper-legacy-anchor" aria-hidden="true"></div>
+
 ## 以 Terminal UI 为例
 
 Terminal UI（TUI）是运行在终端中的字符界面，主要通过键盘输入和文本布局完成交互。
@@ -139,6 +158,8 @@ Terminal UI（TUI）是运行在终端中的字符界面，主要通过键盘输
 - 如果某项必需 Feedback、身份或操作义务无法保存，也没有被授权的替代，那么这个 Prototype 对该 TUI profile 就是 unsupported。
 
 因此，评价 TUI 翻译器时不应拿 GUI 像素还原作为唯一尺度；但“符合 TUI 习惯”也不能成为翻译层自行改写 Component 的通行证。目标媒介决定实现可以长什么样，Prototype 与受治理的规则决定怎样的变化仍然算是同一个 Component。
+
+<div id="host-通路默认不在跨平台主承诺范围内" class="whitepaper-legacy-anchor" aria-hidden="true"></div>
 
 ## 四个不该混在一起的问题
 
@@ -173,6 +194,8 @@ Terminal UI（TUI）是运行在终端中的字符界面，主要通过键盘输
 
 一条有用的报告至少应说明：哪项义务无法满足、结论针对哪个 Host/profile、是否采用了经过授权的替代，以及替代以后还保留哪些保证。
 
+<div id="这一篇没有展开什么" class="whitepaper-legacy-anchor" aria-hidden="true"></div>
+
 ## 翻译结论需要证据
 
 翻译器能够运行，并不等于翻译责任已经完成。我们还需要证据说明，最终 Host artifact 的可观察行为确实符合对应的 Prototype 或 Contract。
@@ -180,6 +203,8 @@ Terminal UI（TUI）是运行在终端中的字符界面，主要通过键盘输
 证据必须绑定到具体范围：哪一项义务、哪一个 Adapter profile、哪一段 Host/runtime version，以及验证了哪些结果。React 的测试不能替 Qt 作证，Web Component 的 DOM 结果也不能自动证明 Flutter 会得到相同语义。
 
 Proto UI 当前已经有受治理的 runtime Adapter profiles 和部分 Web-family evidence。Compiler、Qt、Flutter 与更广泛媒介的落地，仍然是翻译模型可以容纳、但尚未被现有证据证明的方向。
+
+<div id="下一步" class="whitepaper-legacy-anchor" aria-hidden="true"></div>
 
 ## 翻译...但一致到什么程度？
 

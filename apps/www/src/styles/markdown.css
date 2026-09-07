@@ -1,4 +1,41 @@
 @layer components {
+  /* The embedded SVG uses this scheme, including when the site overrides the OS theme. */
+  .whitepaper-diagram {
+    display: block;
+    box-sizing: border-box;
+    width: 100%;
+    height: auto;
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    color-scheme: light;
+  }
+
+  [data-theme='dark'] .whitepaper-diagram {
+    color-scheme: dark;
+  }
+
+  .whitepaper-figure > button {
+    display: block;
+    width: 100%;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    border-radius: 8px;
+    cursor: zoom-in;
+  }
+
+  .whitepaper-figure > button:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 4px;
+  }
+
+  .whitepaper-figure figcaption {
+    margin-top: 8px;
+    color: var(--color-muted-foreground);
+    font-size: 13px;
+    text-align: center;
+  }
+
   .main-frame {
     min-width: 0;
     width: 100%;
@@ -301,4 +338,24 @@
   main[data-pagefind-body] .enhanced-image[src=''] {
     opacity: 0.5;
   }
+}
+
+/* Keep pre-rewrite whitepaper bookmarks useful without adding visible empty space. */
+.sl-markdown .whitepaper-legacy-anchor {
+  margin: 0;
+  display: block;
+  height: 0;
+  scroll-margin-top: 6rem;
+}
+
+.whitepaper-legacy-topic {
+  display: none;
+  scroll-margin-top: 6rem;
+}
+
+.whitepaper-legacy-topic:target {
+  display: block;
+  padding: 1rem;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
 }

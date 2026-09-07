@@ -5,6 +5,8 @@ description: 'How a Prototype enters a concrete Host through the translation lay
 
 > Once we have a Prototype, how do we realize it in React, Flutter, Qt, and the other technologies we know?
 
+<div id="what-does-this-article-answer" class="whitepaper-legacy-anchor" aria-hidden="true"></div> <div id="a-prototype-is-not-an-alias-for-host-implementation" class="whitepaper-legacy-anchor" aria-hidden="true"></div>
+
 ## A Prototype Is Not Yet a Component in a Host
 
 By the end of the previous chapter, we had a description of a Component that was close to executable.
@@ -31,6 +33,8 @@ A Host artifact is what actually exists in the target technology after translati
 
 Prototype and Host artifact are not two names for the same object. The former describes an interaction identity and obligations that hold across technologies. The latter implements those obligations in one concrete Host.
 
+<div id="why-is-a-translation-layer-needed" class="whitepaper-legacy-anchor" aria-hidden="true"></div> <div id="what-does-the-translation-layer-mean-in-the-end" class="whitepaper-legacy-anchor" aria-hidden="true"></div>
+
 ## The Challenge of the Translation Layer
 
 The task now appears straightforward: build a tool that maps an explicit Prototype into different Hosts while keeping semantic loss under control.
@@ -45,6 +49,8 @@ Proto UI controls this complexity from both sides:
 - On the translation side, it separates recurring semantic responsibilities from Host integration points, so translators can reuse the former and implement only the latter.
 
 This is where Module and Host Capability enter the picture.
+
+<div id="the-translation-layer-is-not-only-syntax-conversion" class="whitepaper-legacy-anchor" aria-hidden="true"></div>
 
 ## Module and Host Capability
 
@@ -76,13 +82,22 @@ Developing a translator can therefore move away from “reimplement all of Proto
 
 This is still far from a system where checking every box automatically means “correct.” It does, however, make translator work divisible, reusable, and reviewable. Similar Hosts may share further implementation. React and Vue translators, for example, can reuse some Web-platform capabilities while separately handling their frameworks' component lifecycles and calling conventions.
 
+<figure class="whitepaper-figure">
+  <button type="button" data-diagram-open aria-haspopup="dialog" aria-label="Open full-size diagram">
+    <img src="/diagrams/whitepaper-translation-responsibility.en.svg" alt="In the runtime Adapter path, Modules reuse semantic logic while Runtime and Adapter cooperate with Host Capability to produce a Host artifact." width="743" height="502" class="whitepaper-diagram" loading="lazy" />
+  </button>
+  <figcaption>The icons on the right represent target hosts. Open full-size diagram</figcaption>
+</figure>
+
+<div id="what-do-adapter-and-compiler-each-mean" class="whitepaper-legacy-anchor" aria-hidden="true"></div> <div id="they-share-the-same-semantic-baseline" class="whitepaper-legacy-anchor" aria-hidden="true"></div>
+
 ## Translation Can Happen at Different Stages
 
 ### Adapter
 
 An Adapter interprets and executes a Prototype in the runtime of a target Host. It can read the real input of this Component instance, synchronize with the Host lifecycle, establish dynamic event bindings, and complete projections through the Host Capabilities currently available.
 
-This is the primary translation path that Proto UI has implemented and brought under governance today. The existing official React Web, Vue, and Web Component profiles are runtime Adapters; their evidence currently covers mainly the Web family.
+This is the primary translation path that Proto UI has implemented and brought under governance today. The existing official React Web, Vue 2.6 Web, Vue 3 Web, and Web Component profiles are runtime Adapters; their evidence currently covers mainly the Web family.
 
 ### Compiler
 
@@ -95,6 +110,8 @@ This is a translation form worth exploring, but it is not yet a completed Proto 
 Real systems may combine both forms: a Compiler generates static structure and anything that can be analyzed in advance, while Runtime and Adapter handle dynamic State, Lifecycle, Host binding, and capability negotiation.
 
 Adapter, Compiler, and hybrid answer when translation happens and which engineering form it takes. They do not automatically determine translation quality. A Compiler is not inherently faster, more faithful, or more “native” merely because it generates code. An Adapter does not necessarily imply an inefficient layer of indirection.
+
+<div id="why-can-translation-be-lossy" class="whitepaper-legacy-anchor" aria-hidden="true"></div>
 
 ## A Change in Form Is Not Necessarily Semantic Loss
 
@@ -124,6 +141,8 @@ This is not a criticism of the Host or translator. Explicitly acknowledging a la
 
 Obligations cannot simply be averaged together. A Switch may reproduce every visual detail and still fail to be faithful if activation does not work or if `checked` is no longer owned by the correct interactive subject. High fidelity in one dimension cannot compensate for a missing critical obligation in another.
 
+<div id="how-do-host-boundaries-affect-reproduction" class="whitepaper-legacy-anchor" aria-hidden="true"></div>
+
 ## Terminal UI as an Example
 
 A Terminal UI, or TUI, is a character-based interface that runs in a terminal and relies mainly on keyboard input and text layout.
@@ -139,6 +158,8 @@ But this does not allow a TUI Adapter to delete any Feedback that is inconvenien
 - If required Feedback, identity, or operational obligations cannot be preserved and no substitute is authorized, the Prototype is unsupported for that TUI profile.
 
 A TUI translator should therefore not be judged solely by GUI pixel reproduction. But “following TUI conventions” cannot become a license for the translation layer to rewrite the Component. The target medium determines what an implementation may look like; the Prototype and governed rules determine which changes still count as the same Component.
+
+<div id="the-host-flow-is-not-part-of-the-default-cross-platform-core-commitment" class="whitepaper-legacy-anchor" aria-hidden="true"></div>
 
 ## Four Questions That Must Not Be Confused
 
@@ -173,6 +194,8 @@ A more precise principle is therefore: report degradation or inability at the ea
 
 A useful report should at least state which obligation cannot be fulfilled, which Host/profile the conclusion concerns, whether an authorized substitute was used, and which guarantees remain after that substitution.
 
+<div id="what-does-this-article-not-expand-on" class="whitepaper-legacy-anchor" aria-hidden="true"></div>
+
 ## Translation Conclusions Need Evidence
 
 A translator that runs has not necessarily completed its translation responsibility. We still need evidence that the observable behavior of the final Host artifact conforms to the corresponding Prototype or Contract.
@@ -180,6 +203,8 @@ A translator that runs has not necessarily completed its translation responsibil
 Evidence must be bound to a concrete scope: which obligation, which Adapter profile, which Host/runtime version range, and which results were verified. A React test cannot speak for Qt, and a Web Component DOM result does not automatically prove that Flutter will have the same semantics.
 
 Proto UI currently has governed runtime Adapter profiles and some Web-family evidence. Realizations for Compiler, Qt, Flutter, and broader media remain directions that the translation model can accommodate but that existing evidence has not proved.
+
+<div id="next" class="whitepaper-legacy-anchor" aria-hidden="true"></div>
 
 ## Translation—But Consistent to What Degree?
 

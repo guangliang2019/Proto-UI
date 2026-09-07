@@ -3,6 +3,20 @@ title: 'Chapter 1: Components Before Code'
 description: 'When the class, function, DOM, widget, or rendering tree changes, what still lets us say that two implementations are the same kind of component?'
 ---
 
+<p id="why-proto-ui-uses-prototype-adapter-and-host" class="whitepaper-legacy-topic">This topic is now discussed in <a href="/en/whitepaper/5-translation-layer/#a-prototype-is-not-yet-a-component-in-a-host">A Prototype Is Not Yet a Component in a Host</a>.</p>
+
+<p id="prototype" class="whitepaper-legacy-topic">This topic is now discussed in <a href="/en/whitepaper/3-component-boundary/#from-component-to-prototype">From Component to Prototype</a>.</p>
+
+<p id="adapter" class="whitepaper-legacy-topic">This topic is now discussed in <a href="/en/whitepaper/5-translation-layer/#adapter">Adapter</a>.</p>
+
+<p id="host" class="whitepaper-legacy-topic">This topic is now discussed in <a href="/en/whitepaper/5-translation-layer/#a-prototype-is-not-yet-a-component-in-a-host">A Prototype Is Not Yet a Component in a Host</a>.</p>
+
+<p id="the-relationship-among-the-three" class="whitepaper-legacy-topic">This topic is now discussed in <a href="/en/whitepaper/5-translation-layer/#a-prototype-is-not-yet-a-component-in-a-host">A Prototype Is Not Yet a Component in a Host</a>.</p>
+
+<p id="prototypes-can-stay-open-while-protocols-stay-stable" class="whitepaper-legacy-topic">This topic is now discussed in <a href="/en/whitepaper/7-evolving-within-boundaries/#the-three-lines-proto-ui-chooses-to-pursue">The Three Lines Proto UI Chooses to Pursue</a>.</p>
+
+<div id="what-does-this-article-answer" class="whitepaper-legacy-anchor" aria-hidden="true"></div> <div id="components-do-not-exist-only-in-code" class="whitepaper-legacy-anchor" aria-hidden="true"></div> <div id="expectations-around-a-component-often-exist-before-implementation" class="whitepaper-legacy-anchor" aria-hidden="true"></div>
+
 ## What Are Developers “Reproducing” and “Implementing”?
 
 Let us begin with an ordinary situation in software development.
@@ -18,6 +32,8 @@ In other words, before choosing React, Flutter, or another concrete technology, 
 This hypothetical situation is also one form of the repeated work described in the preface. We often need to implement similar components again in different technologies and decide where those implementations should remain consistent. Switch is still a simple example. With a dialog, differences in visual presentation, common operations, focus management, and assistive-technology behavior can become difficult to reconcile between Flutter and the Web. Resolving those differences is not easy for teams that genuinely need a consistent product experience across technologies.
 
 For now, this chapter will not decide exactly how precise “consistency” must be. In this hypothetical situation, we only need to notice that different implementations are compared against a set of expectations, and that those expectations are not identical to any one body of code.
+
+<div id="a-prototype-is-not-a-floating-list-of-capabilities" class="whitepaper-legacy-anchor" aria-hidden="true"></div>
 
 ## What Is a Component, Exactly?
 
@@ -38,6 +54,8 @@ The main difficulty is completeness. Before implementation, it is hard to know w
 Proto UI therefore does not replace practical induction with a top-down philosophy. It works back and forth between the two: first use a model to organize what we are looking for, then test that model against real components and implementations in different technologies, and continue revising it when we discover mistakes.
 
 When later chapters occasionally speak of a component's “essence,” they mean a current approximation that can be tested across technologies and revised through practice—not a final answer that has already been proved and will never change.
+
+<div id="being-abstractable-does-not-mean-it-is-already-a-protocol" class="whitepaper-legacy-anchor" aria-hidden="true"></div> <div id="why-does-the-word-protocol-appear-here" class="whitepaper-legacy-anchor" aria-hidden="true"></div> <div id="what-does-this-article-not-expand-on" class="whitepaper-legacy-anchor" aria-hidden="true"></div> <div id="next" class="whitepaper-legacy-anchor" aria-hidden="true"></div>
 
 ## But How Do We Describe It?
 

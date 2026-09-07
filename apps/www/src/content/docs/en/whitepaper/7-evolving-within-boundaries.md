@@ -5,6 +5,8 @@ description: 'How the current approximation can keep accepting revisions from th
 
 > If a Prototype is only our current approximation of a component's “essence,” how should Proto UI develop it, and how should it regard other possibilities that the official project has not chosen?
 
+<div id="what-does-this-article-answer" class="whitepaper-legacy-anchor" aria-hidden="true"></div> <div id="proto-ui-will-not-arrive-all-at-once" class="whitepaper-legacy-anchor" aria-hidden="true"></div>
+
 ## One Viable Path, Not the Only Answer
 
 Across the six chapters of its first two parts, this whitepaper has proposed the Prototype model and examined its translation layer. Together, they form one Proto UI answer to the problem of reusing interaction semantics across technologies.
@@ -33,6 +35,8 @@ This work is not just a matter of increasing component count. How should Switch 
 
 Adoption can also be incremental. A Maker may use selected Prototypes only where cross-technology consistency is genuinely needed, without first turning the entire application into another framework.
 
+<div id="stage-1-stand-firmly-in-the-web-first" class="whitepaper-legacy-anchor" aria-hidden="true"></div> <div id="the-toolchain-will-grow-together-with-the-protocol-layer" class="whitepaper-legacy-anchor" aria-hidden="true"></div>
+
 ### Translation Layer and Ecosystem
 
 Without a translation layer, a Prototype cannot enter a new Host. A new translator also serves more than one component: it may expand the realization range of many existing Prototypes at once.
@@ -42,6 +46,8 @@ This relationship creates a compositional multiplier. When a Prototype for a des
 This is not an unconditional Cartesian product. The existence of an Adapter does not mean it supports every Prototype. The ability to generate a Host artifact does not mean every semantic obligation has been faithfully translated. The range that can be composed still depends on concrete capabilities, translation outcomes, and evidence.
 
 Translators also leave room for continued exploration. Different Adapters may connect to the same Host in different ways, and a Compiler may eventually perform more static work. Better performance, a more natural Host API, or greater fidelity all require concrete implementation and evidence; none follows automatically from choosing a translation form.
+
+<div id="one-line-of-work-will-run-through-every-stage" class="whitepaper-legacy-anchor" aria-hidden="true"></div>
 
 ### Theory and Kernel
 
@@ -53,6 +59,8 @@ Theory and kernel do not merely prescribe rules before practice begins. Problems
 
 The three lines are therefore not stages waiting on one another. Theory and kernel provide an expressive foundation; prototype libraries explore the identity of concrete Components; and the translation layer confronts those approximations with real Hosts. Each returns the questions it discovers to the same evolutionary process.
 
+<div id="what-does-this-article-not-expand-on" class="whitepaper-legacy-anchor" aria-hidden="true"></div>
+
 ## A Path Outside the Main Lines May Still Be Valuable
 
 Directions that Proto UI does not choose may still produce valuable results.
@@ -62,6 +70,8 @@ Someone may believe, for example, that Prototype theory contains foundations for
 People may also maintain custom Prototypes and Adapters for a particular business, fork Proto UI into a more radical or vertical version, or create an unrelated project that pursues the reuse of interaction knowledge through a completely different model and syntax.
 
 These directions do not need Proto UI's approval before they can have value. Their successes, failures, and different tradeoffs may in turn reveal what the official path has overlooked. Proto UI chooses to maintain one shared main line; it does not claim to be the only legitimate version in this problem space.
+
+<div id="stage-2-expand-into-native-hosts" class="whitepaper-legacy-anchor" aria-hidden="true"></div> <div id="a-longer-term-direction-from-covering-hosts-to-influencing-host-choice" class="whitepaper-legacy-anchor" aria-hidden="true"></div> <div id="next" class="whitepaper-legacy-anchor" aria-hidden="true"></div>
 
 ## How Practice Revises the Current Approximation
 
@@ -85,6 +95,13 @@ The word “explicitly” matters.
 When an implementation differs from expectations, that implementation does not automatically become the new standard. A runnable Prototype does not make every judgment inside it a stable truth. Counterexamples from practice deserve careful attention, but we must still decide whether each exposes a local defect or justifies revising a more general theory.
 
 The whitepaper provides philosophical direction. Spec refines the parts that can be governed by engineering into checkable obligations. Implementations and tests provide evidence of current behavior. Practice can drive changes to the whitepaper, Spec, a Prototype, or a translation boundary, but it should not silently override them. Otherwise, we cannot tell whether we are revising our understanding or merely finding explanations for accidental implementation outcomes.
+
+<figure class="whitepaper-figure">
+  <button type="button" data-diagram-open aria-haspopup="dialog" aria-label="Open full-size diagram">
+    <img src="/diagrams/whitepaper-evolution-feedback.en.svg" alt="Theory and kernel, prototype libraries and translation face practice; classified evidence guides explicit revisions to the relevant layer." width="960" height="928" class="whitepaper-diagram" loading="lazy" />
+  </button>
+  <figcaption>Open full-size diagram</figcaption>
+</figure>
 
 ## More Distant Tests Are Still Needed
 

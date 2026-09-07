@@ -3,7 +3,19 @@ title: '第四章：通路之外的语义'
 description: '用 State、Anatomy 和 Lifecycle 补足内部连续性、复合结构与时间秩序，使 Prototype 接近可执行。'
 ---
 
+<p id="feedback-的一致性" class="whitepaper-legacy-topic">这一主题现已移至 <a href="/zh-cn/whitepaper/6-consistency-boundary/#prototype-关心哪些细节">Prototype 关心哪些细节？</a>。</p>
+
+<p id="event-的一致性" class="whitepaper-legacy-topic">这一主题现已移至 <a href="/zh-cn/whitepaper/6-consistency-boundary/#prototype-关心哪些细节">Prototype 关心哪些细节？</a>。</p>
+
+<p id="proto-ui-的一致性要求并不总是同样严格" class="whitepaper-legacy-topic">这一主题现已移至 <a href="/zh-cn/whitepaper/6-consistency-boundary/#共同条件越多比较越细">共同条件越多，比较越细</a>。</p>
+
+<p id="在共同依赖较强的宿主之间一致性要求更严格" class="whitepaper-legacy-topic">这一主题现已移至 <a href="/zh-cn/whitepaper/6-consistency-boundary/#共同条件越多比较越细">共同条件越多，比较越细</a>。</p>
+
+<p id="在跨平台场景中一致性由原型规则决定" class="whitepaper-legacy-topic">这一主题现已移至 <a href="/zh-cn/whitepaper/6-consistency-boundary/#共同条件越多比较越细">共同条件越多，比较越细</a>。</p>
+
 > 如果 information channel 已经组织了组件与外界的关系，为什么一份 Prototype 仍然不能只靠这些通路运行？
+
+<div id="这篇文章要回答什么" class="whitepaper-legacy-anchor" aria-hidden="true"></div> <div id="原型不是静态结构" class="whitepaper-legacy-anchor" aria-hidden="true"></div> <div id="执行语义不只是在谈生命周期" class="whitepaper-legacy-anchor" aria-hidden="true"></div>
 
 ## 只有通路还不够
 
@@ -64,6 +76,8 @@ Anatomy 并不负责把这些部分创建或组装出来。它不会自动给 Sw
 
 它们最终仍然会回到信息通路。State 中保存的值会通过 Feedback、Expose 或 Context 产生外部结果；Anatomy 划定的结构范围，则让 Context 等能力可以在正确的 Component 之间完成协作。
 
+<div id="生命周期在这里扮演什么角色" class="whitepaper-legacy-anchor" aria-hidden="true"></div> <div id="lifecycle-与能力开启的一致性" class="whitepaper-legacy-anchor" aria-hidden="true"></div> <div id="执行语义真正约束的是什么" class="whitepaper-legacy-anchor" aria-hidden="true"></div>
+
 ## Lifecycle：原型如何在时间中建立
 
 组件毕竟是一段程序，程序要运行，而运行必定伴随时间。
@@ -72,16 +86,24 @@ State 会变化，Anatomy part 会出现、暂时离开或最终销毁；Event �
 
 所以，一份 Prototype 不只要描述“有什么语义”，还要说明这些语义从什么时候开始可用、在什么时候发生，又在什么时候结束。这就是 Lifecycle 要解决的问题。
 
+<div id="为什么必须区分-setup-与-runtime" class="whitepaper-legacy-anchor" aria-hidden="true"></div> <div id="setup" class="whitepaper-legacy-anchor" aria-hidden="true"></div> <div id="runtime" class="whitepaper-legacy-anchor" aria-hidden="true"></div> <div id="这种分期为什么重要" class="whitepaper-legacy-anchor" aria-hidden="true"></div> <div id="setup-与生命周期并不是一回事" class="whitepaper-legacy-anchor" aria-hidden="true"></div>
+
 ### 一次 setup，持续 runtime
 
 Proto UI 生命周期模型中最重要的切分，是 `setup` 与 `runtime`：
 
-```text
-Proto instance
-
-[ setup once ] → [-------------------- runtime --------------------] → [ dispose complete ]
-                  mounted → detached → mounted → … → disposing
-```
+<figure class="whitepaper-figure">
+  <button type="button" data-diagram-open aria-haspopup="dialog" aria-label="点击查看大图">
+<img
+  src="/diagrams/whitepaper-lifecycle.svg"
+  alt="Prototype 生命周期示意：setup 只执行一次，随后进入 runtime；实例可以经历多轮挂载、更新与脱离，直到最终 disposal 完成。"
+  width="982"
+  height="499"
+  class="whitepaper-diagram"
+/>
+  </button>
+  <figcaption>点击查看大图</figcaption>
+</figure>
 
 `setup` 是某一个具体 Proto instance 被物化的时期，并且只执行一次。它的主基调是“计划与声明”：
 
@@ -251,17 +273,16 @@ AppUI(() => SwitchRoot({ defaultChecked: false }, () => SwitchThumb()));
 
 如果 User 激活一个非受控 Switch，执行过程大致是：
 
-```text
-Event activate
-  → Root 读取 checked
-  → Root 保存 nextChecked
-  → Root 发出 checkedChange
-  → Root 更新 Context，并请求 Feedback 重新求值
-  → Thumb 收到 Context
-  → Thumb 保存派生展示状态，并请求 Feedback 重新求值
-```
+<figure class="whitepaper-figure">
+  <button type="button" data-diagram-open aria-haspopup="dialog" aria-label="点击查看大图">
+    <img src="/diagrams/whitepaper-switch-activation.zh-cn.svg" alt="非受控 Switch 激活后，Root 保存 State、发出 Expose、更新 Context 并刷新 Feedback，Thumb 随后更新派生展示状态。" width="960" height="920" class="whitepaper-diagram" loading="lazy" />
+  </button>
+  <figcaption>点击查看大图</figcaption>
+</figure>
 
 至此，关系图中的每一条通路，都已经能够落到一个有内部事实、有结构身份、也有时间秩序的执行过程里。
+
+<div id="这一篇没有展开什么" class="whitepaper-legacy-anchor" aria-hidden="true"></div> <div id="下一步" class="whitepaper-legacy-anchor" aria-hidden="true"></div>
 
 ## 原型如何翻译？
 

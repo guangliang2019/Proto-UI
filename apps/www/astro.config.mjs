@@ -10,6 +10,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { rehypeEnhancedImage } from './src/utils/rehype-enhanced-image.js';
+import { whitepaperRedirectFragments } from './src/utils/whitepaper-redirect-fragments.mjs';
 import { remarkConceptDirective } from './src/utils/remark-concept-directive.js';
 
 const PROTO_UI_PREFIX = '@proto.ui/';
@@ -67,30 +68,35 @@ const inProgressBadge = {
   class:
     'text-xs px-1.5 h-4.5 rounded-full bg-amber-100 text-amber-900 dark:bg-amber-900 dark:text-amber-100',
 };
+const whitepaperRedirects = {
+  '/en/whitepaper/component-as-protocol': '/en/whitepaper/1-components-before-code/',
+  '/en/whitepaper/information-flow-model': '/en/whitepaper/2-interaction-relations/',
+  '/en/whitepaper/prototype-boundary': '/en/whitepaper/3-component-boundary/',
+  '/en/whitepaper/execution-semantics': '/en/whitepaper/4-semantics-beyond-channels/',
+  '/en/whitepaper/translation-layer': '/en/whitepaper/5-translation-layer/',
+  '/en/whitepaper/design-constraints': '/en/whitepaper/6-consistency-boundary/',
+  '/en/whitepaper/evolution-path': '/en/whitepaper/7-evolving-within-boundaries/',
+  '/en/whitepaper/faq': '/en/whitepaper/0-preface/',
+  '/zh-cn/whitepaper/component-as-protocol': '/zh-cn/whitepaper/1-components-before-code/',
+  '/zh-cn/whitepaper/information-flow-model': '/zh-cn/whitepaper/2-interaction-relations/',
+  '/zh-cn/whitepaper/prototype-boundary': '/zh-cn/whitepaper/3-component-boundary/',
+  '/zh-cn/whitepaper/execution-semantics': '/zh-cn/whitepaper/4-semantics-beyond-channels/',
+  '/zh-cn/whitepaper/translation-layer': '/zh-cn/whitepaper/5-translation-layer/',
+  '/zh-cn/whitepaper/design-constraints': '/zh-cn/whitepaper/6-consistency-boundary/',
+  '/zh-cn/whitepaper/evolution-path': '/zh-cn/whitepaper/7-evolving-within-boundaries/',
+  '/zh-cn/whitepaper/faq': '/zh-cn/whitepaper/0-preface/',
+};
+
 // https://astro.build/config
 export default defineConfig({
   site: 'https://www.proto-ui.com',
   redirects: {
     '/en/prototypes/shadcn/dialog': '/en/ui-libraries/shadcn/dialog/',
     '/zh-cn/prototypes/shadcn/dialog': '/zh-cn/ui-libraries/shadcn/dialog/',
-    '/en/whitepaper/component-as-protocol': '/en/whitepaper/1-components-before-code/',
-    '/en/whitepaper/information-flow-model': '/en/whitepaper/2-interaction-relations/',
-    '/en/whitepaper/prototype-boundary': '/en/whitepaper/3-component-boundary/',
-    '/en/whitepaper/execution-semantics': '/en/whitepaper/4-semantics-beyond-channels/',
-    '/en/whitepaper/translation-layer': '/en/whitepaper/5-translation-layer/',
-    '/en/whitepaper/design-constraints': '/en/whitepaper/6-consistency-boundary/',
-    '/en/whitepaper/evolution-path': '/en/whitepaper/7-evolving-within-boundaries/',
-    '/en/whitepaper/faq': '/en/whitepaper/0-preface/',
-    '/zh-cn/whitepaper/component-as-protocol': '/zh-cn/whitepaper/1-components-before-code/',
-    '/zh-cn/whitepaper/information-flow-model': '/zh-cn/whitepaper/2-interaction-relations/',
-    '/zh-cn/whitepaper/prototype-boundary': '/zh-cn/whitepaper/3-component-boundary/',
-    '/zh-cn/whitepaper/execution-semantics': '/zh-cn/whitepaper/4-semantics-beyond-channels/',
-    '/zh-cn/whitepaper/translation-layer': '/zh-cn/whitepaper/5-translation-layer/',
-    '/zh-cn/whitepaper/design-constraints': '/zh-cn/whitepaper/6-consistency-boundary/',
-    '/zh-cn/whitepaper/evolution-path': '/zh-cn/whitepaper/7-evolving-within-boundaries/',
-    '/zh-cn/whitepaper/faq': '/zh-cn/whitepaper/0-preface/',
+    ...whitepaperRedirects,
   },
   integrations: [
+    whitepaperRedirectFragments(whitepaperRedirects),
     starlight({
       title: 'Proto UI',
       plugins: [

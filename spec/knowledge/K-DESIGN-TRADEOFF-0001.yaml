@@ -28,19 +28,11 @@ sources:
   - path: apps/www/src/content/docs/zh-cn/whitepaper/6-consistency-boundary.md
     sections:
       - Prototype 是一致性的第一把尺度
-      - 共同条件越多，比较越细
+      - 设计取舍与可移植性
   - path: apps/www/src/content/docs/en/whitepaper/6-consistency-boundary.md
     sections:
       - Prototype Is the First Measure of Consistency
-      - More Shared Conditions Permit Finer Comparison
-  - path: apps/www/src/content/docs/zh-cn/whitepaper/7-evolving-within-boundaries.md
-    sections:
-      - 一条可行路径，而不是唯一答案
-      - 实践怎样修正当前近似
-  - path: apps/www/src/content/docs/en/whitepaper/7-evolving-within-boundaries.md
-    sections:
-      - One Viable Path, Not the Only Answer
-      - How Practice Revises the Current Approximation
+      - Design Tradeoffs and Portability
 revisions:
   - version: 0.1.0
     change: introduced
