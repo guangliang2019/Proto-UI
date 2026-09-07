@@ -76,6 +76,10 @@ criteria:
     text:
       zh-CN: 对声明 `M-IMAGE-VIEW-0001` 的 Web Component realization 必须将每个 Image View request 绑定到不可变 generation，清理替换/空 source 的旧视觉目标，并在 view detach/disposal 后移除 owned physical image；该保证由 `T-IMAGE-VIEW-0001` 的 Web Component integration evidence 验证。
       en: The Web Component realization of `M-IMAGE-VIEW-0001` must bind each Image View request to an immutable generation, clear stale visual targets on replacement or empty source, and remove the owned physical image after view detach or disposal; `T-IMAGE-VIEW-0001` Web Component integration evidence verifies this guarantee.
+  - id: A-WEB-COMPONENT-0001-CONTEXT
+    text:
+      en: The standard Adapter wires Context with stable opaque instance identity and current logical ancestry; real mounted nested scopes, equal-name Key isolation, callback updates and terminal owner replacement must conform to T-CONTEXT-0003.
+      zh-CN: standard Adapter 接入 Context 并提供稳定 opaque instance identity 与当前 logical ancestry；真实挂载的嵌套 scope、同名 Key 隔离、callback update 与 terminal owner 替换必须符合 T-CONTEXT-0003。
 supports:
   modules:
     - id: M-PROPS-0001
@@ -100,6 +104,10 @@ supports:
       since: 0.3.0-alpha.0
       role: optional-module
       note: The persistent Custom Element owner keeps its logical boundary while projecting declared Image View requirements to one inner HTMLImageElement target.
+    - id: M-CONTEXT-0001
+      since: 0.3.0-alpha.0
+      role: required-module
+      note: The standard Runtime Context channel uses Adapter-owned identity and ancestry, never framework Context value semantics.
 provides:
   hostCaps:
     - id: HC-PROPS-SOURCE-0001
@@ -121,6 +129,14 @@ provides:
       since: 0.3.0-alpha.0
       role: translated-capability
       note: The Custom Element maps Image View to the inner image target and carries loading completion through the generation-bound host lease.
+    - id: HC-CONTEXT-IDENTITY-0001
+      since: 0.3.0-alpha.0
+      role: translated-capability
+      note: Adapter logical instance tokens and parent links translate host ownership into Context facts.
+    - id: HC-CONTEXT-ANCESTRY-0001
+      since: 0.3.0-alpha.0
+      role: translated-capability
+      note: Adapter logical instance tokens and parent links translate host ownership into Context facts.
 relates:
   decisions:
     - D-ADAPTER-PROFILE-0001
@@ -137,6 +153,8 @@ verifies:
     - T-EXPOSE-STATE-0002
     - T-EXPOSE-EVENT-0002
     - id: T-IMAGE-VIEW-0001
+      since: 0.3.0-alpha.0
+    - id: T-CONTEXT-0003
       since: 0.3.0-alpha.0
 openQuestions:
   - id: A-WEB-COMPONENT-0001-Q-INGRESS-PRECEDENCE
@@ -166,6 +184,7 @@ sources:
   - path: packages/adapters/web-component/test/contract/expose.basic.v0.contract.test.ts
   - path: packages/adapters/web-component/test/expose.test.ts
   - path: packages/adapters/web-component/test/image-view.integration.test.ts
+  - path: packages/adapters/web-component/test/context.integration.test.ts
 revisions:
   - version: 0.3.0-alpha.0
     change: revised
@@ -194,5 +213,8 @@ revisions:
   - version: 0.2.0-rc.7
     change: introduced
     summary: Cataloged the official Web Component profile identity and its source plus direct-push Props translation slice.
+  - version: 0.3.0-alpha.0
+    change: revised
+    summary: Added the reviewed Context identity/ancestry slice and real-framework nested-scope evidence; other unlisted modules remain uncataloged.
 tags:
   [adapter, web-component, custom-elements, web, props, event, lifecycle, state, expose, official]

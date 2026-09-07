@@ -259,9 +259,9 @@ export class ScrollModuleImpl extends ModuleBase {
     const binding = this.composedChromeBinding;
     if (!binding) return null;
     const anatomyScope = this.anatomyPort.resolveDomainScope(binding.anatomy);
-    if (!anatomyScope) return null;
+    if (anatomyScope === null) return null;
     const scope = this.contextPort.resolveScope(binding.scope, anatomyScope);
-    if (!scope || scope !== anatomyScope) return null;
+    if (scope === null || (scope !== anatomyScope && !Object.is(scope, anatomyScope))) return null;
     const scrollbars = this.anatomyPort.order.partsOf(binding.anatomy, binding.scrollbarRole, {
       missing: 'empty',
     });
