@@ -109,6 +109,39 @@ describe('Context capability boundary', () => {
     expect(seen).toEqual([11]);
   });
 
+  it('T-CONTEXT-0003-CASE-EXPLICIT-CONSUMER: distinguishes omission, undefined and null through the actual port', () => {
+    const key = createContextKey<{ value: number }>('explicit-consumer');
+    const owner = {},
+      elsewhere = {};
+    const getParent = (token: unknown) => (token === undefined ? elsewhere : null);
+    const ancestor = create(makeCaps({ instanceToken: elsewhere, getParent }));
+    ancestor.provide(key, { value: 2 });
+    const module = createContextModule({
+      init: { prototypeName: 'port-owner', declarations: [] },
+      caps: makeCaps({ instanceToken: owner, getParent }),
+      deps: {
+        requireFacade() {
+          throw new Error('unexpected');
+        },
+        requirePort() {
+          throw new Error('unexpected');
+        },
+        tryFacade: () => undefined,
+        tryPort: () => undefined,
+      },
+    });
+    const port = (module as typeof module & { port: ContextPort }).port;
+    try {
+      module.facade.provide(key, { value: 1 });
+      expect(port.resolveScope(key)).toBe(owner);
+      expect(port.resolveScope(key, undefined)).toBe(elsewhere);
+      expect(port.resolveScope(key, null)).toBeNull();
+      expect(port.resolveScope(key, {})).toBeNull();
+    } finally {
+      module.hooks.dispose?.();
+    }
+  });
+
   it.each([0, false, '', undefined, NaN])(
     'T-CONTEXT-0003-CASE-OPAQUE-TOKEN: resolves, updates and disposes opaque token %s',
     (token) => {

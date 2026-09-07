@@ -33,6 +33,19 @@ cases:
       - C-CONTEXT-0012-A
       - C-CONTEXT-0012-B
     expectation: falsy-identities-are-not-absence
+  - id: T-CONTEXT-0003-CASE-EXPLICIT-CONSUMER
+    title: Actual Context port preserves explicit undefined consumer independently of its owner
+    covers:
+      - M-CONTEXT-0001-B
+      - HC-CONTEXT-IDENTITY-0001-B
+      - C-CONTEXT-0004-E
+    expectation: explicit-consumer-is-not-owner-fallback
+  - id: T-CONTEXT-0003-CASE-SCROLL-SCOPE
+    title: Composed Scroll preserves opaque scope identity through host attachment and refresh
+    covers:
+      - HC-CONTEXT-IDENTITY-0001-B
+      - C-CONTEXT-0004-E
+    expectation: composed-scroll-binds-only-matching-non-null-scopes
   - id: T-CONTEXT-0003-CASE-AVAILABILITY
     title: Capability use fails without invented fallback
     covers:
@@ -70,9 +83,19 @@ implementations:
     required: true
     consumesCases:
       - T-CONTEXT-0003-CASE-SURFACE
+      - T-CONTEXT-0003-CASE-EXPLICIT-CONSUMER
       - T-CONTEXT-0003-CASE-OPAQUE-TOKEN
       - T-CONTEXT-0003-CASE-HOST
       - T-CONTEXT-0003-CASE-AVAILABILITY
+  - id: context-scroll-scope-integration
+    kind: module-test
+    status: passing
+    path: packages/modules/scroll/test/context-scope.test.ts
+    required: true
+    consumesCases:
+      - T-CONTEXT-0003-CASE-SCROLL-SCOPE
+    notes:
+      - Uses real Context, State and Scroll modules with supplied Anatomy domain/target facts; verifies host binding and refresh, not browser geometry or all Anatomy host domains.
   - id: context-runtime-lifetime
     kind: runtime-test
     status: passing
@@ -158,12 +181,16 @@ verifies:
     - id: C-CONTEXT-0004
       anchors:
         - C-CONTEXT-0004-B
+        - C-CONTEXT-0004-E
     - id: C-CONTEXT-0012
       anchors:
         - C-CONTEXT-0012-A
         - C-CONTEXT-0012-B
         - C-CONTEXT-0012-C
 revisions:
+  - version: 0.3.0-alpha.0
+    change: strengthened
+    summary: Added actual-port explicit-consumer and composed Scroll opaque identity integration regressions.
   - version: 0.3.0-alpha.0
     change: strengthened
     summary: Bound provider-as-self and falsy opaque token resolution, updates and terminal cleanup to executable Module evidence.
