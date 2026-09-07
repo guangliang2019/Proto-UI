@@ -109,6 +109,51 @@ describe('Context capability boundary', () => {
     expect(seen).toEqual([11]);
   });
 
+  it.each([0, false, '', undefined, NaN])(
+    'T-CONTEXT-0003-CASE-OPAQUE-TOKEN: resolves, updates and disposes opaque token %s',
+    (token) => {
+      const key = createContextKey<{ value: number }>('falsy-owner');
+      const childToken = {};
+      const getParent = (instance: unknown) => (instance === childToken ? token : null);
+      const providerSys = createSysCaps(),
+        consumerSys = createSysCaps();
+      const provider = create(makeCaps({ sys: providerSys, instanceToken: token, getParent }));
+      const consumer = create(makeCaps({ sys: consumerSys, instanceToken: childToken, getParent }));
+      const received: number[] = [];
+      provider.provide(key, { value: 1 });
+      try {
+        provider.subscribe(key);
+        consumer.trySubscribe(key, (_run, next) => received.push(next!.value));
+        expect(provider.resolveScope(key)).toBe(token);
+        expect(consumer.resolveScope(key)).toBe(token);
+        providerSys.__setExecPhase('callback');
+        consumerSys.__setExecPhase('callback');
+        expect(provider.read(key)).toEqual({ value: 1 });
+        expect(consumer.tryRead(key)).toEqual({ value: 1 });
+        provider.update(key, { value: 2 });
+        consumer.update(key, { value: 3 });
+        expect(consumer.tryUpdate(key, { value: 4 })).toBe(true);
+        expect(
+          CONTEXT_CENTER.updateFromConsumer(childToken, key, { value: 5 }, null, getParent)
+        ).toBe(true);
+        expect(received).toEqual([2, 3, 4, 5]);
+      } finally {
+        provider.dispose();
+        expect(CONTEXT_CENTER.dumpProviders().filter((row) => row.key === key)).toEqual([]);
+        expect(
+          CONTEXT_CENTER.dumpSubscriptions().some(
+            (row) => row.key === key && Object.is(row.instance, token)
+          )
+        ).toBe(false);
+      }
+      expect(consumer.tryRead(key)).toBeNull();
+      expect(consumer.tryUpdate(key, { value: 6 })).toBe(false);
+      expect(
+        CONTEXT_CENTER.updateFromConsumer(childToken, key, { value: 6 }, null, getParent)
+      ).toBe(false);
+    }
+  );
+
   it('T-CONTEXT-0003-CASE-AVAILABILITY: fails at capability use without inventing an ancestry fallback', () => {
     const key = createContextKey<{ value: number }>('missing-cap');
     const full = makeCaps({ instanceToken: {}, getParent: () => null }) as CapsVaultView;
@@ -116,6 +161,8 @@ describe('Context capability boundary', () => {
       ...full,
       has: (token) => token.id !== id && full.has(token),
     });
+    const nullIdentity = create(makeCaps({ instanceToken: null, getParent: () => null }));
+    expect(() => nullIdentity.provide(key, { value: 0 })).toThrow(/null instance token/);
     const noIdentity = create(missing(CONTEXT_INSTANCE_TOKEN_CAP.id));
     expect(() => noIdentity.provide(key, { value: 0 })).toThrow(/instance token/);
     const noParent = create(missing(CONTEXT_PARENT_CAP.id));

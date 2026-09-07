@@ -10,6 +10,7 @@ cases:
     covers:
       - M-CONTEXT-0001-A
       - M-CONTEXT-0001-B
+      - C-CONTEXT-0004-B
     expectation: context-surface-conforms
   - id: T-CONTEXT-0003-CASE-HOST
     title: Current opaque ancestry controls rebind, updates and recipients
@@ -21,6 +22,17 @@ cases:
       - HC-CONTEXT-ANCESTRY-0001-B
       - HC-CONTEXT-ANCESTRY-0001-C
     expectation: context-host-conforms
+  - id: T-CONTEXT-0003-CASE-OPAQUE-TOKEN
+    title: Falsy non-null identities retain resolution, update and terminal cleanup
+    covers:
+      - C-CONTEXT-0004-B
+      - M-CONTEXT-0001-D
+      - M-CONTEXT-0001-H
+      - HC-CONTEXT-IDENTITY-0001-B
+      - HC-CONTEXT-IDENTITY-0001-C
+      - C-CONTEXT-0012-A
+      - C-CONTEXT-0012-B
+    expectation: falsy-identities-are-not-absence
   - id: T-CONTEXT-0003-CASE-AVAILABILITY
     title: Capability use fails without invented fallback
     covers:
@@ -58,6 +70,7 @@ implementations:
     required: true
     consumesCases:
       - T-CONTEXT-0003-CASE-SURFACE
+      - T-CONTEXT-0003-CASE-OPAQUE-TOKEN
       - T-CONTEXT-0003-CASE-HOST
       - T-CONTEXT-0003-CASE-AVAILABILITY
   - id: context-runtime-lifetime
@@ -142,12 +155,18 @@ verifies:
       anchors:
         - A-WEB-COMPONENT-0001-CONTEXT
   contracts:
+    - id: C-CONTEXT-0004
+      anchors:
+        - C-CONTEXT-0004-B
     - id: C-CONTEXT-0012
       anchors:
         - C-CONTEXT-0012-A
         - C-CONTEXT-0012-B
         - C-CONTEXT-0012-C
 revisions:
+  - version: 0.3.0-alpha.0
+    change: strengthened
+    summary: Bound provider-as-self and falsy opaque token resolution, updates and terminal cleanup to executable Module evidence.
   - version: 0.3.0-alpha.0
     change: introduced
     summary: Mapped bounded Module, Runtime and real four-Adapter executable Context evidence.
