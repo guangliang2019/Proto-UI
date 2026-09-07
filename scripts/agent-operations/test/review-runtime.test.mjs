@@ -838,7 +838,7 @@ test('review submission preserves explicit authorization and activates the bound
         state: 'APPROVED',
         commitSha: sha('b'),
         submittedAt: '2026-08-23T03:00:00.000Z',
-        body: 'Already approved',
+        body: 'Reviewed exact head `bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb`.',
       },
     ],
   });
@@ -853,6 +853,20 @@ test('review submission preserves explicit authorization and activates the bound
   });
   assert.equal(duplicateApproval.allowed, false);
   assert.equal(duplicateApproval.duplicate, true);
+  const changedBodyInput = reviewInput({
+    reviews: [{ ...duplicateInput.reviews[0], body: 'New evidence on the same head.' }],
+  });
+  const changedBodyReview = authorizeReviewSubmission({
+    ...scheduledBase,
+    input: changedBodyInput,
+    liveInput: structuredClone(changedBodyInput),
+    packet: packet(
+      { limitations: [], humanGates: [], recommendedAction: 'APPROVE' },
+      changedBodyInput
+    ),
+  });
+  assert.equal(changedBodyReview.allowed, true);
+  assert.equal(changedBodyReview.duplicate, undefined);
 
   const specInput = reviewInput({
     changedFiles: [

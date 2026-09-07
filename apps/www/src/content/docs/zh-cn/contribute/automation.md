@@ -27,7 +27,7 @@ No-finding 是合法结果。`pui-record` 可以收口证据充分的 no-finding
 
 本地账本无法阻止同一外部动作在另一个 clone 或 runner 中再次执行。自动修改外部状态需要全局原子消费服务或平台侧幂等键，还要能把正在运行的进程和它出示的授权绑定起来。
 
-当前本地 runner 使用一个受维护 credential、一个仓库、一个 schedule source、实时 canonical reconciliation、exact-head API 参数和 GitHub 规则，已经足以承载 active review/merge scope。启用重叠并发 runner 前，再增加更强 runtime attribution 与全局 lease。
+当前 scheduled scope 仍是 `pending-runtime-identity`，在 Poppy broker-verified workload identity 绑定前只能只读观察与 reconciliation；有人协作时的 review 或 merge 仍需要 current-user 的明确授权。未来 standing scope 激活后也必须满足 exact-head evidence、独立批准、已解决 threads、可信 CI 与 DCO、实时权限和 GitHub 规则。
 
 普通自治工作在测得的上限和记录范围内持续推进。只有未决产品方向，以及 publication、release、访问、secret、ruleset、security disclosure 或 provenance exception 等高权限/不可逆操作需要人在场；新动作类别通过 evidence-backed standing-policy change 激活。
 

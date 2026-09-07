@@ -27,7 +27,7 @@ The machine catalog also defines bounded read-only candidates for CI failure dia
 
 A local ledger cannot prevent the same external action from running in another clone. Automatic external mutation therefore needs a globally atomic consumer or a service-side idempotency key, plus a way to bind the running process to the authorization it presents.
 
-The current local runner uses one maintained credential, one repository, one schedule source, canonical live reconciliation, exact-head API parameters, and GitHub rules. That boundary supports active review and merge scopes today; concurrent runners add stronger attribution and a global lease before overlapping writes.
+The current scheduled scopes remain `pending-runtime-identity` and read-only until Poppy broker-verified workload identity is bound; human-assisted review and merge still require explicit current-user authorization. Any future standing activation also requires exact-head evidence, independent approval, resolved threads, separately trusted CI and DCO status, live permission, and GitHub rules.
 
 Ordinary autonomous work proceeds within its measured ceiling and recorded scope. Only unresolved product direction and privileged or irreversible operations—publication, release, access, secrets, rulesets, security disclosure, or provenance exceptions—stop for an attended decision. New action classes activate through evidence-backed standing-policy changes.
 

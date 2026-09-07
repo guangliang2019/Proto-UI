@@ -611,16 +611,22 @@ function validateForwardRunState(run, label) {
       if (!Number.isInteger(receipt.pullRequest) || receipt.pullRequest <= 0) {
         fail(ledgerFile, `${label}.integration.receipt.pullRequest must be a positive integer`);
       }
+      if (receipt.authorizationId !== 'explicit-current-user' && receipt.authorizationId !== 'proto-ui-scheduled-merge-v1') {
+        fail(ledgerFile, `${label}.integration.receipt.authorizationId is not an authorized merge scope`);
+      }
       if (receipt.headSha !== integration.exactHeadSha) {
         fail(ledgerFile, `${label}.integration.receipt.headSha must match exactHeadSha`);
+      }
+      if (receipt.liveHeadSha !== integration.exactHeadSha) {
+        fail(ledgerFile, `${label}.integration.receipt.liveHeadSha must match exactHeadSha`);
       }
       commitExists(
         ledgerFile,
         receipt.mergeCommitSha,
         `${label}.integration.receipt.mergeCommitSha`
       );
-      if (!['merge', 'squash', 'rebase'].includes(receipt.mergeMethod)) {
-        fail(ledgerFile, `${label}.integration.receipt.mergeMethod is invalid`);
+      if (receipt.mergeMethod !== 'squash') {
+        fail(ledgerFile, `${label}.integration.receipt.mergeMethod must be squash`);
       }
       if (!Number.isFinite(Date.parse(receipt.mergedAt ?? ''))) {
         fail(ledgerFile, `${label}.integration.receipt.mergedAt must be an RFC 3339 timestamp`);
@@ -758,9 +764,10 @@ function validateLedger() {
   const runIds = new Set();
   for (const [index, run] of ledger.runs.entries()) {
     const label = `runs[${index}]`;
-    const runSchema = run?.schemaVersion === 2 ? 2 : 1;
-    if (![undefined, 1, 2].includes(run?.schemaVersion)) {
-      fail(ledgerFile, `${label}.schemaVersion must be 1, 2, or omitted for legacy evidence`);
+    const runSchema = run?.schemaVersion;
+    if (![1, 2].includes(runSchema)) {
+      fail(ledgerFile, `${label}.schemaVersion must explicitly declare 1 or 2`);
+      continue;
     }
     if (ledger.schemaVersion === 1 && runSchema === 2) {
       fail(ledgerFile, `${label} schemaVersion 2 requires ledger schemaVersion 2`);

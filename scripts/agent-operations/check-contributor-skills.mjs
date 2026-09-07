@@ -304,6 +304,7 @@ const scheduledScopeProjectionPaths = [
   resolve(root, 'apps/www/src/content/docs/en/contribute/automation.md'),
   resolve(root, 'apps/www/src/content/docs/zh-cn/contribute/automation.md'),
   resolve(root, 'internal/governance/ci-cd.md'),
+  resolve(root, 'internal/governance/ci-cd.zh-CN.md'),
 ];
 const staleActiveScheduleClaims = [
   '`proto-ui-scheduled-review-v1` is active',
@@ -312,8 +313,11 @@ const staleActiveScheduleClaims = [
   'two active standing scopes',
   'under the active standing authorizations',
   'active local schedule scope',
+  'supports active review and merge scopes today',
+  'already sufficient to support active review/merge scope',
   'standing scopes 已激活',
   '定时任务的 standing scopes 已激活',
+  '已经足以承载 active review/merge scope',
 ];
 try {
   const lockstepPolicy = loadCapabilityPolicy(

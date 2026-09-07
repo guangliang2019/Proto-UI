@@ -9,6 +9,7 @@ import {
   buildCollaborationReceipt,
   collaborationMarker,
   computeCollaborationRequestDigest,
+  desiredCollaborationStateSatisfied,
   validateCollaborationHandoffBinding,
   validateCollaborationReceipt,
   validateCollaborationRequest,
@@ -421,6 +422,82 @@ test('thread resolution requires evidence and the exact unresolved thread revisi
   request.requestDigest = computeCollaborationRequestDigest(request);
   assert.throws(() => validateCollaborationRequest(request), /resolution evidence/);
 });
+test('thread collection binds the GraphQL node to the exact pull request', () => {
+  const request = seal({
+    ...metadataRequest(),
+    action: 'resolve-fixed-review-thread',
+    target: {
+      kind: 'review-thread',
+      number: 509,
+      updatedAt: UPDATED_AT,
+      headSha: HEAD,
+      threadId: 'PRRT_thread',
+      threadUpdatedAt: UPDATED_AT,
+    },
+    expected: { isResolved: false },
+    desired: { isResolved: true },
+    evidence: [
+      { type: 'review-thread-resolution', reference: 'artifact://review-thread/fix' },
+    ],
+    rationale: 'Resolve the exact fixed thread revision.',
+  });
+  const response = (repository = 'Proto-UI/Proto-UI') => ({
+    data: {
+      node: {
+        id: 'PRRT_thread',
+        isResolved: false,
+        isOutdated: false,
+        pullRequest: {
+          number: 509,
+          updatedAt: UPDATED_AT,
+          headRefOid: HEAD,
+          state: 'OPEN',
+          author: { login: 'contributor' },
+          repository: { nameWithOwner: repository },
+        },
+        comments: {
+          nodes: [{ updatedAt: UPDATED_AT }],
+          pageInfo: { hasNextPage: false },
+        },
+      },
+    },
+  });
+  const runner = (command, args) => {
+    const query = args.find((arg) => arg.startsWith('query=')) ?? '';
+    if (query.includes('ProtoUiCollaborationViewer')) {
+      return JSON.stringify({
+        data: { viewer: { login: 'maintainer' }, repository: { viewerPermission: 'WRITE' } },
+      });
+    }
+    return JSON.stringify(response());
+  };
+  const live = collectLiveCollaborationState(request, { runner });
+  assert.deepEqual(live.current, {
+    kind: 'review-thread',
+    number: 509,
+    nodeId: null,
+    url: null,
+    state: 'OPEN',
+    authorLogin: 'contributor',
+    updatedAt: UPDATED_AT,
+    headSha: HEAD,
+    threadId: 'PRRT_thread',
+    threadUpdatedAt: UPDATED_AT,
+    isResolved: false,
+    isOutdated: false,
+  });
+  assert.throws(
+    () =>
+      collectLiveCollaborationState(request, {
+        runner(command, args) {
+          const query = args.find((arg) => arg.startsWith('query=')) ?? '';
+          if (query.includes('ProtoUiCollaborationViewer')) return runner(command, args);
+          return JSON.stringify(response('Proto-UI/Other'));
+        },
+      }),
+    /does not bind to the exact pull request/
+  );
+});
 
 test('thread resolution refuses a verified receipt when a new reply races the mutation', () => {
   const base = metadataRequest();
@@ -590,6 +667,32 @@ test('a bounded comment can reconcile an unknown outcome through its unique requ
   assert.equal(reconciliations, 1);
   assert.equal(result.reconciliationCount, 1);
   assert.equal(result.reconciled, true);
+});
+test('bounded comment idempotency requires the complete canonical body', () => {
+  const base = metadataRequest();
+  const request = seal({
+    ...base,
+    action: 'post-bounded-reconciliation-comment',
+    target: base.target,
+    expected: { markerAbsent: true },
+    desired: { body: 'Exact-head reconciliation is complete.' },
+  });
+  const marker = collaborationMarker(request);
+  const live = {
+    ...metadataLive(),
+    action: request.action,
+    current: {
+      ...metadataLive().current,
+      markerComment: {
+        id: '9002',
+        nodeId: 'IC_node',
+        url: 'https://github.com/Proto-UI/Proto-UI/pull/509#issuecomment-9002',
+        createdAt: '2026-08-27T01:00:09.000Z',
+        body: `Exact-head reconciliation is complete.\nadditional text\n\n${marker}`,
+      },
+    },
+  };
+  assert.equal(desiredCollaborationStateSatisfied(request, live), false);
 });
 
 test('receipt validation binds the request and rejects impossible mutation counts', () => {

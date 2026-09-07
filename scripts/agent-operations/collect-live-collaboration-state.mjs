@@ -305,6 +305,20 @@ export function collectLiveCollaborationState(request, options = {}) {
     };
   } else if (action === 'resolve-fixed-review-thread') {
     const payload = graphql(runner, THREAD_QUERY, { threadId: request.target.threadId });
+    const thread = payload?.data?.node;
+    const pull = thread?.pullRequest;
+    if (!thread || !pull) {
+      throw new Error('live review thread response is missing its thread or pull-request node');
+    }
+    if (thread.id !== request.target.threadId) {
+      throw new Error('live review thread response does not match the exact thread target');
+    }
+    if (
+      pull.number !== request.target.number ||
+      repositoryIdFromNameWithOwner(pull.repository?.nameWithOwner) !== request.repositoryId
+    ) {
+      throw new Error('live review thread response does not bind to the exact pull request');
+    }
     assertNoTruncation(thread.comments?.nodes, thread.comments?.pageInfo, 'thread comments');
     const threadUpdates = (thread.comments?.nodes ?? [])
       .map((comment) => comment.updatedAt)

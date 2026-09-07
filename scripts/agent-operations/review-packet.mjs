@@ -10,9 +10,10 @@ import {
   authorizePullRequestMerge,
   authorizeReviewSubmission,
   computeReviewInputDigest,
-  decideReviewRun,
+  computeReviewPacketDigest,
   evaluateReviewEligibility,
   inspectReviewRevision,
+  renderReviewBody,
   reviewPacketKey,
   validateReviewInputSnapshot,
   validateReviewPacket,
@@ -171,8 +172,7 @@ function validateExecution(args, packet, policy) {
   validateReviewPacketEligibility(packet, eligibility, handoff.executionMode);
   return { handoff, eligibility, selfAssessment };
 }
-
-function validateIntegrationExecution(args, packet, policy) {
+function validateIntegrationExecution(args, packet, input, policy) {
   const routed = loadIntegrationHandoff(args.get('--handoff'));
   const selfAssessment = loadAssessment(args.get('--assessment'), policy);
   const reviewEligibility = evaluateReviewEligibility({
@@ -182,6 +182,26 @@ function validateIntegrationExecution(args, packet, policy) {
     policy,
   });
   validateReviewPacketEligibility(packet, reviewEligibility, routed.handoff.executionMode);
+  const packetArtifact = routed.handoff.artifacts.find((artifact) => artifact.type === 'review-packet');
+  if (!packetArtifact || packetArtifact.reference !== args.get('--packet')) {
+    throw new Error('integration handoff review-packet artifact does not bind the --packet argument');
+  }
+  if (packetArtifact.digest !== `sha256:${computeReviewPacketDigest(packet)}`) {
+    throw new Error('integration handoff review-packet artifact does not bind packet content');
+  }
+  const inputArtifact = routed.handoff.artifacts.find((artifact) => artifact.type === 'review-input');
+  if (!inputArtifact || inputArtifact.reference !== args.get('--input')) {
+    throw new Error('integration handoff review-input artifact does not bind the --input argument');
+  }
+  if (inputArtifact.digest !== `sha256:${computeReviewInputDigest(input)}`) {
+    throw new Error('integration handoff review-input artifact does not bind input content');
+  }
+  const authorizationArtifact = routed.handoff.artifacts.find(
+    (artifact) => artifact.type === 'mutation-authorization'
+  );
+  if (!authorizationArtifact || authorizationArtifact.reference !== args.get('--authorization')) {
+    throw new Error('integration handoff mutation-authorization artifact does not bind --authorization');
+  }
   const skillEligibility = evaluateSkillEligibility(routed.nextSkill, {
     executionMode: routed.handoff.executionMode,
     selfAssessment,
@@ -207,18 +227,6 @@ function readExternalEvidence(args) {
   return parsed;
 }
 
-function renderReviewBody(packet) {
-  const prefix = `Reviewed exact head \`${packet.headSha}\`.`;
-  if (packet.findings.length === 0) return prefix;
-  return [
-    prefix,
-    '',
-    ...packet.findings.map(
-      (finding) =>
-        `- **[${finding.severity}] ${finding.id}** (${finding.file}:${finding.line}) ${finding.observed} Expected: ${finding.expected} Fix: ${finding.fix}`
-    ),
-  ].join('\n');
-}
 
 try {
   const { command, args } = parse(process.argv.slice(2));
@@ -359,7 +367,7 @@ try {
     const policy = loadCapabilityPolicy(
       new URL('../../internal/agent-operations/capability-policy.yaml', import.meta.url)
     );
-    const execution = validateIntegrationExecution(args, packet, policy);
+    const execution = validateIntegrationExecution(args, packet, input, policy);
     const externalEvidence = readExternalEvidence(args);
     const live = collectLiveReviewInput(packet.repositoryId, packet.pullRequest, {
       externalEvidence,
@@ -400,6 +408,7 @@ try {
       const receipt = submitGitHubMerge(packet.repositoryId, packet.pullRequest, {
         headSha: authorization.headSha,
         mergeMethod: authorization.mergeMethod,
+        authorizationId: authorization.authorizationId,
       });
       output = {
         ...authorization,

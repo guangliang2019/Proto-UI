@@ -409,21 +409,24 @@ export function submitGitHubReview(
       '--method',
       'GET',
       '--paginate',
+      '--slurp',
       `repos/${owner}/${name}/pulls/${pullRequest}/reviews?per_page=100`,
     ];
     try {
-      const reviews = JSON.parse(
+      const reviewPages = JSON.parse(
         runner('gh', reconciliationArgs, { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] })
       );
-      const matches = Array.isArray(reviews)
-        ? reviews.filter(
-            (review) =>
-              review?.commit_id === commitId &&
-              review?.state === expectedState &&
-              review?.body === body &&
-              (reviewerLogin === null || review?.user?.login === reviewerLogin)
-          )
-        : [];
+      if (!Array.isArray(reviewPages) || !reviewPages.every(Array.isArray)) {
+        throw new Error('review pagination returned an invalid page shape');
+      }
+      const reviews = reviewPages.flat();
+      const matches = reviews.filter(
+        (review) =>
+          review?.commit_id === commitId &&
+          review?.state === expectedState &&
+          review?.body === body &&
+          (reviewerLogin === null || review?.user?.login === reviewerLogin)
+      );
       if (matches.length === 1) return reviewReceipt(matches[0], invocationId, true);
     } catch {
       // Preserve the explicit unknown outcome below; never retry the write.
@@ -462,7 +465,7 @@ function reviewReceipt(response, invocationId, reconciled) {
 export function submitGitHubMerge(
   repositoryId,
   pullRequest,
-  { headSha, mergeMethod },
+  { headSha, mergeMethod, authorizationId = 'explicit-current-user' },
   runner = execFileSync
 ) {
   const { owner, name } = parseRepositoryId(repositoryId);
@@ -472,8 +475,11 @@ export function submitGitHubMerge(
   if (!/^[a-f0-9]{40,64}$/.test(headSha)) {
     throw new Error('merge head SHA is invalid');
   }
-  if (!['merge', 'squash', 'rebase'].includes(mergeMethod)) {
-    throw new Error('merge method is invalid');
+  if (mergeMethod !== 'squash') {
+    throw new Error('merge method must be squash');
+  }
+  if (!['explicit-current-user', 'proto-ui-scheduled-merge-v1'].includes(authorizationId)) {
+    throw new Error('merge authorization is invalid');
   }
 
   let response;
@@ -528,16 +534,40 @@ export function submitGitHubMerge(
   if (response.merged !== true || !/^[a-f0-9]{40,64}$/.test(response.sha ?? '')) {
     throw new Error(`merge was rejected: ${response.message ?? 'receipt is incomplete'}`);
   }
+  let live;
+  try {
+    live = JSON.parse(
+      runner('gh', ['api', `repos/${owner}/${name}/pulls/${pullRequest}`], {
+        encoding: 'utf8',
+        stdio: ['ignore', 'pipe', 'pipe'],
+      })
+    );
+  } catch (error) {
+    throw new Error(`merge receipt could not be bound to live exact head (${error.message})`);
+  }
+  if (
+    live.merged !== true ||
+    live.head?.sha !== headSha ||
+    live.merge_commit_sha !== response.sha ||
+    !Number.isFinite(Date.parse(live.merged_at ?? ''))
+  ) {
+    throw new Error('merge receipt does not bind the live exact head and squash commit');
+  }
   return {
     merged: true,
     reconciled: false,
+    repositoryId,
+    pullRequest,
+    authorizationId,
     mergeCommitSha: response.sha,
     headSha,
+    liveHeadSha: live.head.sha,
     mergeMethod,
+    mergedAt: live.merged_at,
     message: response.message ?? null,
   };
-}
 
+}
 export function collectLiveReviewInput(repositoryId, pullRequest, options = {}) {
   const { owner, name } = parseRepositoryId(repositoryId);
   const externalEvidence = Array.isArray(options.externalEvidence) ? options.externalEvidence : [];

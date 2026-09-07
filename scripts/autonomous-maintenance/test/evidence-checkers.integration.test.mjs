@@ -48,6 +48,7 @@ function writeRunLedger(root, run) {
 
 test('review packet canonicalization preserves historical review digests', () => {
   const packet = markdownMetadata('Digest history fixture', {
+    integrationEligibility: { status: 'eligible', exactHead: 'satisfied' },
     changeInventory: { reviewedContentDigest: `sha256:${'a'.repeat(64)}` },
     independentReview: {
       reviewedContentDigest: `sha256:${'a'.repeat(64)}`,
@@ -59,9 +60,11 @@ test('review packet canonicalization preserves historical review digests', () =>
   });
   const historicalMutation = packet.replace(`sha256:${'b'.repeat(64)}`, `sha256:${'c'.repeat(64)}`);
   const currentMutation = packet.replaceAll(`sha256:${'a'.repeat(64)}`, `sha256:${'d'.repeat(64)}`);
+  const closureMutation = packet.replace('status: eligible', 'status: integrated');
 
   assert.notEqual(canonicalizeReviewPacket(packet), canonicalizeReviewPacket(historicalMutation));
   assert.equal(canonicalizeReviewPacket(packet), canonicalizeReviewPacket(currentMutation));
+  assert.equal(canonicalizeReviewPacket(packet), canonicalizeReviewPacket(closureMutation));
 });
 
 function createFixture(t, { remediation = 'modify' } = {}) {
@@ -433,6 +436,17 @@ test('run checker parses coherent v2 finding evidence and rejects contradictory 
   assert.equal(negative.status, 1);
   assert.match(negative.stderr, /cannot claim completed remediation/);
   assert.match(negative.stderr, /cannot bypass unresolved product direction/);
+});
+test('schema-v2 ledgers reject runs without explicit schema identity', (t) => {
+  const fixture = createFixture(t);
+  delete fixture.run.schemaVersion;
+  writeRunLedger(fixture.root, fixture.run);
+  const result = spawnSync(process.execPath, [runChecker], {
+    cwd: fixture.root,
+    encoding: 'utf8',
+  });
+  assert.equal(result.status, 1);
+  assert.match(result.stderr, /schemaVersion must explicitly declare 1 or 2/);
 });
 
 test('run checker rejects baseline and a descendant that omits the remediation', (t) => {

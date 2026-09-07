@@ -326,21 +326,24 @@ test('reconciles a lost review POST once using reviewer, head, disposition, and 
       calls.push({ command, args });
       if (args[2] === 'POST') throw new Error('connection lost after write');
       return JSON.stringify([
-        {
-          id: 5678,
-          node_id: 'PRR_review_3',
-          user: { login: 'reviewer' },
-          state: 'APPROVED',
-          commit_id: sha('b'),
-          body: 'review body',
-          html_url: 'https://github.com/Proto-UI/Proto-UI/pull/487#pullrequestreview-5678',
-        },
+        [
+          {
+            id: 5678,
+            node_id: 'PRR_review_3',
+            user: { login: 'reviewer' },
+            state: 'APPROVED',
+            commit_id: sha('b'),
+            body: 'review body',
+            html_url: 'https://github.com/Proto-UI/Proto-UI/pull/487#pullrequestreview-5678',
+          },
+        ],
       ]);
     },
     { reviewerLogin: 'reviewer', invocationId: 'invocation-1' }
   );
 
   assert.equal(calls.length, 2);
+  assert.ok(calls[1].args.includes('--slurp'));
   assert.equal(calls[1].args[1], '--method');
   assert.equal(calls[1].args[2], 'GET');
   assert.equal(result.status, 'applied');
@@ -358,7 +361,7 @@ test('returns an explicit unknown receipt when review reconciliation cannot prov
     (command, args) => {
       calls.push({ command, args });
       if (args[2] === 'POST') throw new Error('connection lost after write');
-      return JSON.stringify([]);
+      return JSON.stringify([[]]);
     },
     { reviewerLogin: 'reviewer', invocationId: 'invocation-2' }
   );
@@ -438,10 +441,18 @@ test('pull-request merge binds GitHub integration to the inspected exact head', 
     { headSha: sha('b'), mergeMethod: 'squash' },
     (command, args, options) => {
       calls.push({ command, args, options });
+      if (args.some((arg) => arg.endsWith('/merge'))) {
+        return JSON.stringify({
+          sha: sha('c'),
+          merged: true,
+          message: 'Pull Request successfully merged',
+        });
+      }
       return JSON.stringify({
-        sha: sha('c'),
         merged: true,
-        message: 'Pull Request successfully merged',
+        head: { sha: sha('b') },
+        merge_commit_sha: sha('c'),
+        merged_at: '2026-08-27T01:00:10Z',
       });
     }
   );
@@ -456,6 +467,9 @@ test('pull-request merge binds GitHub integration to the inspected exact head', 
     'repos/Proto-UI/Proto-UI/pulls/487/merge',
     '--input',
   ]);
+  assert.equal(calls.length, 2);
+  assert.equal(result.liveHeadSha, sha('b'));
+  assert.equal(result.mergedAt, '2026-08-27T01:00:10Z');
   assert.equal(result.headSha, sha('b'));
   assert.equal(result.mergeCommitSha, sha('c'));
   assert.equal(result.reconciled, false);

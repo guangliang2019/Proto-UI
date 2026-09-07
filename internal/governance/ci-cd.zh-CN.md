@@ -37,7 +37,7 @@ CI 在 pull request、`main` push 和手动触发时运行。除常规类型与�
 
 该工作流对 `contents`、`issues` 与 `pull-requests` 只有读取权限，禁用 checkout credential 持久化，并让 Codex 使用 `:read-only` permission profile 和 `drop-sudo`。这些控制约束的是本条 ingestion credential：工作流负责观察与 reconciliation，自身不发布评论、不修改 label、不创建分支、不提交 review，也不集成 PR。它们不是 Contributor Agent 或本地 review/integration schedule 的全局能力上限。
 
-普通 Contributor Agent 使用 `internal/agent-operations/skills.yaml` 下的懒加载 skill registry，不属于定时 shadow workflow。`$pui-dev` 负责普通开发，`$pui-maintain` 负责独立的自治维护协议。依据现有 standing authorization，符合条件的独立 Agent 可以把已核对的 live state 继续推进到 recheck、有 finding 支撑的 `REQUEST_CHANGES`、clean exact-head `APPROVE`，以及在独立批准后的 exact-head merge。每次写入仍需匹配授权、可信证据、fresh canonical input、实时 credential 权限，并与 review state 和仓库规则一致。人类决策只保留给未决产品方向和特权或不可逆操作；扩大本工作流自身 token、变更访问或 secrets、publication 与 release 均属于这一边界。
+普通 Contributor Agent 使用 `internal/agent-operations/skills.yaml` 下的懒加载 skill registry，不属于定时 shadow workflow。`$pui-dev` 负责普通开发，`$pui-maintain` 负责独立的自治维护协议。三个 scheduled scope 都是 `pending-runtime-identity`，在绑定 Poppy broker-verified workload identity 前只能进行只读观察与 reconciliation，不能提交 review 或集成 PR；有人协作时的 review 或 integration 需要 current-user 的明确授权，未来 standing scope 激活后仍必须匹配授权、可信证据、fresh canonical input、实时 credential 权限，并与 review state 和仓库规则一致。人类决策只保留给未决产品方向和特权或不可逆操作；扩大本工作流自身 token、变更访问或 secrets、publication 与 release 均属于这一边界。
 
 ## 私有贡献者预览工作流（`poppy-preview-*.yml`）
 

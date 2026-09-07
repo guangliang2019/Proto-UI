@@ -455,6 +455,18 @@ export function computeReviewPacketDigest(priorPacket) {
   );
   return digest(priorPacket);
 }
+export function renderReviewBody(packet) {
+  const prefix = `Reviewed exact head \`${packet.headSha}\`.`;
+  if (packet.findings.length === 0) return prefix;
+  return [
+    prefix,
+    '',
+    ...packet.findings.map(
+      (finding) =>
+        `- **[${finding.severity}] ${finding.id}** (${finding.file}:${finding.line}) ${finding.observed} Expected: ${finding.expected} Fix: ${finding.fix}`
+    ),
+  ].join('\n');
+}
 
 export function verifyReconciliation(packet, priorPacket) {
   assert(
@@ -833,7 +845,8 @@ export function authorizeReviewSubmission({
         review.state ===
           { APPROVE: 'APPROVED', REQUEST_CHANGES: 'CHANGES_REQUESTED', COMMENT: 'COMMENTED' }[
             recommendedAction
-          ]
+          ] &&
+        review.body === renderReviewBody(packet)
     )
   ) {
     return {

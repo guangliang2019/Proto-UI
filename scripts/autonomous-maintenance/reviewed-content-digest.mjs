@@ -1,6 +1,6 @@
 import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
-import { readFileSync } from 'node:fs';
+import { lstatSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import YAML from 'yaml';
 
@@ -19,6 +19,9 @@ function canonicalizeDigestFields(value) {
   sentinelDigest(canonical.independentReview);
   if (Array.isArray(canonical.independentReview?.history)) {
     sentinelDigest(canonical.independentReview.history.at(-1));
+  }
+  if (Object.hasOwn(canonical, 'integrationEligibility')) {
+    canonical.integrationEligibility = { status: digestSentinel };
   }
   return canonical;
 }
@@ -89,6 +92,26 @@ function isUntrackedWorktreePath(root, repositoryPath) {
     return false;
   }
 }
+function readWorktreeMode(root, repositoryPath) {
+  try {
+    const indexed = execFileSync('git', ['ls-files', '--stage', '--', repositoryPath], {
+      cwd: root,
+      encoding: 'utf8',
+      stdio: ['ignore', 'pipe', 'ignore'],
+    }).trim();
+    if (indexed) return indexed.split(/\s+/, 1)[0];
+  } catch {
+    // Fall through to the filesystem mode for an untracked path.
+  }
+  try {
+    const stats = lstatSync(resolve(root, repositoryPath));
+    if (stats.isSymbolicLink()) return '120000';
+    return (stats.mode & 0o111) !== 0 ? '100755' : '100644';
+  } catch {
+    return null;
+  }
+}
+
 
 export function computeReviewedContentDigest({
   root,
@@ -149,11 +172,10 @@ export function computeReviewedContentDigest({
     'baseline-review-packet',
     baselinePacket === null ? 'absent' : canonicalizeReviewPacket(baselinePacket)
   );
-  updateField(
-    hash,
-    'head-review-packet-mode',
-    readCommitMode(root, head, reviewPath) ?? (worktree ? 'worktree' : 'absent')
-  );
+  const headPacketMode = worktree
+    ? (readWorktreeMode(root, reviewPath) ?? readCommitMode(root, head, reviewPath) ?? '100644')
+    : (readCommitMode(root, head, reviewPath) ?? 'absent');
+  updateField(hash, 'head-review-packet-mode', headPacketMode);
   updateField(hash, 'head-review-packet', canonicalizeReviewPacket(headPacket));
   return `sha256:${hash.digest('hex')}`;
 }

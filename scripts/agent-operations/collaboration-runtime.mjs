@@ -568,8 +568,7 @@ export function desiredCollaborationStateSatisfied(request, liveState) {
   const marker = collaborationMarker(request);
   return (
     targetHeadMatches(request, current) &&
-    current.markerComment?.body?.includes(marker) === true &&
-    current.markerComment.body.startsWith(request.desired.body)
+    current.markerComment?.body === `${request.desired.body}\n\n${marker}`
   );
 }
 
