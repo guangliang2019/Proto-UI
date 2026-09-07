@@ -116,3 +116,9 @@ Sibling summary: #590 clean review candidate (approval pending); #593 red CI + s
 - Fresh worker `ReconcilePR624Fresh` bound exact head `6c31db1f` to canonical digest `0cb2fb62`: `CHANGES_REQUESTED`, `MERGEABLE` / `BLOCKED`, trusted `CI/test` failed, exact-head F-01/F-02 remain, thread `PRRT_kwDOMhQZjc6fuLJn` is unresolved, and no independent approval exists.
 - Zero mutation. The worker stopped at `pui-pr`; no deeper review or integration path was entered. Recheck only after a repaired head, superseded change request, all threads resolved, green trusted CI/DCO, non-author exact-head approval, and `CLEAN` state.
 - Current user steering now starts a new `human-assisted/current-user` remediation chain for PR #563. #618/#581/#593 are deferred; their APPROVED+CLEAN summaries remain stale until distinct fresh object workers revalidate them.
+
+## 2026-09-07 — PR #563 remediation stopped on one 429
+
+- A new `human-assisted/current-user` orientation validated and dispatched fresh PR #563-only implementer `ImplementPR563Findings` for the seven named coverage-matrix findings, RED-first fixtures, dedicated worktree, focused/browser evidence, safe PR-branch push, and later independent review.
+- The worker failed after 5m05s with HTTP 429 `token plan entitlement exhausted` (`quota_exceeded_error`, `param=8`) before PR-specific collection or work. Per pass contract: no retry and no chief substitution.
+- Zero PR/product/GitHub mutations and no exact-head conclusion. All seven findings, validation, push, and independent review remain pending until capacity returns and another newly oriented fresh object worker re-collects live state.
