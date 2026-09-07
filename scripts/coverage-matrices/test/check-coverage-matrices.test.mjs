@@ -3274,7 +3274,7 @@ test('allows an app-local prototype row to advance to dogfooded with implementat
       'Target class': 'app-local-proto',
       State: 'dogfooded',
       Path: `\`${implementationPath}\``,
-      Evidence: `Build: passed; Browser: passed; Accessibility: passed; Lifecycle: passed; Design: Brutalist; \`${evidencePath}\``,
+      Evidence: 'Build: `internal/agent-harness/evidence/m1/build.log`; Browser: `internal/agent-harness/evidence/m1/browser-results.json`; Accessibility: `internal/agent-harness/evidence/m1/accessibility-results.json`; Lifecycle: `internal/agent-harness/evidence/m1/lifecycle-results.json`; Design: `internal/agent-harness/evidence/m1/design-review.txt`; `internal/agent-harness/evidence/m1/tool-invocation.md`',
       'Dependency and owner': 'No blocker; owner: Harness application',
     }
   );
@@ -6590,5 +6590,169 @@ test('resolves every configured Website alias before consumer-wall classificatio
   assert.match(
     validationMessage(root),
     /raw Proto UI import `rawRuntime` in `apps\/www\/src\/components\/AliasRuntime\.ts` escapes the website consumer-wall allowlist/
+  );
+});
+test('rejects non-active catalog entities from every shipped Website state', () => {
+  for (const state of ['ready', 'self-hosted', 'native/static', 'infrastructure-exempt']) {
+    const root = createRoot();
+    const overrides = {
+      'Proto UI chain': 'P-BASE-BUTTON',
+      Lifecycle: 'P-BASE-BUTTON=draft',
+      State: state,
+    };
+    if (state === 'native/static') {
+      overrides.ID = 'www.shell.site-title';
+      overrides.Path = '`apps/www/src/components/override/SiteTitle.astro`';
+      overrides['Target class'] = 'native/static';
+      overrides['Dependency and owner'] = 'No Proto UI dependency; owner: website team';
+      overrides['Escape or exemption'] = 'Reason: native semantic HTML owns the complete information path';
+      overrides['Re-review or removal issue'] = '#420 if application-owned interaction is introduced';
+    }
+    if (state === 'infrastructure-exempt') {
+      overrides.ID = 'www.demo.brutalist-theme-style';
+      overrides.Path = '`apps/www/src/components/BrutalistPageStyle.astro`';
+      overrides['Target class'] = 'infrastructure-exempt';
+      overrides['Dependency and owner'] = 'No Proto UI dependency; owner: website demos';
+      overrides['Escape or exemption'] = 'Reason: static theme infrastructure remains bounded to demos';
+      overrides['Re-review or removal issue'] = '#420 if the theme gains interaction state';
+    }
+    writeValidMatrices(root, overrides);
+    assert.match(
+      validationMessage(root),
+      new RegExp(
+        `shipped website State \`${state}\` requires every catalog entity in Proto UI chain to be active`
+      )
+    );
+  }
+});
+
+test('requires Harness dogfooded matrix dimensions to bind retained artifacts', () => {
+  const root = createRoot();
+  const implementationPath = 'apps/agent-harness/src/run/ToolInvocation.tsx';
+  const absoluteImplementationPath = path.join(root, implementationPath);
+  fs.mkdirSync(path.dirname(absoluteImplementationPath), { recursive: true });
+  fs.writeFileSync(absoluteImplementationPath, 'fixture', 'utf8');
+  writeValidMatrices(root);
+  const revision = commitFixtureRoot(root);
+  const { evidencePath } = writeHarnessPromotionArtifacts(root, revision);
+  writeValidMatrices(root, {}, {
+    ID: 'harness.run.tool-invocation',
+    'Target owner': 'Harness app-local Tool Invocation prototype',
+    'Target class': 'app-local-proto',
+    State: 'dogfooded',
+    Path: `\`${implementationPath}\``,
+    Evidence: `Build: passed; Browser: passed; Accessibility: passed; Lifecycle: passed; Design: Brutalist; \`${evidencePath}\``,
+    'Dependency and owner': 'No blocker; owner: Harness application',
+  });
+  assert.match(
+    validationMessage(root, promotionOptions(revision)),
+    /dogfooded matrix Evidence Build: must bind exactly one retained artifact/
+  );
+});
+
+test('binds object-form multi-frame paths into the evidence results manifest', () => {
+  const root = createRoot();
+  writeValidMatrices(root);
+  const revision = commitFixtureRoot(root);
+  const evidencePath = 'internal/website/evidence/s14/closeout.md';
+  writeSelfHostedWebsiteArtifacts(root, revision);
+  const frameManifestPath = path.join(root, 'internal/website/evidence/s14/navigation-frames.json');
+  fs.writeFileSync(
+    frameManifestPath,
+    JSON.stringify({
+      frames: [
+        { path: 'internal/website/evidence/s14/navigation-before.png' },
+        { path: 'internal/website/evidence/s14/navigation-after.png' },
+      ],
+    }),
+    'utf8'
+  );
+  const resultsPath = path.join(root, 'internal/website/evidence/s14/results.json');
+  const manifest = JSON.parse(fs.readFileSync(resultsPath, 'utf8'));
+  manifest.artifacts = manifest.artifacts.filter(
+    (artifact) => artifact.path !== 'internal/website/evidence/s14/navigation-after.png'
+  );
+  fs.writeFileSync(resultsPath, `${JSON.stringify(manifest)}\n`, 'utf8');
+  fs.writeFileSync(
+    path.join(root, evidencePath),
+    validSelfHostedWebsiteEvidence({ Commit: revision }),
+    'utf8'
+  );
+  writeValidMatrices(root, { State: 'self-hosted', Evidence: `\`${evidencePath}\`` });
+  assert.match(
+    validationMessage(root, promotionOptions(revision)),
+    /self-hosted evidence Results artifacts must include record artifact `internal\/website\/evidence\/s14\/navigation-after\.png`/
+  );
+});
+
+test('discovers element-valued DOM property receivers in Website and Harness sources', () => {
+  for (const [relativePath, content, expected] of [
+    [
+      'apps/www/src/components/ElementPropertyFocus.ts',
+      'export function ElementPropertyFocus() { document.body.firstElementChild?.focus(); return null; }',
+      /interactive website source `apps\/www\/src\/components\/ElementPropertyFocus\.ts` is not bound/,
+    ],
+    [
+      'apps/agent-harness/src/run/ElementPropertyAria.tsx',
+      "export function ElementPropertyAria() { document.body.firstElementChild?.setAttribute('aria-expanded', 'true'); return <section />; }",
+      /Harness source `apps\/agent-harness\/src\/run\/ElementPropertyAria\.tsx` contains a forbidden interaction/,
+    ],
+  ]) {
+    const root = createRoot();
+    const absolutePath = path.join(root, relativePath);
+    fs.mkdirSync(path.dirname(absolutePath), { recursive: true });
+    fs.writeFileSync(absolutePath, content, 'utf8');
+    writeValidMatrices(root, {}, relativePath.startsWith('apps/agent-harness/') ? { Path: `\`${relativePath}\`` } : {});
+    assert.match(validationMessage(root), expected);
+  }
+});
+
+test('rejects Agent actions from derived-state class lifecycles', () => {
+  for (const method of ['getDerivedStateFromProps', 'getDerivedStateFromError']) {
+    const root = createRoot();
+    const relativePath = `apps/agent-harness/src/run/${method}.tsx`;
+    const absolutePath = path.join(root, relativePath);
+    fs.mkdirSync(path.dirname(absolutePath), { recursive: true });
+    fs.writeFileSync(
+      absolutePath,
+      `import React from 'react'; import * as actions from './agent-actions'; class DerivedState extends React.Component { static ${method}() { actions.send(); return null; } render() { return <section />; } } export { DerivedState };`,
+      'utf8'
+    );
+    writeValidMatrices(root, {}, { Path: `\`${relativePath}\`` });
+    assert.match(
+      validationMessage(root),
+      new RegExp(`Harness source \`${relativePath.replaceAll('/', '\\/')}\` contains a forbidden interaction`)
+    );
+  }
+});
+
+test('requires each exported Harness surface to have a distinct row owner', () => {
+  const root = createRoot();
+  const relativePath = 'apps/agent-harness/src/run/TwoSurfaces.tsx';
+  const absolutePath = path.join(root, relativePath);
+  fs.mkdirSync(path.dirname(absolutePath), { recursive: true });
+  fs.writeFileSync(
+    absolutePath,
+    'export function FirstSurface() { return <section>First</section>; } export function SecondSurface() { return <section>Second</section>; }',
+    'utf8'
+  );
+  writeValidMatrices(root, {}, { Path: `\`${relativePath}\`` });
+  assert.match(
+    validationMessage(root),
+    /Harness user-facing source `apps\/agent-harness\/src\/run\/TwoSurfaces\.tsx` exposes 2 exported surfaces but has only 1 distinct matrix owner/
+  );
+});
+
+test('scans test-named modules reachable from production Website sources', () => {
+  const root = createRoot();
+  const productionPath = 'apps/www/src/components/ProductionBridge.astro';
+  const bridgePath = 'apps/www/src/components/bridge.test.ts';
+  fs.mkdirSync(path.dirname(path.join(root, productionPath)), { recursive: true });
+  fs.writeFileSync(path.join(root, productionPath), '---\nimport bridge from \'./bridge.test\';\n---\n<main>{bridge}</main>', 'utf8');
+  fs.writeFileSync(path.join(root, bridgePath), "import '@proto.ui/runtime'; export default 'bridge';", 'utf8');
+  writeValidMatrices(root);
+  assert.match(
+    validationMessage(root),
+    /raw Proto UI import `@proto\.ui\/runtime` in `apps\/www\/src\/components\/bridge\.test\.ts` escapes the website consumer-wall allowlist/
   );
 });

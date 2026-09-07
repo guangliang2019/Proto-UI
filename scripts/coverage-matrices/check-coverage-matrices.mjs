@@ -87,6 +87,15 @@ const GOVERNED_DOM_STATE_PROPERTY_NAMES = new Set([
   'selectionStart',
   'value',
 ]);
+const DOM_ELEMENT_VALUED_PROPERTY_NAMES = new Set([
+  'firstElementChild',
+  'lastElementChild',
+  'parentElement',
+  'parentNode',
+  'offsetParent',
+  'nextElementSibling',
+  'previousElementSibling',
+]);
 const DOGFOODED_EVIDENCE_LABELS = Object.freeze([
   'Build:',
   'Browser:',
@@ -1437,6 +1446,9 @@ function isDomReceiverExpression(
   ) {
     return true;
   }
+  if (DOM_ELEMENT_VALUED_PROPERTY_NAMES.has(candidate.name.text)) {
+    return isDomReceiverExpression(owner, sourceFile, receiverBindings, useNode, visitedBindings);
+  }
   return (
     candidate.name.text === 'current' &&
     ts.isIdentifier(owner) &&
@@ -1917,6 +1929,110 @@ function astContainsExportedUserFacingComponent(content, absolutePath) {
     }
     return false;
   });
+}
+function countHarnessExportedUserFacingSurfaces(content, absolutePath) {
+  const scriptKind = /\.jsx$/i.test(absolutePath)
+    ? ts.ScriptKind.JSX
+    : /\.js$/i.test(absolutePath)
+      ? ts.ScriptKind.JS
+      : /\.ts$/i.test(absolutePath)
+        ? ts.ScriptKind.TS
+        : ts.ScriptKind.TSX;
+  const sourceFile = ts.createSourceFile(
+    absolutePath,
+    content,
+    ts.ScriptTarget.Latest,
+    true,
+    scriptKind
+  );
+  const renderedLocalNames = new Set();
+  const containsRenderedSurface = (root) => {
+    let rendered = false;
+    const visit = (node) => {
+      if (rendered) return;
+      if (ts.isJsxElement(node) || ts.isJsxSelfClosingElement(node) || ts.isJsxFragment(node)) {
+        rendered = true;
+        return;
+      }
+      if (ts.isCallExpression(node)) {
+        const expression = unwrapTypeScriptExpression(node.expression);
+        if (
+          (ts.isPropertyAccessExpression(expression) &&
+            expression.name.text === 'createElement') ||
+          (ts.isIdentifier(expression) && expression.text === 'createElement')
+        ) {
+          rendered = true;
+          return;
+        }
+      }
+      ts.forEachChild(node, visit);
+    };
+    visit(root);
+    return rendered;
+  };
+  for (const statement of sourceFile.statements) {
+    if (
+      (ts.isFunctionDeclaration(statement) || ts.isClassDeclaration(statement)) &&
+      statement.name &&
+      containsRenderedSurface(statement)
+    ) {
+      renderedLocalNames.add(statement.name.text);
+    }
+    if (ts.isVariableStatement(statement)) {
+      for (const declaration of statement.declarationList.declarations) {
+        if (
+          ts.isIdentifier(declaration.name) &&
+          declaration.initializer &&
+          containsRenderedSurface(declaration.initializer)
+        ) {
+          renderedLocalNames.add(declaration.name.text);
+        }
+      }
+    }
+  }
+  const exportedNames = new Set();
+  for (const statement of sourceFile.statements) {
+    const isExported = statement.modifiers?.some(
+      (modifier) =>
+        modifier.kind === ts.SyntaxKind.ExportKeyword ||
+        modifier.kind === ts.SyntaxKind.DefaultKeyword
+    );
+    if (isExported && (ts.isFunctionDeclaration(statement) || ts.isClassDeclaration(statement))) {
+      if (statement.name && renderedLocalNames.has(statement.name.text)) {
+        exportedNames.add(statement.name.text);
+      }
+    } else if (isExported && ts.isVariableStatement(statement)) {
+      for (const declaration of statement.declarationList.declarations) {
+        if (
+          ts.isIdentifier(declaration.name) &&
+          declaration.initializer &&
+          (containsRenderedSurface(declaration.initializer) ||
+            (ts.isIdentifier(declaration.initializer) &&
+              renderedLocalNames.has(declaration.initializer.text)))
+        ) {
+          exportedNames.add(declaration.name.text);
+        }
+      }
+    } else if (ts.isExportAssignment(statement)) {
+      if (
+        containsRenderedSurface(statement.expression) ||
+        (ts.isIdentifier(statement.expression) && renderedLocalNames.has(statement.expression.text))
+      ) {
+        exportedNames.add('default');
+      }
+    } else if (
+      ts.isExportDeclaration(statement) &&
+      !statement.moduleSpecifier &&
+      statement.exportClause &&
+      ts.isNamedExports(statement.exportClause)
+    ) {
+      for (const element of statement.exportClause.elements) {
+        const localName = (element.propertyName ?? element.name).text;
+        if (renderedLocalNames.has(localName)) exportedNames.add(element.name.text);
+      }
+    }
+  }
+  return exportedNames.size;
 }
 
 function discoverHarnessUserFacingSources(rootDir) {
@@ -2548,7 +2664,7 @@ function astContainsHarnessRenderOrEffectAction(content, absolutePath) {
             if (
               callable &&
               memberName &&
-              /^(?:UNSAFE_componentWillMount|UNSAFE_componentWillReceiveProps|UNSAFE_componentWillUpdate|componentDidMount|componentDidUpdate|componentWillMount|componentWillReceiveProps|componentWillUpdate|getSnapshotBeforeUpdate|render|shouldComponentUpdate)$/u.test(
+              /^(?:UNSAFE_componentWillMount|UNSAFE_componentWillReceiveProps|UNSAFE_componentWillUpdate|componentDidMount|componentDidUpdate|componentWillMount|componentWillReceiveProps|componentWillUpdate|getDerivedStateFromError|getDerivedStateFromProps|getSnapshotBeforeUpdate|render|shouldComponentUpdate)$/u.test(
                 memberName
               )
             ) {
@@ -3177,18 +3293,79 @@ function websiteRawImportIsAllowed(sourcePath, specifier, guardedImport) {
   return allowance.resolvedPaths?.includes(guardedImport.resolvedPath) ?? false;
 }
 
+function isTestNamedSource(absolutePath) {
+  return /\.(?:browser\.)?(?:test|spec)\.[cm]?[jt]sx?$/iu.test(absolutePath);
+}
+
+function reachableSourcePaths(candidates) {
+  const candidateByPath = new Map(
+    candidates.map((candidate) => [path.resolve(candidate), candidate])
+  );
+  const resolveLocalImport = (sourcePath, specifier) => {
+    if (!specifier.startsWith('.')) return null;
+    const base = path.resolve(path.dirname(sourcePath), specifier);
+    const variants = [
+      base,
+      ...[
+        '.astro',
+        '.css',
+        '.less',
+        '.scss',
+        '.sass',
+        '.vue',
+        '.svelte',
+        '.js',
+        '.jsx',
+        '.mjs',
+        '.cjs',
+        '.ts',
+        '.tsx',
+        '.mts',
+        '.cts',
+      ].map((extension) => `${base}${extension}`),
+      ...[
+        'index.js',
+        'index.jsx',
+        'index.mjs',
+        'index.cjs',
+        'index.ts',
+        'index.tsx',
+        'index.mts',
+        'index.cts',
+      ].map((indexName) => path.join(base, indexName)),
+    ];
+    return variants.map((candidate) => candidateByPath.get(candidate)).find(Boolean) ?? null;
+  };
+  const reachable = new Set(candidates.filter((candidate) => !isTestNamedSource(candidate)));
+  const pending = [...reachable];
+  while (pending.length > 0) {
+    const sourcePath = pending.pop();
+    for (const specifier of moduleSpecifiersForWebsiteSource(sourcePath)) {
+      const target = resolveLocalImport(sourcePath, specifier);
+      if (target && !reachable.has(target)) {
+        reachable.add(target);
+        pending.push(target);
+      }
+    }
+  }
+  return reachable;
+}
+
 function discoverWebsiteRawImports(rootDir) {
   const websiteRoot = path.join(rootDir, 'apps', 'www');
   const sourceRoot = path.join(websiteRoot, 'src');
   const publicRoot = path.join(websiteRoot, 'public');
   const configPath = path.join(websiteRoot, 'astro.config.mjs');
-  const candidates = walkFiles(sourceRoot)
+  const allCandidates = walkFiles(sourceRoot)
     .concat(walkFiles(publicRoot))
     .concat(fs.existsSync(configPath) ? [configPath] : [])
     .filter((absolutePath) =>
       /\.(?:astro|mdx?|[cm]?[jt]sx?|css|less|s[ac]ss|vue|svelte)$/i.test(absolutePath)
-    )
-    .filter((absolutePath) => !/\.(?:browser\.)?(?:test|spec)\.[cm]?[jt]sx?$/i.test(absolutePath));
+    );
+  const reachable = reachableSourcePaths(allCandidates);
+  const candidates = allCandidates.filter(
+    (absolutePath) => !isTestNamedSource(absolutePath) || reachable.has(absolutePath)
+  );
   const rawImports = [];
   const websiteAliasConfig = configuredWebsiteSourceAliases(rootDir);
   for (const absolutePath of candidates) {
@@ -3257,9 +3434,13 @@ function validateWebsiteRawImports(rootDir, relativePath, issues) {
 function discoverHarnessRawImports(rootDir) {
   const sourceRoot = path.join(rootDir, 'apps', 'agent-harness', 'src');
   const harnessRoot = path.join(rootDir, 'apps', 'agent-harness');
-  const candidates = walkFiles(sourceRoot)
-    .filter((absolutePath) => /\.(?:[cm]?[jt]sx?|css|less|s[ac]ss)$/i.test(absolutePath))
-    .filter((absolutePath) => !/\.(?:browser\.)?(?:test|spec)\.[cm]?[jt]sx?$/i.test(absolutePath));
+  const allCandidates = walkFiles(sourceRoot).filter((absolutePath) =>
+    /\.(?:[cm]?[jt]sx?|css|less|s[ac]ss)$/i.test(absolutePath)
+  );
+  const reachable = reachableSourcePaths(allCandidates);
+  const candidates = allCandidates.filter(
+    (absolutePath) => !isTestNamedSource(absolutePath) || reachable.has(absolutePath)
+  );
   const rawImports = [];
   for (const absolutePath of candidates) {
     const sourcePath = path.relative(rootDir, absolutePath).replaceAll('\\', '/');
@@ -3816,7 +3997,8 @@ function validateEvidenceResultsManifest({
     if (!canonicalManifestPath) continue;
     try {
       const frameManifest = JSON.parse(fs.readFileSync(canonicalManifestPath, 'utf8'));
-      for (const framePath of frameManifest.frames ?? []) {
+      for (const frameEntry of frameManifest.frames ?? []) {
+        const framePath = typeof frameEntry === 'string' ? frameEntry : frameEntry?.path;
         if (typeof framePath === 'string' && framePath.startsWith(evidenceRootRelative)) {
           requiredArtifactPaths.add(framePath);
         }
@@ -3926,6 +4108,31 @@ function validateDogfoodedRetainedEvidenceArtifacts(record, context, rootDir, is
   }
 }
 
+function validateDogfoodedMatrixEvidenceArtifacts(record, context, rootDir, issues) {
+  const evidenceRoot = 'internal/agent-harness/evidence/';
+  for (const labelName of DOGFOODED_EVIDENCE_LABELS) {
+    const artifactPaths = explicitRepositoryPaths(
+      evidenceRecordLabelValue(record.Evidence, labelName, DOGFOODED_EVIDENCE_LABELS)
+    ).filter((repositoryPath) => repositoryPath.startsWith(evidenceRoot));
+    if (artifactPaths.length !== 1) {
+      issues.push(
+        `${context}: dogfooded matrix Evidence ${labelName} must bind exactly one retained artifact under ${evidenceRoot}**`
+      );
+      continue;
+    }
+    const canonicalPath = canonicalFileWithinRoot(rootDir, artifactPaths[0], evidenceRoot);
+    if (!canonicalPath) {
+      issues.push(
+        `${context}: dogfooded matrix Evidence ${labelName} retained artifact must resolve within ${evidenceRoot}**: ${artifactPaths[0]}`
+      );
+    } else if (fs.statSync(canonicalPath).size === 0) {
+      issues.push(
+        `${context}: dogfooded matrix Evidence ${labelName} retained artifact must not be empty: ${artifactPaths[0]}`
+      );
+    }
+  }
+}
+
 function validateRetainedEvidenceArtifacts(record, context, rootDir, issues) {
   const artifactLabels = [
     'Build:',
@@ -4009,7 +4216,8 @@ function validateRetainedEvidenceArtifacts(record, context, rootDir, issues) {
         continue;
       }
       const canonicalFrames = new Set();
-      for (const framePath of manifest.frames) {
+      for (const frameEntry of manifest.frames) {
+        const framePath = typeof frameEntry === 'string' ? frameEntry : frameEntry?.path;
         const canonicalFrame = canonicalFileWithinRoot(rootDir, framePath);
         if (!canonicalFrame) {
           issues.push(
@@ -4306,6 +4514,14 @@ function validateMainRows(
             .join(', ')}`
         );
       }
+      const nonActiveEntity = chainIds
+        .map((entityId) => [entityId, catalogEntries.get(entityId)?.status ?? 'uncataloged'])
+        .find(([, status]) => status !== 'active');
+      if (nonActiveEntity) {
+        issues.push(
+          `${context}: website State \`${state}\` requires every catalog entity in Proto UI chain to be active; received \`${nonActiveEntity[0]}\` (${nonActiveEntity[1]})`
+        );
+      }
     }
 
     if (config.kind === 'website' && (state === 'ready' || state === 'self-hosted')) {
@@ -4313,15 +4529,6 @@ function validateMainRows(
         issues.push(
           `${context}: website State \`${state}\` must inventory at least one catalog entity in Proto UI chain`
         );
-      } else {
-        const nonActiveEntity = chainIds
-          .map((entityId) => [entityId, catalogEntries.get(entityId)?.status ?? 'uncataloged'])
-          .find(([, status]) => status !== 'active');
-        if (nonActiveEntity) {
-          issues.push(
-            `${context}: website State \`${state}\` requires every catalog entity in Proto UI chain to be active; received \`${nonActiveEntity[0]}\` (${nonActiveEntity[1]})`
-          );
-        }
       }
       const activeSemanticOwner = chainIds.find(
         (entityId) =>
@@ -4510,6 +4717,7 @@ function validateMainRows(
           issues,
         });
       }
+      validateDogfoodedMatrixEvidenceArtifacts(record, context, rootDir, issues);
       requireMeaningfulLabels(record.Evidence, DOGFOODED_EVIDENCE_LABELS, context, issues);
     }
 
@@ -4989,6 +5197,19 @@ function validateHarnessSourceBindings(
         `${relativePath}: Harness user-facing source \`${sourcePath}\` is not classified by a matrix row or Source-scan binding`
       );
       continue;
+    }
+    const surfaceCount = countHarnessExportedUserFacingSurfaces(
+      fs.readFileSync(path.resolve(rootDir, sourcePath), 'utf8'),
+      path.resolve(rootDir, sourcePath)
+    );
+    const effectiveOwnerCount = new Set([
+      ...directIds,
+      ...(binding?.ownerIds ?? []),
+    ]).size;
+    if (surfaceCount > effectiveOwnerCount) {
+      issues.push(
+        `${relativePath}: Harness user-facing source \`${sourcePath}\` exposes ${surfaceCount} exported surfaces but has only ${effectiveOwnerCount} distinct matrix owner${effectiveOwnerCount === 1 ? '' : 's'}`
+      );
     }
     if (directIds.length === 1 && binding) {
       issues.push(
