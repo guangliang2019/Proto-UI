@@ -166,7 +166,7 @@ function createHarness(withHost = true, initialFacts?: ScrollSurfaceSnapshot) {
     projection: 'system',
     endFollow: { mode: 'while-at-end', axis: 'vertical' },
   });
-  return { sys, module, surface, connections, requests, getDisposed: () => disposed };
+  return { sys, vault, module, surface, connections, requests, getDisposed: () => disposed };
 }
 
 describe('module-scroll: fake host contract', () => {
@@ -206,6 +206,37 @@ describe('module-scroll: fake host contract', () => {
     expect(harness.surface.endFollow.state.get()).toBe('following');
     expect(harness.surface.endFollow.requestStatus.get()).toBe('applied');
     expect(harness.surface.vertical.atEnd.get()).toBe(true);
+  });
+
+  it('invalidates an in-progress snapshot when its watcher replaces the host capability', () => {
+    const harness = createHarness();
+    harness.module.hooks.onMountPhase?.('mounted', 1);
+    const connection = harness.connections[0];
+    const replacementHost: ScrollSurfaceHost = {
+      support: Object.freeze({ system: true, composed: false }),
+      attach() {
+        return {
+          update() {},
+          request() {},
+          dispose() {},
+        };
+      },
+    };
+    let replaced = false;
+    harness.surface.endFollow.state.watch((_run, event) => {
+      if (event.type !== 'next' || event.next !== 'pending' || replaced) return;
+      replaced = true;
+      harness.vault.resetAttached();
+      harness.vault.attach([[SCROLL_SURFACE_HOST_CAP, replacementHost]]);
+    });
+    harness.sys.phase = 'callback';
+
+    connection.onFacts(snapshot('pending', 'pending'));
+
+    expect(harness.getDisposed()).toBe(1);
+    expect(harness.surface.projection.get()).toBe('system');
+    expect(harness.surface.endFollow.state.get()).toBe('off');
+    expect(harness.surface.endFollow.requestStatus.get()).toBe('idle');
   });
 
   it('preserves the latest nested host outcome during snapshot application', () => {

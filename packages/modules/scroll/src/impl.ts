@@ -283,6 +283,7 @@ export class ScrollModuleImpl extends ModuleBase {
 
   private attach(): void {
     const epoch = ++this.leaseEpoch;
+    this.snapshotEpoch++;
     this.lease?.dispose();
     this.lease = null;
     const host = this.getHost();
