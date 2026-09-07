@@ -187,6 +187,49 @@ describe('Context capability boundary', () => {
     }
   );
 
+  it.each(['missing identity', 'null identity', 'missing ancestry'] as const)(
+    'T-CONTEXT-0003-CASE-AVAILABILITY: actual port diagnoses %s for omitted-owner resolution',
+    (scenario) => {
+      const key = createContextKey<{ value: number }>('port-capability-diagnostic');
+      const full = makeCaps({
+        instanceToken: scenario === 'null identity' ? null : {},
+        getParent: () => null,
+      }) as CapsVaultView;
+      const absentId =
+        scenario === 'missing identity'
+          ? CONTEXT_INSTANCE_TOKEN_CAP.id
+          : scenario === 'missing ancestry'
+            ? CONTEXT_PARENT_CAP.id
+            : null;
+      const module = createContextModule({
+        init: { prototypeName: 'port-capability-diagnostic', declarations: [] },
+        caps: { ...full, has: (token) => token.id !== absentId && full.has(token) },
+        deps: {
+          requireFacade() {
+            throw new Error('unexpected');
+          },
+          requirePort() {
+            throw new Error('unexpected');
+          },
+          tryFacade: () => undefined,
+          tryPort: () => undefined,
+        },
+      });
+      const port = (module as typeof module & { port: ContextPort }).port;
+      try {
+        // Explicit absence needs neither the owner's identity nor traversal.
+        expect(port.resolveScope(key, null)).toBeNull();
+        expect(() => port.resolveScope(key)).toThrow(
+          scenario === 'missing ancestry' ? /parent getter/ : /instance token/
+        );
+        // An explicit valid consumer does not need the miswired owner's identity.
+        if (scenario !== 'missing ancestry') expect(port.resolveScope(key, {})).toBeNull();
+      } finally {
+        module.hooks.dispose?.();
+      }
+    }
+  );
+
   it('T-CONTEXT-0003-CASE-AVAILABILITY: fails at capability use without inventing an ancestry fallback', () => {
     const key = createContextKey<{ value: number }>('missing-cap');
     const full = makeCaps({ instanceToken: {}, getParent: () => null }) as CapsVaultView;

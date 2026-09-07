@@ -307,7 +307,7 @@ export class ContextModuleImpl extends ModuleBase {
   }
 
   resolveScope(key: ContextKey<any>, consumer?: ContextInstanceToken): ContextInstanceToken | null {
-    const from = arguments.length < 2 ? this.tryGetSelfToken() : consumer;
+    const from = arguments.length < 2 ? this.getSelfToken() : consumer;
     if (from === null) return null;
     return CONTEXT_CENTER.resolveProvider(from, key, this.getParentGetter());
   }
