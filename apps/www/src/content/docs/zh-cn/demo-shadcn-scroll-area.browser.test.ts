@@ -54,6 +54,22 @@ describe.sequential('shadcn Scroll Area browser acceptance', () => {
     try {
       for (const runtime of TEST_RUNTIMES) {
         await selectRuntime(page, previewer, runtime, '[data-demo-ref="scrollViewport"]', 1);
+        // The runtime Select overlay can remain visible during its close
+        // transition in the WC runtime and intercept pointer events meant for
+        // the Thumb. Dismiss it before measuring or dragging.
+        await page.keyboard.press('Escape');
+        await page.waitForFunction(
+          () =>
+            !Array.from(
+              document.querySelectorAll('[data-previewer-id] wc-shadcn-select-item')
+            ).some(
+              (item) =>
+                item.getBoundingClientRect().width > 0 &&
+                item.getBoundingClientRect().height > 0
+            ),
+          undefined,
+          { timeout: 10_000 }
+        );
         const viewport = previewer.locator('[data-demo-ref="scrollViewport"]');
         const root = viewport.locator('xpath=..');
         const vertical = previewer.locator('[data-demo-ref="verticalScrollbar"]');

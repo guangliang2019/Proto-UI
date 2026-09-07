@@ -405,4 +405,86 @@ describe('module-scroll: Web scroll surface host', () => {
     expect(target.scrollTop).toBe(0);
     lease.dispose();
   });
+
+  it('hides authored Scrollbar and Thumb chrome when projection falls back to system', () => {
+    const target = document.createElement('div');
+    const track = document.createElement('div');
+    const thumb = document.createElement('div');
+    setMetrics(target, {
+      clientWidth: 100,
+      scrollWidth: 100,
+      clientHeight: 100,
+      scrollHeight: 400,
+    });
+    Object.defineProperty(track, 'clientHeight', { configurable: true, value: 100 });
+    track.getBoundingClientRect = () => ({ top: 0, left: 0, width: 10, height: 100 }) as DOMRect;
+    thumb.getBoundingClientRect = () => ({ top: 0, left: 0, width: 10, height: 25 }) as DOMRect;
+    track.style.display = 'flex';
+    thumb.style.height = '25px';
+    track.append(thumb);
+    document.body.append(target, track);
+    const move = createMoveHarness();
+
+    const lease = createWebScrollSurfaceHost(target, {
+      moveGestureHost: move.host,
+      preference: 'composed',
+    }).attach({
+      config: { axes: 'vertical', projection: 'composed' },
+      projection: 'composed',
+      composedChrome: {
+        scope: {},
+        controls: [{ getAxis: () => 'vertical', trackTarget: track, thumbTarget: thumb }],
+      },
+      onFacts: () => {},
+    });
+
+    // Composed: track and thumb are visible, thumb is projected.
+    expect(track.style.display).toBe('flex');
+    expect(thumb.style.display).not.toBe('none');
+    expect(thumb.style.height).toBe('var(--proto-ui-scroll-thumb-size)');
+
+    // Fall back to system: authored chrome must hide.
+    lease.update({
+      config: { axes: 'vertical', projection: 'composed' },
+      projection: 'system',
+      composedChrome: {
+        scope: {},
+        controls: [{ getAxis: () => 'vertical', trackTarget: track, thumbTarget: thumb }],
+      },
+      onFacts: () => {},
+    });
+
+    expect(track.style.display).toBe('none');
+    expect(thumb.style.display).toBe('none');
+
+    // Restore composed: authored chrome reappears.
+    lease.update({
+      config: { axes: 'vertical', projection: 'composed' },
+      projection: 'composed',
+      composedChrome: {
+        scope: {},
+        controls: [{ getAxis: () => 'vertical', trackTarget: track, thumbTarget: thumb }],
+      },
+      onFacts: () => {},
+    });
+
+    expect(track.style.display).toBe('flex');
+    expect(thumb.style.display).not.toBe('none');
+    expect(thumb.style.height).toBe('var(--proto-ui-scroll-thumb-size)');
+
+    // Dispose after system fallback restores original authored display.
+    lease.update({
+      config: { axes: 'vertical', projection: 'composed' },
+      projection: 'system',
+      composedChrome: {
+        scope: {},
+        controls: [{ getAxis: () => 'vertical', trackTarget: track, thumbTarget: thumb }],
+      },
+      onFacts: () => {},
+    });
+    expect(track.style.display).toBe('none');
+    lease.dispose();
+    expect(track.style.display).toBe('flex');
+    expect(thumb.style.height).toBe('25px');
+  });
 });

@@ -273,6 +273,67 @@ describe('prototypes/shadcn: scroll-area', () => {
     }
   });
 
+  it('hides authored Scrollbar and Thumb chrome when the host falls back to system', () => {
+    // F-02: authored chrome (absolute touch-none track, visible flex-1 bg-border
+    // Thumb) must hide when the host projects system instead of composed.
+    const viewport = new ScrollAreaViewportElement();
+    const vertical = new ScrollAreaScrollbarElement();
+    const verticalThumb = new ScrollAreaThumbElement();
+    setMetrics(viewport, {
+      clientWidth: 100,
+      scrollWidth: 100,
+      clientHeight: 100,
+      scrollHeight: 400,
+    });
+    Object.defineProperty(vertical, 'clientHeight', { configurable: true, value: 100 });
+    vertical.getBoundingClientRect = () =>
+      ({ top: 0, left: 90, width: 10, height: 100 }) as DOMRect;
+    verticalThumb.getBoundingClientRect = () =>
+      ({ top: 0, left: 90, width: 10, height: 25 }) as DOMRect;
+    vertical.append(verticalThumb);
+    document.body.append(viewport, vertical);
+
+    const moveHost = createWebMoveGestureHost();
+    const lease = createWebScrollSurfaceHost(viewport, {
+      moveGestureHost: moveHost,
+    }).attach({
+      config: { axes: 'both', projection: 'composed' },
+      projection: 'composed',
+      composedChrome: {
+        scope: {},
+        controls: [
+          { getAxis: () => 'vertical', trackTarget: vertical, thumbTarget: verticalThumb },
+        ],
+      },
+      onFacts: () => {},
+    });
+
+    // Composed: track visible, thumb projected.
+    expect(vertical.style.display).not.toBe('none');
+    expect(verticalThumb.style.display).not.toBe('none');
+
+    // Fall back to system: authored chrome must hide.
+    lease.update({
+      config: { axes: 'both', projection: 'composed' },
+      projection: 'system',
+      composedChrome: {
+        scope: {},
+        controls: [
+          { getAxis: () => 'vertical', trackTarget: vertical, thumbTarget: verticalThumb },
+        ],
+      },
+      onFacts: () => {},
+    });
+
+    expect(vertical.style.display).toBe('none');
+    expect(verticalThumb.style.display).toBe('none');
+    expect(viewport.getAttribute('data-pui-scroll-projection')).toBe('system');
+
+    lease.dispose();
+    expect(vertical.style.display).not.toBe('none');
+    expect(verticalThumb.style.height).toBe('');
+  });
+
   it('inherits two-axis host scrolling, guarded Thumb movement, replacement, and teardown', async () => {
     const root = new ScrollAreaRootElement();
     const viewport = new ScrollAreaViewportElement();
