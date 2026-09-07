@@ -18,7 +18,12 @@ const localizedPath = (path: string) =>
   <script>
     import '../../scripts/proto-concept';
   </script>
-  <div class="bg-background container-wrapper flex flex-1 flex-col px-2">
+  <div
+    class:list={[
+      'bg-background container-wrapper flex flex-1 flex-col px-2',
+      { 'docs-shell': hasSidebar },
+    ]}
+  >
     <header class="bg-background sticky top-0 z-50 w-full"><slot name="header" /></header>
     <noscript>
       <style is:inline>
@@ -147,6 +152,12 @@ const localizedPath = (path: string) =>
 </script>
 
 <style>
+  /* Keep the header and all three documentation columns on one centered canvas. */
+  .docs-shell {
+    max-width: 85rem;
+    margin-inline: auto;
+  }
+
   .docs-sidebar {
     width: 0;
     flex: none;
