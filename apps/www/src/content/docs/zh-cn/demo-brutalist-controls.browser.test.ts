@@ -787,6 +787,35 @@ describe.sequential('Brutalist control documentation browser regressions', () =>
         if (!lightTooltipNode) throw new Error(`${runtime}: Tooltip Content has no DOM node.`);
         const firstTooltipId = lightPaint.id;
         expect(firstTooltipId, runtime).toBeTruthy();
+        const tooltipCanaries = {
+          foreground: 'rgb(17, 83, 139)',
+          background: 'rgb(211, 89, 127)',
+        } as const;
+        await page.evaluate(({ foreground, background }) => {
+          const root = document.documentElement;
+          root.style.setProperty('--pui-foreground', foreground);
+          root.style.setProperty('--pui-background', background);
+        }, tooltipCanaries);
+        const canaryPaint = await expectTooltipPaint(
+          firstTooltip,
+          'Portable Base behavior, Brutalist visual grammar',
+          `${runtime}/canary`
+        );
+        expect(canaryPaint.backgroundColor, `${runtime}/canary/fill`).toBe(
+          tooltipCanaries.foreground
+        );
+        expect(canaryPaint.color, `${runtime}/canary/ink`).toBe(tooltipCanaries.background);
+        expect(canaryPaint.borderColor, `${runtime}/canary/border`).toBe(
+          tooltipCanaries.foreground
+        );
+        expect(canaryPaint.boxShadow, `${runtime}/canary/hard-shadow`).toContain(
+          tooltipCanaries.foreground
+        );
+        await page.evaluate(() => {
+          const root = document.documentElement;
+          root.style.removeProperty('--pui-foreground');
+          root.style.removeProperty('--pui-background');
+        });
         await applyHostTheme(page, 'dark');
         const darkPaint = await expectTooltipPaint(
           firstTooltip,
