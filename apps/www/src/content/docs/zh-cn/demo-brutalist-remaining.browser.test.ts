@@ -450,10 +450,9 @@ describe.sequential('remaining Brutalist component browser coverage', () => {
             expect(surface.borderRadii, `${label}/radius`).toEqual(Array(4).fill('0px'));
             expect(surface.boxShadow, `${label}/shadow`).toContain('2px 2px 0px 0px');
             expect(surface.backgroundImage, `${label}/background-image`).toBe('none');
-            expect(
-              surface.fontFamily.split(',')[0].trim().toLowerCase(),
-              `${label}/font`
-            ).toMatch(/mono/);
+            expect(surface.fontFamily.split(',')[0].trim().toLowerCase(), `${label}/font`).toMatch(
+              /mono/
+            );
             expect(surface.textTransform, `${label}/case`).toBe('uppercase');
           }
         }
@@ -1092,6 +1091,25 @@ describe.sequential('remaining Brutalist component browser coverage', () => {
         await expectVisibility(panelText, false, `${runtime}/hover-focus-close`);
         await applyColorScheme(opened.page, 'dark');
         const darkTrigger = opened.previewer.locator('.host [data-pui-root]').nth(1);
+        const darkTriggerElement = await darkTrigger.elementHandle();
+        if (!darkTriggerElement) throw new Error('Dark Hover Card trigger was not materialized.');
+        await opened.page.waitForFunction(
+          (target) =>
+            target instanceof HTMLElement &&
+            !target.hasAttribute('data-hovered') &&
+            !target.hasAttribute('data-pressed') &&
+            !target.hasAttribute('data-focus-visible') &&
+            getComputedStyle(target).boxShadow.includes('3px 3px 0px 0px'),
+          darkTriggerElement,
+          { timeout: 10_000 }
+        );
+        const darkTriggerRestSurface = await facts(darkTrigger);
+        expectHardFrame(
+          darkTriggerRestSurface,
+          '3px',
+          'rgb(0, 0, 0)',
+          `${runtime}/dark/hover-trigger/rest`
+        );
         const darkPanelText = opened.page
           .getByText('A square hard-shadowed preview panel.', { exact: true })
           .last();
@@ -1125,10 +1143,9 @@ describe.sequential('remaining Brutalist component browser coverage', () => {
           darkPanelSurface.backgroundImage,
           `${runtime}/dark/hover-panel/background-image`
         ).toBe('none');
-        expect(
-          darkPanelSurface.backdropFilter,
-          `${runtime}/dark/hover-panel/backdrop-filter`
-        ).toBe('none');
+        expect(darkPanelSurface.backdropFilter, `${runtime}/dark/hover-panel/backdrop-filter`).toBe(
+          'none'
+        );
         expect(
           darkPanelSurface.animationDuration,
           `${runtime}/dark/hover-panel/animation-duration`
