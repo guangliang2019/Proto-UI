@@ -104,3 +104,9 @@ Sibling summary: #590 clean review candidate (approval pending); #593 red CI + s
 
 - Capacity restored (probe `CAPACITY_OK`). Fresh C4 assessment (`e72f10a2`, expires 04:12:42+08:00) bound to snapshot: main `da5934d1`, 21 open PRs, 61 open Issues.
 - PR #620 (Base Table spec) and PR #622 (shadcn Base Tooltip) were merged externally during the day by `cyjin-yl` (merge commits `0fa7dda5`, `da5934d1`); both recorded terminal with zero pass mutations. #621 is an open unassigned implementation Issue — no claim scope exists, so it is a proposal-only candidate. #619 received external CHANGES_REQUESTED from `guangliang2019`. Remaining mandated objects: PR #623 and PR #624, each via a fresh single-object worker.
+
+## 2026-09-07 — PR #623 exact-head no-op
+
+- Fresh single-object worker `ReviewPR623Fresh` completed `pui-pr -> pui-trace -> pui-validate -> fresh-context pui-review` at exact head `a225b656` and canonical digest `ba3332d3`. Focused end-follow/module/Web/projection tests and catalog checks passed; trusted exact-head CI/DCO are green; all 15 threads are resolved.
+- Review result is `REQUEST_CHANGES` for high-confidence P2 **PR623-MODULE-EPOCH-REPLACEMENT**: a Host Capability replacement reentrant from `applySnapshot()` can let the retired lease's snapshot overwrite the new `unresolved/off/idle` state with stale `system/following/applied` facts. Repair requires invalidating the in-progress snapshot epoch on attach/capability replacement plus a regression fixture.
+- Zero GitHub mutations. Canonical review preflight failed closed because viewer `cyjin-yl` is the PR author; the standing schedule scope cannot submit a self-disposition. Integration is blocked by the finding, spec-entity acceptance, missing independent exact-head approval, and `BLOCKED` merge state. Recheck only after remediation and a fresh canonical chain.
