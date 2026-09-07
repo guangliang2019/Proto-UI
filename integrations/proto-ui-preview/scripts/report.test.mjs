@@ -23,7 +23,7 @@ function validEnv(overrides = {}) {
     PREVIEW_AUTHOR: 'contributor',
     PREVIEW_AUTHOR_ID: '42',
     PREVIEW_PROJECT: 'poppy-proto-ui-pr-596',
-    PREVIEW_ORIGIN: 'https://poppy.example',
+    PREVIEW_ORIGIN: 'https://preview.example',
     PREVIEW_DEPLOYMENT_ID: 'poppy-artifact-596-exact-head',
     PREVIEW_RUN_ID: '123',
     PREVIEW_RUN_ATTEMPT: '2',
@@ -57,7 +57,7 @@ test('Ready sends the exact non-empty deployment ID in the signed lifecycle payl
     author_login: 'contributor',
     author_id: 42,
     project: 'poppy-proto-ui-pr-596',
-    origin: 'https://poppy.example',
+    origin: 'https://preview.example',
     deployment_id: deploymentID,
     run_id: 123,
     run_attempt: 2,
@@ -116,6 +116,7 @@ test('lifecycle reports reject non-origin endpoints before fetch', async () => {
     ['fragment-control-plane', { POPPY_CONTROL_PLANE: 'https://poppy.example/#other' }],
     ['ported-fallback', { PREVIEW_ORIGIN: 'https://poppy.example:444' }],
     ['query-fallback', { PREVIEW_ORIGIN: 'https://poppy.example/?route=other' }],
+    ['same-origin-fallback', { PREVIEW_ORIGIN: 'https://poppy.example' }],
   ];
   try {
     for (const [name, overrides] of cases) {

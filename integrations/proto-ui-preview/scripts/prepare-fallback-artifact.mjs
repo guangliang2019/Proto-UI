@@ -119,9 +119,34 @@ export async function sanitizeFallbackTree({ source, output, limits = FALLBACK_L
   return { files, bytes };
 }
 
+async function collectArchiveEntries(root) {
+  const entries = [];
+  async function visit(directory) {
+    const children = await readdir(directory, { withFileTypes: true });
+    children.sort((left, right) => left.name.localeCompare(right.name, 'en'));
+    for (const child of children) {
+      assertSafeEntryName(child.name);
+      const childPath = path.join(directory, child.name);
+      if (child.isDirectory()) {
+        await visit(childPath);
+      } else {
+        const stat = await lstat(childPath);
+        if (!stat.isFile() || stat.isSymbolicLink()) {
+          fail(`sanitized archive contains a non-regular file: ${displayPath(root, childPath)}`);
+        }
+        entries.push(displayPath(root, childPath));
+      }
+    }
+  }
+  await visit(root);
+  if (entries.length === 0) fail('fallback archive contains no regular files');
+  return entries;
+}
+
 async function createArchive(source, archive) {
   await rm(archive, { force: true });
   await mkdir(path.dirname(archive), { recursive: true, mode: 0o750 });
+  const entries = await collectArchiveEntries(source);
   const args = [
     '--create',
     '--gzip',
@@ -135,14 +160,18 @@ async function createArchive(source, archive) {
     '--owner=0',
     '--group=0',
     '--numeric-owner',
-    '.',
+    '--no-recursion',
+    '--null',
+    '--verbatim-files-from',
+    '--files-from=-',
   ];
   const result = await new Promise((resolve, reject) => {
-    const child = spawn('tar', args, { stdio: ['ignore', 'ignore', 'pipe'] });
+    const child = spawn('tar', args, { stdio: ['pipe', 'ignore', 'pipe'] });
     let stderr = '';
     child.stderr.on('data', (chunk) => (stderr += chunk));
     child.on('error', reject);
     child.on('close', (status) => resolve({ status, stderr }));
+    child.stdin.end(Buffer.from(`${entries.join('\0')}\0`));
   });
   if (result.status !== 0)
     fail(`could not create fallback archive: ${result.stderr.slice(0, 1000)}`);

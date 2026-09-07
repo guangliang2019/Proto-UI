@@ -3,6 +3,7 @@ import { chmod, lstat, mkdtemp, mkdir, readFile, rm, symlink, writeFile } from '
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
+import { gunzipSync } from 'node:zlib';
 import test from 'node:test';
 import { fileURLToPath } from 'node:url';
 
@@ -21,6 +22,21 @@ async function fixture() {
   const output = path.join(root, 'output');
   await mkdir(source);
   return { root, source, output };
+}
+function readTarEntries(bytes) {
+  const tar = gunzipSync(bytes);
+  const entries = [];
+  for (let offset = 0; offset + 512 <= tar.length; ) {
+    const header = tar.subarray(offset, offset + 512);
+    if (header.every((byte) => byte === 0)) break;
+    const name = header.toString('utf8', 0, 100).replace(/\0.*$/, '');
+    const prefix = header.toString('utf8', 345, 500).replace(/\0.*$/, '');
+    const sizeText = header.toString('ascii', 124, 136).replace(/\0.*$/, '').trim();
+    const size = sizeText ? Number.parseInt(sizeText, 8) : 0;
+    entries.push({ name: prefix ? `${prefix}/${name}` : name, type: header[156] });
+    offset += 512 + Math.ceil(size / 512) * 512;
+  }
+  return entries;
 }
 
 test('publishes the exact dcbot artifact envelope', () => {
@@ -77,7 +93,9 @@ test(
     const extracted = path.join(root, 'extracted');
     try {
       const sourceFile = path.join(source, 'index.html');
+      await mkdir(path.join(source, 'assets'));
       await writeFile(sourceFile, '<h1>safe</h1>');
+      await writeFile(path.join(source, 'assets', 'app.js'), 'safe');
       await chmod(sourceFile, 0o755);
       const prepared = spawnSync(
         process.execPath,
@@ -86,6 +104,18 @@ test(
       );
       assert.equal(prepared.status, 0, prepared.stderr || prepared.stdout);
       assert.equal((await lstat(path.join(output, 'index.html'))).mode & 0o111, 0);
+      const entries = readTarEntries(await readFile(archive));
+      assert.deepEqual(
+        entries.map(({ name }) => name).sort(),
+        ['assets/app.js', 'index.html']
+      );
+      for (const entry of entries) {
+        const clean = path.posix.normalize(entry.name);
+        assert.notEqual(clean, '.', 'PutTarGz rejects a root directory entry');
+        assert.notEqual(clean, '..');
+        assert.ok(!clean.startsWith('../') && !clean.startsWith('/'));
+        assert.equal(entry.type, '0'.charCodeAt(0), 'fallback archive contains only regular files');
+      }
 
       await mkdir(extracted);
       const unpacked = spawnSync(

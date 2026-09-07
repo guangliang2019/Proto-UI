@@ -150,10 +150,27 @@ test('Cloudflare mutation kill switch gates deployment and selects the dcbot fal
   for (const file of ['_worker.js', '_routes.json', '_headers', '_redirects', '.assetsignore']) {
     assert.match(fallbackPrepare, new RegExp(`['"]${file.replace('.', '\\.')}['"]`));
   }
-  assert.match(workflow, /PREVIEW_ORIGIN: \$\{\{ vars\.POPPY_PREVIEW_FALLBACK_ORIGIN \}\}/);
+  assert.match(workflow, /PREVIEW_ORIGIN: \$\{\{ vars\.POPPY_PREVIEW_FALLBACK_CONTENT_ORIGIN \}\}/);
   assert.match(workflow, /POPPY_PREVIEW_FALLBACK_MODE: 'true'/);
   assert.match(upload, /X-Poppy-Preview-Head-SHA/);
 });
+test('fallback publication requires a separate untrusted content origin', async () => {
+  assert.match(
+    workflow,
+    /fallback-upload:[\s\S]*POPPY_PREVIEW_FALLBACK_CONTENT_ORIGIN != ''[\s\S]*POPPY_PREVIEW_FALLBACK_CONTENT_ORIGIN != vars\.POPPY_PREVIEW_FALLBACK_ORIGIN/
+  );
+  assert.match(
+    workflow,
+    /fallback-unavailable:[\s\S]*POPPY_PREVIEW_FALLBACK_CONTENT_ORIGIN == ''[\s\S]*POPPY_PREVIEW_FALLBACK_CONTENT_ORIGIN == vars\.POPPY_PREVIEW_FALLBACK_ORIGIN/
+  );
+  assert.match(fallbackPrepare, /maxCompressedBytes:\s*50 \* 1024 \* 1024/);
+  assert.match(sticky, /fallback preview origin must be an HTTPS origin/);
+  assert.match(
+    await readFile(new URL('./report.mjs', import.meta.url), 'utf8'),
+    /fallback preview origin must be an HTTPS origin isolated from the control plane/
+  );
+});
+
 
 test('close always reports closed to Poppy while Cloudflare deletion is gated', () => {
   assert.match(close, /Report the closed deployment to Poppy/);
@@ -178,6 +195,18 @@ test('every permitted Cloudflare mutation process receives the exact reviewed sw
     );
   }
 });
+test('fallback rejects oversized artifacts before download extraction', () => {
+  const fallback = workflow.slice(
+    workflow.indexOf('  fallback-upload:'),
+    workflow.indexOf('  fallback-unavailable:')
+  );
+  assert.match(workflow, /artifact_size: \$\{\{ steps\.resolve\.outputs\.artifact_size \}\}/);
+  assert.match(fallback, /id: size[\s\S]*ARTIFACT_SIZE: \$\{\{ needs\.resolve-deploy\.outputs\.artifact_size \}\}/);
+  assert.match(fallback, /50 \* 1024 \* 1024/);
+  assert.match(fallback, /id: download[\s\S]*if: steps\.building\.outcome == 'success'/);
+  assert.match(fallback, /steps\.size\.outcome != 'success'/);
+});
+
 
 test('fallback sanitizes into a trusted tree before archiving and enforces receiver limits', () => {
   const fallback = workflow.slice(
@@ -214,6 +243,7 @@ test('every fallback failure after Building converges to Failed, sticky state, a
   );
   for (const id of [
     'live',
+    'size',
     'building',
     'download',
     'archive',
@@ -234,7 +264,7 @@ test('every fallback failure after Building converges to Failed, sticky state, a
     /PREVIEW_STATUS: \$\{\{ steps\.ready\.outcome == 'success' && 'ready' \|\| 'failed' \}\}/
   );
   assert.match(fallback, /Fail the fallback job when publication did not converge/);
-  for (const failedStep of ['download', 'archive', 'upload', 'ready', 'failed', 'comment']) {
+  for (const failedStep of ['size', 'download', 'archive', 'upload', 'ready', 'failed', 'comment']) {
     assert.match(fallback, new RegExp(`steps\\.${failedStep}\\.outcome != 'success'`));
   }
 
@@ -242,13 +272,13 @@ test('every fallback failure after Building converges to Failed, sticky state, a
     outcomes.live === 'success' && outcomes.ready !== 'success';
   const shouldWriteComment = (outcomes) => outcomes.live === 'success';
   const shouldFailJob = (outcomes) =>
-    ['live', 'building', 'download', 'archive', 'upload', 'ready', 'comment'].some(
+    ['live', 'size', 'building', 'download', 'archive', 'upload', 'ready', 'comment'].some(
       (step) => outcomes[step] !== 'success'
     ) ||
     (outcomes.ready !== 'success' && outcomes.failed !== 'success');
 
   const success = Object.fromEntries(
-    ['live', 'building', 'download', 'archive', 'upload', 'ready', 'comment'].map((step) => [
+    ['live', 'size', 'building', 'download', 'archive', 'upload', 'ready', 'comment'].map((step) => [
       step,
       'success',
     ])
@@ -257,6 +287,10 @@ test('every fallback failure after Building converges to Failed, sticky state, a
   assert.equal(shouldReportFailed(success), false);
   assert.equal(shouldWriteComment(success), true);
   assert.equal(shouldFailJob(success), false);
+  const oversized = { ...success, size: 'failure', building: 'skipped', download: 'skipped', archive: 'skipped', upload: 'skipped', ready: 'skipped', failed: 'success' };
+  assert.equal(shouldReportFailed(oversized), true, 'oversized artifacts must revoke the lifecycle');
+  assert.equal(shouldWriteComment(oversized), true, 'oversized artifacts must update the sticky state');
+  assert.equal(shouldFailJob(oversized), true, 'oversized artifacts must fail the job');
 
   const publicationSteps = ['building', 'download', 'archive', 'upload', 'ready'];
   for (const [failureIndex, boundary] of publicationSteps.entries()) {

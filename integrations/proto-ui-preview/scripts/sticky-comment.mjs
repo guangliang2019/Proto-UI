@@ -20,6 +20,25 @@ const shortSHA = headSHA.slice(0, 12);
 const runURL = process.env.PREVIEW_RUN_URL || '';
 const origin = process.env.PREVIEW_ORIGIN || '';
 const fallbackMode = process.env.POPPY_PREVIEW_FALLBACK_MODE === 'true';
+if (fallbackMode && status === 'ready') {
+  let previewOrigin;
+  try {
+    previewOrigin = new URL(origin);
+  } catch {
+    throw new Error('fallback preview origin must be an HTTPS origin');
+  }
+  if (
+    previewOrigin.protocol !== 'https:' ||
+    previewOrigin.username ||
+    previewOrigin.password ||
+    previewOrigin.port ||
+    previewOrigin.pathname !== '/' ||
+    previewOrigin.search ||
+    previewOrigin.hash
+  ) {
+    throw new Error('fallback preview origin must be an HTTPS origin without a path');
+  }
+}
 const previewURL = fallbackMode
   ? `${origin.replace(/\/$/, '')}/admin/preview/content/${pr}/${headSHA}/`
   : origin;

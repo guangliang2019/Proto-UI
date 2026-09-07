@@ -29,6 +29,7 @@ jobs:
       head_sha: ${{ steps.resolve.outputs.head_sha }}
       project: ${{ steps.resolve.outputs.project }}
       artifact_id: ${{ steps.resolve.outputs.artifact_id }}
+      artifact_size: ${{ steps.resolve.outputs.artifact_size }}
       run_id: ${{ steps.resolve.outputs.run_id }}
       run_attempt: ${{ steps.resolve.outputs.run_attempt }}
       author_login: ${{ steps.resolve.outputs.author_login }}
@@ -102,6 +103,7 @@ jobs:
             core.setOutput("head_sha", candidate.sha);
             core.setOutput("project", `poppy-proto-ui-pr-${candidate.pr}`);
             core.setOutput("artifact_id", String(candidate.artifact.id));
+            core.setOutput("artifact_size", String(candidate.artifact.size_in_bytes));
             core.setOutput("run_id", String(run.id));
             core.setOutput("run_attempt", String(run.run_attempt));
             core.setOutput("author_login", pr.user.login);
@@ -230,7 +232,7 @@ jobs:
   fallback-upload:
     name: Publish Poppy artifact fallback
     needs: resolve-deploy
-    if: needs.resolve-deploy.outputs.pr != '' && vars.POPPY_CLOUDFLARE_MUTATIONS_ENABLED != 'true' && vars.POPPY_PREVIEW_FALLBACK_ORIGIN != ''
+    if: needs.resolve-deploy.outputs.pr != '' && vars.POPPY_CLOUDFLARE_MUTATIONS_ENABLED != 'true' && vars.POPPY_PREVIEW_FALLBACK_ORIGIN != '' && vars.POPPY_PREVIEW_FALLBACK_CONTENT_ORIGIN != '' && vars.POPPY_PREVIEW_FALLBACK_CONTENT_ORIGIN != vars.POPPY_PREVIEW_FALLBACK_ORIGIN
     runs-on: ubuntu-latest
     timeout-minutes: 15
 
@@ -258,10 +260,19 @@ jobs:
             if (pr.state !== 'open' || pr.head.sha !== '${{ needs.resolve-deploy.outputs.head_sha }}') {
               core.setFailed('Refusing stale fallback publication after the per-PR lock');
             }
+      - name: Reject oversized fallback artifact before extraction
+        id: size
+        if: steps.live.outcome == 'success'
+        env:
+          ARTIFACT_SIZE: ${{ needs.resolve-deploy.outputs.artifact_size }}
+        shell: bash
+        run: |
+          node -e 'const size = Number(process.env.ARTIFACT_SIZE); const limit = 50 * 1024 * 1024; if (!Number.isSafeInteger(size) || size < 1 || size > limit) { console.error(`fallback artifact exceeds the 50 MiB compressed envelope: ${process.env.ARTIFACT_SIZE}`); process.exit(1); }'
+
 
       - name: Report fallback build to Poppy
         id: building
-        if: steps.live.outcome == 'success'
+        if: steps.size.outcome == 'success'
         env:
           POPPY_PREVIEW_INGEST_SECRET: ${{ secrets.POPPY_PREVIEW_INGEST_SECRET }}
           POPPY_CONTROL_PLANE: ${{ vars.POPPY_PREVIEW_FALLBACK_ORIGIN }}
@@ -323,7 +334,7 @@ jobs:
           PREVIEW_AUTHOR: ${{ needs.resolve-deploy.outputs.author_login }}
           PREVIEW_AUTHOR_ID: ${{ needs.resolve-deploy.outputs.author_id }}
           PREVIEW_PROJECT: ${{ needs.resolve-deploy.outputs.project }}
-          PREVIEW_ORIGIN: ${{ vars.POPPY_PREVIEW_FALLBACK_ORIGIN }}
+          PREVIEW_ORIGIN: ${{ vars.POPPY_PREVIEW_FALLBACK_CONTENT_ORIGIN }}
           PREVIEW_DEPLOYMENT_ID: ${{ steps.upload.outputs.deployment_id }}
           PREVIEW_RUN_ID: ${{ needs.resolve-deploy.outputs.run_id }}
           PREVIEW_RUN_ATTEMPT: ${{ needs.resolve-deploy.outputs.run_attempt }}
@@ -361,7 +372,7 @@ jobs:
           PREVIEW_PR: ${{ needs.resolve-deploy.outputs.pr }}
           PREVIEW_SHA: ${{ needs.resolve-deploy.outputs.head_sha }}
           PREVIEW_PROJECT: ${{ needs.resolve-deploy.outputs.project }}
-          PREVIEW_ORIGIN: ${{ vars.POPPY_PREVIEW_FALLBACK_ORIGIN }}
+          PREVIEW_ORIGIN: ${{ vars.POPPY_PREVIEW_FALLBACK_CONTENT_ORIGIN }}
           POPPY_PREVIEW_FALLBACK_MODE: 'true'
           PREVIEW_STATUS: ${{ steps.ready.outcome == 'success' && 'ready' || 'failed' }}
           PREVIEW_RUN_URL: https://github.com/${{ github.repository }}/actions/runs/${{ needs.resolve-deploy.outputs.run_id }}
@@ -370,7 +381,7 @@ jobs:
 
       - name: Fail the fallback job when publication did not converge
         if: >-
-          always() && (steps.live.outcome != 'success' || steps.building.outcome != 'success' || steps.download.outcome != 'success' || steps.archive.outcome != 'success' || steps.upload.outcome != 'success' || steps.ready.outcome != 'success' || (steps.ready.outcome != 'success' && steps.failed.outcome != 'success') || steps.comment.outcome != 'success')
+          always() && (steps.live.outcome != 'success' || steps.size.outcome != 'success' || steps.building.outcome != 'success' || steps.download.outcome != 'success' || steps.archive.outcome != 'success' || steps.upload.outcome != 'success' || steps.ready.outcome != 'success' || (steps.ready.outcome != 'success' && steps.failed.outcome != 'success') || steps.comment.outcome != 'success')
 
 
         shell: bash
@@ -379,7 +390,7 @@ jobs:
   fallback-unavailable:
     name: Report preview fallback unavailable
     needs: resolve-deploy
-    if: needs.resolve-deploy.outputs.pr != '' && vars.POPPY_CLOUDFLARE_MUTATIONS_ENABLED != 'true' && vars.POPPY_PREVIEW_FALLBACK_ORIGIN == ''
+    if: needs.resolve-deploy.outputs.pr != '' && vars.POPPY_CLOUDFLARE_MUTATIONS_ENABLED != 'true' && (vars.POPPY_PREVIEW_FALLBACK_ORIGIN == '' || vars.POPPY_PREVIEW_FALLBACK_CONTENT_ORIGIN == '' || vars.POPPY_PREVIEW_FALLBACK_CONTENT_ORIGIN == vars.POPPY_PREVIEW_FALLBACK_ORIGIN)
     runs-on: ubuntu-latest
     timeout-minutes: 5
 
