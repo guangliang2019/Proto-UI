@@ -65,8 +65,7 @@ const protoUiSourcePlugin = {
 
 const inProgressBadge = {
   text: { en: 'WIP', 'zh-CN': '施工中' },
-  class:
-    'text-xs px-1.5 h-4.5 rounded-full bg-amber-100 text-amber-900 dark:bg-amber-900 dark:text-amber-100',
+  class: 'docs-wip-badge',
 };
 const whitepaperRedirects = {
   '/en/whitepaper/component-as-protocol': '/en/whitepaper/1-components-before-code/',
