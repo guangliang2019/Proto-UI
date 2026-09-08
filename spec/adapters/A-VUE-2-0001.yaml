@@ -13,10 +13,12 @@ adapterProfile:
       versionRange: '>=2.6.0 <2.7'
 statement:
   zh-CN: >-
-    该 profile 表示 `@proto.ui/adapter-vue2` 在 Web platform 上面向 Vue `>=2.6.0 <2.7` 的 official translation identity。一个 Vue 2 component owner 持有 Proto RuntimeSession，并把 props 与 attrs、DOM input、Vue lifecycle、component public instance 和 Vue event listener 翻译到 required Props、Event、State、Expose core、Expose State 与 Expose Event Module。当前编目只覆盖已有 executable evidence 的 slice；其它 Module 未出现时表示 uncataloged，不得推断为支持或不支持。
+    该 profile 表示 `@proto.ui/adapter-vue2` 在 Web platform 上面向 Vue `>=2.6.0 <2.7` 的 official translation identity。一个 Vue 2 component owner 持有 Proto RuntimeSession，并把 props 与 attrs、DOM input、Vue lifecycle、component public instance 和 Vue event listener 翻译到 required Props、Event、State、Expose core、Expose State、Expose Event 与 Context Module。当前编目只覆盖已有 executable evidence 的 slice；其它 Module 未出现时表示 uncataloged，不得推断为支持或不支持。
+
 
   en: >-
-    This profile is the official translation identity of `@proto.ui/adapter-vue2` for Vue `>=2.6.0 <2.7` on the Web platform. A Vue 2 component owner retains the Proto RuntimeSession and translates props and attrs, DOM input, Vue lifecycle, the component public instance, and Vue event listeners into the required Props, Event, State, Expose core, Expose State, and Expose Event modules. The current catalog is limited to slices with executable evidence; every other Module remains uncataloged rather than implicitly supported or unsupported.
+    This profile is the official translation identity of `@proto.ui/adapter-vue2` for Vue `>=2.6.0 <2.7` on the Web platform. A Vue 2 component owner retains the Proto RuntimeSession and translates props and attrs, DOM input, Vue lifecycle, the component public instance, and Vue event listeners into the required Props, Event, State, Expose core, Expose State, Expose Event, and Context modules. The current catalog is limited to slices with executable evidence; every other Module remains uncataloged rather than implicitly supported or unsupported.
+
 
 criteria:
   - id: A-VUE-2-0001-A
@@ -71,6 +73,10 @@ criteria:
     text:
       zh-CN: Adapter 必须接入 required Expose Event Module，并以 translated capability 提供 `HC-EXPOSE-EVENT-SINK-0001`；合法 emission 映射到 Vue 2 event listener 与当前 typed `onXxx` listener，listener attrs 不得进入 Proto raw props。
       en: The Adapter must wire the required Expose Event module and provide `HC-EXPOSE-EVENT-SINK-0001` as a translated capability; valid emissions map to Vue 2 event listeners and current typed `onXxx` listeners, while listener attrs stay outside Proto raw props.
+  - id: A-VUE-2-0001-CONTEXT
+    text:
+      en: The standard Adapter wires Context with stable opaque instance identity and current logical ancestry; real mounted nested scopes, equal-name Key isolation, callback updates and terminal owner replacement must conform to T-CONTEXT-0003.
+      zh-CN: standard Adapter 接入 Context 并提供稳定 opaque instance identity 与当前 logical ancestry；真实挂载的嵌套 scope、同名 Key 隔离、callback update 与 terminal owner 替换必须符合 T-CONTEXT-0003。
 supports:
   modules:
     - id: M-PROPS-0001
@@ -91,6 +97,10 @@ supports:
     - id: M-EXPOSE-EVENT-0001
       role: required-module
       note: Expose Event owns the outward-signal bridge and receives its sink through expose-event wiring.
+    - id: M-CONTEXT-0001
+      since: 0.3.0-alpha.0
+      role: required-module
+      note: The standard Runtime Context channel uses Adapter-owned identity and ancestry, never framework Context value semantics.
 provides:
   hostCaps:
     - id: HC-PROPS-SOURCE-0001
@@ -108,6 +118,14 @@ provides:
     - id: HC-EXPOSE-EVENT-SINK-0001
       role: translated-capability
       note: Vue 2 maps validated outward signals to event and typed onXxx listeners.
+    - id: HC-CONTEXT-IDENTITY-0001
+      since: 0.3.0-alpha.0
+      role: translated-capability
+      note: Adapter logical instance tokens and parent links translate host ownership into Context facts.
+    - id: HC-CONTEXT-ANCESTRY-0001
+      since: 0.3.0-alpha.0
+      role: translated-capability
+      note: Adapter logical instance tokens and parent links translate host ownership into Context facts.
 relates:
   decisions:
     - D-ADAPTER-PROFILE-0001
@@ -123,6 +141,8 @@ verifies:
     - T-EXPOSE-0002
     - T-EXPOSE-STATE-0002
     - T-EXPOSE-EVENT-0002
+    - id: T-CONTEXT-0003
+      since: 0.3.0-alpha.0
 sources:
   - path: packages/adapters/vue2/package.json
   - path: packages/adapters/vue2/src/adapt.ts
@@ -133,8 +153,12 @@ sources:
   - path: packages/adapters/vue2/test/lifecycle.test.ts
   - path: packages/adapters/vue2/test/expose.test.ts
   - path: packages/adapters/vue2/test/types.test.ts
+  - path: packages/adapters/vue2/test/context.integration.test.ts
 revisions:
   - version: 0.3.0-alpha.0
     change: introduced
     summary: Admitted the official Vue 2.6 Web Adapter profile with reviewed Props, Event, lifecycle, State, Expose, and host-capability translation evidence.
+  - version: 0.3.0-alpha.0
+    change: revised
+    summary: Added the reviewed Context identity/ancestry slice and real-framework nested-scope evidence; other unlisted modules remain uncataloged.
 tags: [adapter, vue2, vue, web, props, event, lifecycle, state, expose, official]
