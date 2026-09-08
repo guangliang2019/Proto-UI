@@ -836,6 +836,89 @@ describe('module-scroll: end-follow host contract', () => {
     expect(target.scrollTop).toBe(400);
     lease.dispose();
   });
+  it.each(['transitioncancel', 'animationcancel'] as const)(
+    'reconciles descendant reflow when a nested %s is canceled',
+    (eventType) => {
+      const frames = installFrameHarness();
+      const target = document.createElement('div');
+      const wrapper = document.createElement('div');
+      target.append(wrapper);
+      const updateMetrics = installMetrics(target, {
+        clientWidth: 100,
+        scrollWidth: 100,
+        clientHeight: 100,
+        scrollHeight: 400,
+      });
+      document.body.append(target);
+      const snapshots: ScrollSurfaceSnapshot[] = [];
+      const lease = attachEndFollow(target, snapshots);
+      frames.runAll();
+
+      updateMetrics({ scrollHeight: 500 });
+      wrapper.dispatchEvent(new Event(eventType));
+
+      expect(frames.pending()).toBe(1);
+      frames.runAll();
+      expect(target.scrollTop).toBe(400);
+      expect(snapshots.at(-1)?.endFollow).toEqual({
+        state: 'following',
+        requestStatus: 'applied',
+      });
+      lease.dispose();
+    }
+  );
+
+  it.each(['transitioncancel', 'animationcancel'] as const)(
+    'filters canceled descendant %s when end-follow is off',
+    (eventType) => {
+      const frames = installFrameHarness();
+      const target = document.createElement('div');
+      const wrapper = document.createElement('div');
+      target.append(wrapper);
+      installMetrics(target, {
+        clientWidth: 100,
+        scrollWidth: 100,
+        clientHeight: 100,
+        scrollHeight: 400,
+      });
+      document.body.append(target);
+      const lease = createWebScrollSurfaceHost(target, { moveGestureHost }).attach({
+        config: {
+          axes: 'vertical',
+          projection: 'system',
+          endFollow: { mode: 'off' },
+        },
+        projection: 'system',
+        onFacts: () => {},
+      });
+
+      wrapper.dispatchEvent(new Event(eventType));
+
+      expect(frames.pending()).toBe(0);
+      lease.dispose();
+    }
+  );
+
+  it('cleans canceled descendant reflow listeners on disposal', () => {
+    const frames = installFrameHarness();
+    const target = document.createElement('div');
+    const wrapper = document.createElement('div');
+    target.append(wrapper);
+    installMetrics(target, {
+      clientWidth: 100,
+      scrollWidth: 100,
+      clientHeight: 100,
+      scrollHeight: 400,
+    });
+    document.body.append(target);
+    const lease = attachEndFollow(target, []);
+    frames.runAll();
+
+    lease.dispose();
+    wrapper.dispatchEvent(new Event('animationcancel'));
+
+    expect(frames.pending()).toBe(0);
+  });
 
   it('rejects an end application that host clamping leaves away from end', () => {
     const frames = installFrameHarness();

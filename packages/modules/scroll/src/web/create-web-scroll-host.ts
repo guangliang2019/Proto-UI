@@ -651,7 +651,9 @@ export function createWebScrollSurfaceHost(
       target.addEventListener('scroll', onScroll, { passive: true });
       target.addEventListener('load', onContentReflow, true);
       target.addEventListener('transitionend', onContentReflow, true);
+      target.addEventListener('transitioncancel', onContentReflow, true);
       target.addEventListener('animationend', onContentReflow, true);
+      target.addEventListener('animationcancel', onContentReflow, true);
       target.addEventListener('wheel', onWheel, { passive: true });
       target.addEventListener('pointerdown', onPointerDown, { passive: true });
       ownerWindow?.addEventListener('pointerup', completeReaderIntent, { passive: true });
@@ -754,7 +756,9 @@ export function createWebScrollSurfaceHost(
           target.removeEventListener('scroll', onScroll);
           target.removeEventListener('load', onContentReflow, true);
           target.removeEventListener('transitionend', onContentReflow, true);
+          target.removeEventListener('transitioncancel', onContentReflow, true);
           target.removeEventListener('animationend', onContentReflow, true);
+          target.removeEventListener('animationcancel', onContentReflow, true);
           target.removeEventListener('wheel', onWheel);
           target.removeEventListener('pointerdown', onPointerDown);
           ownerWindow?.removeEventListener('pointerup', completeReaderIntent);
