@@ -82,3 +82,7 @@ Anatomy 已提交 `70612955`。整体余量与后续波次记录于 `2026-09-08-
 ## Expose State Web 本地候选
 
 继 Collection 后补齐 Web extension 的 M、target HC、四 A 与 T，修复活动状态误报、host 丢失后旧订阅残留及 unmounting 写入。详见 `2026-09-08-expose-state-web-catalog.zh-CN.md`。DOM artifact 撤销与冲突策略保持 open；下一 slice 为 Rule Expose State Web。
+
+## Rule Expose State Web 部分支持候选
+
+已补 M/T 与四 A 的 `partial-module` 关系，修复 view contribution 残留及严格比较/selector 编码的不安全 lowering。详见 `2026-09-08-rule-expose-state-web-catalog.zh-CN.md`。动态重规划和完整 CSS 等价性仍 open；第一波具备编目落点，普通编目下一项为 Trigger。

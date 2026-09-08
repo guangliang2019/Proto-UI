@@ -100,8 +100,16 @@ criteria:
     text:
       en: The standard Web Adapter installs the bounded Expose State Web extension and supplies its canonical target. State attributes and CSS variables follow default or explicitly configured mode mapping without requiring Proto structural rendering.
       zh-CN: standard Web Adapter 安装有界 Expose State Web extension 并提供 canonical target。State attribute/CSS variable 按默认或显式 mode 配置映射，无需 Proto structural render。
+  - id: A-WEB-COMPONENT-0001-RULE-EXPOSE-STATE-WEB
+    text:
+      en: The standard Web Adapter installs this partial Rule optimization slice with its native-variant policy. Bounded State selectors, default fallbacks and view cleanup have evidence; live replanning and full CSS equivalence remain open.
+      zh-CN: standard Web Adapter 安装此 partial Rule optimization slice 并提供 native-variant policy。有界 State selector、default fallback 和 view cleanup 已有证据；live replanning 与完整 CSS 等价仍 open。
 supports:
   modules:
+    - id: M-RULE-EXPOSE-STATE-WEB-0001
+      since: 0.3.0-alpha.0
+      role: partial-module
+      note: Installed by standard Runtime; partial conformance, see Module open questions.
     - id: M-COLLECTION-0001
       since: 0.3.0-alpha.0
       role: required-module
@@ -196,6 +204,8 @@ relates:
     - D-ADAPTER-PROFILE-0001
 verifies:
   tests:
+    - id: T-RULE-EXPOSE-STATE-WEB-0001
+      since: 0.3.0-alpha.0
     - id: T-COLLECTION-0002
       since: 0.3.0-alpha.0
     - id: T-ANATOMY-0004
@@ -231,6 +241,7 @@ openQuestions:
     blocks:
       - web-component-props-ingress-profile
 sources:
+  - path: packages/adapters/web-component/test/rule-expose-state-web.integration.test.ts
   - path: packages/adapters/web-component/test/collection.integration.test.ts
   - path: packages/adapters/web-component/test/anatomy.integration.test.ts
   - path: packages/adapters/web-component/test/rule.integration.test.ts
@@ -256,6 +267,9 @@ sources:
   - path: packages/adapters/web-component/test/context.integration.test.ts
   - path: packages/adapters/web-component/test/expose-state-web.integration.test.ts
 revisions:
+  - version: 0.3.0-alpha.0
+    change: revised
+    summary: Recorded partial Rule Expose State Web support, fallback and lifecycle evidence.
   - version: 0.3.0-alpha.0
     change: revised
     summary: Added bounded Expose State Web module, target capability and executable projection evidence.
