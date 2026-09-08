@@ -9,6 +9,7 @@ import tailwindcss from '@tailwindcss/vite';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { rehypeScrollableTables } from './src/utils/rehype-scrollable-tables.js';
 import { rehypeEnhancedImage } from './src/utils/rehype-enhanced-image.js';
 import { whitepaperRedirectFragments } from './src/utils/whitepaper-redirect-fragments.mjs';
 import { remarkConceptDirective } from './src/utils/remark-concept-directive.js';
@@ -178,15 +179,15 @@ export default defineConfig({
           translations: { en: 'Start Here', 'zh-CN': '从这里开始' },
           items: [
             {
-              label: '你刚刚看到的是什么？',
-              translations: { en: 'What You Just Saw', 'zh-CN': '你刚刚看到的是什么？' },
+              label: '认识 Proto UI',
+              translations: { en: 'Meet Proto UI', 'zh-CN': '认识 Proto UI' },
               slug: 'start-here/what-you-saw',
             },
             {
               label: 'Why Proto UI',
               translations: {
                 en: 'Why Proto UI',
-                'zh-CN': 'Why Proto UI',
+                'zh-CN': '为什么关注 Proto UI',
               },
               slug: 'start-here/why-proto-ui',
             },
@@ -891,7 +892,7 @@ export default defineConfig({
   ],
   markdown: {
     remarkPlugins: [remarkDirective, remarkConceptDirective],
-    rehypePlugins: [rehypeEnhancedImage],
+    rehypePlugins: [rehypeEnhancedImage, rehypeScrollableTables],
   },
   vite: {
     resolve: {
