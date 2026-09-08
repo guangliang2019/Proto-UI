@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import type { MoveGestureHost, ScrollSurfaceSnapshot } from '@proto.ui/core';
+import type { MoveGestureHost, ScrollSurfaceRequest, ScrollSurfaceSnapshot } from '@proto.ui/core';
 import { createWebScrollSurfaceHost, type ScrollSurfaceHostLease } from '../src';
 
 const moveGestureHost: MoveGestureHost = {
@@ -492,6 +492,84 @@ describe('module-scroll: end-follow host contract', () => {
     lease.dispose();
   });
 
+  it('keeps touch intent through native pointer cancellation until the surface departs', () => {
+    const frames = installFrameHarness();
+    const target = document.createElement('div');
+    const updateMetrics = installMetrics(target, {
+      clientWidth: 100,
+      scrollWidth: 100,
+      clientHeight: 100,
+      scrollHeight: 400,
+    });
+    document.body.append(target);
+    const snapshots: ScrollSurfaceSnapshot[] = [];
+    const lease = attachEndFollow(target, snapshots);
+    frames.runAll();
+
+    target.dispatchEvent(new Event('touchstart', { bubbles: true }));
+    target.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true, pointerType: 'touch' }));
+    window.dispatchEvent(new PointerEvent('pointercancel', { pointerType: 'touch' }));
+    target.scrollTop = 200;
+    target.dispatchEvent(new Event('scroll'));
+
+    expect(snapshots.at(-1)?.endFollow.state).toBe('paused');
+
+    updateMetrics({ scrollHeight: 500 });
+    window.dispatchEvent(new Event('resize'));
+    frames.runAll();
+    expect(target.scrollTop).toBe(200);
+    expect(snapshots.at(-1)?.endFollow.state).toBe('paused');
+    window.dispatchEvent(new Event('touchend'));
+    lease.dispose();
+  });
+
+  it('ends native-cancellation touch intent when the touch completes', () => {
+    const frames = installFrameHarness();
+    const target = document.createElement('div');
+    installMetrics(target, {
+      clientWidth: 100,
+      scrollWidth: 100,
+      clientHeight: 100,
+      scrollHeight: 400,
+    });
+    document.body.append(target);
+    const snapshots: ScrollSurfaceSnapshot[] = [];
+    const lease = attachEndFollow(target, snapshots);
+    frames.runAll();
+
+    target.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true, pointerType: 'touch' }));
+    window.dispatchEvent(new PointerEvent('pointercancel', { pointerType: 'touch' }));
+    window.dispatchEvent(new Event('touchend'));
+    target.scrollTop = 200;
+    target.dispatchEvent(new Event('scroll'));
+
+    expect(snapshots.at(-1)?.endFollow.state).toBe('following');
+    lease.dispose();
+  });
+
+  it('does not preserve non-touch pointer cancellation as panning intent', () => {
+    const frames = installFrameHarness();
+    const target = document.createElement('div');
+    installMetrics(target, {
+      clientWidth: 100,
+      scrollWidth: 100,
+      clientHeight: 100,
+      scrollHeight: 400,
+    });
+    document.body.append(target);
+    const snapshots: ScrollSurfaceSnapshot[] = [];
+    const lease = attachEndFollow(target, snapshots);
+    frames.runAll();
+
+    target.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true, pointerType: 'mouse' }));
+    window.dispatchEvent(new PointerEvent('pointercancel', { pointerType: 'mouse' }));
+    target.scrollTop = 200;
+    target.dispatchEvent(new Event('scroll'));
+
+    expect(snapshots.at(-1)?.endFollow.state).toBe('following');
+    lease.dispose();
+  });
+
   it('clears pointer intent when the gesture ends outside the surface', () => {
     const frames = installFrameHarness();
     const target = document.createElement('div');
@@ -623,6 +701,114 @@ describe('module-scroll: end-follow host contract', () => {
       requestStatus: 'applied',
     });
     expect(document.activeElement).toBe(focusOwner);
+    lease.dispose();
+  });
+
+  it.each<{
+    request: ScrollSurfaceRequest;
+    expectedOffset: number;
+  }>([
+    { request: { kind: 'by', axis: 'vertical', delta: -50 }, expectedOffset: 250 },
+    { request: { kind: 'to', axis: 'vertical', position: 0.5 }, expectedOffset: 150 },
+    {
+      request: { kind: 'page', axis: 'vertical', direction: 'before' },
+      expectedOffset: 200,
+    },
+    { request: { kind: 'control-drag', axis: 'vertical', position: 0.25 }, expectedOffset: 75 },
+  ])(
+    'pauses a smooth $request.kind away request before asynchronous movement',
+    ({ request, expectedOffset }) => {
+      const frames = installFrameHarness();
+      const target = document.createElement('div');
+      const updateMetrics = installMetrics(target, {
+        clientWidth: 100,
+        scrollWidth: 100,
+        clientHeight: 100,
+        scrollHeight: 400,
+      });
+      target.style.scrollBehavior = 'smooth';
+      let scrollTop = 0;
+      let deferredScrollTop: number | null = null;
+      Object.defineProperty(target, 'scrollTop', {
+        configurable: true,
+        get: () => scrollTop,
+        set: (value: number) => {
+          if (target.style.getPropertyValue('scroll-behavior') === 'smooth') {
+            deferredScrollTop = value;
+          } else {
+            scrollTop = value;
+          }
+        },
+      });
+      document.body.append(target);
+      const snapshots: ScrollSurfaceSnapshot[] = [];
+      const lease = attachEndFollow(target, snapshots);
+      frames.runAll();
+      expect(target.scrollTop).toBe(300);
+
+      lease.request(request);
+
+      expect(target.scrollTop).toBe(300);
+      expect(deferredScrollTop).toBe(expectedOffset);
+      expect(snapshots.at(-1)?.endFollow.state).toBe('paused');
+
+      target.dispatchEvent(new Event('scroll'));
+      expect(snapshots.at(-1)?.endFollow.state).toBe('paused');
+
+      scrollTop = deferredScrollTop!;
+      target.dispatchEvent(new Event('scroll'));
+      expect(snapshots.at(-1)?.vertical.atEnd).toBe(false);
+      expect(snapshots.at(-1)?.endFollow.state).toBe('paused');
+
+      updateMetrics({ scrollHeight: 500 });
+      window.dispatchEvent(new Event('resize'));
+      frames.runAll();
+      expect(frames.pending()).toBe(0);
+      expect(target.scrollTop).toBe(expectedOffset);
+      expect(snapshots.at(-1)?.endFollow.state).toBe('paused');
+      lease.dispose();
+    }
+  );
+
+  it('keeps following when a smooth request resolves to the current end', () => {
+    const frames = installFrameHarness();
+    const target = document.createElement('div');
+    const updateMetrics = installMetrics(target, {
+      clientWidth: 100,
+      scrollWidth: 100,
+      clientHeight: 100,
+      scrollHeight: 400,
+    });
+    target.style.scrollBehavior = 'smooth';
+    let scrollTop = 0;
+    let deferredScrollTop: number | null = null;
+    Object.defineProperty(target, 'scrollTop', {
+      configurable: true,
+      get: () => scrollTop,
+      set: (value: number) => {
+        if (target.style.getPropertyValue('scroll-behavior') === 'smooth') {
+          deferredScrollTop = value;
+        } else {
+          scrollTop = value;
+        }
+      },
+    });
+    document.body.append(target);
+    const snapshots: ScrollSurfaceSnapshot[] = [];
+    const lease = attachEndFollow(target, snapshots);
+    frames.runAll();
+
+    lease.request({ kind: 'page', axis: 'vertical', direction: 'after' });
+
+    expect(deferredScrollTop).toBe(300);
+    expect(snapshots.at(-1)?.endFollow.state).toBe('following');
+
+    updateMetrics({ scrollHeight: 500 });
+    window.dispatchEvent(new Event('resize'));
+    expect(frames.pending()).toBe(1);
+    frames.runAll();
+    expect(target.scrollTop).toBe(400);
+    expect(snapshots.at(-1)?.endFollow.state).toBe('following');
     lease.dispose();
   });
 
