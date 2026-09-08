@@ -62,11 +62,39 @@ function attachEndFollow(target: HTMLElement, snapshots: ScrollSurfaceSnapshot[]
   });
 }
 
+function installFontHarness(): {
+  dispatch(type: string): void;
+  listeners(): ReadonlySet<EventListener>;
+} {
+  const byType = new Map<string, Set<EventListener>>();
+  const addEventListener = (type: string, listener: EventListener) => {
+    const set = byType.get(type) ?? byType.set(type, new Set()).get(type)!;
+    set.add(listener);
+  };
+  const removeEventListener = (type: string, listener: EventListener) => {
+    byType.get(type)?.delete(listener);
+  };
+  const dispatch = (type: string) => {
+    for (const listener of Array.from(byType.get(type) ?? [])) {
+      listener(new Event(type));
+    }
+  };
+  Object.defineProperty(document, 'fonts', {
+    configurable: true,
+    value: { addEventListener, removeEventListener },
+  });
+  return {
+    dispatch,
+    listeners: () => new Set(byType.get('loadingdone') ?? []),
+  };
+}
+
 afterEach(() => {
   document.body.replaceChildren();
   vi.restoreAllMocks();
   vi.unstubAllGlobals();
   vi.useRealTimers();
+  Reflect.deleteProperty(document, 'fonts');
 });
 
 describe('module-scroll: end-follow host contract', () => {
@@ -669,6 +697,59 @@ describe('module-scroll: end-follow host contract', () => {
     expect(frames.pending()).toBe(1);
     frames.runAll();
     expect(target.scrollTop).toBe(400);
+    lease.dispose();
+  });
+
+  it('observes web-font reflow beneath a fixed direct wrapper', () => {
+    const frames = installFrameHarness();
+    const fonts = installFontHarness();
+    const target = document.createElement('div');
+    const wrapper = document.createElement('div');
+    const text = document.createTextNode('measure me');
+    wrapper.append(text);
+    target.append(wrapper);
+    const updateMetrics = installMetrics(target, {
+      clientWidth: 100,
+      scrollWidth: 100,
+      clientHeight: 100,
+      scrollHeight: 400,
+    });
+    document.body.append(target);
+    const snapshots: ScrollSurfaceSnapshot[] = [];
+    const lease = attachEndFollow(target, snapshots);
+    frames.runAll();
+
+    updateMetrics({ scrollHeight: 500 });
+    fonts.dispatch('loadingdone');
+
+    expect(frames.pending()).toBe(1);
+    frames.runAll();
+    expect(target.scrollTop).toBe(400);
+    lease.dispose();
+  });
+
+  it('does not observe font loading when end-follow is off', () => {
+    const fonts = installFontHarness();
+    const target = document.createElement('div');
+    installMetrics(target, {
+      clientWidth: 100,
+      scrollWidth: 100,
+      clientHeight: 100,
+      scrollHeight: 400,
+    });
+    document.body.append(target);
+
+    const lease = createWebScrollSurfaceHost(target, { moveGestureHost }).attach({
+      config: {
+        axes: 'vertical',
+        projection: 'system',
+        endFollow: { mode: 'off' },
+      },
+      projection: 'system',
+      onFacts: () => {},
+    });
+
+    expect(fonts.listeners().size).toBe(0);
     lease.dispose();
   });
 

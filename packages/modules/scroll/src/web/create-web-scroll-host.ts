@@ -572,6 +572,19 @@ export function createWebScrollSurfaceHost(
       const onContentReflow = () => {
         if (configuredFollowAxis()) onLayoutChange();
       };
+      const fontFaceSet: FontFaceSet | undefined = target.ownerDocument.fonts;
+      let observingFonts = false;
+      const reconcileFontObservation = () => {
+        if (!fontFaceSet || typeof fontFaceSet.addEventListener !== 'function') return;
+        const shouldObserve = configuredFollowAxis() !== null;
+        if (shouldObserve && !observingFonts) {
+          fontFaceSet.addEventListener('loadingdone', onContentReflow);
+          observingFonts = true;
+        } else if (!shouldObserve && observingFonts) {
+          fontFaceSet.removeEventListener('loadingdone', onContentReflow);
+          observingFonts = false;
+        }
+      };
       target.addEventListener('scroll', onScroll, { passive: true });
       target.addEventListener('load', onContentReflow, true);
       target.addEventListener('transitionend', onContentReflow, true);
@@ -644,6 +657,7 @@ export function createWebScrollSurfaceHost(
       projectPolicy();
       reconcileMoveGestures();
       observeGeometry();
+      reconcileFontObservation();
       resetEndFollow();
 
       return {
@@ -655,6 +669,7 @@ export function createWebScrollSurfaceHost(
           projectPolicy();
           reconcileMoveGestures();
           observeGeometry();
+          reconcileFontObservation();
           if (previousAxis !== configuredFollowAxis() || previousAxes !== connection.config.axes) {
             resetEndFollow();
           } else {
@@ -686,6 +701,10 @@ export function createWebScrollSurfaceHost(
           target.removeEventListener('keydown', onKeyDown);
           ownerWindow?.removeEventListener('keyup', onReaderIntentEnd);
           ownerWindow?.removeEventListener('resize', onLayoutChange);
+          if (observingFonts) {
+            fontFaceSet?.removeEventListener('loadingdone', onContentReflow);
+            observingFonts = false;
+          }
           resizeObserver?.disconnect();
           mutationObserver?.disconnect();
           for (const lease of moveLeases.values()) lease.dispose();
