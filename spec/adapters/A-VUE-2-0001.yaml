@@ -21,6 +21,10 @@ statement:
 
 
 criteria:
+  - id: A-VUE-2-0001-BOUNDARY
+    text:
+      en: The Adapter wires Boundary to the current host boundary and Web classification bridge while Event transports pointer samples. Disjoint regions and unresolved evidence preserve ternary classification; a top-layer close does not deliver the same sample to a lower active boundary.
+      zh-CN: Adapter 为 Boundary 接入当前 host boundary 与 Web classification bridge，Event 传输 pointer sample。分离 regions 与未解析证据保留三态分类；top layer 关闭不将同一 sample 传给较低 active boundary。
   - id: A-VUE-2-0001-FOCUS
     text:
       en: The Adapter translates the bounded Focus Module with logical target identity, current host focus requests/readiness, sequential versus programmatic eligibility, and descendant-first entry delegation. Real Adapter evidence covers roving membership and entry fallback; Runtime evidence owns scope and retained-request arbitration.
@@ -111,6 +115,9 @@ criteria:
       zh-CN: standard Web Adapter 安装此 partial Rule optimization slice 并提供 native-variant policy。有界 State selector、default fallback 和 view cleanup 已有证据；live replanning 与完整 CSS 等价仍 open。
 supports:
   modules:
+    - id: M-BOUNDARY-0001
+      since: 0.3.0-alpha.0
+      role: required-module
     - id: M-FOCUS-0001
       since: 0.3.0-alpha.0
       role: required-module
@@ -165,6 +172,9 @@ supports:
       note: Required in this standard Web profile; not a cross-host requirement.
 provides:
   hostCaps:
+    - id: HC-BOUNDARY-CLASSIFICATION-0001
+      since: 0.3.0-alpha.0
+      role: translated-capability
     - id: HC-FOCUS-TARGET-0001
       since: 0.3.0-alpha.0
       role: translated-capability
@@ -216,6 +226,8 @@ relates:
     - D-ADAPTER-PROFILE-0001
 verifies:
   tests:
+    - id: T-BOUNDARY-0002
+      since: 0.3.0-alpha.0
     - id: T-FOCUS-0002
       since: 0.3.0-alpha.0
     - id: T-AS-TRIGGER-0002
@@ -262,6 +274,9 @@ sources:
   - path: packages/adapters/vue2/test/context.integration.test.ts
   - path: packages/adapters/vue2/test/expose-state-web.integration.test.ts
 revisions:
+  - version: 0.3.0-alpha.0
+    change: revised
+    summary: Added bounded Boundary classification and stacked-sample evidence.
   - version: 0.3.0-alpha.0
     change: revised
     summary: Added bounded Focus support and target/entry host translation evidence.
