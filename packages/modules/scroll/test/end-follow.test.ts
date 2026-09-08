@@ -580,8 +580,9 @@ describe('module-scroll: end-follow host contract', () => {
     lease.dispose();
   });
 
-  it('applies end-follow directly even when authored scrolling is smooth', () => {
+  it('applies end-follow directly and preserves authored important scrolling priority', () => {
     const frames = installFrameHarness();
+    const focusOwner = document.createElement('button');
     const target = document.createElement('div');
     installMetrics(target, {
       clientWidth: 100,
@@ -589,18 +590,24 @@ describe('module-scroll: end-follow host contract', () => {
       clientHeight: 100,
       scrollHeight: 400,
     });
-    target.style.scrollBehavior = 'smooth';
+    target.style.setProperty('scroll-behavior', 'smooth', 'important');
     let scrollTop = 0;
     let deferredScrollTop = 0;
+    let immediatePriority = '';
     Object.defineProperty(target, 'scrollTop', {
       configurable: true,
       get: () => scrollTop,
       set: (value: number) => {
-        if (target.style.scrollBehavior === 'auto') scrollTop = value;
-        else deferredScrollTop = value;
+        if (target.style.getPropertyValue('scroll-behavior') === 'auto') {
+          immediatePriority = target.style.getPropertyPriority('scroll-behavior');
+          if (immediatePriority === 'important') scrollTop = value;
+        } else {
+          deferredScrollTop = value;
+        }
       },
     });
-    document.body.append(target);
+    document.body.append(focusOwner, target);
+    focusOwner.focus();
     const snapshots: ScrollSurfaceSnapshot[] = [];
     const lease = attachEndFollow(target, snapshots);
 
@@ -608,11 +615,14 @@ describe('module-scroll: end-follow host contract', () => {
 
     expect(target.scrollTop).toBe(300);
     expect(deferredScrollTop).toBe(0);
-    expect(target.style.scrollBehavior).toBe('smooth');
+    expect(immediatePriority).toBe('important');
+    expect(target.style.getPropertyValue('scroll-behavior')).toBe('smooth');
+    expect(target.style.getPropertyPriority('scroll-behavior')).toBe('important');
     expect(snapshots.at(-1)?.endFollow).toEqual({
       state: 'following',
       requestStatus: 'applied',
     });
+    expect(document.activeElement).toBe(focusOwner);
     lease.dispose();
   });
 
@@ -828,6 +838,73 @@ describe('module-scroll: end-follow host contract', () => {
     frames.runAll();
     expect(target.scrollTop).toBe(400);
     expect(snapshots.at(-1)?.endFollow.state).toBe('following');
+    lease.dispose();
+  });
+  it('preserves a newer rejected nonmatching to-end outcome over pending automatic work', () => {
+    const frames = installFrameHarness();
+    const target = document.createElement('div');
+    const updateMetrics = installMetrics(target, {
+      clientWidth: 100,
+      scrollWidth: 300,
+      clientHeight: 100,
+      scrollHeight: 400,
+    });
+    document.body.append(target);
+    const snapshots: ScrollSurfaceSnapshot[] = [];
+    const lease = createWebScrollSurfaceHost(target, { moveGestureHost }).attach({
+      config: {
+        axes: 'both',
+        projection: 'system',
+        endFollow: { mode: 'while-at-end', axis: 'vertical' },
+      },
+      projection: 'system',
+      onFacts: (snapshot) => snapshots.push(snapshot),
+    });
+    frames.runAll();
+
+    updateMetrics({ scrollHeight: 500 });
+    window.dispatchEvent(new Event('resize'));
+    expect(frames.pending()).toBe(1);
+
+    lease.request({ kind: 'to-end', axis: 'horizontal' });
+    expect(snapshots.at(-1)?.endFollow.requestStatus).toBe('rejected');
+
+    frames.runAll();
+
+    expect(target.scrollTop).toBe(400);
+    expect(snapshots.at(-1)?.endFollow).toEqual({
+      state: 'following',
+      requestStatus: 'rejected',
+    });
+    lease.dispose();
+  });
+
+  it('realigns a following lease when reflow only changes the offset', () => {
+    const frames = installFrameHarness();
+    const target = document.createElement('div');
+    installMetrics(target, {
+      clientWidth: 100,
+      scrollWidth: 100,
+      clientHeight: 100,
+      scrollHeight: 400,
+    });
+    document.body.append(target);
+    const snapshots: ScrollSurfaceSnapshot[] = [];
+    const lease = attachEndFollow(target, snapshots);
+    frames.runAll();
+    expect(target.scrollTop).toBe(300);
+
+    target.scrollTop = 250;
+    window.dispatchEvent(new Event('resize'));
+
+    expect(frames.pending()).toBe(1);
+    frames.runAll();
+
+    expect(target.scrollTop).toBe(300);
+    expect(snapshots.at(-1)?.endFollow).toEqual({
+      state: 'following',
+      requestStatus: 'applied',
+    });
     lease.dispose();
   });
 

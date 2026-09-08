@@ -79,13 +79,22 @@ function applyRequest(target: HTMLElement, request: ScrollSurfaceRequest): void 
   if (request.kind === 'to-end') next = range;
   next = Math.min(range, Math.max(0, next));
   if (request.kind === 'to-end') {
-    const authoredScrollBehavior = target.style.scrollBehavior;
-    target.style.scrollBehavior = 'auto';
+    const authoredScrollBehavior = target.style.getPropertyValue('scroll-behavior');
+    const authoredScrollBehaviorPriority = target.style.getPropertyPriority('scroll-behavior');
+    target.style.setProperty('scroll-behavior', 'auto', 'important');
     try {
       if (horizontal) target.scrollLeft = next;
       else target.scrollTop = next;
     } finally {
-      target.style.scrollBehavior = authoredScrollBehavior;
+      if (authoredScrollBehavior) {
+        target.style.setProperty(
+          'scroll-behavior',
+          authoredScrollBehavior,
+          authoredScrollBehaviorPriority
+        );
+      } else {
+        target.style.removeProperty('scroll-behavior');
+      }
     }
     return;
   }
@@ -167,6 +176,7 @@ export function createWebScrollSurfaceHost(
       let cancelEndFollowFrame: (() => void) | null = null;
       let scheduledAxis: ScrollAxis | null = null;
       let endFollowPending = false;
+      let endFollowRequestEpoch = 0;
       let readerIntentUntil = 0;
       let readerGestureActive = false;
       let lastFollowLayout: { axis: ScrollAxis; viewport: number; extent: number } | null = null;
@@ -322,6 +332,7 @@ export function createWebScrollSurfaceHost(
         cancelEndFollowFrame = null;
         endFollowPending = false;
         scheduledAxis = null;
+        if (pending) endFollowRequestEpoch++;
         if (pending && rejected) endFollowRequestStatus = 'rejected';
         return pending;
       };
@@ -341,6 +352,7 @@ export function createWebScrollSurfaceHost(
         cancelScheduledEnd(false);
         scheduledAxis = axis;
         endFollowPending = true;
+        const requestEpoch = ++endFollowRequestEpoch;
         if (configuredFollowAxis() === axis) endFollowState = 'pending';
         endFollowRequestStatus = 'pending';
         publish();
@@ -365,7 +377,9 @@ export function createWebScrollSurfaceHost(
             lastFollowLayout = readFollowLayout(currentAxis);
             endFollowState = reachedEnd ? 'following' : 'paused';
           }
-          endFollowRequestStatus = reachedEnd ? 'applied' : 'rejected';
+          if (requestEpoch === endFollowRequestEpoch) {
+            endFollowRequestStatus = reachedEnd ? 'applied' : 'rejected';
+          }
           publish();
         };
         if (ownerWindow?.requestAnimationFrame) {
@@ -380,6 +394,7 @@ export function createWebScrollSurfaceHost(
         const followAxis = configuredFollowAxis();
         if (request.kind === 'to-end') {
           if (followAxis && request.axis !== followAxis) {
+            endFollowRequestEpoch++;
             endFollowRequestStatus = 'rejected';
             publish();
             return;
@@ -489,7 +504,7 @@ export function createWebScrollSurfaceHost(
           lastFollowLayout.viewport !== nextLayout.viewport ||
           lastFollowLayout.extent !== nextLayout.extent;
         lastFollowLayout = nextLayout;
-        if (layoutChanged && endFollowState === 'following') {
+        if (endFollowState === 'following' && (layoutChanged || !isAxisAtEnd(axis))) {
           scheduleEnd(axis);
           return;
         }
