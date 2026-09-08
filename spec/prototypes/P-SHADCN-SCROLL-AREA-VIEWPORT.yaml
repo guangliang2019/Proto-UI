@@ -32,11 +32,11 @@ criteria:
   - id: P-SHADCN-SCROLL-AREA-VIEWPORT-FOCUS-FEEDBACK
     text:
       en: >-
-        Inherited focusVisible must project ring-3 ring-ring/50 outline-1 outline-ring without installing a second focus domain or changing Viewport geometry.
+        Inherited focusVisible must project ring-3 ring-ring/50 ring-inset outline-1 outline-ring without installing a second focus domain or changing Viewport geometry.
 
 
       zh-CN: >-
-        inherited focusVisible 必须投射 ring-3 ring-ring/50 outline-1 outline-ring，且不得安装 第二个 focus domain 或改变 Viewport geometry。
+        inherited focusVisible 必须投射 ring-3 ring-ring/50 ring-inset outline-1 outline-ring，且不得安装 第二个 focus domain 或改变 Viewport geometry。
 
 
     references:
@@ -75,5 +75,5 @@ verifies:
 revisions:
   - version: 0.3.0-alpha.0
     change: introduced
-    summary: Introduced full-size Viewport presentation and a fallible composed-chrome preference.
+    summary: Introduced full-size Viewport presentation, a fallible composed-chrome preference, and an inset focus ring that remains visible within the clipped Root.
 tags: [prototype, shadcn, scroll-area, viewport, composed-projection, fallback, visual]
