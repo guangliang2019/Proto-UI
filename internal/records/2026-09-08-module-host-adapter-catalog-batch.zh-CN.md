@@ -78,3 +78,7 @@ Rule 已提交 `3e164178`。Anatomy 随后形成 M、两个 HC、四个 A profil
 ## Collection 本地候选与后续路线
 
 Anatomy 已提交 `70612955`。整体余量与后续波次记录于 `2026-09-08-catalog-roadmap.zh-CN.md`。Collection 已补全既有 M、四个 A profile 与新的 T，并修复 runtime configure 被拒绝后仍修改 metadata getter 的漂移；具体边界见 `2026-09-08-collection-catalog.zh-CN.md`。无新增 HC，保持 draft；下一领域为 Expose State Web。
+
+## Expose State Web 本地候选
+
+继 Collection 后补齐 Web extension 的 M、target HC、四 A 与 T，修复活动状态误报、host 丢失后旧订阅残留及 unmounting 写入。详见 `2026-09-08-expose-state-web-catalog.zh-CN.md`。DOM artifact 撤销与冲突策略保持 open；下一 slice 为 Rule Expose State Web。

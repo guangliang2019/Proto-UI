@@ -96,6 +96,10 @@ criteria:
     text:
       en: Standard Runtime installs the bounded Collection slice. Explicit items follow host composition changes with current metadata and structural positions; nested Anatomy domains remain isolated and ordinary host descendants are excluded.
       zh-CN: standard Runtime 安装有界 Collection slice。显式 item 随宿主组合变化提供当前 metadata 与结构位置；嵌套 Anatomy domain 保持隔离，普通宿主后代不被吸收。
+  - id: A-WEB-COMPONENT-0001-EXPOSE-STATE-WEB
+    text:
+      en: The standard Web Adapter installs the bounded Expose State Web extension and supplies its canonical target. State attributes and CSS variables follow default or explicitly configured mode mapping without requiring Proto structural rendering.
+      zh-CN: standard Web Adapter 安装有界 Expose State Web extension 并提供 canonical target。State attribute/CSS variable 按默认或显式 mode 配置映射，无需 Proto structural render。
 supports:
   modules:
     - id: M-COLLECTION-0001
@@ -140,6 +144,10 @@ supports:
       since: 0.3.0-alpha.0
       role: required-module
       note: The standard Runtime Context channel uses Adapter-owned identity and ancestry, never framework Context value semantics.
+    - id: M-EXPOSE-STATE-WEB-0001
+      since: 0.3.0-alpha.0
+      role: required-module
+      note: Required in this standard Web profile; not a cross-host requirement.
 provides:
   hostCaps:
     - id: HC-ANATOMY-STRUCTURE-0001
@@ -179,6 +187,10 @@ provides:
       since: 0.3.0-alpha.0
       role: translated-capability
       note: Adapter logical instance tokens and parent links translate host ownership into Context facts.
+    - id: HC-EXPOSE-STATE-WEB-TARGETS-0001
+      since: 0.3.0-alpha.0
+      role: translated-capability
+      note: Canonical boundary plus presentation mirror for split host-owned controls.
 relates:
   decisions:
     - D-ADAPTER-PROFILE-0001
@@ -206,15 +218,18 @@ verifies:
       since: 0.3.0-alpha.0
     - id: T-CONTEXT-0003
       since: 0.3.0-alpha.0
+    - id: T-EXPOSE-STATE-WEB-0001
+      since: 0.3.0-alpha.0
 openQuestions:
   - id: A-WEB-COMPONENT-0001-Q-INGRESS-PRECEDENCE
     question:
       zh-CN: '`setElementProps` 写入的 element-local snapshot 与 attribute-derived `getProps(el)` 应保持互斥接管、建立 merge precedence，还是拆为两个显式 profile mode？'
-      en: 'Should an element-local snapshot written by `setElementProps` take over mutually from attribute-derived `getProps(el)`, follow a defined merge precedence, or become one of two explicit profile modes?'
+      en: Should an element-local snapshot written by `setElementProps` take over mutually from attribute-derived `getProps(el)`, follow a defined merge precedence, or become one of two explicit profile modes?
     context:
       zh-CN: 当前 `getElementProps(el)` 一旦存在就优先于 `getProps(el)`；本轮记录事实，不在没有兼容性决策时改变行为。
       en: Currently `getElementProps(el)` takes precedence once present; this pass records the fact without changing behavior before a compatibility decision.
-    blocks: [web-component-props-ingress-profile]
+    blocks:
+      - web-component-props-ingress-profile
 sources:
   - path: packages/adapters/web-component/test/collection.integration.test.ts
   - path: packages/adapters/web-component/test/anatomy.integration.test.ts
@@ -239,7 +254,11 @@ sources:
   - path: packages/adapters/web-component/test/expose.test.ts
   - path: packages/adapters/web-component/test/image-view.integration.test.ts
   - path: packages/adapters/web-component/test/context.integration.test.ts
+  - path: packages/adapters/web-component/test/expose-state-web.integration.test.ts
 revisions:
+  - version: 0.3.0-alpha.0
+    change: revised
+    summary: Added bounded Expose State Web module, target capability and executable projection evidence.
   - version: 0.3.0-alpha.0
     change: revised
     summary: Added bounded Collection support with explicit item, metadata and dynamic host composition evidence.
