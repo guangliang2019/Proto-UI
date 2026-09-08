@@ -223,7 +223,9 @@ export function createWebScrollSurfaceHost(
             if (!trackStyles.has(track)) {
               trackStyles.set(track, track.style.getPropertyValue('display'));
             }
-            track.style.setProperty('display', 'none');
+            if (track.style.getPropertyValue('display') !== 'none') {
+              track.style.setProperty('display', 'none');
+            }
             if (!thumbStyles.has(thumb)) {
               rememberThumb(thumb);
             }

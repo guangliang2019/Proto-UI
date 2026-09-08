@@ -565,4 +565,117 @@ describe('module-scroll: Web scroll surface host', () => {
     expect(trackB.style.display).toBe('grid');
     expect(thumbB.style.height).toBe('');
   });
+  it('does not retrigger track style observation during system projection', () => {
+    const target = document.createElement('div');
+    const track = document.createElement('div');
+    const thumb = document.createElement('div');
+    setMetrics(target, {
+      clientWidth: 100,
+      scrollWidth: 100,
+      clientHeight: 100,
+      scrollHeight: 400,
+    });
+    Object.defineProperty(track, 'clientHeight', { configurable: true, value: 100 });
+    track.getBoundingClientRect = () => ({ top: 0, left: 0, width: 10, height: 100 }) as DOMRect;
+    thumb.getBoundingClientRect = () => ({ top: 0, left: 0, width: 10, height: 25 }) as DOMRect;
+    track.style.display = 'flex';
+    thumb.style.display = 'inline-block';
+    track.append(thumb);
+    document.body.append(target, track);
+
+    let notifyStyleMutation: (() => void) | undefined;
+    vi.stubGlobal(
+      'MutationObserver',
+      class {
+        constructor(callback: MutationCallback) {
+          notifyStyleMutation = () => {
+            callback(
+              [
+                {
+                  type: 'attributes',
+                  target: track,
+                  attributeName: 'style',
+                } as unknown as MutationRecord,
+              ],
+              this as unknown as MutationObserver
+            );
+          };
+        }
+
+        observe(): void {}
+
+        disconnect(): void {}
+
+        takeRecords(): MutationRecord[] {
+          return [];
+        }
+      }
+    );
+    let displayWrites = 0;
+    const setProperty = track.style.setProperty.bind(track.style);
+    vi.spyOn(track.style, 'setProperty').mockImplementation((property, value, priority) => {
+      setProperty(property, value, priority);
+      if (property === 'display') {
+        displayWrites += 1;
+        const notify = notifyStyleMutation;
+        notifyStyleMutation = undefined;
+        notify?.();
+      }
+    });
+
+    const lease = createWebScrollSurfaceHost(target, {
+      moveGestureHost: createMoveHarness().host,
+      preference: 'composed',
+    }).attach({
+      config: { axes: 'vertical', projection: 'composed' },
+      projection: 'system',
+      composedChrome: {
+        scope: {},
+        controls: [{ getAxis: () => 'vertical', trackTarget: track, thumbTarget: thumb }],
+      },
+      onFacts: () => {},
+    });
+
+    // The observer delivers the mutation caused by the first host write. A
+    // repeated equal write would prove that publish is not observer-safe.
+    expect(displayWrites).toBe(1);
+    expect(track.style.display).toBe('none');
+    expect(thumb.style.display).toBe('none');
+
+    lease.update({
+      config: { axes: 'vertical', projection: 'composed' },
+      projection: 'system',
+      composedChrome: {
+        scope: {},
+        controls: [{ getAxis: () => 'vertical', trackTarget: track, thumbTarget: thumb }],
+      },
+      onFacts: () => {},
+    });
+    expect(displayWrites).toBe(1);
+
+    lease.update({
+      config: { axes: 'vertical', projection: 'composed' },
+      projection: 'composed',
+      composedChrome: {
+        scope: {},
+        controls: [{ getAxis: () => 'vertical', trackTarget: track, thumbTarget: thumb }],
+      },
+      onFacts: () => {},
+    });
+    expect(track.style.display).toBe('flex');
+    expect(thumb.style.display).toBe('inline-block');
+
+    lease.update({
+      config: { axes: 'vertical', projection: 'composed' },
+      projection: 'system',
+      composedChrome: {
+        scope: {},
+        controls: [{ getAxis: () => 'vertical', trackTarget: track, thumbTarget: thumb }],
+      },
+      onFacts: () => {},
+    });
+    lease.dispose();
+    expect(track.style.display).toBe('flex');
+    expect(thumb.style.display).toBe('inline-block');
+  });
 });
