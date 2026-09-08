@@ -21,6 +21,10 @@ statement:
 
 
 criteria:
+  - id: A-VUE-2-0001-TRIGGER
+    text:
+      en: The Adapter installs the bounded Trigger Module and translates logical chains through the shared host group owner. Three nested members share one semantic activation route, host-local events stay local, and sibling Trigger branches are rejected by the host owner.
+      zh-CN: Adapter 安装有界 Trigger Module，通过共享宿主 group owner 翻译 logical chain。三层成员共享一条 semantic activation route，host-local event 保持局部，并列 Trigger 分叉由宿主 owner 拒绝。
   - id: A-VUE-2-0001-A
     text:
       zh-CN: Profile identity 必须对应 `@proto.ui/adapter-vue2` 与 peer range `vue >=2.6.0 <2.7`，不得被表述为 Vue 3、所有 Vue 版本或非 Web host 的保证。
@@ -103,6 +107,9 @@ criteria:
       zh-CN: standard Web Adapter 安装此 partial Rule optimization slice 并提供 native-variant policy。有界 State selector、default fallback 和 view cleanup 已有证据；live replanning 与完整 CSS 等价仍 open。
 supports:
   modules:
+    - id: M-AS-TRIGGER-0001
+      since: 0.3.0-alpha.0
+      role: required-module
     - id: M-RULE-EXPOSE-STATE-WEB-0001
       since: 0.3.0-alpha.0
       role: partial-module
@@ -151,6 +158,9 @@ supports:
       note: Required in this standard Web profile; not a cross-host requirement.
 provides:
   hostCaps:
+    - id: HC-TRIGGER-GROUP-0001
+      since: 0.3.0-alpha.0
+      role: translated-capability
     - id: HC-ANATOMY-STRUCTURE-0001
       since: 0.3.0-alpha.0
       role: translated-capability
@@ -193,6 +203,8 @@ relates:
     - D-ADAPTER-PROFILE-0001
 verifies:
   tests:
+    - id: T-AS-TRIGGER-0002
+      since: 0.3.0-alpha.0
     - id: T-RULE-EXPOSE-STATE-WEB-0001
       since: 0.3.0-alpha.0
     - id: T-COLLECTION-0002
@@ -235,6 +247,9 @@ sources:
   - path: packages/adapters/vue2/test/context.integration.test.ts
   - path: packages/adapters/vue2/test/expose-state-web.integration.test.ts
 revisions:
+  - version: 0.3.0-alpha.0
+    change: revised
+    summary: Added bounded Trigger chain support and logical group projection evidence.
   - version: 0.3.0-alpha.0
     change: revised
     summary: Recorded partial Rule Expose State Web support, fallback and lifecycle evidence.
