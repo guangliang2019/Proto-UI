@@ -21,6 +21,10 @@ statement:
 
 
 criteria:
+  - id: A-VUE-3-0001-FOCUS
+    text:
+      en: The Adapter translates the bounded Focus Module with logical target identity, current host focus requests/readiness, sequential versus programmatic eligibility, and descendant-first entry delegation. Real Adapter evidence covers roving membership and entry fallback; Runtime evidence owns scope and retained-request arbitration.
+      zh-CN: Adapter 翻译有界 Focus Module，提供 logical target identity、当前 host focus request/readiness、顺序与程序化资格区分、descendant-first entry delegation。真实 Adapter 证据覆盖 roving membership 与 entry fallback；Runtime 证据负责 scope 与 retained-request 仲裁。
   - id: A-VUE-3-0001-TRIGGER
     text:
       en: The Adapter installs the bounded Trigger Module and translates logical chains through the shared host group owner. Three nested members share one semantic activation route, host-local events stay local, and sibling Trigger branches are rejected by the host owner.
@@ -111,6 +115,9 @@ criteria:
       zh-CN: standard Web Adapter 安装此 partial Rule optimization slice 并提供 native-variant policy。有界 State selector、default fallback 和 view cleanup 已有证据；live replanning 与完整 CSS 等价仍 open。
 supports:
   modules:
+    - id: M-FOCUS-0001
+      since: 0.3.0-alpha.0
+      role: required-module
     - id: M-AS-TRIGGER-0001
       since: 0.3.0-alpha.0
       role: required-module
@@ -166,6 +173,12 @@ supports:
       note: Required in this standard Web profile; not a cross-host requirement.
 provides:
   hostCaps:
+    - id: HC-FOCUS-TARGET-0001
+      since: 0.3.0-alpha.0
+      role: translated-capability
+    - id: HC-FOCUS-ENTRY-0001
+      since: 0.3.0-alpha.0
+      role: translated-capability
     - id: HC-TRIGGER-GROUP-0001
       since: 0.3.0-alpha.0
       role: translated-capability
@@ -215,6 +228,8 @@ relates:
     - D-ADAPTER-PROFILE-0001
 verifies:
   tests:
+    - id: T-FOCUS-0002
+      since: 0.3.0-alpha.0
     - id: T-AS-TRIGGER-0002
       since: 0.3.0-alpha.0
     - id: T-RULE-EXPOSE-STATE-WEB-0001
@@ -269,6 +284,9 @@ sources:
   - path: packages/adapters/vue/test/context.integration.test.ts
   - path: packages/adapters/vue/test/expose-state-web.integration.test.ts
 revisions:
+  - version: 0.3.0-alpha.0
+    change: revised
+    summary: Added bounded Focus support and target/entry host translation evidence.
   - version: 0.3.0-alpha.0
     change: revised
     summary: Added bounded Trigger chain support and logical group projection evidence.

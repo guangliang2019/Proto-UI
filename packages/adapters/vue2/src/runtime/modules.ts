@@ -1,3 +1,5 @@
+import type { FocusEntryConfig } from '@proto.ui/core';
+import { resolveWebFocusEntryTarget } from '@proto.ui/adapter-base';
 import {
   createCapsWiring,
   createWebMoveGestureHost,
@@ -43,6 +45,8 @@ import {
   FOCUS_PARENT_CAP,
   FOCUS_REQUEST_FOCUS_CAP,
   FOCUS_ROOT_TARGET_CAP,
+  FOCUS_RESOLVE_ENTRY_TARGET_CAP,
+  FOCUS_SET_ENTRY_FOCUSABLE_CAP,
   FOCUS_RUN_IN_CALLBACK_CAP,
   FOCUS_SET_FOCUSABLE_CAP,
   FOCUS_TARGET_READY_CAP,
@@ -291,6 +295,20 @@ export function createVue2Modules<Props extends PropsBaseType>(args: {
         (target: HTMLElement, enabled: boolean, options?: { programmatic?: boolean }) => {
           const surface = getLogicalTriggerSurfaceRoot(instanceToken);
           projectFocusable(target, enabled && (!surface || surface === target), options);
+        },
+      ],
+      [
+        FOCUS_RESOLVE_ENTRY_TARGET_CAP,
+        (target: HTMLElement, config: FocusEntryConfig) =>
+          resolveWebFocusEntryTarget(target, config, isNativelyFocusable),
+      ],
+      [
+        FOCUS_SET_ENTRY_FOCUSABLE_CAP,
+        (target: HTMLElement, config: FocusEntryConfig, enabled: boolean) => {
+          const resolved = enabled
+            ? resolveWebFocusEntryTarget(target, config, isNativelyFocusable)
+            : null;
+          projectFocusable(target, resolved === target);
         },
       ],
       [
