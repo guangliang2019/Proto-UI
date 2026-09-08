@@ -109,6 +109,7 @@ Generated files must be changed through their generator. `internal/agent/PROJECT
 ## Change discipline
 
 - Keep unrelated user changes intact.
+- For user-directed Module/Host Capability/Adapter cataloging, default to one active batch branch and PR with independently reviewable commits per semantic slice. Split at architectural or unresolved semantic boundaries, not merely at Module names; follow the batch rules in `spec/MODULE-HOST-CAP-ADAPTER-CATALOGING.zh-CN.md`.
 - Do not edit generated artifacts by hand.
 - Avoid introducing a second source of truth in prose.
 - Use exact repository paths and entity IDs when making traceability claims.

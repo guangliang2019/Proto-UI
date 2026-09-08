@@ -80,8 +80,16 @@ criteria:
     text:
       en: The standard Adapter wires Context with stable opaque instance identity and current logical ancestry; real mounted nested scopes, equal-name Key isolation, callback updates and terminal owner replacement must conform to T-CONTEXT-0003.
       zh-CN: standard Adapter 接入 Context 并提供稳定 opaque instance identity 与当前 logical ancestry；真实挂载的嵌套 scope、同名 Key 隔离、callback update 与 terminal owner 替换必须符合 T-CONTEXT-0003。
+  - id: A-WEB-COMPONENT-0001-FEEDBACK
+    text:
+      en: The standard Adapter installs Feedback and translates its style sink into current-view data-pui-style output, preserving user classes. Runtime patch/suppress/clearPatch must update style without Proto structural rendering; the bounded draft slice is verified by T-FEEDBACK-0001.
+      zh-CN: standard Adapter 安装 Feedback，将 style sink 翻译为当前 view 的 data-pui-style output，保留用户 class。runtime patch/suppress/clearPatch 必须更新 style 而不触发 Proto structural render；该有界 draft slice 由 T-FEEDBACK-0001 验证。
 supports:
   modules:
+    - id: M-FEEDBACK-0001
+      since: 0.3.0-alpha.0
+      role: required-module
+      note: Bounded draft visual style slice; other sensory feedback remains uncataloged.
     - id: M-PROPS-0001
       role: required-module
       note: Props is required for the standard Maker-to-Component configuration channel.
@@ -110,6 +118,10 @@ supports:
       note: The standard Runtime Context channel uses Adapter-owned identity and ancestry, never framework Context value semantics.
 provides:
   hostCaps:
+    - id: HC-FEEDBACK-STYLE-SINK-0001
+      since: 0.3.0-alpha.0
+      role: translated-capability
+      note: EffectsPort projects the final visual style result without Proto structural rendering.
     - id: HC-PROPS-SOURCE-0001
       role: translated-capability
       note: A custom getProps classifier and MutationObserver provide the attribute-backed source; imperative snapshots use a separate direct-push path.
@@ -142,6 +154,8 @@ relates:
     - D-ADAPTER-PROFILE-0001
 verifies:
   tests:
+    - id: T-FEEDBACK-0001
+      since: 0.3.0-alpha.0
     - T-ADAPTER-PROFILE-0001
     - T-PROPS-0012
     - T-EVENT-0003
@@ -166,6 +180,7 @@ openQuestions:
       en: Currently `getElementProps(el)` takes precedence once present; this pass records the fact without changing behavior before a compatibility decision.
     blocks: [web-component-props-ingress-profile]
 sources:
+  - path: packages/adapters/web-component/test/feedback.integration.test.ts
   - path: packages/adapters/web-component/package.json
   - path: packages/adapters/web-component/src/adapt.ts
   - path: packages/adapters/web-component/src/props.ts
@@ -186,6 +201,9 @@ sources:
   - path: packages/adapters/web-component/test/image-view.integration.test.ts
   - path: packages/adapters/web-component/test/context.integration.test.ts
 revisions:
+  - version: 0.3.0-alpha.0
+    change: revised
+    summary: Added the bounded draft Feedback visual style slice and actual Adapter runtime patch evidence.
   - version: 0.3.0-alpha.0
     change: revised
     summary: Added the Image View Web realization criterion, support relation, and exact-head integration evidence.
