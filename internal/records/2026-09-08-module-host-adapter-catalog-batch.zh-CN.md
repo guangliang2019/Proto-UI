@@ -62,3 +62,11 @@ A11y、Collection、Positioning、Text Control、Scroll、Image View 已有 M �
 测试边界：Module/Runtime 证明重复 view epoch、capability 缺失/恢复、terminal disposal；实际 Adapter journey 证明普通 root 的样式 translation 与 fresh owner，未据此声称所有 framework view transition、浏览器 CSS 外观、几何布局或非 Web conformance。readonly render 中 runtime style write 的限制仍是 `C-FEEDBACK-STYLE-0005` open question，本轮没有替用户决定。
 
 legacy Feedback README、export 和 setup-use 说明已同步 runtime patch 与两条生命周期轴，避免继续把静态 setup 子集写成整个 Feedback 的限制。
+
+## Rule core 编目推进
+
+在上述边界确认后，本地补齐 `M-RULE-0001`、`T-RULE-0002` 与 React、Vue3、Vue2、Web Component 四个 A profile 的 Props/State-to-style 支持。Rule 通过 Feedback 物化样式，无独立 HC；保持 draft，不推广 Context、state intent、meta 或 expose-state 优化的支持范围。Feedback 已提交为 `dc0e3d4b`，Rule 仍为本地候选；Anatomy 尚未开始。
+
+新增直接 Module、实际 Runtime 与四 Adapter 的 executable evidence；原有 Context/matrix TODO 保留 planned。测试同时暴露并修复两处已有契约漂移：inactive Rule 的非法 style token 现在也在声明时拒绝；terminal dispose 清理 IR、State handle 表与 extension closure，并拒绝保留 port 的后续评估/注册。setup-only cancellation 的准备改动一并纳入本 slice。
+
+Web Component Props journey 遵循现有 `setElementProps()` 后显式 `update()` 协议；其余框架使用原生 props 更新。Adapter 测试证明 token projection、user class、State 更新不触发 Proto structural render 和 fresh-owner isolation；反复 view epoch 与 State watch 去重由 Runtime 测试证明，不声称 Rule 在 remount 的首个 structural commit 前已重放样式，也不以 DOM token 断言代替实际 CSS 外观。

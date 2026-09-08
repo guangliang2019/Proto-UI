@@ -85,8 +85,16 @@ criteria:
     text:
       en: The standard Adapter installs Feedback and translates its style sink into current-view data-pui-style output, preserving user classes. Runtime patch/suppress/clearPatch must update style without Proto structural rendering; the bounded draft slice is verified by T-FEEDBACK-0001.
       zh-CN: standard Adapter 安装 Feedback，将 style sink 翻译为当前 view 的 data-pui-style output，保留用户 class。runtime patch/suppress/clearPatch 必须更新 style 而不触发 Proto structural render；该有界 draft slice 由 T-FEEDBACK-0001 验证。
+  - id: A-VUE-3-0001-RULE
+    text:
+      en: Standard Runtime installs the bounded draft Rule core slice. Resolved Props updates and current State drive Feedback style with deactivation cleanup; State-driven style does not trigger Proto structural rendering. Author Rule use remains optional.
+      zh-CN: standard Runtime 安装有界 draft Rule core slice。resolved Props update 与当前 State 驱动 Feedback style，条件失效时清理贡献；State 驱动样式不触发 Proto structural render。作者可选用 Rule。
 supports:
   modules:
+    - id: M-RULE-0001
+      since: 0.3.0-alpha.0
+      role: required-module
+      note: Bounded Props/State-to-style core; author use optional, Context and downstream extensions excluded.
     - id: M-FEEDBACK-0001
       since: 0.3.0-alpha.0
       role: required-module
@@ -155,6 +163,8 @@ relates:
     - D-ADAPTER-PROFILE-0001
 verifies:
   tests:
+    - id: T-RULE-0002
+      since: 0.3.0-alpha.0
     - id: T-FEEDBACK-0001
       since: 0.3.0-alpha.0
     - T-ADAPTER-PROFILE-0001
@@ -172,6 +182,7 @@ verifies:
     - id: T-CONTEXT-0003
       since: 0.3.0-alpha.0
 sources:
+  - path: packages/adapters/vue/test/rule.integration.test.ts
   - path: packages/adapters/vue/test/feedback.integration.test.ts
   - path: packages/adapters/vue/package.json
   - path: packages/adapters/vue/src/adapt.ts
@@ -192,6 +203,9 @@ sources:
   - path: packages/adapters/vue/test/image-view.integration.test.ts
   - path: packages/adapters/vue/test/context.integration.test.ts
 revisions:
+  - version: 0.3.0-alpha.0
+    change: revised
+    summary: Added bounded draft Rule core support with real Props and State style evidence.
   - version: 0.3.0-alpha.0
     change: revised
     summary: Added the bounded draft Feedback visual style slice and actual Adapter runtime patch evidence.

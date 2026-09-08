@@ -57,6 +57,7 @@ export type ExposeMap = Record<
 
 export type RuleHandle = {
   readonly id: number;
+  /** Setup-only cancellation of this declaration; not lifecycle cleanup. */
   dispose(): void;
 };
 
