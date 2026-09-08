@@ -70,3 +70,7 @@ legacy Feedback README、export 和 setup-use 说明已同步 runtime patch 与�
 新增直接 Module、实际 Runtime 与四 Adapter 的 executable evidence；原有 Context/matrix TODO 保留 planned。测试同时暴露并修复两处已有契约漂移：inactive Rule 的非法 style token 现在也在声明时拒绝；terminal dispose 清理 IR、State handle 表与 extension closure，并拒绝保留 port 的后续评估/注册。setup-only cancellation 的准备改动一并纳入本 slice。
 
 Web Component Props journey 遵循现有 `setElementProps()` 后显式 `update()` 协议；其余框架使用原生 props 更新。Adapter 测试证明 token projection、user class、State 更新不触发 Proto structural render 和 fresh-owner isolation；反复 view epoch 与 State watch 去重由 Runtime 测试证明，不声称 Rule 在 remount 的首个 structural commit 前已重放样式，也不以 DOM token 断言代替实际 CSS 外观。
+
+## Anatomy 本地候选
+
+Rule 已提交 `3e164178`。Anatomy 随后形成 M、两个 HC、四个 A profile 与 T 的本地候选，并修复 subscribeParts 作者取消入口缺少 setup guard 的漂移。详细范围与证据边界见 `2026-09-08-anatomy-catalog.zh-CN.md`。A11y same-domain 关系设计不纳入本批次 Anatomy slice。

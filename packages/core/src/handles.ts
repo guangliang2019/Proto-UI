@@ -282,6 +282,7 @@ export interface DefHandle<Props extends PropsBaseType, Exposes = Record<string,
 
   anatomy: {
     claim(family: AnatomyFamily, decl: AnatomyClaimDecl): void;
+    /** Setup-only registration and cancellation; lifecycle cleanup is internal. */
     subscribeParts(
       family: AnatomyFamily,
       role: string,
