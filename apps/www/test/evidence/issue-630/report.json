@@ -136,7 +136,9 @@
     "effectiveConfiguration": "Local runner imports unchanged vitest.config.ts, keeps its plugins and test environment, narrows root/include to apps/www and supplies empty inline PostCSS config to stop ancestor lookup. Runs the actual checked-in tests against production output with no assertion changes or mocks.",
     "runnerSource": "// Disposable local runner: load the unchanged Vitest configuration without bundling it.\nimport { startVitest } from 'vitest/node';\nglobalThis.__dirname = process.cwd();\nconst { default: config } = await import('./vitest.config.ts');\nconst ctx = await startVitest('test', process.argv.slice(2), {\n  ...config.test,\n  run: true,\n  config: false,\n  root: `${process.cwd()}/apps/www`,\n  include: ['src/**/*.test.ts'],\n  testNamePattern: process.env.CODEBOX_TEST_NAME,\n}, { plugins: config.plugins, css: { postcss: {} } });\nawait ctx?.close();\n",
     "browserPreloadSource": "// Local validation transport only: Chrome cannot execute inside this mount namespace.\nimport { chromium } from './apps/www/node_modules/playwright-core/index.mjs';\nchromium.launch = () => chromium.connectOverCDP('http://127.0.0.1:9223');\n",
-    "normalEnvironmentCommand": "PROTO_UI_BROWSER_BASE_URL=http://127.0.0.1:4321 PROTO_UI_CODE_EVIDENCE_DIR=/tmp/codebox-evidence corepack pnpm@10.32.1 exec vitest run apps/www/src/content/docs/zh-cn/code-surfaces.browser.test.ts apps/www/src/components/PrototypePreviewer/code-panel-client.test.ts apps/www/src/content/docs/zh-cn/docs-content-flow.browser.test.ts"
+    "normalEnvironmentCommand": "PROTO_UI_BROWSER_BASE_URL=http://127.0.0.1:4321 PROTO_UI_CODE_EVIDENCE_DIR=/tmp/codebox-evidence corepack pnpm@10.32.1 exec vitest run apps/www/src/content/docs/zh-cn/code-surfaces.browser.test.ts apps/www/src/components/PrototypePreviewer/code-panel-client.test.ts apps/www/src/content/docs/zh-cn/docs-content-flow.browser.test.ts",
+    "runtimeOrchestration": "The code-surface suite is registered in scripts/test/runtime-test-plan.mjs BROWSER_SUITES, and its Transition and Shadcn Button routes are warmed by scripts/test/run-runtime-tests.mjs READY_ROUTES. The shared runner therefore excludes it from the no-server phase and runs it sequentially in the shared-server browser phase.",
+    "runtimeOrchestrationResult": "node scripts/test/run-runtime-tests.mjs was rerun for this follow-up; it reached Vitest startup and exited 1 on the unrelated host /tmp/package.json NUL parse error before collecting tests. The captured output is /tmp/codebox-631-follow-up-runtime.log; no repository file was modified by the workaround."
   },
   "skipped": [
     "Repository-wide test and release/package consumer suites: no package/protocol/release changes; focused website/browser/client suites, workspace types, docs types and production build exercised the affected graph.",
@@ -161,8 +163,8 @@
     "apps/www/src/env.d.ts": "b18c170a640871a6e352cb81abbf69edbcff28100ba9c1188179fcc94574bea7",
     "apps/www/src/styles/global.css": "8a66cfc3bdaf5791b77ee3bb4cc1ce07852f6cf3a604415b51e293d5de023793",
     "apps/www/src/styles/markdown.css": "2de6d5097d4aa13f7e60c0299a5cb27af89c95157f1db3bbb91d78a689c57a7b",
-    "apps/www/src/components/PrototypePreviewer/code-themes.mjs": "0ed06f21952d00ee1e956182ba47e30a38f8a8f7c6d02bbcc790a52ff28220da",
     "apps/www/src/styles/code-surfaces.css": "74551feb1cb892a57802196b60fb113d4eeb4cc6fa1851282c28e432a1469c14",
-    "apps/www/src/content/docs/zh-cn/code-surfaces.browser.test.ts": "1830f69ca1c1b11473a84010676368fb96d6369296298be12ed556b67c943117"
+    "apps/www/src/components/PrototypePreviewer/code-themes.mjs": "0ed06f21952d00ee1e956182ba47e30a38f8a8f7c6d02bbcc790a52ff28220da",
+    "apps/www/src/content/docs/zh-cn/code-surfaces.browser.test.ts": "5471dda8652475661bad9e3d646aafa22f5cdfd3f14d7558bce9903f277eec2"
   }
 }
