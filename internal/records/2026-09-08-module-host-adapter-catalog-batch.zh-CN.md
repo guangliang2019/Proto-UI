@@ -74,3 +74,7 @@ Web Component Props journey 遵循现有 `setElementProps()` 后显式 `update()
 ## Anatomy 本地候选
 
 Rule 已提交 `3e164178`。Anatomy 随后形成 M、两个 HC、四个 A profile 与 T 的本地候选，并修复 subscribeParts 作者取消入口缺少 setup guard 的漂移。详细范围与证据边界见 `2026-09-08-anatomy-catalog.zh-CN.md`。A11y same-domain 关系设计不纳入本批次 Anatomy slice。
+
+## Collection 本地候选与后续路线
+
+Anatomy 已提交 `70612955`。整体余量与后续波次记录于 `2026-09-08-catalog-roadmap.zh-CN.md`。Collection 已补全既有 M、四个 A profile 与新的 T，并修复 runtime configure 被拒绝后仍修改 metadata getter 的漂移；具体边界见 `2026-09-08-collection-catalog.zh-CN.md`。无新增 HC，保持 draft；下一领域为 Expose State Web。
