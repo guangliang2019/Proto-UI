@@ -44,6 +44,19 @@ afterAll(async () => {
 async function ready(page: Page): Promise<void> {
   await page.waitForSelector('[data-code-panel-init="1"]:visible');
   await page.waitForFunction(() => customElements.get('wc-shadcn-button'));
+  // CodePanel initializes before the async Previewer mount replaces its SSR pre.
+  // Wait for that replacement before Playwright can retain an element to measure.
+  await page.waitForFunction(() => {
+    const shell = [...document.querySelectorAll<HTMLElement>('[data-code-shell]')].find((element) =>
+      element.checkVisibility()
+    );
+    if (!shell) return false;
+    const previewer = shell.closest('[data-previewer-id]') as
+      | (HTMLElement & { __previewer__?: { getCurrentRuntime(): string | null } })
+      | null;
+    // CodeExample owns a CodePanel without an async Previewer runtime.
+    return !previewer || Boolean(previewer.__previewer__?.getCurrentRuntime());
+  });
 }
 
 async function surfaceFacts(page: Page): Promise<SurfaceFacts> {
