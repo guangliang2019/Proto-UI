@@ -205,31 +205,38 @@ export function createWebScrollSurfaceHost(
         trackStyles.delete(track);
       };
       const projectComposedChrome = (facts: ScrollSurfaceSnapshot) => {
-        const active = new Set<HTMLElement>();
         if (connection.projection !== 'composed') {
-          restoreInactiveThumbs(active);
-          // Hide authored Scrollbar/Thumb chrome when the host projects the
-          // system scrollbar. The track (touch-none absolute element) would
+          // Hide authored Scrollbar/Thumb chrome while the host projects the
+          // system scrollbar. Reconciled against the current controls on every
+          // pass so controls attached or replaced after the fallback starts
+          // are hidden too: the track (touch-none absolute element) would
           // otherwise intercept pointer input over the native scrollbar, and
           // the Thumb (flex-1 bg-border) would paint over it.
-          if (!chromeHidden) {
-            chromeHidden = true;
-            for (const control of connection.composedChrome?.controls ?? []) {
-              if (!isWebControl(control)) continue;
-              const track = control.trackTarget;
-              const thumb = control.thumbTarget;
-              if (!trackStyles.has(track)) {
-                trackStyles.set(track, track.style.getPropertyValue('display'));
-              }
-              track.style.setProperty('display', 'none');
-              if (!thumbStyles.has(thumb)) {
-                rememberThumb(thumb);
-              }
-              thumb.style.display = 'none';
+          chromeHidden = true;
+          const active = new Set<HTMLElement>();
+          for (const control of connection.composedChrome?.controls ?? []) {
+            if (!isWebControl(control)) continue;
+            const track = control.trackTarget;
+            const thumb = control.thumbTarget;
+            active.add(thumb);
+            active.add(track);
+            if (!trackStyles.has(track)) {
+              trackStyles.set(track, track.style.getPropertyValue('display'));
             }
+            track.style.setProperty('display', 'none');
+            if (!thumbStyles.has(thumb)) {
+              rememberThumb(thumb);
+            }
+            thumb.style.display = 'none';
           }
+          for (const track of Array.from(trackStyles.keys())) {
+            if (active.has(track)) continue;
+            restoreTrackDisplay(track);
+          }
+          restoreInactiveThumbs(active);
           return;
         }
+        const active = new Set<HTMLElement>();
         // Restore authored chrome visibility when the host re-projects composed.
         if (chromeHidden) {
           chromeHidden = false;

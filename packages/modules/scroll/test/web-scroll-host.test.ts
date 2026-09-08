@@ -487,4 +487,82 @@ describe('module-scroll: Web scroll surface host', () => {
     expect(track.style.display).toBe('flex');
     expect(thumb.style.height).toBe('25px');
   });
+
+  it('hides authored chrome attached or replaced after system projection starts', () => {
+    const target = document.createElement('div');
+    const trackA = document.createElement('div');
+    const thumbA = document.createElement('div');
+    const trackB = document.createElement('div');
+    const thumbB = document.createElement('div');
+    setMetrics(target, {
+      clientWidth: 100,
+      scrollWidth: 100,
+      clientHeight: 100,
+      scrollHeight: 400,
+    });
+    for (const track of [trackA, trackB]) {
+      Object.defineProperty(track, 'clientHeight', { configurable: true, value: 100 });
+      track.getBoundingClientRect = () => ({ top: 0, left: 0, width: 10, height: 100 }) as DOMRect;
+    }
+    thumbA.getBoundingClientRect = () => ({ top: 0, left: 0, width: 10, height: 25 }) as DOMRect;
+    thumbB.getBoundingClientRect = () => ({ top: 0, left: 0, width: 10, height: 25 }) as DOMRect;
+    trackA.style.display = 'flex';
+    trackB.style.display = 'grid';
+    trackA.append(thumbA);
+    trackB.append(thumbB);
+    document.body.append(target, trackA, trackB);
+    const move = createMoveHarness();
+
+    const lease = createWebScrollSurfaceHost(target, {
+      moveGestureHost: move.host,
+      preference: 'composed',
+    }).attach({
+      config: { axes: 'vertical', projection: 'composed' },
+      projection: 'system',
+      composedChrome: undefined,
+      onFacts: () => {},
+    });
+
+    // The Viewport attaches alone: no controls exist yet.
+    expect(trackA.style.display).toBe('flex');
+    expect(trackB.style.display).toBe('grid');
+
+    // Late attachment: Anatomy reports the first control after fallback has
+    // already started; the next publish pass must hide it.
+    lease.update({
+      config: { axes: 'vertical', projection: 'composed' },
+      projection: 'system',
+      composedChrome: {
+        scope: {},
+        controls: [{ getAxis: () => 'vertical', trackTarget: trackA, thumbTarget: thumbA }],
+      },
+      onFacts: () => {},
+    });
+    expect(trackA.style.display).toBe('none');
+    expect(thumbA.style.display).toBe('none');
+
+    // Replacement: a new control replaces the late one; the stale track must
+    // restore and the replacement must hide on the same pass.
+    lease.update({
+      config: { axes: 'vertical', projection: 'composed' },
+      projection: 'system',
+      composedChrome: {
+        scope: {},
+        controls: [{ getAxis: () => 'vertical', trackTarget: trackB, thumbTarget: thumbB }],
+      },
+      onFacts: () => {},
+    });
+    expect(trackA.style.display).toBe('flex');
+    expect(thumbA.style.display).toBe('');
+    expect(trackB.style.display).toBe('none');
+    expect(thumbB.style.display).toBe('none');
+
+    // A publish-only pass (no attachment update) keeps the reconciliation.
+    target.dispatchEvent(new Event('scroll'));
+    expect(trackB.style.display).toBe('none');
+
+    lease.dispose();
+    expect(trackB.style.display).toBe('grid');
+    expect(thumbB.style.height).toBe('');
+  });
 });
