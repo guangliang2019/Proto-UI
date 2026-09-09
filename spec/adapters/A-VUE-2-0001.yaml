@@ -121,6 +121,10 @@ criteria:
     text:
       en: The standard Web Adapter installs this partial Rule optimization slice with its native-variant policy. Bounded State selectors, default fallbacks and view cleanup have evidence; live replanning and full CSS equivalence remain open.
       zh-CN: standard Web Adapter 安装此 partial Rule optimization slice 并提供 native-variant policy。有界 State selector、default fallback 和 view cleanup 已有证据；live replanning 与完整 CSS 等价仍 open。
+  - id: A-VUE-2-0001-OVERLAY
+    text:
+      en: The standard Adapter installs Overlay, provides renderer-appropriate Portal and shared Web modal scroll locking, and maps global input identity to the owning document independently of its per-instance Event router. Nested Escape and controlled reopen select one owner per sample; tests use simulated DOM, not browser layout certification.
+      zh-CN: standard Adapter 安装 Overlay，提供 renderer 对应 Portal、共享 Web modal scroll lock，并将 global input identity 映射到 owner document，独立于每 instance Event router。嵌套 Escape 与 controlled reopen 每 sample 选择一个 owner；测试为模拟 DOM，不是 browser layout 认证。
 supports:
   modules:
     - id: M-POSITIONING-0001
@@ -184,6 +188,9 @@ supports:
       since: 0.3.0-alpha.0
       role: required-module
       note: Required in this standard Web profile; not a cross-host requirement.
+    - id: M-OVERLAY-0001
+      since: 0.3.0-alpha.0
+      role: required-module
 provides:
   hostCaps:
     - id: HC-ANCHORED-POSITION-0001
@@ -241,6 +248,16 @@ provides:
       since: 0.3.0-alpha.0
       role: translated-capability
       note: Canonical boundary; ordinary presentation surface coincides with it.
+    - id: HC-OVERLAY-PORTAL-0001
+      since: 0.3.0-alpha.0
+      role: translated-capability
+    - id: HC-OVERLAY-MODAL-0001
+      since: 0.3.0-alpha.0
+      role: translated-capability
+    - id: HC-OVERLAY-LAYER-0001
+      since: 0.3.0-alpha.0
+      role: translated-capability
+      note: Optional configured scheduler; the Adapter passes it through, and does not promise a default absolute hierarchy.
 relates:
   decisions:
     - D-ADAPTER-PROFILE-0001
@@ -279,6 +296,8 @@ verifies:
     - id: T-CONTEXT-0003
       since: 0.3.0-alpha.0
     - id: T-EXPOSE-STATE-WEB-0001
+      since: 0.3.0-alpha.0
+    - id: T-OVERLAY-CATALOG-0001
       since: 0.3.0-alpha.0
 sources:
   - path: packages/adapters/vue2/test/rule-expose-state-web.integration.test.ts
@@ -337,4 +356,7 @@ revisions:
   - version: 0.3.0-alpha.0
     change: revised
     summary: Added the reviewed Context identity/ancestry slice and real-framework nested-scope evidence; other unlisted modules remain uncataloged.
+  - version: 0.3.0-alpha.0
+    change: extended
+    summary: Cataloged bounded Overlay wiring, scoped Escape and concurrent modal cleanup evidence.
 tags: [adapter, vue2, vue, web, props, event, lifecycle, state, expose, official]

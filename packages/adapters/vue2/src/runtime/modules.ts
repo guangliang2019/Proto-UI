@@ -34,6 +34,7 @@ import {
   EVENT_CANCEL_DEFAULT_ACTION_CAP,
   type EventDefaultActionCancelRequest,
   EVENT_GLOBAL_TARGET_CAP,
+  EVENT_GLOBAL_INPUT_SCOPE_CAP,
   EVENT_ROOT_TARGET_CAP,
 } from '@proto.ui/module-event';
 import { EXPOSE_EVENT_SINK_CAP } from '@proto.ui/module-expose-event';
@@ -59,6 +60,7 @@ import {
   OVERLAY_GLOBAL_MOUNT_CAP,
   OVERLAY_LAYER_SCHEDULER_CAP,
   OVERLAY_MODAL_CAP,
+  createWebOverlayModal,
   type OverlayGlobalMount,
   type OverlayLayerScheduler,
 } from '@proto.ui/module-overlay';
@@ -274,6 +276,7 @@ export function createVue2Modules<Props extends PropsBaseType>(args: {
     .use('event', [
       [EVENT_ROOT_TARGET_CAP, () => router.rootTarget],
       [EVENT_GLOBAL_TARGET_CAP, () => router.globalTarget],
+      [EVENT_GLOBAL_INPUT_SCOPE_CAP, () => el.ownerDocument],
       [
         EVENT_CANCEL_DEFAULT_ACTION_CAP,
         ({ event }: EventDefaultActionCancelRequest) => {
@@ -399,21 +402,7 @@ export function createVue2Modules<Props extends PropsBaseType>(args: {
     .use('overlay', () => [
       [HOST_ELEMENT_CAP, el],
       [OVERLAY_GLOBAL_MOUNT_CAP, createVue2OverlayGlobalMount(instanceToken)],
-      [
-        OVERLAY_MODAL_CAP,
-        {
-          lock() {
-            const original = document.body.style.overflow;
-            (document.body as any).__proto_ui_original_overflow = original;
-            document.body.style.overflow = 'hidden';
-          },
-          unlock() {
-            const original = (document.body as any).__proto_ui_original_overflow ?? '';
-            document.body.style.overflow = original;
-            delete (document.body as any).__proto_ui_original_overflow;
-          },
-        },
-      ],
+      [OVERLAY_MODAL_CAP, createWebOverlayModal(el.ownerDocument)],
       ...(args.overlayLayerScheduler
         ? [[OVERLAY_LAYER_SCHEDULER_CAP, args.overlayLayerScheduler] as const]
         : []),
