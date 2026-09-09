@@ -366,4 +366,58 @@ describe('Web A11y opaque semantic-object references', () => {
       sourceProjector.dispose?.();
     }
   });
+
+  it('rebinds a reserved target when the host changes its id', () => {
+    const registry = createWebA11yProjectionRegistry({ idPrefix: 'test-id-rebind' });
+    const sourceRef = createA11ySemanticObjectRef();
+    const targetRef = createA11ySemanticObjectRef();
+    const source = document.createElement('div');
+    const target = document.createElement('div');
+    const sourceProjector = createWebA11yProjector(source, undefined, registry);
+    const targetProjector = createWebA11yProjector(target, undefined, registry);
+
+    sourceProjector(semanticSnapshot(sourceRef, { labelledBy: [targetRef] }));
+    targetProjector({ ...semanticSnapshot(targetRef), id: 'first-id' });
+    expect(source.getAttribute('aria-labelledby')).toBe('first-id');
+    targetProjector({ ...semanticSnapshot(targetRef), id: 'second-id' });
+    expect(target.id).toBe('second-id');
+    expect(source.getAttribute('aria-labelledby')).toBe('second-id');
+
+    sourceProjector.dispose?.();
+    targetProjector.dispose?.();
+  });
+
+  it('keeps an appended token until every projector releases it', () => {
+    const registry = createWebA11yProjectionRegistry({ idPrefix: 'test-shared-append' });
+    const sourceRef = createA11ySemanticObjectRef();
+    const firstRef = createA11ySemanticObjectRef();
+    const target = document.createElement('div');
+    const source = document.createElement('div');
+    const first = createWebA11yProjector(source, undefined, registry);
+    const second = createWebA11yProjector(source, undefined, registry);
+    const targetProjector = createWebA11yProjector(target, undefined, registry);
+
+    targetProjector(semanticSnapshot(firstRef));
+    const targetId = target.id;
+    first(semanticSnapshot(sourceRef, { describedBy: [firstRef] }, { describedBy: 'append' }));
+    second(semanticSnapshot(sourceRef, { describedBy: [firstRef] }, { describedBy: 'append' }));
+    expect(source.getAttribute('aria-describedby')).toBe(targetId);
+    first.dispose?.();
+    expect(source.getAttribute('aria-describedby')).toBe(targetId);
+    second.dispose?.();
+    expect(source.hasAttribute('aria-describedby')).toBe(false);
+
+    targetProjector.dispose?.();
+  });
+  it('does not clear a host id written after projector disposal begins', () => {
+    const registry = createWebA11yProjectionRegistry();
+    const ref = createA11ySemanticObjectRef();
+    const target = document.createElement('div');
+    const projector = createWebA11yProjector(target, undefined, registry);
+
+    projector({ ...semanticSnapshot(ref), id: 'projected-id' });
+    target.id = 'host-id';
+    projector.dispose?.();
+    expect(target.id).toBe('host-id');
+  });
 });

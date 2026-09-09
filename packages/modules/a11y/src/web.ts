@@ -70,6 +70,55 @@ export function createWebA11yProjectionRegistry(
   const recordsByRef = new Map<A11ySemanticObjectRef, Set<WebProjectorRecord>>();
   const reservedIdsByDocument = new Map<Document, Map<string, A11ySemanticObjectRef>>();
   const reservedIdsByRef = new Map<A11ySemanticObjectRef, Map<Document, string>>();
+  const appendTokenRefs = new WeakMap<
+    HTMLElement,
+    Map<string, Map<string, { baseline: boolean; count: number }>>
+  >();
+
+  const acquireAppendTokens = (
+    target: HTMLElement,
+    attr: string,
+    tokens: readonly string[],
+    baseline: readonly string[]
+  ) => {
+    let byAttribute = appendTokenRefs.get(target);
+    if (!byAttribute) {
+      byAttribute = new Map();
+      appendTokenRefs.set(target, byAttribute);
+    }
+    let byToken = byAttribute.get(attr);
+    if (!byToken) {
+      byToken = new Map();
+      byAttribute.set(attr, byToken);
+    }
+    const baselineSet = new Set(baseline);
+    for (const token of tokens) {
+      const entry = byToken.get(token) ?? { baseline: baselineSet.has(token), count: 0 };
+      entry.count += 1;
+      byToken.set(token, entry);
+    }
+  };
+
+  const releaseAppendTokens = (target: HTMLElement, attr: string, tokens: readonly string[]) => {
+    const byAttribute = appendTokenRefs.get(target);
+    const byToken = byAttribute?.get(attr);
+    if (!byToken) return;
+    const current = readTokens(target.getAttribute(attr));
+    const remove = new Set<string>();
+    for (const token of tokens) {
+      const entry = byToken.get(token);
+      if (!entry) continue;
+      entry.count -= 1;
+      if (entry.count === 0) {
+        if (!entry.baseline && current.includes(token)) remove.add(token);
+        byToken.delete(token);
+      }
+    }
+    if (remove.size) setTokenListAttr(target, attr, withoutTokens(current, [...remove]));
+    if (byToken.size === 0) byAttribute?.delete(attr);
+    if (byAttribute?.size === 0) appendTokenRefs.delete(target);
+  };
+
   let nextId = 1;
 
   const unindex = (record: WebProjectorRecord) => {
@@ -110,12 +159,7 @@ export function createWebA11yProjectionRegistry(
     const projection = record.projections.get(key);
     if (!projection) return;
     if (projection.mode === 'append') {
-      const current = readTokens(projection.target.getAttribute(projection.attr));
-      setTokenListAttr(
-        projection.target,
-        projection.attr,
-        withoutTokens(current, [...projection.ownedTokens])
-      );
+      releaseAppendTokens(projection.target, projection.attr, projection.tokens);
     } else if (projection.target.getAttribute(projection.attr) === projection.projectedValue) {
       setOptionalAttr(projection.target, projection.attr, projection.previousValue ?? undefined);
     }
@@ -287,17 +331,17 @@ export function createWebA11yProjectionRegistry(
     if (!record.target || !tokens || tokens.length === 0) return;
 
     if (mode === 'append') {
-      const baseline = readTokens(record.target.getAttribute(attr));
-      const baselineSet = new Set(baseline);
-      const ownedTokens = tokens.filter((token) => !baselineSet.has(token));
+      const previousValue = record.target.getAttribute(attr);
+      const baseline = readTokens(previousValue);
+      acquireAppendTokens(record.target, attr, tokens, baseline);
       setTokenListAttr(record.target, attr, [...baseline, ...tokens]);
       record.projections.set(key, {
         target: record.target,
         attr,
         mode,
         tokens: [...tokens],
-        ownedTokens,
-        previousValue: record.target.getAttribute(attr),
+        ownedTokens: [...tokens],
+        previousValue,
         projectedValue: [...new Set([...baseline, ...tokens])].join(' '),
       });
       return;
@@ -370,7 +414,7 @@ export function createWebA11yProjectionRegistry(
           attr,
           withoutTokens(readTokens(target.getAttribute(attr)), relationTokens(previous, key))
         );
-      } else {
+      } else if (target.getAttribute(attr) === previous.relations[key]) {
         target.removeAttribute(attr);
       }
     }
@@ -421,6 +465,11 @@ export function createWebA11yProjectionRegistry(
       );
     }
 
+    if (!targetChanged && record.reservedId && nextTarget && nextTarget.id !== record.reservedId) {
+      // The host may have changed the live id before this replay. Release only
+      // the stale reservation; never overwrite the host's current value.
+      releaseReservation(record);
+    }
     const currentTargetId = nextTarget?.id || null;
     const bindingChanged = bindingReplaced || currentTargetId !== previousTargetId;
     record.lastTargetId = currentTargetId;
@@ -487,7 +536,7 @@ export function createWebA11yProjectionRegistry(
         const target = record.target;
         const snapshot = record.snapshot;
         detach();
-        if (target && snapshot) clearWebA11ySnapshot(target, snapshot);
+        if (target && snapshot) clearOwnedWebA11ySnapshot(target, snapshot);
         record.disposed = true;
         releaseReservation(record);
         record.snapshot = null;
@@ -558,6 +607,61 @@ export function clearWebA11ySnapshot(el: HTMLElement, snapshot: A11ySemanticObje
       el.removeAttribute('data-pui-a11y-merge-children');
     }
   }
+}
+
+function clearOwnedWebA11ySnapshot(el: HTMLElement, snapshot: A11ySemanticObjectSnapshot): void {
+  const clearIfEqual = (attr: string, expected: string | null | undefined) => {
+    if (el.getAttribute(attr) === (expected ?? null)) el.removeAttribute(attr);
+  };
+  if (typeof snapshot.id !== 'undefined') clearIfEqual('id', snapshot.id);
+  if (typeof snapshot.role !== 'undefined') clearIfEqual('role', snapshot.role);
+  if (hasProjectedHeadingLevel(snapshot)) clearIfEqual('aria-level', String(snapshot.level));
+  if (snapshot.name?.kind === 'text') {
+    clearIfEqual('aria-label', readTextTarget(snapshot.name.value));
+  }
+  if (snapshot.description?.kind === 'text') {
+    clearIfEqual('aria-description', readTextTarget(snapshot.description.value));
+  }
+  for (const [key, attr] of Object.entries(ARIA_STATE_ATTRS)) {
+    if (!Object.prototype.hasOwnProperty.call(snapshot.states, key)) continue;
+    clearIfEqual(attr, projectedAttributeValue(snapshot.states[key]));
+  }
+  if (Object.prototype.hasOwnProperty.call(snapshot.states, 'hidden')) {
+    clearIfEqual('aria-hidden', projectedAttributeValue(snapshot.states.hidden));
+    if (el.hasAttribute('hidden') && snapshot.states.hidden === true) el.removeAttribute('hidden');
+  }
+  for (const [key, attr] of Object.entries(ARIA_RELATION_ATTRS)) {
+    const relation = snapshot.relations[key];
+    if (typeof relation !== 'string') continue;
+    if (snapshot.relationModes?.[key] === 'append') {
+      setTokenListAttr(
+        el,
+        attr,
+        withoutTokens(readTokens(el.getAttribute(attr)), readTokens(relation))
+      );
+    } else {
+      clearIfEqual(attr, relation);
+    }
+  }
+  if (Object.keys(snapshot.actions).length) {
+    clearIfEqual('data-pui-a11y-actions', Object.keys(snapshot.actions).sort().join(' '));
+  }
+  if (snapshot.tree) {
+    if (Object.prototype.hasOwnProperty.call(snapshot.tree, 'hidden')) {
+      clearIfEqual('aria-hidden', projectedAttributeValue(snapshot.tree.hidden));
+    }
+    if (Object.prototype.hasOwnProperty.call(snapshot.tree, 'mergeChildren')) {
+      clearIfEqual(
+        'data-pui-a11y-merge-children',
+        projectedAttributeValue(snapshot.tree.mergeChildren)
+      );
+    }
+  }
+}
+
+function projectedAttributeValue(value: unknown): string | undefined {
+  if (value === undefined || value === null || value === '') return undefined;
+  return typeof value === 'boolean' ? (value ? 'true' : 'false') : String(value);
 }
 
 export function applyWebA11ySnapshot(
