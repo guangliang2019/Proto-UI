@@ -436,7 +436,8 @@ export function checkSpecLifecycleDispositions(
 export function checkSpecLifecycleAuthoring(
   before: SpecEntity | undefined,
   after: SpecEntity | undefined,
-  workspace?: SpecWorkspace
+  workspace?: SpecWorkspace,
+  currentVersion?: string
 ): string[] {
   if (!after)
     return before && before.type !== 'version'
@@ -508,14 +509,23 @@ export function checkSpecLifecycleAuthoring(
         `${after.id}: promotion must preserve prior revisions and append a new admission revision with a summary at activeSince.`
       );
   }
-  const activationChanged = !isNewIdentity && before?.activeSince !== after.activeSince;
-  if (
-    after.activeSince &&
-    ((after.status === 'active' && (isNewIdentity || isPromotion)) || activationChanged)
-  ) {
+  const activationChanged = isNewIdentity || before?.activeSince !== after.activeSince;
+  if (after.activeSince && (isPromotion || activationChanged)) {
     if (!workspace)
       issues.push(
         `${after.id}: active admission requires the current workspace for evidence checks.`
+      );
+    else if (!currentVersion)
+      issues.push(`${after.id}: active admission requires the current release train.`);
+    else if (
+      compareSpecVersions(after.activeSince, specVersionSchema.parse(currentVersion)) < 0 ||
+      (!isNewIdentity &&
+        activationChanged &&
+        before?.activeSince !== undefined &&
+        compareSpecVersions(before.activeSince, currentVersion) < 0)
+    )
+      issues.push(
+        `${after.id}: historical activation requires a separately reviewed provenance mechanism; current-catalog evidence cannot add or revise activation history before ${currentVersion}.`
       );
     else {
       const report = getSpecLifecycleReport(

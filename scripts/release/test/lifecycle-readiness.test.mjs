@@ -225,6 +225,38 @@ test('authoring preserves identities across deletion, replacement, and file move
     const supportedAdmission = check();
     assert.equal(supportedAdmission.status, 0, supportedAdmission.stderr);
     rmSync(evidencePath);
+
+    const historicalTestPath = path.join(fixture, 'spec/tests/T-LIFECYCLE-0001.yaml');
+    const historicalTestSource = readFileSync(historicalTestPath, 'utf8');
+    const historicalTest = parse(historicalTestSource);
+    newActive.since = '0.2.0';
+    newActive.activeSince = '0.2.0';
+    writeFileSync(newPath, JSON.stringify(newActive));
+    historicalTest.verifies.contracts.push({ id: newActive.id, since: '0.2.0' });
+    const newCaseId = `${historicalTest.id}-CASE-NEW-ADMISSION`;
+    historicalTest.cases.push({
+      id: newCaseId,
+      title: 'Newly cataloged admission evidence',
+      covers: ['C-REVIEW-UNTRACKED-0001-A'],
+      expectation: 'governed-result',
+    });
+    historicalTest.implementations.push({
+      id: 'current-admission-evidence',
+      kind: 'runtime-test',
+      status: 'passing',
+      required: true,
+      path: 'packages/spec/fixtures/test/lifecycle-readiness.test.ts',
+      consumesCases: [newCaseId],
+    });
+    writeFileSync(historicalTestPath, JSON.stringify(historicalTest));
+    const historicalAdmission = check();
+    assert.equal(historicalAdmission.status, 1, historicalAdmission.stdout);
+    assert.match(historicalAdmission.stderr, /historical/i);
+    newActive.activeSince = readFileSync(path.join(fixture, 'VERSION'), 'utf8').trim();
+    writeFileSync(newPath, JSON.stringify(newActive));
+    const currentAdmission = check();
+    assert.equal(currentAdmission.status, 0, currentAdmission.stderr);
+    writeFileSync(historicalTestPath, historicalTestSource);
     rmSync(path.join(fixture, 'spec/contracts/C-REVIEW-UNTRACKED-0001.yaml'));
     const linkedSource = path.join(fixture, 'relationship-source.txt');
     writeFileSync(linkedSource, original);

@@ -1,10 +1,11 @@
 #!/usr/bin/env node
 
 import { execFileSync } from 'node:child_process';
+import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { parse } from 'yaml';
-import { validateSpecEntity } from '@proto.ui/spec-schema';
+import { specVersionSchema, validateSpecEntity } from '@proto.ui/spec-schema';
 import { checkSpecLifecycleAuthoring } from '@proto.ui/spec-engine';
 import { loadSpecWorkspaceFromDirectory } from '@proto.ui/spec-engine/node';
 
@@ -12,6 +13,9 @@ const root = path.resolve(fileURLToPath(new URL('../..', import.meta.url)));
 const args = process.argv.slice(2).filter((arg) => arg !== '--');
 if (args.length !== 2 || args[0] !== '--base')
   throw new Error('Usage: pnpm check:spec-authoring -- --base <commit>');
+const currentVersion = specVersionSchema.parse(
+  readFileSync(path.join(root, 'VERSION'), 'utf8').trim()
+);
 const git = (args) =>
   execFileSync('git', args, { cwd: root, encoding: 'utf8', maxBuffer: 1 << 26 });
 const base = git(['rev-parse', '--verify', '--end-of-options', `${args[1]}^{commit}`]).trim();
@@ -42,13 +46,14 @@ const current = new Map(
 const issues = [
   ...workspace.issues.map((issue) => `${issue.filePath}: ${issue.message}`),
   ...[...current.values()].flatMap(({ entity, file }) =>
-    checkSpecLifecycleAuthoring(previous.get(entity.id), entity, workspace).map(
+    checkSpecLifecycleAuthoring(previous.get(entity.id), entity, workspace, currentVersion).map(
       (issue) => `${file}: ${issue}`
     )
   ),
 ];
 for (const [id, entity] of previous) {
-  if (!current.has(id)) issues.push(...checkSpecLifecycleAuthoring(entity, undefined));
+  if (!current.has(id))
+    issues.push(...checkSpecLifecycleAuthoring(entity, undefined, workspace, currentVersion));
 }
 if (issues.length) {
   issues.forEach((issue) => console.error(`[spec-authoring] ${issue}`));

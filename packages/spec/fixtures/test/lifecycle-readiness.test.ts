@@ -222,7 +222,8 @@ describe('ordinary lifecycle targets and authoring', () => {
           activeSince: version,
           lifecycleRationale: 'Reviewed at the recorded version.',
         },
-        createSpecWorkspace([legacy, testEntity('passing')])
+        createSpecWorkspace([legacy, testEntity('passing')]),
+        version
       )
     ).toEqual([]);
     const draft = contract({ lifecycleRationale: undefined });
@@ -257,14 +258,16 @@ describe('ordinary lifecycle targets and authoring', () => {
       checkSpecLifecycleAuthoring(
         draft,
         active,
-        createSpecWorkspace([active, testEntity('passing')])
+        createSpecWorkspace([active, testEntity('passing')]),
+        version
       )
     ).toEqual([]);
     expect(
       checkSpecLifecycleAuthoring(
         undefined,
         { ...active, revisions: [] },
-        createSpecWorkspace([active, testEntity('passing')])
+        createSpecWorkspace([active, testEntity('passing')]),
+        version
       )
     ).toEqual([]);
   });
@@ -298,7 +301,9 @@ describe('ordinary lifecycle targets and authoring', () => {
       expect.stringContaining('requires the current workspace')
     );
     const empty = { ...active, statement: undefined, criteria: [] };
-    expect(checkSpecLifecycleAuthoring(draft, empty, createSpecWorkspace([empty]))).toEqual(
+    expect(
+      checkSpecLifecycleAuthoring(draft, empty, createSpecWorkspace([empty]), version)
+    ).toEqual(
       expect.arrayContaining([
         expect.stringContaining('missing-statement'),
         expect.stringContaining('missing-criteria'),
@@ -307,12 +312,12 @@ describe('ordinary lifecycle targets and authoring', () => {
     const evidence = testEntity('passing');
     evidence.since = '0.3.0';
     expect(
-      checkSpecLifecycleAuthoring(draft, active, createSpecWorkspace([active, evidence]))
+      checkSpecLifecycleAuthoring(draft, active, createSpecWorkspace([active, evidence]), version)
     ).toContainEqual(expect.stringContaining('criterion-needs-evidence'));
     evidence.since = version;
     const ready = createSpecWorkspace([active, evidence]);
-    expect(checkSpecLifecycleAuthoring(draft, active, ready)).toEqual([]);
-    expect(checkSpecLifecycleAuthoring(undefined, active, ready)).toEqual([]);
+    expect(checkSpecLifecycleAuthoring(draft, active, ready, version)).toEqual([]);
+    expect(checkSpecLifecycleAuthoring(undefined, active, ready, version)).toEqual([]);
   });
 
   it('requires recorded Prototype anatomy even when generic admission evidence passes', () => {
@@ -333,7 +338,7 @@ describe('ordinary lifecycle targets and authoring', () => {
     evidence.verifies = { prototypes: [{ id }] };
     evidence.cases[0].covers = [`${id}-A`];
     const workspace = createSpecWorkspace([active, evidence]);
-    expect(checkSpecLifecycleAuthoring(draft, active, workspace)).toContainEqual(
+    expect(checkSpecLifecycleAuthoring(draft, active, workspace, version)).toContainEqual(
       expect.stringContaining('missing-anatomy')
     );
     const declared = validateSpecEntity({
@@ -343,7 +348,7 @@ describe('ordinary lifecycle targets and authoring', () => {
         roles: { root: { cardinality: { min: 1, max: 1 } } },
       },
     });
-    expect(checkSpecLifecycleAuthoring(draft, declared, workspace)).toEqual([]);
+    expect(checkSpecLifecycleAuthoring(draft, declared, workspace, version)).toEqual([]);
   });
 
   it.each([{ covers: [] }, { covers: ['C-ABSENT-0001-A'] }, { covers: ['C-OTHER-0001-A'] }])(
@@ -363,11 +368,11 @@ describe('ordinary lifecycle targets and authoring', () => {
         criteria: [{ id: 'C-OTHER-0001-A', text: 'Another requirement.' }],
       });
       const workspace = createSpecWorkspace([contract(), other, active]);
-      expect(checkSpecLifecycleAuthoring(draft, active, workspace)).toContainEqual(
+      expect(checkSpecLifecycleAuthoring(draft, active, workspace, version)).toContainEqual(
         expect.stringMatching(/case-(needs-criteria|invalid-criterion)/)
       );
       active.cases[0].covers = [criterionId];
-      expect(checkSpecLifecycleAuthoring(draft, active, workspace)).toEqual([]);
+      expect(checkSpecLifecycleAuthoring(draft, active, workspace, version)).toEqual([]);
     }
   );
 
@@ -383,18 +388,112 @@ describe('ordinary lifecycle targets and authoring', () => {
       exercises: { contracts: [{ id: contractId }] },
     };
     const workspace = createSpecWorkspace([contract(), active]);
-    expect(checkSpecLifecycleAuthoring(draft, active, workspace)).toEqual([]);
+    expect(checkSpecLifecycleAuthoring(draft, active, workspace, version)).toEqual([]);
     expect(
       getSpecLifecycleReport(workspace, version).rows.find((row) => row.entityId === contractId)
         ?.gaps
     ).toContainEqual(expect.objectContaining({ code: 'criterion-needs-evidence' }));
     active.exercises = {};
     active.implementations[0].exercises = [contractId];
-    expect(checkSpecLifecycleAuthoring(draft, active, workspace)).toEqual([]);
+    expect(checkSpecLifecycleAuthoring(draft, active, workspace, version)).toEqual([]);
     active.implementations[0].exercises = [];
     const owner = contract({ verifies: { tests: [testId] } });
     expect(
-      checkSpecLifecycleAuthoring(draft, active, createSpecWorkspace([owner, active]))
+      checkSpecLifecycleAuthoring(draft, active, createSpecWorkspace([owner, active]), version)
+    ).toEqual([]);
+  });
+
+  it.each(['replacement', 'legacy', 'promotion', 'new-active', 'new-deprecated', 'new-removed'])(
+    'does not let newly recorded passing evidence justify historical activation: %s',
+    (change) => {
+      const currentVersion = '0.3.0';
+      const before = change.startsWith('new-')
+        ? undefined
+        : contract({
+            status: change === 'promotion' ? 'draft' : 'active',
+            activeSince: change === 'replacement' ? currentVersion : undefined,
+          });
+      const after = contract({
+        status:
+          change === 'new-deprecated'
+            ? 'deprecated'
+            : change === 'new-removed'
+              ? 'removed'
+              : 'active',
+        activeSince: version,
+        deprecatedSince: change === 'new-deprecated' ? '0.4.0' : undefined,
+        removedSince: change === 'new-removed' ? '0.4.0' : undefined,
+        lifecycleRationale: 'The activation boundary was reviewed.',
+        revisions: [{ version, change: 'admitted', summary: 'Admission was reviewed.' }],
+      });
+      const oldTest = testEntity();
+      oldTest.implementations = [];
+      const newMapping = { ...oldTest, implementations: testEntity('passing').implementations };
+      const workspace = createSpecWorkspace([after, newMapping]);
+      expect(
+        getSpecLifecycleReport(workspace, version).rows.find((row) => row.entityId === contractId)
+          ?.gaps
+      ).toEqual([]);
+      expect(checkSpecLifecycleAuthoring(before, after, workspace, currentVersion)).toContainEqual(
+        expect.stringContaining(
+          'historical activation requires a separately reviewed provenance mechanism'
+        )
+      );
+      after.activeSince = currentVersion;
+      after.revisions[0].version = currentVersion;
+      expect(checkSpecLifecycleAuthoring(before, after, workspace, currentVersion)).toEqual([]);
+    }
+  );
+
+  it('requires an explicit current release train for mechanical admission', () => {
+    const active = contract({ status: 'active', activeSince: version });
+    const workspace = createSpecWorkspace([active, testEntity('passing')]);
+    expect(checkSpecLifecycleAuthoring(undefined, active, workspace)).toContainEqual(
+      expect.stringContaining('requires the current release train')
+    );
+    expect(checkSpecLifecycleAuthoring(undefined, active, workspace, version)).toEqual([]);
+  });
+
+  it('does not replace recorded historical activation with a current boundary', () => {
+    const before = contract({ status: 'active', activeSince: version });
+    const currentVersion = '0.3.0';
+    const after = {
+      ...before,
+      activeSince: currentVersion,
+      lifecycleRationale: 'The boundary was corrected.',
+    };
+    const workspace = createSpecWorkspace([after, testEntity('passing')]);
+    expect(checkSpecLifecycleAuthoring(before, after, workspace, currentVersion)).toContainEqual(
+      expect.stringContaining(
+        'historical activation requires a separately reviewed provenance mechanism'
+      )
+    );
+    expect(
+      checkSpecLifecycleAuthoring(
+        before,
+        { ...before, title: 'History retained' },
+        workspace,
+        currentVersion
+      )
+    ).toEqual([]);
+  });
+
+  it("does not inherit another identity's activation history for new admission", () => {
+    const before = contract({
+      id: 'C-OLD-LIFECYCLE-0001',
+      since: '0.1.0',
+      status: 'active',
+      activeSince: '0.1.0',
+      criteria: [],
+    });
+    const active = contract({ status: 'active', activeSince: version });
+    expect(
+      checkSpecLifecycleAuthoring(
+        before,
+        active,
+        createSpecWorkspace([active, testEntity('passing')]),
+        version
+      )
     ).toEqual([]);
   });
 
@@ -422,7 +521,8 @@ describe('ordinary lifecycle targets and authoring', () => {
     const issues = checkSpecLifecycleAuthoring(
       draft,
       active,
-      createSpecWorkspace([active, evidence])
+      createSpecWorkspace([active, evidence]),
+      version
     );
     expect(issues).toEqual(
       expect.arrayContaining([
@@ -433,7 +533,7 @@ describe('ordinary lifecycle targets and authoring', () => {
     evidence.openQuestions = [];
     evidence.implementations[1].status = 'passing';
     expect(
-      checkSpecLifecycleAuthoring(draft, active, createSpecWorkspace([active, evidence]))
+      checkSpecLifecycleAuthoring(draft, active, createSpecWorkspace([active, evidence]), version)
     ).toEqual([]);
   });
 
@@ -454,14 +554,14 @@ describe('ordinary lifecycle targets and authoring', () => {
       const evidence = testEntity('passing');
       evidence.since = '0.3.0';
       expect(
-        checkSpecLifecycleAuthoring(before, after, createSpecWorkspace([before, evidence]))
+        checkSpecLifecycleAuthoring(before, after, createSpecWorkspace([before, evidence]), version)
       ).toContainEqual(expect.stringContaining('criterion-needs-evidence'));
       expect(checkSpecLifecycleAuthoring(before, after)).toContainEqual(
         expect.stringContaining('requires the current workspace')
       );
       evidence.since = version;
       expect(
-        checkSpecLifecycleAuthoring(before, after, createSpecWorkspace([before, evidence]))
+        checkSpecLifecycleAuthoring(before, after, createSpecWorkspace([before, evidence]), version)
       ).toEqual([]);
       expect(checkSpecLifecycleAuthoring(before, { ...before, title: 'Edited prose' })).toEqual([]);
     }
@@ -482,9 +582,9 @@ describe('ordinary lifecycle targets and authoring', () => {
         statement: 'A supported explanatory claim.',
         criteria: [{ id: `${id}-A`, text: 'The claim has a reviewed basis.' }],
       });
-      expect(checkSpecLifecycleAuthoring(undefined, active, createSpecWorkspace([active]))).toEqual(
-        []
-      );
+      expect(
+        checkSpecLifecycleAuthoring(undefined, active, createSpecWorkspace([active]), version)
+      ).toEqual([]);
     }
   );
 
@@ -625,7 +725,8 @@ describe('ordinary lifecycle targets and authoring', () => {
       checkSpecLifecycleAuthoring(
         draft,
         active,
-        createSpecWorkspace([active, testEntity('passing')])
+        createSpecWorkspace([active, testEntity('passing')]),
+        version
       )
     ).toEqual([]);
   });
@@ -652,7 +753,8 @@ describe('ordinary lifecycle targets and authoring', () => {
       checkSpecLifecycleAuthoring(
         draft,
         active,
-        createSpecWorkspace([active, testEntity('passing')])
+        createSpecWorkspace([active, testEntity('passing')]),
+        version
       )
     ).toEqual([]);
   });
