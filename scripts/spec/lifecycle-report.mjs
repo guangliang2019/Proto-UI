@@ -71,5 +71,5 @@ if (issues.length) {
   process.exitCode = 1;
 } else if (check && !json)
   console.log(
-    `[lifecycle] disposition check passed for ${entities ? 'explicit scope' : 'full inventory'}; independent admission review is still required`
+    `[lifecycle] draft disposition check passed for ${entities ? 'explicit scope' : 'full draft inventory'}; independent admission review is still required`
   );

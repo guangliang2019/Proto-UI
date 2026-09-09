@@ -68,11 +68,11 @@ npm Trusted Publisher 是 package 级配置，因此 package identity 不存在�
 
 ### 3.1 普通实体生命周期评审
 
-当受治理的 surface 首次进入 release train，以及每次准备阶段评审时，运行 `pnpm release:lifecycle`。报告保守地覆盖当前 catalog 中在所选版本可用的全部普通实体，展示未评审项、已记录的测试证据、blocker 与旧元数据缺口；它不从 package publication 或 dependency edge 推断稳定生效。准入标准遵循 [`spec/README.md`](../../spec/README.md)。
+当受治理的 surface 首次进入 release train，以及每次准备阶段评审时，运行 `pnpm release:lifecycle`。报告保守地覆盖当前 catalog 中在所选版本可用的全部普通实体，展示未评审的 draft、已记录的测试证据、blocker 与旧元数据缺口；它不从 package publication 或 dependency edge 推断稳定生效。准入标准遵循 [`spec/README.md`](../../spec/README.md)。
 
 在 `internal/releases/<version>/lifecycle-dispositions.json` 中记录已评审的语义切片。每个切片列出 entity IDs、证据与理由，并选择一个 disposition：`promote` 表示提交评审的准入建议，`remain-draft` 必须指明 blocker，`not-applicable` 必须说明原因。该记录描述当前评审，不得表述为对不可变 release snapshot 的追溯修改。按切片逐步处理 release 相关实体，保留报告中尚未覆盖的余量，不得以没有证据的统一 disposition 填满目录。
 
-使用 `pnpm release:lifecycle -- --check --entities <entity-ids>` 检查已评审范围是否有完整处置；省略 `--entities` 时，`--check` 检查完整 inventory，任何 disposition 缺失都会失败。准备 PR 必须说明通过检查的范围和仍未评审的余量。`release:rehearse` 生成完整报告以触发评审；生成成功不代表全目录已经通过 readiness 检查。报告和 disposition 不修改实体 status、不回填 activation history，也不替代独立的 V 实体发布证据流程。
+使用 `pnpm release:lifecycle -- --check --entities <entity-ids>` 要求已评审范围内的每个 draft 都有 disposition；省略 `--entities` 时，`--check` 检查完整报告 inventory 中的全部 draft，任何 draft disposition 缺失都会失败。非 draft 实体的元数据与 activation-provenance 缺口继续展示供审计，但不因此强制要求 disposition。准备 PR 必须说明通过检查的范围和仍未评审的余量。`release:rehearse` 生成完整报告以触发评审；生成成功不代表全目录已经通过 readiness 检查。报告和 disposition 不修改实体 status、不回填 activation history，也不替代独立的 V 实体发布证据流程。
 
 ## 4. 发布流程
 

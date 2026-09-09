@@ -73,7 +73,7 @@ beforeAll(async () => {
 
 afterAll(async () => {
   await browser?.close();
-  if (!server?.pid || server.exitCode !== null) return;
+  if (!server?.pid || server.exitCode !== null || server.signalCode !== null) return;
   if (process.platform === 'win32') {
     await new Promise<void>((resolve) => {
       const killer = spawn('taskkill', ['/PID', String(server!.pid), '/T', '/F']);
@@ -86,7 +86,8 @@ afterAll(async () => {
       new Promise((resolve) => server!.once('exit', resolve)),
       new Promise((resolve) => setTimeout(resolve, 5000)),
     ]);
-    if (server.exitCode === null) process.kill(-server.pid, 'SIGKILL');
+    if (server.exitCode === null && server.signalCode === null)
+      process.kill(-server.pid, 'SIGKILL');
   }
 }, 60_000);
 
@@ -163,6 +164,34 @@ describe.sequential('Workspace lifecycle review projection', () => {
       expect(await page.locator('.issues-panel').innerText()).toContain(
         'Invalid lifecycle disposition evidence'
       );
+    } finally {
+      await context.close();
+    }
+  }, 60_000);
+
+  it('keeps conflicting dispositions unreviewed in the workspace', async () => {
+    const context = await browser.newContext();
+    await context.route('**/spec-workspace.json', async (route) => {
+      const response = await route.fetch();
+      const data = await response.json();
+      const slice = data.lifecyclePlans[version].slices[0];
+      data.lifecyclePlans[version].slices.push({
+        ...slice,
+        id: 'conflicting-slice',
+        disposition: 'not-applicable',
+      });
+      await route.fulfill({ response, json: data });
+    });
+    const page = await context.newPage();
+    try {
+      await page.goto(`${baseUrl}/#/entities/${testId}`);
+      const panel = page.locator('.lifecycle-panel');
+      await panel.locator(`[data-lifecycle-entity="${testId}"]`).waitFor();
+      expect(await panel.locator('dd').first().innerText()).toMatch(/^0 \/ \d+$/);
+      const selected = panel.locator(`[data-lifecycle-entity="${testId}"]`);
+      expect(await selected.innerText()).toContain('未评审草案');
+      expect(await selected.innerText()).not.toContain('保持草案');
+      expect(await panel.innerText()).toContain('occurs in more than one disposition entry');
     } finally {
       await context.close();
     }

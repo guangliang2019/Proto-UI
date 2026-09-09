@@ -1,7 +1,17 @@
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import {
+  copyFileSync,
+  mkdtempSync,
+  readFileSync,
+  renameSync,
+  rmSync,
+  symlinkSync,
+  writeFileSync,
+} from 'node:fs';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
+import { tmpdir } from 'node:os';
+import path from 'node:path';
 import test from 'node:test';
 import { parse } from 'yaml';
 
@@ -60,4 +70,77 @@ test('release preparation and changed-entity CI invoke the lifecycle tools', () 
   const gate = steps.find((step) => step.name === 'Public documentation gate and repository tests');
   assert.match(gate.env.SPEC_AUTHORING_BASE, /pull_request\.base\.sha/);
   assert.match(gate.run, /check:spec-authoring -- --base/);
+});
+
+test('authoring preserves identities across deletion, replacement, and file moves', () => {
+  const fixture = mkdtempSync(path.join(tmpdir(), 'proto-lifecycle-authoring-'));
+  const run = (command, args) =>
+    spawnSync(command, args, {
+      cwd: fixture,
+      encoding: 'utf8',
+      env: { ...process.env, TSX_TSCONFIG_PATH: path.join(root, 'tsconfig.json') },
+    });
+  const check = () =>
+    run(process.execPath, [
+      '--import',
+      'tsx',
+      'scripts/spec/check-lifecycle-authoring.mjs',
+      '--base',
+      'HEAD',
+    ]);
+  try {
+    // Reuse existing history; this fixture never creates a commit.
+    const cloned = run('git', ['clone', '--quiet', '--shared', root, fixture]);
+    assert.equal(cloned.status, 0, cloned.stderr);
+    symlinkSync(path.join(root, 'node_modules'), path.join(fixture, 'node_modules'), 'dir');
+    copyFileSync(
+      path.join(root, 'scripts/spec/check-lifecycle-authoring.mjs'),
+      path.join(fixture, 'scripts/spec/check-lifecycle-authoring.mjs')
+    );
+    const entityPath = path.join(fixture, 'spec/contracts/C-A11Y-PART-RELATIONSHIP-0001.yaml');
+    const movedPath = path.join(fixture, 'spec/contracts/moved-relationship.yaml');
+    const original = readFileSync(entityPath, 'utf8');
+    renameSync(entityPath, movedPath);
+    const moved = check();
+    assert.equal(moved.status, 0, moved.stderr);
+    writeFileSync(
+      movedPath,
+      JSON.stringify({
+        ...parse(original),
+        status: 'active',
+        activeSince: '0.3.0-alpha.0',
+      })
+    );
+    const promotedMove = check();
+    assert.equal(promotedMove.status, 1);
+    assert.match(promotedMove.stderr, /updated lifecycleRationale/);
+    assert.match(promotedMove.stderr, /new admission revision/);
+    rmSync(movedPath);
+    const deleted = check();
+    assert.equal(deleted.status, 1);
+    assert.match(deleted.stderr, /C-A11Y-PART-RELATIONSHIP-0001: retain the entity/);
+    writeFileSync(
+      entityPath,
+      original.replaceAll('C-A11Y-PART-RELATIONSHIP-0001', 'C-A11Y-PART-RELATIONSHIP-0099')
+    );
+    const replaced = check();
+    assert.equal(replaced.status, 1);
+    assert.match(replaced.stderr, /C-A11Y-PART-RELATIONSHIP-0001: retain the entity/);
+    writeFileSync(entityPath, original);
+    writeFileSync(
+      path.join(fixture, 'spec/contracts/C-REVIEW-UNTRACKED-0001.yaml'),
+      JSON.stringify({
+        id: 'C-REVIEW-UNTRACKED-0001',
+        type: 'contract',
+        title: 'Untracked draft',
+        status: 'draft',
+        since: '0.3.0-alpha.0',
+      })
+    );
+    const untracked = check();
+    assert.equal(untracked.status, 1);
+    assert.match(untracked.stderr, /C-REVIEW-UNTRACKED-0001: .*requires lifecycleRationale/);
+  } finally {
+    rmSync(fixture, { recursive: true, force: true });
+  }
 });

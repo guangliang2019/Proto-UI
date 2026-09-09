@@ -51,6 +51,7 @@ const UI_TEXT = {
       'Current catalog, filtered by version. Recorded evidence and dispositions are not execution results or admission approval.',
     lifecycleUnavailable: 'Lifecycle report is unavailable; inspect the validation issues.',
     unreviewed: 'Unreviewed drafts',
+    noDisposition: 'No authored disposition',
     recordedDispositions: 'Drafts with dispositions',
     legacyActivation: 'Unknown activation provenance',
     unclassified: 'Unclassified',
@@ -188,6 +189,7 @@ const UI_TEXT = {
     lifecycleBasis: '按版本筛选的当前目录。已记录的证据与处置不等于测试执行结果或稳定性批准。',
     lifecycleUnavailable: '生命周期报告不可用，请检查验证问题。',
     unreviewed: '未评审草案',
+    noDisposition: '尚无已记录处置',
     recordedDispositions: '已记录处置的草案',
     legacyActivation: '生效历史未确认',
     unclassified: '未分类',
@@ -750,7 +752,9 @@ function LifecyclePanel(props: {
               <p>
                 {selected.disposition
                   ? props.t.dispositions[selected.disposition.disposition]
-                  : props.t.unreviewed}
+                  : selected.status === 'draft'
+                    ? props.t.unreviewed
+                    : props.t.noDisposition}
               </p>
               {selected.disposition ? <p>{selected.disposition.rationale}</p> : null}
               {selected.stableAtVersion === null ? <p>{props.t.legacyActivation}</p> : null}

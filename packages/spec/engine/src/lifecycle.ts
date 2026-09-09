@@ -102,6 +102,7 @@ export function getSpecLifecycleReport(
     });
   }
   const dispositions = new Map<string, SpecLifecyclePlan['slices'][number]>();
+  const conflictedEntities = new Set<string>();
   const sliceIds = new Set<string>();
   for (const slice of plan?.slices ?? []) {
     if (sliceIds.has(slice.id))
@@ -121,6 +122,7 @@ export function getSpecLifecycleReport(
         });
       }
       if (dispositions.has(id)) {
+        conflictedEntities.add(id);
         issues.push({
           code: 'duplicate-disposition',
           entityId: id,
@@ -131,6 +133,7 @@ export function getSpecLifecycleReport(
       dispositions.set(id, slice);
     }
   }
+  for (const id of conflictedEntities) dispositions.delete(id);
   const blocks = entities.flatMap((entity) =>
     entity.openQuestions.flatMap((question) =>
       question.blocks.map((target) => ({
@@ -327,7 +330,9 @@ export function checkSpecLifecycleDispositions(
   entityIds?: readonly string[]
 ): SpecLifecycleIssue[] {
   const selected = new Set(entityIds ?? report.rows.map((row) => row.entityId));
-  const issues = report.issues.slice();
+  const issues = report.issues.filter(
+    (issue) => !entityIds || !issue.entityId || selected.has(issue.entityId)
+  );
   for (const id of [...selected].sort()) {
     const row = report.rows.find((candidate) => candidate.entityId === id);
     if (!row)
@@ -348,8 +353,12 @@ export function checkSpecLifecycleDispositions(
 
 export function checkSpecLifecycleAuthoring(
   before: SpecEntity | undefined,
-  after: SpecEntity
+  after: SpecEntity | undefined
 ): string[] {
+  if (!after)
+    return before && before.type !== 'version'
+      ? [`${before.id}: retain the entity and record removal through its lifecycle history.`]
+      : [];
   if (after.type === 'version') return [];
   const changed =
     !before ||
@@ -361,9 +370,28 @@ export function checkSpecLifecycleAuthoring(
   const issues: string[] = [];
   if (!hasText(after.lifecycleRationale))
     issues.push(`${after.id}: new or lifecycle-changing authoring requires lifecycleRationale.`);
+  else if (
+    before &&
+    JSON.stringify(before.lifecycleRationale) === JSON.stringify(after.lifecycleRationale)
+  )
+    issues.push(`${after.id}: changed lifecycle requires updated lifecycleRationale.`);
   if (after.status === 'active' && !after.activeSince)
     issues.push(
       `${after.id}: newly admitted active status requires activation provenance in activeSince.`
     );
+  if (before && before.status !== 'active' && after.status === 'active') {
+    const previousRevisions = new Set(before.revisions.map((revision) => JSON.stringify(revision)));
+    if (
+      !after.revisions.some(
+        (revision) =>
+          revision.version === after.activeSince &&
+          hasText(revision.summary) &&
+          !previousRevisions.has(JSON.stringify(revision))
+      )
+    )
+      issues.push(
+        `${after.id}: promotion requires a new admission revision with a summary at activeSince.`
+      );
+  }
   return issues;
 }

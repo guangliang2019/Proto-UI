@@ -205,7 +205,7 @@ describe('ordinary lifecycle targets and authoring', () => {
     const legacy = contract({ status: 'active', lifecycleRationale: undefined });
     expect(checkSpecLifecycleAuthoring(legacy, { ...legacy, title: 'Edited prose' })).toEqual([]);
     expect(checkSpecLifecycleAuthoring(undefined, legacy)).toHaveLength(2);
-    expect(checkSpecLifecycleAuthoring(contract(), legacy)).toHaveLength(2);
+    expect(checkSpecLifecycleAuthoring(contract(), legacy)).toHaveLength(3);
     expect(
       checkSpecLifecycleAuthoring(legacy, {
         ...legacy,
@@ -219,6 +219,37 @@ describe('ordinary lifecycle targets and authoring', () => {
     );
     expect(() => contract({ lifecycleRationale: '   ' })).toThrow(/non-whitespace/);
     expect(() => contract({ lifecycleRationale: {} })).toThrow(/non-whitespace/);
+  });
+
+  it('requires fresh rationale and a new admission revision for an existing promotion', () => {
+    const draft = contract({
+      revisions: [{ version, change: 'clarified', summary: 'The draft boundary was clarified.' }],
+    });
+    const active = { ...draft, status: 'active' as const, activeSince: version };
+    expect(checkSpecLifecycleAuthoring(draft, active)).toContainEqual(
+      expect.stringContaining('updated lifecycleRationale')
+    );
+    active.lifecycleRationale = 'Reviewed conformance now supports admission.';
+    expect(checkSpecLifecycleAuthoring(draft, active)).toContainEqual(
+      expect.stringContaining('new admission revision')
+    );
+    active.revisions = [...draft.revisions, ...draft.revisions];
+    expect(checkSpecLifecycleAuthoring(draft, active)).toContainEqual(
+      expect.stringContaining('new admission revision')
+    );
+    active.revisions = [
+      ...draft.revisions,
+      { version, change: 'admitted', summary: 'Required conformance was reviewed and accepted.' },
+    ];
+    expect(checkSpecLifecycleAuthoring(draft, active)).toEqual([]);
+    expect(checkSpecLifecycleAuthoring(undefined, { ...active, revisions: [] })).toEqual([]);
+  });
+
+  it('preserves ordinary identities instead of silently deleting their history', () => {
+    expect(checkSpecLifecycleAuthoring(contract(), undefined)).toContainEqual(
+      expect.stringContaining('retain the entity')
+    );
+    expect(checkSpecLifecycleAuthoring(undefined, undefined)).toEqual([]);
   });
 });
 
@@ -266,6 +297,44 @@ describe('ordinary lifecycle reporting', () => {
     );
   });
 
+  it('isolates scoped disposition checks while retaining global plan errors', () => {
+    const dispositions = plan([contractId]);
+    dispositions.slices.push({
+      ...plan([testId], 'promote').slices[0],
+      id: 'incomplete-test',
+    });
+    const workspace = createSpecWorkspace([contract(), testEntity()]);
+    const report = getSpecLifecycleReport(workspace, version, dispositions);
+    expect(report.issues).toContainEqual(
+      expect.objectContaining({ code: 'promotion-evidence-incomplete', entityId: testId })
+    );
+    expect(checkSpecLifecycleDispositions(report, [contractId])).toEqual([]);
+    expect(checkSpecLifecycleDispositions(report, [testId])).toHaveLength(1);
+    const wrongVersion = getSpecLifecycleReport(workspace, version, {
+      ...dispositions,
+      version: '0.3.0',
+    });
+    expect(checkSpecLifecycleDispositions(wrongVersion, [contractId])).toContainEqual(
+      expect.objectContaining({ code: 'plan-version-mismatch' })
+    );
+  });
+
+  it('withholds conflicting dispositions instead of selecting the last authored slice', () => {
+    const dispositions = plan([contractId]);
+    dispositions.slices.push({
+      ...dispositions.slices[0],
+      id: 'conflicting-slice',
+      disposition: 'not-applicable',
+    });
+    const report = getSpecLifecycleReport(createSpecWorkspace([contract()]), version, dispositions);
+    expect(report.issues).toContainEqual(
+      expect.objectContaining({ code: 'duplicate-disposition', entityId: contractId })
+    );
+    expect(report.rows[0].disposition).toBeUndefined();
+    expect(report.summary.reviewedDrafts).toBe(0);
+    expect(report.unreviewedEntities).toEqual([contractId]);
+  });
+
   it('rejects inconsistent disposition identities, versions, and promotion evidence', () => {
     const workspace = createSpecWorkspace([contract(), testEntity()]);
     const wrongVersion = getSpecLifecycleReport(workspace, version, {
@@ -279,6 +348,12 @@ describe('ordinary lifecycle reporting', () => {
     expect(
       getSpecLifecycleReport(workspace, version, duplicate).issues.map((issue) => issue.code)
     ).toContain('duplicate-disposition');
+    expect(
+      getSpecLifecycleReport(workspace, version, duplicate).rows.every(
+        (row) => row.disposition === undefined
+      )
+    ).toBe(true);
+    expect(getSpecLifecycleReport(workspace, version, duplicate).summary.reviewedDrafts).toBe(0);
     expect(getSpecLifecycleReport(workspace, version, plan(['C-ABSENT-0001'])).issues[0].code).toBe(
       'unknown-disposition-entity'
     );
@@ -314,6 +389,10 @@ describe('ordinary lifecycle reporting', () => {
     expect(legacy.summary.legacyActive).toBe(1);
     expect(legacy.rows[0].stableAtVersion).toBeNull();
     expect(legacy.rows[0].activeSince).toBeUndefined();
+    expect(legacy.rows[0].gaps).toContainEqual(
+      expect.objectContaining({ code: 'legacy-activation-provenance' })
+    );
+    expect(checkSpecLifecycleDispositions(legacy)).toEqual([]);
     const future = createSpecWorkspace([contract({ status: 'active', activeSince: '0.3.0' })]);
     expect(getSpecLifecycleReport(future, version).rows[0].stableAtVersion).toBe(false);
     expect(getSpecLifecycleReport(future, '0.3.0').rows[0].stableAtVersion).toBe(true);

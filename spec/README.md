@@ -33,13 +33,15 @@ Every entity declares `since` and one of these statuses:
 
 `since` records catalog/version-history introduction. It does not mean that a draft entity was already a stable guarantee. `activeSince` is the distinct activation boundary for ordinary lifecycle-complete entities; it must not precede `since`. A snapshot query for identity availability uses `since`/`removedSince`, while a query for stable applicability additionally requires the activation boundary and lifecycle status. `replacedBy` points to a replacement of the same entity type. `revisions` records semantic changes against project versions. Relations may also have `since` and `until` bounds.
 
+Retain cataloged ordinary identities for historical queries. Retiring one requires its `removed` lifecycle and history rather than deleting its file or replacing its ID. Moving a file while preserving the same entity ID does not create a new lifecycle.
+
 A package publication or dependency edge is evidence for lifecycle review, not automatic activation. Promotion remains an explicit semantic admission with applicable criteria, relations, and executable evidence.
 
 Release evidence, the current workspace snapshot, and generated views are distinct artifacts. A workspace snapshot recalculated after a release can differ from the immutable snapshot digest recorded by the corresponding `V-*` entity.
 
 ### Ordinary-entity admission
 
-Every new ordinary entity must explain its initial `draft` or `active` status in `lifecycleRationale`. A change to lifecycle status or its version boundaries must also carry a current rationale. The field accepts localized text like `statement`; identify the unresolved semantics, missing evidence, or reviewed admission that justifies the status. A generic creation default is insufficient. Changing an ordinary entity to `active` additionally requires explicit semantic admission, a supported `activeSince`, and a revision explaining that admission.
+Every new ordinary entity must explain its initial `draft` or `active` status in `lifecycleRationale`. Changing an existing entity's lifecycle status or version boundaries requires updating that rationale. The field accepts localized text like `statement`; identify the unresolved semantics, missing evidence, or reviewed admission that justifies the status. A generic creation default is insufficient. Transitioning an existing ordinary entity from non-active to `active` additionally requires explicit semantic admission, a supported `activeSince`, and a newly added revision at that version with a non-empty summary explaining the admission.
 
 All promotions share four gates: reviewable statement, criteria, ownership and relations; no unresolved activation blocker; reconciled implementation and public-projection drift; and explicit bounds for remaining omissions. Apply the relevant additional evidence below.
 
@@ -72,9 +74,9 @@ Audit existing entities incrementally: Module/Contract/Test chains consumed by a
 
 ### Release readiness reports
 
-`pnpm release:lifecycle` reports all ordinary entities available in the selected release-version snapshot of the current catalog. This is a conservative review inventory, not a claim that every entity has shipped or belongs to a published stable guarantee. It reports recorded evidence, missing rationale, declared blockers, unclassified legacy values, activation-provenance gaps and dispositions from `internal/releases/<version>/lifecycle-dispositions.json`. Reviewers record explicit entity sets, rationale and evidence for each slice; uncovered entries remain `unreviewed`.
+`pnpm release:lifecycle` reports all ordinary entities available in the selected release-version snapshot of the current catalog. This is a conservative review inventory, not a claim that every entity has shipped or belongs to a published stable guarantee. It reports recorded evidence, missing rationale, declared blockers, unclassified legacy values, activation-provenance gaps and dispositions from `internal/releases/<version>/lifecycle-dispositions.json`. Reviewers record explicit entity sets, rationale and evidence for each slice; drafts without a disposition remain in `unreviewedEntities`.
 
-`pnpm release:lifecycle -- --check --entities C-A11Y-PART-RELATIONSHIP-0001,T-A11Y-PART-RELATIONSHIP-0001` checks disposition completeness for that named scope. Omitting `--entities` checks the complete inventory and fails on missing dispositions. A passing scoped check does not mean the remaining catalog has been reviewed. Report generation never performs promotion, validates publication, or replaces the `V-*` evidence workflow. See [`release-workflow.md`](../internal/governance/release-workflow.md) for the preparation trigger.
+`pnpm release:lifecycle -- --check --entities C-A11Y-PART-RELATIONSHIP-0001,T-A11Y-PART-RELATIONSHIP-0001` requires a disposition for every draft in that named scope. Omitting `--entities` checks all drafts in the full report inventory and fails on missing dispositions. Non-draft metadata and activation-provenance gaps remain visible for audit without making their dispositions mandatory. A passing scoped check does not mean the remaining catalog has been reviewed. Report generation never performs promotion, validates publication, or replaces the `V-*` evidence workflow. See [`release-workflow.md`](../internal/governance/release-workflow.md) for the preparation trigger.
 
 ## Core fields
 
