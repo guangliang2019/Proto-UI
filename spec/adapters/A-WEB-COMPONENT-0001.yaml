@@ -128,6 +128,10 @@ criteria:
     text:
       en: The standard Adapter installs Overlay, provides renderer-appropriate Portal and shared Web modal scroll locking, and maps global input identity to the owning document independently of its per-instance Event router. Nested Escape and controlled reopen select one owner per sample; tests use simulated DOM, not browser layout certification.
       zh-CN: standard Adapter 安装 Overlay，提供 renderer 对应 Portal、共享 Web modal scroll lock，并将 global input identity 映射到 owner document，独立于每 instance Event router。嵌套 Escape 与 controlled reopen 每 sample 选择一个 owner；测试为模拟 DOM，不是 browser layout 认证。
+  - id: A-WEB-COMPONENT-0001-TEXT-CONTROL
+    text:
+      en: The standard Web Adapter installs Text Control and resolves static line mode to one physical input or textarea before rendering. It projects common hints and normalized input, owns callback scope and releases the editing lease. Web Component retains its logical wrapper; native frameworks use the physical editor root.
+      zh-CN: standard Web Adapter 安装 Text Control，在 render 前将静态 line mode 解析为一个物理 input 或 textarea，投射 common hint 与 normalized input，提供 callback scope 并释放 editing lease。Web Component 保留 logical wrapper，原生框架使用物理 editor root。
 supports:
   modules:
     - id: M-POSITIONING-0001
@@ -198,6 +202,10 @@ supports:
     - id: M-OVERLAY-0001
       since: 0.3.0-alpha.0
       role: required-module
+    - id: M-TEXT-CONTROL-0001
+      since: 0.3.0-alpha.0
+      role: required-module
+      note: Installed by standard Runtime; author use requires a static declaration.
 provides:
   hostCaps:
     - id: HC-ANCHORED-POSITION-0001
@@ -269,6 +277,9 @@ provides:
       since: 0.3.0-alpha.0
       role: translated-capability
       note: Optional configured scheduler; the Adapter passes it through, and does not promise a default absolute hierarchy.
+    - id: HC-TEXT-CONTROL-0001
+      since: 0.3.0-alpha.0
+      role: translated-capability
 relates:
   decisions:
     - D-ADAPTER-PROFILE-0001
@@ -311,6 +322,8 @@ verifies:
     - id: T-EXPOSE-STATE-WEB-0001
       since: 0.3.0-alpha.0
     - id: T-OVERLAY-CATALOG-0001
+      since: 0.3.0-alpha.0
+    - id: T-TEXT-CONTROL-0001
       since: 0.3.0-alpha.0
 openQuestions:
   - id: A-WEB-COMPONENT-0001-Q-INGRESS-PRECEDENCE
@@ -415,5 +428,8 @@ revisions:
   - version: 0.3.0-alpha.0
     change: extended
     summary: Cataloged bounded Overlay wiring, scoped Escape and concurrent modal cleanup evidence.
+  - version: 0.3.0-alpha.0
+    change: clarified
+    summary: Cataloged existing single-line and multiline Text Control realization with executable Adapter evidence.
 tags:
   [adapter, web-component, custom-elements, web, props, event, lifecycle, state, expose, official]
