@@ -1957,8 +1957,7 @@ function countHarnessExportedUserFacingSurfaces(content, absolutePath) {
       if (ts.isCallExpression(node)) {
         const expression = unwrapTypeScriptExpression(node.expression);
         if (
-          (ts.isPropertyAccessExpression(expression) &&
-            expression.name.text === 'createElement') ||
+          (ts.isPropertyAccessExpression(expression) && expression.name.text === 'createElement') ||
           (ts.isIdentifier(expression) && expression.text === 'createElement')
         ) {
           rendered = true;
@@ -2897,7 +2896,7 @@ function externalScriptModuleSpecifiers(content) {
     .filter((specifier) => typeof specifier === 'string' && specifier.length > 0);
 }
 function isExternalExecutableScriptSpecifier(specifier) {
-  return /^(?:[a-z][a-z0-9+.-]*:|\/\/)/iu.test(specifier);
+  return /^(?:[a-z][a-z0-9+.-]*:|\/|\/\/)/iu.test(specifier);
 }
 
 function scriptViteGlobPatternGroups(source, fileName) {
@@ -3297,13 +3296,20 @@ function isTestNamedSource(absolutePath) {
   return /\.(?:browser\.)?(?:test|spec)\.[cm]?[jt]sx?$/iu.test(absolutePath);
 }
 
-function reachableSourcePaths(candidates) {
+function reachableSourcePaths(
+  candidates,
+  aliasConfig = { aliases: new Map(), unsupported: new Set() }
+) {
   const candidateByPath = new Map(
     candidates.map((candidate) => [path.resolve(candidate), candidate])
   );
   const resolveLocalImport = (sourcePath, specifier) => {
-    if (!specifier.startsWith('.')) return null;
-    const base = path.resolve(path.dirname(sourcePath), specifier);
+    const classifiedSpecifier = importSpecifierWithoutViteSuffix(specifier);
+    const aliasMatch = configuredAliasMatch(classifiedSpecifier, aliasConfig);
+    if (!classifiedSpecifier.startsWith('.') && !aliasMatch) return null;
+    const base = aliasMatch
+      ? path.resolve(aliasMatch.replacement, aliasMatch.suffix)
+      : path.resolve(path.dirname(sourcePath), classifiedSpecifier);
     const variants = [
       base,
       ...[
@@ -3334,7 +3340,11 @@ function reachableSourcePaths(candidates) {
         'index.cts',
       ].map((indexName) => path.join(base, indexName)),
     ];
-    return variants.map((candidate) => candidateByPath.get(candidate)).find(Boolean) ?? null;
+    return (
+      variants
+        .map((candidate) => candidateByPath.get(candidate) ?? candidate)
+        .find((candidate) => fs.existsSync(candidate) && fs.statSync(candidate).isFile()) ?? null
+    );
   };
   const reachable = new Set(candidates.filter((candidate) => !isTestNamedSource(candidate)));
   const pending = [...reachable];
@@ -3362,12 +3372,12 @@ function discoverWebsiteRawImports(rootDir) {
     .filter((absolutePath) =>
       /\.(?:astro|mdx?|[cm]?[jt]sx?|css|less|s[ac]ss|vue|svelte)$/i.test(absolutePath)
     );
-  const reachable = reachableSourcePaths(allCandidates);
-  const candidates = allCandidates.filter(
+  const websiteAliasConfig = configuredWebsiteSourceAliases(rootDir);
+  const reachable = reachableSourcePaths(allCandidates, websiteAliasConfig);
+  const candidates = [...new Set([...allCandidates, ...reachable])].filter(
     (absolutePath) => !isTestNamedSource(absolutePath) || reachable.has(absolutePath)
   );
   const rawImports = [];
-  const websiteAliasConfig = configuredWebsiteSourceAliases(rootDir);
   for (const absolutePath of candidates) {
     const sourcePath = path.relative(rootDir, absolutePath).replaceAll('\\', '/');
     if (/\.(?:astro|vue|svelte)$/i.test(absolutePath)) {
@@ -4133,7 +4143,7 @@ function validateDogfoodedMatrixEvidenceArtifacts(record, context, rootDir, issu
   }
 }
 
-function validateRetainedEvidenceArtifacts(record, context, rootDir, issues) {
+function validateRetainedEvidenceArtifacts(record, context, rootDir, issues, matrixRecord = null) {
   const artifactLabels = [
     'Build:',
     'Browser:',
@@ -4175,6 +4185,21 @@ function validateRetainedEvidenceArtifacts(record, context, rootDir, issues) {
         }
       } else if (fs.statSync(retainedArtifactPath).size === 0) {
         issues.push(`${context}: ${label} retained artifact must not be empty: ${repositoryPath}`);
+      }
+    }
+  }
+  if (matrixRecord) {
+    for (const label of artifactLabels.filter((name) => name !== 'Results:')) {
+      const matrixPaths = explicitRepositoryPaths(
+        evidenceRecordLabelValue(matrixRecord.Evidence, label, DOGFOODED_EVIDENCE_LABELS)
+      ).filter((repositoryPath) => repositoryPath.startsWith(SELF_HOSTED_WEBSITE_EVIDENCE_ROOT));
+      const retainedPaths = new Set(artifactsByLabel.get(label) ?? []);
+      for (const repositoryPath of matrixPaths) {
+        if (!retainedPaths.has(repositoryPath)) {
+          issues.push(
+            `${context}: matrix Evidence ${label} path must also appear in the retained Results manifest: ${repositoryPath}`
+          );
+        }
       }
     }
   }
@@ -4246,7 +4271,7 @@ function validateRetainedEvidenceArtifacts(record, context, rootDir, issues) {
   return artifactsByLabel;
 }
 
-function validateSelfHostedWebsiteEvidenceRecord(record, context, rootDir, issues) {
+function validateSelfHostedWebsiteEvidenceRecord(record, context, rootDir, issues, matrixRecord) {
   const routes = inlineCodeValues(evidenceRecordLabelValue(record, 'Routes:')).filter((value) =>
     /^\/(?:[A-Za-z0-9._~!$&'()*+,;=:@%-]+\/)*[A-Za-z0-9._~!$&'()*+,;=:@%-]*$/u.test(value)
   );
@@ -4261,7 +4286,7 @@ function validateSelfHostedWebsiteEvidenceRecord(record, context, rootDir, issue
     issues.push(`${context}: Commands: must name at least one executable command in inline code`);
   }
 
-  validateRetainedEvidenceArtifacts(record, context, rootDir, issues);
+  validateRetainedEvidenceArtifacts(record, context, rootDir, issues, matrixRecord);
 }
 
 function validateMainRows(
@@ -4519,7 +4544,7 @@ function validateMainRows(
         .find(([, status]) => status !== 'active');
       if (nonActiveEntity) {
         issues.push(
-          `${context}: website State \`${state}\` requires every catalog entity in Proto UI chain to be active; received \`${nonActiveEntity[0]}\` (${nonActiveEntity[1]})`
+          `${context}: shipped website State \`${state}\` requires every catalog entity in Proto UI chain to be active; received \`${nonActiveEntity[0]}\` (${nonActiveEntity[1]})`
         );
       }
     }
@@ -4551,6 +4576,11 @@ function validateMainRows(
       const promotedImplementationPaths = repositoryPathsFromMatrixPath(record.Path).filter(
         (repositoryPath) => repositoryPath.startsWith('apps/www/')
       );
+      if (promotedImplementationPaths.length === 0) {
+        issues.push(
+          `${context}: self-hosted rows must bind at least one exact apps/www implementation path in Path`
+        );
+      }
       const evidencePaths = explicitRepositoryPaths(record.Evidence).filter((repositoryPath) =>
         repositoryPath.startsWith(SELF_HOSTED_WEBSITE_EVIDENCE_ROOT)
       );
@@ -4593,7 +4623,13 @@ function validateMainRows(
           promotionContext,
           promotedImplementationPaths
         );
-        validateSelfHostedWebsiteEvidenceRecord(evidenceRecord, evidenceContext, rootDir, issues);
+        validateSelfHostedWebsiteEvidenceRecord(
+          evidenceRecord,
+          evidenceContext,
+          rootDir,
+          issues,
+          record
+        );
         validateEvidenceResultsManifest({
           rootDir,
           record: evidenceRecord,
@@ -4661,6 +4697,7 @@ function validateMainRows(
           `${context}: dogfooded rows must bind an exact internal/agent-harness/evidence/** path in Evidence`
         );
       }
+      let evidenceRecordFound = false;
       for (const repositoryPath of evidencePaths) {
         const absoluteEvidencePath = path.resolve(rootDir, repositoryPath);
         const retainedEvidencePath = canonicalFileWithinRoot(
@@ -4679,6 +4716,11 @@ function validateMainRows(
           continue;
         }
         const evidenceRecord = fs.readFileSync(retainedEvidencePath, 'utf8');
+        const hasRecordLabels = DOGFOODED_RECORD_LABELS.every((label) =>
+          isMeaningful(evidenceRecordLabelValue(evidenceRecord, label, DOGFOODED_RECORD_LABELS))
+        );
+        if (!hasRecordLabels && !/\.md$/iu.test(repositoryPath)) continue;
+        evidenceRecordFound = true;
         requireMeaningfulLabels(
           evidenceRecord,
           DOGFOODED_RECORD_LABELS,
@@ -4716,6 +4758,11 @@ function validateMainRows(
           context: evidenceContext,
           issues,
         });
+      }
+      if (!evidenceRecordFound) {
+        issues.push(
+          `${context}: dogfooded rows must bind one evidence record with all required labels`
+        );
       }
       validateDogfoodedMatrixEvidenceArtifacts(record, context, rootDir, issues);
       requireMeaningfulLabels(record.Evidence, DOGFOODED_EVIDENCE_LABELS, context, issues);
@@ -5202,10 +5249,7 @@ function validateHarnessSourceBindings(
       fs.readFileSync(path.resolve(rootDir, sourcePath), 'utf8'),
       path.resolve(rootDir, sourcePath)
     );
-    const effectiveOwnerCount = new Set([
-      ...directIds,
-      ...(binding?.ownerIds ?? []),
-    ]).size;
+    const effectiveOwnerCount = new Set([...directIds, ...(binding?.ownerIds ?? [])]).size;
     if (surfaceCount > effectiveOwnerCount) {
       issues.push(
         `${relativePath}: Harness user-facing source \`${sourcePath}\` exposes ${surfaceCount} exported surfaces but has only ${effectiveOwnerCount} distinct matrix owner${effectiveOwnerCount === 1 ? '' : 's'}`
