@@ -276,6 +276,7 @@ revisions:
     summary: >-
       Added single-line input projection and clearing, common inputMode/enterKeyHint projection to both Web controls, text-compatible target validation, owning-realm editing-session and native-event payload coverage, declaration-driven mode compatibility, complete-patch preservation, line-mode value canonicalization, and cross-adapter single-line evidence across Web Component, React, Vue 3, and Vue 2.
 
+
   - version: 0.3.0-alpha.0
     change: clarified
     summary: Connected M/HC/A criteria to existing editor evidence and added stale-lease/setup-cancel regressions.

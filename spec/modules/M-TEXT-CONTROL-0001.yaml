@@ -30,6 +30,7 @@ revisions:
     summary: >-
       Made the module line-mode-aware (single or multiline), added common inputMode and enterKeyHint hints, and required CR/LF canonicalization at the module boundary. Single-line mode projects the shared shape, while multiline mode also projects rows and wrap.
 
+
   - version: 0.3.0-alpha.0
     change: clarified
     summary: Expanded module ownership, current-lease delivery and setup-only cancellation criteria.

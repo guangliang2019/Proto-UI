@@ -59,6 +59,7 @@ criteria:
       en: >-
         When listener attachment fails, the runtime must roll back every host listener already attached by that binding attempt, keep each affected registration logically unbound (reported as unbound in diagnostics), and let an explicit bind retry reinstall the full set. Cleanup/unbind must be idempotent: repeated cleanup must not leave listeners behind. A rollback removeEventListener failure must not mask the original attachment error and must fail closed (no partial listener set may be treated as bound). A portable event callback receives a new, immutable, data-only view and must never alias or mutate the host event/detail; the default-action control is live only for the current synchronous callback window, and a call after the window must fail closed; multiple default-action requests for the same host sample are deduplicated at the host boundary. Semantic (non-host:*) registrations must not carry DOM listener options. Host-bound events stay raw host events.
 
+
   - id: M-EVENT-0001-K
     text:
       en: Privileged consumers may obtain an opaque global-input scope and, only during synchronous portable dispatch, the opaque identity of that input sample. Adapter wrappers for the same native sample preserve that identity. This metadata is not added to the author payload, gives no host access, and does not change broadcast or default-action behavior. Scope uses the explicitly wired shared input source when available, otherwise the current global binding target.

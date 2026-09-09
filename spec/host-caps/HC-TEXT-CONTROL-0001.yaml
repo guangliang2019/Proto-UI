@@ -40,6 +40,7 @@ revisions:
     summary: >-
       Made the host capability line-mode-aware (single or multiline), resolving to HTMLInputElement for single-line or HTMLTextAreaElement for multiline on the Web profile.
 
+
   - version: 0.3.0-alpha.0
     change: clarified
     summary: Made host editing-session projection and cleanup addressable without adding a portable selection API.

@@ -133,6 +133,10 @@ criteria:
     text:
       en: The Web Adapter resolves a static Image View declaration to one physical image, projects portable properties, and retires obsolete decode completions on source replacement or unmount. Completion uses the existing callback bridge; native image events are not a second author transition protocol.
       zh-CN: Web Adapter 将静态 Image View declaration 解析为一个物理 image，投射 portable property，并在 source 替换或 unmount 后撤销过期 decode completion。completion 使用既有 callback bridge；native image event 不是第二套 author transition 协议。
+  - id: A-VUE-2-0001-SCROLL
+    text:
+      en: The standard Adapter wires Scroll with host-owned overflow and the current root, translates normalized requests/facts, and restores owned styles and listeners on teardown. Composed Thumb geometry and Move Gesture remain attached to the same Context/Anatomy-resolved surface; evidence uses simulated Web geometry, not native physics certification.
+      zh-CN: standard Adapter 将 Scroll 接入 host-owned overflow 与当前 root，翻译 normalized request/fact，并在 teardown 恢复拥有的样式、释放 listener。composed Thumb geometry 与 Move Gesture 附着到同一个 Context/Anatomy 解析的 surface；证据使用模拟 Web geometry，不是 native physics 认证。
 supports:
   modules:
     - id: M-POSITIONING-0001
@@ -207,6 +211,9 @@ supports:
       since: 0.3.0-alpha.0
       role: required-module
       note: Standard Runtime installs the Module; author use requires static declaration.
+    - id: M-SCROLL-0001
+      since: 0.3.0-alpha.0
+      role: required-module
 provides:
   hostCaps:
     - id: HC-ANCHORED-POSITION-0001
@@ -280,6 +287,13 @@ provides:
     - id: HC-IMAGE-VIEW-0001
       since: 0.3.0-alpha.0
       role: translated-capability
+    - id: HC-SCROLL-SURFACE-0001
+      since: 0.3.0-alpha.0
+      role: translated-capability
+    - id: HC-MOVE-GESTURE-0001
+      since: 0.3.0-alpha.0
+      role: translated-capability
+      note: Bounded Scroll composed Thumb realization; this relation is not general Drag and Drop support.
 relates:
   decisions:
     - D-ADAPTER-PROFILE-0001
@@ -324,6 +338,10 @@ verifies:
     - id: T-TEXT-CONTROL-0001
       since: 0.3.0-alpha.0
     - id: T-IMAGE-VIEW-0001
+      since: 0.3.0-alpha.0
+    - id: T-SCROLL-0001
+      since: 0.3.0-alpha.0
+    - id: T-SCROLL-COMPOSED-CONTROL-0001
       since: 0.3.0-alpha.0
 sources:
   - path: packages/adapters/vue2/test/rule-expose-state-web.integration.test.ts
@@ -391,4 +409,7 @@ revisions:
   - version: 0.3.0-alpha.0
     change: clarified
     summary: Connected Image View support to bounded Adapter generation evidence.
+  - version: 0.3.0-alpha.0
+    change: clarified
+    summary: Cataloged Scroll session projection and composed Thumb evidence through real Adapter wiring.
 tags: [adapter, vue2, vue, web, props, event, lifecycle, state, expose, official]
