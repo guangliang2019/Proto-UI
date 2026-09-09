@@ -403,16 +403,20 @@ export function createVueModules<Props extends PropsBaseType>(args: {
 
 function isNativelyFocusable(el: HTMLElement): boolean {
   const tag = el.tagName.toLowerCase();
-  if (
-    tag === 'button' ||
-    tag === 'input' ||
-    tag === 'select' ||
-    tag === 'textarea' ||
-    tag === 'iframe'
-  ) {
+  if (tag === 'button' || tag === 'select' || tag === 'textarea' || tag === 'iframe') {
     return true;
   }
-  if (tag === 'a' || tag === 'area') return el.hasAttribute('href');
+  if (tag === 'input') return (el as HTMLInputElement).type !== 'hidden';
+  if (tag === 'a') return el.hasAttribute('href');
+  if (tag === 'area') {
+    const map = el.closest('map');
+    if (!el.hasAttribute('href') || !map?.name || !el.isConnected) return false;
+    return Array.from(el.ownerDocument.querySelectorAll('img[usemap]')).some(
+      (image) =>
+        image.getAttribute('usemap') === `#${map.name}` &&
+        !image.closest('[hidden],[inert],[aria-hidden="true"]')
+    );
+  }
   if (tag === 'audio' || tag === 'video') return el.hasAttribute('controls');
   if (tag === 'summary') {
     const parent = el.parentElement;

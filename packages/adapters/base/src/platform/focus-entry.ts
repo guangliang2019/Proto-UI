@@ -48,6 +48,10 @@ function isTabbableDescendant(
   if (!container.contains(el)) return false;
   if (el.closest('[hidden],[inert],[aria-hidden="true"]')) return false;
   if (el.hasAttribute('disabled')) return false;
+  // tabindex cannot make a hidden input or an unassociated image-map area usable.
+  if (el.tagName.toLowerCase() === 'input' && (el as HTMLInputElement).type === 'hidden')
+    return false;
+  if (el.tagName.toLowerCase() === 'area' && !isNativelyFocusable(el)) return false;
   const ariaDisabled = el.getAttribute('aria-disabled');
   if (ariaDisabled === 'true') return false;
   const tabIndexAttr = el.getAttribute('tabindex');

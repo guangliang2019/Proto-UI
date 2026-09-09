@@ -126,6 +126,67 @@ export function focusCatalogAdapterConformance(
       }
     );
 
+    for (const kind of [
+      'hidden-input',
+      'hidden-tabindex',
+      'orphan-area',
+      'unassociated-area',
+    ] as const) {
+      it.each(['self', 'none'] as const)(
+        `T-FOCUS-0002-CASE-UNUSABLE-NATIVE: ${kind} preserves %s fallback`,
+        async (fallback) => {
+          let entry!: ReturnType<typeof asFocusEntry>;
+          const proto = definePrototype({
+            name: `focus-unusable-${name}-${kind}-${fallback}`,
+            setup() {
+              entry = asFocusEntry();
+              entry.configure({ strategy: 'descendant-first', fallback });
+              return (r) => r.el('div');
+            },
+          });
+          const mounted = await mount([{ proto }]);
+          try {
+            await mounted.flush();
+            const root = mounted.host.querySelector<HTMLElement>('[data-pui-root]')!;
+            const region = root.querySelector('div')!;
+            const candidate = document.createElement(kind.startsWith('hidden') ? 'input' : 'area');
+            if (kind.startsWith('hidden')) candidate.setAttribute('type', 'hidden');
+            else candidate.setAttribute('href', '#target');
+            if (kind === 'hidden-tabindex') candidate.setAttribute('tabindex', '0');
+            if (kind === 'unassociated-area') {
+              const map = document.createElement('map');
+              map.name = `missing-image-${name}-${fallback}`;
+              map.append(candidate);
+              region.append(map);
+            } else region.append(candidate);
+            entry.setDisabled(true);
+            entry.setDisabled(false);
+            entry.focus();
+            await mounted.flush();
+            expect(document.activeElement).not.toBe(candidate);
+            if (fallback === 'self') {
+              expect(document.activeElement).toBe(root);
+              expect(root.tabIndex).toBe(0);
+              root.blur();
+            } else {
+              expect(document.activeElement).not.toBe(root);
+              expect(root.hasAttribute('tabindex')).toBe(false);
+            }
+            const button = document.createElement('button');
+            region.append(button);
+            entry.setDisabled(true);
+            entry.setDisabled(false);
+            entry.focus();
+            await mounted.flush();
+            expect(document.activeElement).toBe(button);
+            expect(root.hasAttribute('tabindex')).toBe(false);
+          } finally {
+            await mounted.unmount();
+          }
+        }
+      );
+    }
+
     it.each(['area', 'iframe', 'audio', 'video'] as const)(
       'delegates to selected native %s candidates',
       async (tag) => {
@@ -143,9 +204,26 @@ export function focusCatalogAdapterConformance(
           await mounted.flush();
           const root = mounted.host.querySelector<HTMLElement>('[data-pui-root]')!;
           const target = document.createElement(tag);
-          if (tag === 'area') target.setAttribute('href', '#target');
+          if (tag === 'area') {
+            target.setAttribute('href', '#target');
+            target.setAttribute('alt', 'Image map entry');
+            target.setAttribute('shape', 'rect');
+            target.setAttribute('coords', '0,0,20,20');
+          }
           if (tag === 'audio' || tag === 'video') target.setAttribute('controls', '');
-          root.querySelector('div')!.append(target);
+          if (tag === 'area') {
+            const map = document.createElement('map');
+            map.name = `focus-map-${name}`;
+            map.append(target);
+            const image = document.createElement('img');
+            image.alt = 'Focus entry map';
+            image.width = 20;
+            image.height = 20;
+            image.src =
+              'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
+            image.useMap = `#${map.name}`;
+            root.querySelector('div')!.append(image, map);
+          } else root.querySelector('div')!.append(target);
           entry.focus();
           await mounted.flush();
           expect(document.activeElement).toBe(target);
