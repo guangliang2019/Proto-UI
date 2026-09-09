@@ -43,7 +43,7 @@ Release evidence, the current workspace snapshot, and generated views are distin
 
 ### Ordinary-entity admission
 
-Every new ordinary entity must explain its initial `draft` or `active` status in `lifecycleRationale`. Changing an existing entity's lifecycle status or version boundaries requires updating that rationale's content; reordering language keys is not an update. The field accepts localized text like `statement`; identify the unresolved semantics, missing evidence, or reviewed admission that justifies the status. A generic creation default is insufficient. Transitioning an existing ordinary entity from non-active to `active` additionally requires explicit semantic admission, a supported `activeSince`, and an appended revision at that version with a non-empty summary explaining the admission, preserving the preceding revision history.
+Every new ordinary entity must explain its initial `draft` or `active` status in `lifecycleRationale`. Changing an existing entity's lifecycle status or version boundaries requires updating that rationale's content and preserving its preceding revision history; reordering language keys is not a rationale update. The field accepts localized text like `statement`; identify the unresolved semantics, missing evidence, or reviewed admission that justifies the status. A generic creation default is insufficient. New active authoring requires a supported `activeSince`. Transitioning an existing ordinary entity from non-active to `active` additionally requires explicit semantic admission and an appended revision at `activeSince` with a non-empty summary explaining the admission. Maintaining an already-active legacy entity does not require inventing missing activation provenance.
 
 All promotions share four gates: reviewable statement, criteria, ownership and relations; no unresolved activation blocker; reconciled implementation and public-projection drift; and explicit bounds for remaining omissions. Apply the relevant additional evidence below.
 
@@ -58,6 +58,8 @@ All promotions share four gates: reviewable statement, criteria, ownership and r
 | Decision | Settled choice, authority, alternatives and scope, with affected entities consistent with the decision. |
 | Knowledge | Supported explanatory model, clear limits and consistent dependent usage; do not invent runtime tests for explanatory text. |
 
+A passing implementation must declare a path before it can cover cases or criteria in a lifecycle report. The shared Node loader verifies that passing paths resolve to repository files; the catalog-integrity CI check also requires Git tracking. Implementation-level `exercises` contributes candidate evidence and required-implementation diagnostics, but does not become a `verifies` claim for normative criteria.
+
 Entity authoring and first inclusion of a governed surface in a release train both trigger lifecycle review. Release preparation records a disposition per reviewed semantic slice: `promote`, `remain-draft` with a named blocker, or `not-applicable` with a reason. `promote` proposes admission for review; it neither changes status nor grants permission to activate an entity.
 
 ### Activation blockers and legacy migration
@@ -69,6 +71,8 @@ Use the existing `openQuestions[].blocks` list for explicit targets:
 - `implementation:<TEST_ID>#<IMPLEMENTATION_ID>` identifies a mapped executable implementation that remains incomplete.
 
 Targets must exist. Criterion and implementation targets do not implicitly activate or block every related entity; add the exact `activation:` targets when the unresolved question weakens an admission. A bounded follow-up may identify only its criterion or implementation target. Existing free-form values remain readable and are reported as unclassified. Neither those values nor an empty list proves that an entity is ready; reviewers must classify their effect on the intended guarantee.
+
+Base-aware authoring rejects new or edited unclassified blocker values, even when lifecycle fields are unchanged. Only the same raw value on the same entity and question identity retains the legacy exception; new questions or identities cannot inherit it. Removing a legacy value or replacing it with a canonical target is allowed.
 
 Unchanged legacy entities may lack `lifecycleRationale`. Report the gap and audit it when that slice is reviewed rather than rewriting the entire catalog. Legacy ordinary `active`, `deprecated`, and `removed` entities without durable activation provenance also remain valid catalog entries, but historical stable-applicability queries cannot infer an activation version for them. While available, they retain an `activationProvenanceMissing` diagnostic even when a known deprecation boundary already makes `stableAtVersion` false. Audit original admission records and commits before adding `activeSince`; never substitute `since` or package publication. Tightening the transitional schema to require activation history across the whole catalog requires a separate reviewed migration decision.
 

@@ -51,7 +51,14 @@ function testEntity(status = 'planned'): SpecEntity {
       { id: caseId, title: 'Requirement', covers: [criterionId], expectation: 'governed-result' },
     ],
     implementations: [
-      { id: 'runtime', kind: 'runtime-test', status, required: true, consumesCases: [caseId] },
+      {
+        id: 'runtime',
+        kind: 'runtime-test',
+        status,
+        path: 'runtime.test.ts',
+        required: true,
+        consumesCases: [caseId],
+      },
     ],
     verifies: { contracts: [contractId] },
   });
@@ -80,6 +87,7 @@ async function withCatalog(entities: SpecEntity[], run: (root: string) => Promis
   const root = await mkdtemp(path.join(tmpdir(), 'proto-lifecycle-'));
   try {
     await mkdir(path.join(root, 'spec'));
+    await writeFile(path.join(root, 'runtime.test.ts'), 'export {};\n');
     for (const entity of entities)
       await writeFile(path.join(root, 'spec', `${entity.id}.yaml`), JSON.stringify(entity));
     await run(root);
@@ -245,6 +253,87 @@ describe('ordinary lifecycle targets and authoring', () => {
     expect(checkSpecLifecycleAuthoring(undefined, { ...active, revisions: [] })).toEqual([]);
   });
 
+  it('allows legacy active boundary maintenance without inventing activation provenance', () => {
+    const legacy = contract({ status: 'active', lifecycleRationale: undefined });
+    const corrected = {
+      ...legacy,
+      since: '0.1.0',
+      lifecycleRationale: 'Corrected introduction from the catalog record.',
+    };
+    expect(checkSpecLifecycleAuthoring(legacy, corrected)).toEqual([]);
+    expect(corrected.activeSince).toBeUndefined();
+    expect(checkSpecLifecycleAuthoring(undefined, corrected)).toContainEqual(
+      expect.stringContaining('requires activation provenance')
+    );
+    expect(
+      checkSpecLifecycleAuthoring(legacy, { ...corrected, lifecycleRationale: undefined })
+    ).toContainEqual(expect.stringContaining('requires lifecycleRationale'));
+  });
+
+  it.each(['deprecate', 'remove', 'correct-boundary'])(
+    'preserves the revision prefix when an existing lifecycle changes: %s',
+    (transition) => {
+      const before = contract({
+        status: transition === 'remove' ? 'deprecated' : 'active',
+        activeSince: version,
+        deprecatedSince: transition === 'remove' ? '0.3.0' : undefined,
+        revisions: [{ version, change: 'admitted', summary: 'Original admission record.' }],
+      });
+      const after: SpecEntity = {
+        ...before,
+        status:
+          transition === 'remove'
+            ? 'removed'
+            : transition === 'deprecate'
+              ? 'deprecated'
+              : 'active',
+        since: transition === 'correct-boundary' ? '0.1.0' : version,
+        deprecatedSince: transition === 'correct-boundary' ? undefined : '0.3.0',
+        removedSince: transition === 'remove' ? '0.4.0' : undefined,
+        lifecycleRationale: 'The recorded lifecycle boundary was reviewed.',
+        revisions: [],
+      };
+      expect(checkSpecLifecycleAuthoring(before, after)).toContainEqual(
+        expect.stringContaining('preserve prior revisions')
+      );
+      after.revisions = [{ ...before.revisions[0], summary: 'Rewritten old record.' }];
+      expect(checkSpecLifecycleAuthoring(before, after)).toContainEqual(
+        expect.stringContaining('preserve prior revisions')
+      );
+      after.revisions = before.revisions;
+      expect(checkSpecLifecycleAuthoring(before, after)).toEqual([]);
+    }
+  );
+
+  it('grandfathers only unchanged legacy blockers on the same entity and question', () => {
+    const question = {
+      id: `${contractId}-Q-LEGACY`,
+      question: 'What remains?',
+      blocks: ['legacy follow-up'],
+    };
+    const legacy = contract({ openQuestions: [question] });
+    expect(checkSpecLifecycleAuthoring(legacy, { ...legacy, title: 'Edited prose' })).toEqual([]);
+    for (const changed of [
+      { ...question, blocks: ['actvation:' + contractId] },
+      { ...question, id: `${contractId}-Q-NEW` },
+      { ...question, blocks: [' legacy follow-up '] },
+    ]) {
+      expect(
+        checkSpecLifecycleAuthoring(legacy, { ...legacy, openQuestions: [changed] })
+      ).toContainEqual(expect.stringContaining('unclassified blocker'));
+    }
+    expect(checkSpecLifecycleAuthoring(undefined, legacy)).toContainEqual(
+      expect.stringContaining('unclassified blocker')
+    );
+    expect(
+      checkSpecLifecycleAuthoring(legacy, {
+        ...legacy,
+        openQuestions: [{ ...question, blocks: [`activation:${contractId}`] }],
+      })
+    ).toEqual([]);
+    expect(checkSpecLifecycleAuthoring(legacy, { ...legacy, openQuestions: [] })).toEqual([]);
+  });
+
   it('preserves ordinary identities instead of silently deleting their history', () => {
     expect(checkSpecLifecycleAuthoring(contract(), undefined)).toContainEqual(
       expect.stringContaining('retain the entity')
@@ -322,6 +411,83 @@ describe('ordinary lifecycle targets and authoring', () => {
 });
 
 describe('ordinary lifecycle reporting', () => {
+  it('does not count a pathless passing record as case, criterion, or promotion evidence', () => {
+    const test = testEntity('passing');
+    test.implementations[0].path = undefined;
+    const report = getSpecLifecycleReport(
+      createSpecWorkspace([contract(), test]),
+      version,
+      plan(undefined, 'promote')
+    );
+    const contractRow = report.rows.find((row) => row.entityId === contractId)!;
+    const testRow = report.rows.find((row) => row.entityId === testId)!;
+    expect(contractRow.gaps).toContainEqual(
+      expect.objectContaining({ code: 'criterion-needs-evidence' })
+    );
+    expect(testRow.gaps).toContainEqual(expect.objectContaining({ code: 'case-needs-evidence' }));
+    expect(testRow.gaps).toContainEqual(expect.objectContaining({ code: 'evidence-needs-path' }));
+    expect(checkSpecLifecycleDispositions(report)).toContainEqual(
+      expect.objectContaining({ code: 'promotion-evidence-incomplete' })
+    );
+    test.implementations[0].path = 'runtime.test.ts';
+    expect(
+      checkSpecLifecycleDispositions(
+        getSpecLifecycleReport(
+          createSpecWorkspace([contract(), test]),
+          version,
+          plan(undefined, 'promote')
+        )
+      )
+    ).toEqual([]);
+  });
+
+  it('validates real passing implementation files while allowing planned future paths', async () => {
+    await withCatalog([contract(), testEntity('passing')], async (root) => {
+      const load = () => loadSpecWorkspaceFromDirectory(path.join(root, 'spec'));
+      expect((await load()).issues).toEqual([]);
+      await rm(path.join(root, 'runtime.test.ts'));
+      expect((await load()).issues).toContainEqual(
+        expect.objectContaining({ message: expect.stringContaining('Passing implementation') })
+      );
+      await mkdir(path.join(root, 'runtime.test.ts'));
+      expect((await load()).issues).toContainEqual(
+        expect.objectContaining({ message: expect.stringContaining('Passing implementation') })
+      );
+      const planned = testEntity();
+      planned.implementations[0].path = 'future.test.ts';
+      await writeFile(path.join(root, 'spec', `${testId}.yaml`), JSON.stringify(planned));
+      expect((await load()).issues).toEqual([]);
+    });
+  });
+
+  it('discovers implementation-only exercises without treating them as criterion verification', () => {
+    const partId = 'C-LIFECYCLE-PART-0001';
+    const part = contract({
+      id: partId,
+      criteria: [{ id: `${partId}-A`, text: 'The part requirement.' }],
+    });
+    const test = testEntity();
+    test.implementations[0].exercises = [partId];
+    const report = getSpecLifecycleReport(createSpecWorkspace([contract(), part, test]), version);
+    const row = report.rows.find((row) => row.entityId === partId)!;
+    expect(row.evidence).toContainEqual(
+      expect.objectContaining({ testId, implementationId: 'runtime' })
+    );
+    expect(row.gaps).toContainEqual(
+      expect.objectContaining({ code: 'required-evidence-incomplete' })
+    );
+    test.implementations[0].status = 'passing';
+    const passing = getSpecLifecycleReport(
+      createSpecWorkspace([contract(), part, test]),
+      version
+    ).rows.find((entry) => entry.entityId === partId)!;
+    expect(passing.evidence).toContainEqual(
+      expect.objectContaining({ implementationId: 'runtime', status: 'passing' })
+    );
+    expect(passing.gaps).toContainEqual(
+      expect.objectContaining({ code: 'criterion-needs-evidence' })
+    );
+  });
   it('keeps canonical blockers separate from unclassified legacy strings', () => {
     const c = contract({
       openQuestions: [

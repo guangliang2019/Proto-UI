@@ -92,6 +92,10 @@ function rationaleContent(text: SpecLocalizedText | undefined): string {
   return JSON.stringify([en || zh, zh || en]);
 }
 
+function isRecordedPassing(implementation: SpecEntity['implementations'][number]): boolean {
+  return implementation.status === 'passing' && hasText(implementation.path);
+}
+
 /** Records catalog facts and authored dispositions; it never changes entity lifecycle. */
 export function getSpecLifecycleReport(
   workspace: SpecWorkspace,
@@ -167,7 +171,9 @@ export function getSpecLifecycleReport(
     );
     const evidenceTests = tests.filter(
       (test) =>
-        verifyingTests.includes(test) || relationIds(test.exercises, version).includes(entity.id)
+        verifyingTests.includes(test) ||
+        relationIds(test.exercises, version).includes(entity.id) ||
+        test.implementations.some((implementation) => implementation.exercises.includes(entity.id))
     );
     const evidence = evidenceTests
       .flatMap((test) =>
@@ -239,7 +245,7 @@ export function getSpecLifecycleReport(
         if (
           !entity.implementations.some(
             (implementation) =>
-              implementation.status === 'passing' &&
+              isRecordedPassing(implementation) &&
               implementation.consumesCases.includes(testCase.id)
           )
         ) {
@@ -259,7 +265,7 @@ export function getSpecLifecycleReport(
                   testCase.covers.includes(criterion.id) &&
                   test.implementations.some(
                     (implementation) =>
-                      implementation.status === 'passing' &&
+                      isRecordedPassing(implementation) &&
                       implementation.consumesCases.includes(testCase.id)
                   )
               )
@@ -272,6 +278,14 @@ export function getSpecLifecycleReport(
           }
         }
       }
+    }
+    for (const implementation of evidence.filter(
+      (item) => item.status === 'passing' && !hasText(item.path)
+    )) {
+      gap(
+        'evidence-needs-path',
+        `${implementation.testId}#${implementation.implementationId} has no executable path.`
+      );
     }
     for (const implementation of evidence.filter(
       (item) => item.required && item.status !== 'passing'
@@ -394,28 +408,44 @@ export function checkSpecLifecycleAuthoring(
       ? [`${before.id}: retain the entity and record removal through its lifecycle history.`]
       : [];
   if (after.type === 'version') return [];
-  if (before?.status === 'removed' && after.status !== 'removed')
-    return [`${after.id}: removed is terminal and cannot transition to ${after.status}.`];
-  const changed =
-    !before ||
-    before.id !== after.id ||
-    ['status', 'since', 'activeSince', 'deprecatedSince', 'removedSince'].some(
-      (key) => before[key as keyof SpecEntity] !== after[key as keyof SpecEntity]
-    );
-  if (!changed) return [];
+  const isNewIdentity = !before || before.id !== after.id;
+  const isPromotion = !isNewIdentity && before?.status !== 'active' && after.status === 'active';
   const issues: string[] = [];
+  for (const question of after.openQuestions) {
+    const previousQuestion = !isNewIdentity
+      ? before?.openQuestions.find((item) => item.id === question.id)
+      : undefined;
+    for (const block of question.blocks) {
+      if (parseSpecBlockTarget(block) === null && !previousQuestion?.blocks.includes(block))
+        issues.push(
+          `${question.id}: new or edited unclassified blocker ${JSON.stringify(block)} requires a canonical target.`
+        );
+    }
+  }
+  if (!isNewIdentity && before?.status === 'removed' && after.status !== 'removed')
+    return [
+      ...issues,
+      `${after.id}: removed is terminal and cannot transition to ${after.status}.`,
+    ];
+  const changed =
+    isNewIdentity ||
+    ['status', 'since', 'activeSince', 'deprecatedSince', 'removedSince'].some(
+      (key) => before?.[key as keyof SpecEntity] !== after[key as keyof SpecEntity]
+    );
+  if (!changed) return issues;
   if (!hasText(after.lifecycleRationale))
     issues.push(`${after.id}: new or lifecycle-changing authoring requires lifecycleRationale.`);
   else if (
+    !isNewIdentity &&
     before &&
     rationaleContent(before.lifecycleRationale) === rationaleContent(after.lifecycleRationale)
   )
     issues.push(`${after.id}: changed lifecycle requires updated lifecycleRationale.`);
-  if (after.status === 'active' && !after.activeSince)
+  if (after.status === 'active' && (isNewIdentity || isPromotion) && !after.activeSince)
     issues.push(
       `${after.id}: newly admitted active status requires activation provenance in activeSince.`
     );
-  if (before && before.status !== 'active' && after.status === 'active') {
+  if (before && !isNewIdentity) {
     const revisionKey = (revision: SpecEntity['revisions'][number]) =>
       JSON.stringify([revision.version, revision.change, revision.summary, revision.breaking]);
     const previousRevisions = before.revisions.map(revisionKey);
@@ -423,16 +453,19 @@ export function checkSpecLifecycleAuthoring(
     const historyPreserved = previousRevisions.every(
       (revision, index) => currentRevisions[index] === revision
     );
+    if (!historyPreserved)
+      issues.push(`${after.id}: lifecycle changes must preserve prior revisions.`);
     if (
-      !historyPreserved ||
-      !after.revisions
-        .slice(before.revisions.length)
-        .some(
-          (revision) =>
-            revision.version === after.activeSince &&
-            hasText(revision.summary) &&
-            !previousRevisions.includes(revisionKey(revision))
-        )
+      isPromotion &&
+      (!historyPreserved ||
+        !after.revisions
+          .slice(before.revisions.length)
+          .some(
+            (revision) =>
+              revision.version === after.activeSince &&
+              hasText(revision.summary) &&
+              !previousRevisions.includes(revisionKey(revision))
+          ))
     )
       issues.push(
         `${after.id}: promotion must preserve prior revisions and append a new admission revision with a summary at activeSince.`

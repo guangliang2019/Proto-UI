@@ -106,6 +106,7 @@ export async function loadSpecWorkspaceFromDirectory(
   validateWorkspaceRelations(uniqueLoaded, issues);
   const workspace = createSpecWorkspace(uniqueLoaded.map((entry) => entry.entity));
   await validateNoteReferences(specDir, uniqueLoaded, issues);
+  await validatePassingImplementationReferences(specDir, uniqueLoaded, issues);
 
   return {
     ...workspace,
@@ -409,6 +410,59 @@ function validateCriterionAnchors(
       filePath: entry.filePath,
       message: `${sourceId} ${groupName}.${relationKey} relation to ${target.id} anchors unknown criterion ${anchor}.`,
     });
+  }
+}
+
+async function validatePassingImplementationReferences(
+  specDir: string,
+  loaded: LoadedSpecEntity[],
+  issues: SpecValidationIssue[]
+): Promise<void> {
+  const repoRoot = await realpath(path.resolve(specDir, '..'));
+  const contained = (target: string) => {
+    const relative = path.relative(repoRoot, target);
+    return relative !== '..' && !relative.startsWith(`..${path.sep}`) && !path.isAbsolute(relative);
+  };
+  for (const entry of loaded) {
+    for (const implementation of entry.entity.implementations) {
+      if (implementation.status !== 'passing') continue;
+      const implementationPath = implementation.path;
+      const label = `Passing implementation ${entry.entity.id}#${implementation.id}`;
+      if (
+        !implementationPath?.trim() ||
+        /^[a-z][a-z0-9+.-]*:/i.test(implementationPath) ||
+        path.isAbsolute(implementationPath) ||
+        path.win32.isAbsolute(implementationPath)
+      ) {
+        issues.push({
+          filePath: entry.filePath,
+          message: `${label} must name a repository-relative file: ${implementationPath ?? '(no path)'}`,
+        });
+        continue;
+      }
+      const target = path.resolve(repoRoot, implementationPath);
+      if (!contained(target)) {
+        issues.push({
+          filePath: entry.filePath,
+          message: `${label} path must stay inside the repository: ${implementationPath}`,
+        });
+        continue;
+      }
+      try {
+        const resolved = await realpath(target);
+        if (!contained(resolved) || !(await stat(resolved)).isFile()) {
+          issues.push({
+            filePath: entry.filePath,
+            message: `${label} must resolve to a repository file: ${implementationPath}`,
+          });
+        }
+      } catch {
+        issues.push({
+          filePath: entry.filePath,
+          message: `${label} file does not exist: ${implementationPath}`,
+        });
+      }
+    }
   }
 }
 
