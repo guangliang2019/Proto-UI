@@ -1,4 +1,5 @@
-import { readdir, readFile, stat } from 'node:fs/promises';
+import { readdir, readFile, realpath, stat } from 'node:fs/promises';
+import { createHash } from 'node:crypto';
 import path from 'node:path';
 import { parse } from 'yaml';
 
@@ -6,14 +7,19 @@ import {
   SPEC_RELATION_KINDS,
   compareSpecVersions,
   validateSpecEntity,
+  parseSpecBlockTarget,
+  specLifecyclePlanSchema,
+  specVersionSchema,
   type SpecEntity,
   type SpecEntityType,
   type SpecRelationKind,
   type SpecRelations,
+  type SpecLifecyclePlan,
   type SpecValidationIssue,
 } from '@proto.ui/spec-schema';
 
-import { createSpecWorkspace, type SpecWorkspace } from './index';
+import { createSpecWorkspace, getSpecSnapshot, type SpecWorkspace } from './index';
+import { getSpecLifecycleReport, type SpecLifecycleReport } from './lifecycle';
 
 export type LoadedSpecEntity = {
   filePath: string;
@@ -24,6 +30,55 @@ export type LoadedSpecWorkspace = SpecWorkspace & {
   files: LoadedSpecEntity[];
   issues: SpecValidationIssue[];
 };
+
+export async function loadSpecLifecyclePlan(
+  repoRoot: string,
+  version: string
+): Promise<SpecLifecyclePlan | undefined> {
+  specVersionSchema.parse(version);
+  const planPath = path.join(repoRoot, 'internal/releases', version, 'lifecycle-dispositions.json');
+  let plan;
+  try {
+    plan = specLifecyclePlanSchema.parse(JSON.parse(await readFile(planPath, 'utf8')));
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code !== 'ENOENT') throw error;
+  }
+  const root = await realpath(repoRoot);
+  for (const slice of plan?.slices ?? []) {
+    for (const evidence of slice.evidence) {
+      if (/^https?:\/\//.test(evidence)) continue;
+      const target = path.resolve(root, evidence);
+      if (path.isAbsolute(evidence) || path.relative(root, target).startsWith('..')) {
+        throw new Error(
+          `${slice.id}: lifecycle evidence must stay inside the repository: ${evidence}`
+        );
+      }
+      const resolved = await realpath(target);
+      if (path.relative(root, resolved).startsWith('..') || !(await stat(resolved)).isFile()) {
+        throw new Error(
+          `${slice.id}: lifecycle evidence must resolve to a repository file: ${evidence}`
+        );
+      }
+    }
+  }
+  return plan;
+}
+
+export async function loadSpecLifecycleReport(
+  repoRoot: string,
+  version: string,
+  workspace: SpecWorkspace
+): Promise<SpecLifecycleReport> {
+  const plan = await loadSpecLifecyclePlan(repoRoot, version);
+  const report = getSpecLifecycleReport(workspace, version, plan);
+  const snapshot = getSpecSnapshot(workspace, version);
+  return {
+    ...report,
+    currentCatalogDigest: `sha256:${createHash('sha256')
+      .update(JSON.stringify({ version, entities: snapshot.entities }))
+      .digest('hex')}`,
+  };
+}
 
 export async function loadSpecWorkspaceFromDirectory(
   specDir: string
@@ -183,6 +238,35 @@ function validateWorkspaceRelations(
 
   for (const entry of loaded) {
     validateReplacement(entry, byId, issues);
+    for (const question of entry.entity.openQuestions) {
+      for (const value of question.blocks) {
+        const block = parseSpecBlockTarget(value);
+        if (!block) continue;
+        const target = byId.get(block.entityId)?.entity;
+        let problem: string | undefined;
+        if (!target) problem = `Unknown block target entity ${block.entityId}`;
+        else if (target.type === 'version')
+          problem = 'Version entities retain their publication-evidence lifecycle';
+        else if (block.kind === 'activation' && target.status === 'active')
+          problem = `Active entity ${target.id} retains an activation-blocking question`;
+        else if (
+          block.kind === 'criterion' &&
+          !target.criteria.some((criterion) => criterion.id === block.targetId)
+        )
+          problem = `Unknown criterion ${block.targetId} on ${target.id}`;
+        else if (
+          block.kind === 'implementation' &&
+          (target.type !== 'test' ||
+            !target.implementations.some((implementation) => implementation.id === block.targetId))
+        )
+          problem = `Unknown test implementation ${block.targetId} on ${target.id}`;
+        if (problem)
+          issues.push({
+            filePath: entry.filePath,
+            message: `${question.id}: ${problem} (${value}).`,
+          });
+      }
+    }
 
     for (const relationKind of SPEC_RELATION_KINDS) {
       validateRelationGroup(entry, byId, issues, relationKind, entry.entity[relationKind]);

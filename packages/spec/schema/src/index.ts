@@ -350,12 +350,60 @@ export const specCriterionSchema = z.object({
   references: specRelationsSchema,
 });
 
+export type SpecBlockTarget =
+  | { kind: 'activation'; entityId: string }
+  | { kind: 'criterion' | 'implementation'; entityId: string; targetId: string };
+
+export function parseSpecBlockTarget(value: string): SpecBlockTarget | null {
+  const prefix = /^(activation|criterion|implementation):/.exec(value);
+  if (!prefix) return null;
+  const kind = prefix[1] as SpecBlockTarget['kind'];
+  const [entityId, targetId, extra] = value.slice(prefix[0].length).split('#');
+  if (
+    !specIdPattern.test(entityId) ||
+    extra !== undefined ||
+    (kind === 'activation' ? targetId !== undefined : !targetId || /[\s:#]/.test(targetId))
+  ) {
+    throw new Error(`Invalid canonical block target: ${value}.`);
+  }
+  return kind === 'activation' ? { kind, entityId } : { kind, entityId, targetId: targetId! };
+}
+
 export const specOpenQuestionSchema = z.object({
   id: z.string().min(1),
   question: specLocalizedTextSchema,
   context: specLocalizedTextSchema.optional(),
-  blocks: z.array(z.string().min(1)).default([]),
+  blocks: z
+    .array(
+      z
+        .string()
+        .min(1)
+        .superRefine((value, context) => {
+          try {
+            parseSpecBlockTarget(value);
+          } catch (error) {
+            context.addIssue({ code: 'custom', message: (error as Error).message });
+          }
+        })
+    )
+    .default([]),
 });
+
+export const specLifecyclePlanSchema = z
+  .object({
+    schemaVersion: z.literal(1),
+    version: specVersionSchema,
+    slices: z.array(
+      z.object({
+        id: z.string().trim().min(1),
+        entities: z.array(z.string().regex(specIdPattern)).min(1),
+        disposition: z.enum(['promote', 'remain-draft', 'not-applicable']),
+        rationale: z.string().trim().min(1),
+        evidence: z.array(z.string().trim().min(1)).min(1),
+      })
+    ),
+  })
+  .strict();
 
 export const specTestCaseSchema = z.object({
   id: z.string().min(1),
@@ -386,6 +434,13 @@ export const specEntitySchema = z
     status: z.enum(SPEC_ENTITY_STATUSES).default('draft'),
     since: specVersionSchema,
     activeSince: specVersionSchema.optional(),
+    lifecycleRationale: specLocalizedTextSchema
+      .refine(
+        (text) =>
+          (typeof text === 'string' ? [text] : Object.values(text)).some((value) => value?.trim()),
+        'Lifecycle rationale must contain non-whitespace text.'
+      )
+      .optional(),
     deprecatedSince: specVersionSchema.optional(),
     removedSince: specVersionSchema.optional(),
     replacedBy: z.string().optional(),
@@ -733,6 +788,7 @@ export type SpecAdapterProfile = z.infer<typeof specAdapterProfileSchema>;
 export type SpecAnatomy = z.infer<typeof specAnatomySchema>;
 export type SpecCriterion = z.infer<typeof specCriterionSchema>;
 export type SpecOpenQuestion = z.infer<typeof specOpenQuestionSchema>;
+export type SpecLifecyclePlan = z.infer<typeof specLifecyclePlanSchema>;
 export type SpecTestCase = z.infer<typeof specTestCaseSchema>;
 export type SpecTestImplementation = z.infer<typeof specTestImplementationSchema>;
 export type SpecEntity = z.infer<typeof specEntitySchema>;

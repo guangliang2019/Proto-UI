@@ -37,11 +37,51 @@ A package publication or dependency edge is evidence for lifecycle review, not a
 
 Release evidence, the current workspace snapshot, and generated views are distinct artifacts. A workspace snapshot recalculated after a release can differ from the immutable snapshot digest recorded by the corresponding `V-*` entity.
 
+### Ordinary-entity admission
+
+Every new ordinary entity must explain its initial `draft` or `active` status in `lifecycleRationale`. A change to lifecycle status or its version boundaries must also carry a current rationale. The field accepts localized text like `statement`; identify the unresolved semantics, missing evidence, or reviewed admission that justifies the status. A generic creation default is insufficient. Changing an ordinary entity to `active` additionally requires explicit semantic admission, a supported `activeSince`, and a revision explaining that admission.
+
+All promotions share four gates: reviewable statement, criteria, ownership and relations; no unresolved activation blocker; reconciled implementation and public-projection drift; and explicit bounds for remaining omissions. Apply the relevant additional evidence below.
+
+| Type | Minimum admission evidence |
+| --- | --- |
+| Contract | Applicable criteria mapped to `T-*` cases and executable evidence, including negative boundaries and compatibility. |
+| Prototype | Governed identity and anatomy, applicable Contract/Test evidence, real consumer and public export/docs alignment. |
+| Module | Defined ownership and lifetime, satisfied Contract criteria, implementation tests and applicable Adapter integration. |
+| Host Capability | Bounded host responsibility, lease and failure behavior, provider evidence and honest host/profile limits. |
+| Adapter | Exact target/profile scope, reviewed Module support and omissions, provided capabilities and conformance evidence. |
+| Test | Addressable cases, accurate criterion mappings, real implementation paths and reviewed results for required coverage. A catalog `passing` value is not a fresh test run. |
+| Decision | Settled choice, authority, alternatives and scope, with affected entities consistent with the decision. |
+| Knowledge | Supported explanatory model, clear limits and consistent dependent usage; do not invent runtime tests for explanatory text. |
+
+Entity authoring and first inclusion of a governed surface in a release train both trigger lifecycle review. Release preparation records a disposition per reviewed semantic slice: `promote`, `remain-draft` with a named blocker, or `not-applicable` with a reason. `promote` proposes admission for review; it neither changes status nor grants permission to activate an entity.
+
+### Activation blockers and legacy migration
+
+Use the existing `openQuestions[].blocks` list for explicit targets:
+
+- `activation:<ENTITY_ID>` blocks stable admission of that ordinary entity.
+- `criterion:<ENTITY_ID>#<CRITERION_ID>` identifies an exact criterion whose evidence or semantics remain open.
+- `implementation:<TEST_ID>#<IMPLEMENTATION_ID>` identifies a mapped executable implementation that remains incomplete.
+
+Targets must exist. Criterion and implementation targets do not implicitly activate or block every related entity; add the exact `activation:` targets when the unresolved question weakens an admission. A bounded follow-up may identify only its criterion or implementation target. Existing free-form values remain readable and are reported as unclassified. Neither those values nor an empty list proves that an entity is ready; reviewers must classify their effect on the intended guarantee.
+
+Unchanged legacy entities may lack `lifecycleRationale`. Report the gap and audit it when that slice is reviewed rather than rewriting the entire catalog. Legacy ordinary `active` entities without durable activation provenance also remain valid catalog entries, but historical stable-applicability queries cannot infer an activation version for them. Audit original admission records and commits before adding `activeSince`; never substitute `since` or package publication. Tightening the transitional schema to require activation history across the whole catalog requires a separate reviewed migration decision.
+
+Audit existing entities incrementally: Module/Contract/Test chains consumed by active Adapter profiles, released core contracts, released Prototype families, Host Capabilities, Decisions/Knowledge, then deliberately experimental slices. Keep ready admission, missing executable evidence, blocking questions, metadata gaps, implementation drift and intentional experimental scope distinct in each result.
+
+### Release readiness reports
+
+`pnpm release:lifecycle` reports all ordinary entities available in the selected release-version snapshot of the current catalog. This is a conservative review inventory, not a claim that every entity has shipped or belongs to a published stable guarantee. It reports recorded evidence, missing rationale, declared blockers, unclassified legacy values, activation-provenance gaps and dispositions from `internal/releases/<version>/lifecycle-dispositions.json`. Reviewers record explicit entity sets, rationale and evidence for each slice; uncovered entries remain `unreviewed`.
+
+`pnpm release:lifecycle -- --check --entities C-A11Y-PART-RELATIONSHIP-0001,T-A11Y-PART-RELATIONSHIP-0001` checks disposition completeness for that named scope. Omitting `--entities` checks the complete inventory and fails on missing dispositions. A passing scoped check does not mean the remaining catalog has been reviewed. Report generation never performs promotion, validates publication, or replaces the `V-*` evidence workflow. See [`release-workflow.md`](../internal/governance/release-workflow.md) for the preparation trigger.
+
 ## Core fields
 
 Common fields include:
 
 - `id`, `type`, `title`, `status`, `since`, and (for ordinary lifecycle history) `activeSince` for identity and lifecycle;
+- `lifecycleRationale` for the reason a new or lifecycle-changed ordinary entity has its status;
 - `summary` and bilingual `statement` for the rule or model;
 - `criteria` for individually addressable acceptance points;
 - `openQuestions` for explicit unresolved gaps;
@@ -107,7 +147,7 @@ Before adding or changing an entity:
 4. Model one coherent semantic slice. Do not batch-create empty module or host-cap identities from package/token inventories.
 5. Add criteria and relations precise enough to trace expected behavior.
 6. For normative behavior, add or update a `T-*` mapping and executable implementation path.
-7. Add an appropriate revision when changing semantics already available in a version.
+7. Add an appropriate revision when changing semantics already available in a version. For a new ordinary entity or changed lifecycle, record `lifecycleRationale` and run `pnpm check:spec-authoring -- --base <base-sha>` against the reviewed base; classify activation blockers explicitly.
 8. Regenerate projections and run validation.
 
 For Adapter profiles, catalog one reviewed Module slice at a time. Add positive `supports`, explicit negative `omits`, provided host capabilities, profile criteria, and executable Adapter evidence together; do not prefill the remaining matrix from package dependencies alone.

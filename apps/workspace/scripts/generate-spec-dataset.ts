@@ -3,7 +3,8 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { getSpecReleases, getSpecSnapshot } from '@proto.ui/spec-engine';
-import { loadSpecWorkspaceFromDirectory } from '@proto.ui/spec-engine/node';
+import type { SpecLifecyclePlan } from '@proto.ui/spec-schema';
+import { loadSpecLifecyclePlan, loadSpecWorkspaceFromDirectory } from '@proto.ui/spec-engine/node';
 
 const appDir = path.resolve(fileURLToPath(new URL('..', import.meta.url)));
 const repoRoot = path.resolve(appDir, '../..');
@@ -16,6 +17,18 @@ const releases = getSpecReleases(workspace);
 const versions = releases.map((release) => release.version);
 const latestVersion = versions.at(-1) ?? '0.1.0';
 const latestSnapshot = getSpecSnapshot(workspace, latestVersion);
+const lifecyclePlans: Record<string, SpecLifecyclePlan | null | undefined> = {};
+for (const version of versions) {
+  try {
+    lifecyclePlans[version] = await loadSpecLifecyclePlan(repoRoot, version);
+  } catch (error) {
+    lifecyclePlans[version] = null;
+    workspace.issues.push({
+      filePath: `internal/releases/${version}/lifecycle-dispositions.json`,
+      message: error instanceof Error ? error.message : String(error),
+    });
+  }
+}
 
 await mkdir(outDir, { recursive: true });
 await writeFile(
@@ -27,6 +40,7 @@ await writeFile(
       versions,
       latestVersion,
       entities: workspace.entities,
+      lifecyclePlans,
       issues: workspace.issues,
     },
     null,
