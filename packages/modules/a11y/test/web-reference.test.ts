@@ -398,12 +398,12 @@ describe('Web A11y opaque semantic-object references', () => {
     const targetProjector = createWebA11yProjector(target, undefined, registry);
 
     targetProjector(semanticSnapshot(firstRef));
-    const targetId = target.id;
     first(semanticSnapshot(sourceRef, { describedBy: [firstRef] }, { describedBy: 'append' }));
     second(semanticSnapshot(sourceRef, { describedBy: [firstRef] }, { describedBy: 'append' }));
-    expect(source.getAttribute('aria-describedby')).toBe(targetId);
+    const projectedId = source.getAttribute('aria-describedby');
+    expect(projectedId).toBe(target.id);
     first.dispose?.();
-    expect(source.getAttribute('aria-describedby')).toBe(targetId);
+    expect(source.getAttribute('aria-describedby')).toBe(projectedId);
     second.dispose?.();
     expect(source.hasAttribute('aria-describedby')).toBe(false);
 
