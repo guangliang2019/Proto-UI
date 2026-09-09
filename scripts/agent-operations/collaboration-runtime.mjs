@@ -107,7 +107,6 @@ function validateEvidence(evidence, { required = false, purpose = 'collaboration
   }
 }
 
-
 function requireEvidenceType(evidence, type, purpose) {
   assert(
     evidence.some((artifact) => artifact.type === type),
@@ -118,7 +117,10 @@ function requireEvidenceType(evidence, type, purpose) {
 function requireEvidenceDigest(evidence, type, purpose) {
   const artifact = evidence.find((entry) => entry.type === type);
   assert(artifact, `${purpose} evidence of type ${type} is required`);
-  assert(DIGEST.test(artifact.digest ?? ''), `${purpose} evidence of type ${type} requires a digest`);
+  assert(
+    DIGEST.test(artifact.digest ?? ''),
+    `${purpose} evidence of type ${type} requires a digest`
+  );
   return artifact;
 }
 
@@ -172,7 +174,7 @@ function validateRequestAction(request) {
     exactKeys(desired, ['containsBaseSha'], 'request.desired');
     assert(expected.containsBaseSha === false, 'update-branch expected state must be behind');
     assert(desired.containsBaseSha === true, 'update-branch desired state must contain baseSha');
-    } else if (action === 'mark-exact-head-ready-for-review') {
+  } else if (action === 'mark-exact-head-ready-for-review') {
     validateCommonTarget(target);
     assert(target.kind === 'pull-request', 'ready-for-review target must be a pull request');
     exactKeys(expected, ['isDraft'], 'request.expected');
@@ -192,7 +194,9 @@ function validateRequestAction(request) {
     exactKeys(desired, ['reviewerLogin'], 'request.desired');
     string(desired.reviewerLogin, 'request.desired.reviewerLogin', { max: 100 });
     assert(
-      !expected.requestedReviewerLogins.includes(desired.reviewerLogin),
+      !expected.requestedReviewerLogins.some(
+        (login) => login.toLowerCase() === desired.reviewerLogin.toLowerCase()
+      ),
       'reviewer is already present in the expected state'
     );
   } else if (action === 'resolve-fixed-review-thread') {
@@ -336,9 +340,7 @@ export function validateCollaborationHandoffBinding(
     'mutation-authorization artifact does not bind authorizationId'
   );
   if (request.action === 'mark-exact-head-ready-for-review') {
-    const validationReport = request.evidence?.find(
-      (entry) => entry.type === 'validation-report'
-    );
+    const validationReport = request.evidence?.find((entry) => entry.type === 'validation-report');
     assert(
       validationReport && DIGEST.test(validationReport.digest ?? ''),
       'ready-for-review requires validation-report evidence with a digest'
@@ -346,10 +348,7 @@ export function validateCollaborationHandoffBinding(
     const validationArtifact = handoff.artifacts.find(
       (artifact) => artifact.type === 'validation-report'
     );
-    assert(
-      validationArtifact,
-      'collaboration handoff is missing the validation-report artifact'
-    );
+    assert(validationArtifact, 'collaboration handoff is missing the validation-report artifact');
     assert(
       validationArtifact.reference === validationReport.reference &&
         validationArtifact.digest === validationReport.digest,
@@ -545,7 +544,9 @@ export function desiredCollaborationStateSatisfied(request, liveState) {
   if (action === 'request-independent-review') {
     return (
       current.headSha === request.target.headSha &&
-      current.requestedReviewerLogins.includes(request.desired.reviewerLogin)
+      current.requestedReviewerLogins.some(
+        (login) => login.toLowerCase() === request.desired.reviewerLogin.toLowerCase()
+      )
     );
   }
   if (action === 'resolve-fixed-review-thread') {
@@ -683,7 +684,11 @@ export function authorizeCollaborationMutation({
     ) {
       return rejected(request, 'independent reviewer cannot be a pull-request commit contributor');
     }
-    if (current.requestedReviewerLogins.includes(reviewer)) {
+    if (
+      current.requestedReviewerLogins.some(
+        (login) => login.toLowerCase() === reviewer.toLowerCase()
+      )
+    ) {
       return noOp(request, 'reviewer is already requested for the exact head');
     }
     if (current.updatedAt !== request.target.updatedAt) {

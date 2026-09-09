@@ -13,6 +13,7 @@ import {
   computeReviewPacketDigest,
   evaluateReviewEligibility,
   inspectReviewRevision,
+  decideReviewRun,
   renderReviewBody,
   reviewPacketKey,
   validateReviewInputSnapshot,
@@ -182,14 +183,20 @@ function validateIntegrationExecution(args, packet, input, policy) {
     policy,
   });
   validateReviewPacketEligibility(packet, reviewEligibility, routed.handoff.executionMode);
-  const packetArtifact = routed.handoff.artifacts.find((artifact) => artifact.type === 'review-packet');
+  const packetArtifact = routed.handoff.artifacts.find(
+    (artifact) => artifact.type === 'review-packet'
+  );
   if (!packetArtifact || packetArtifact.reference !== args.get('--packet')) {
-    throw new Error('integration handoff review-packet artifact does not bind the --packet argument');
+    throw new Error(
+      'integration handoff review-packet artifact does not bind the --packet argument'
+    );
   }
   if (packetArtifact.digest !== `sha256:${computeReviewPacketDigest(packet)}`) {
     throw new Error('integration handoff review-packet artifact does not bind packet content');
   }
-  const inputArtifact = routed.handoff.artifacts.find((artifact) => artifact.type === 'review-input');
+  const inputArtifact = routed.handoff.artifacts.find(
+    (artifact) => artifact.type === 'review-input'
+  );
   if (!inputArtifact || inputArtifact.reference !== args.get('--input')) {
     throw new Error('integration handoff review-input artifact does not bind the --input argument');
   }
@@ -200,7 +207,9 @@ function validateIntegrationExecution(args, packet, input, policy) {
     (artifact) => artifact.type === 'mutation-authorization'
   );
   if (!authorizationArtifact || authorizationArtifact.reference !== args.get('--authorization')) {
-    throw new Error('integration handoff mutation-authorization artifact does not bind --authorization');
+    throw new Error(
+      'integration handoff mutation-authorization artifact does not bind --authorization'
+    );
   }
   const skillEligibility = evaluateSkillEligibility(routed.nextSkill, {
     executionMode: routed.handoff.executionMode,
@@ -226,7 +235,6 @@ function readExternalEvidence(args) {
   }
   return parsed;
 }
-
 
 try {
   const { command, args } = parse(process.argv.slice(2));

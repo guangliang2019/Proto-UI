@@ -1,3 +1,4 @@
+import { execFileSync } from 'node:child_process';
 import { assertNoTruncation, parseRepositoryId } from './collect-live-review-input.mjs';
 import {
   collaborationMarker,
@@ -324,7 +325,9 @@ export function collectLiveCollaborationState(request, options = {}) {
       .map((comment) => comment.updatedAt)
       .filter(Boolean);
     if (threadUpdates.length === 0) {
-      throw new Error('live review thread carries no comment timestamps; re-collect before resolution');
+      throw new Error(
+        'live review thread carries no comment timestamps; re-collect before resolution'
+      );
     }
     current = {
       kind: 'review-thread',
