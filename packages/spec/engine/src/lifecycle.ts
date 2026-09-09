@@ -119,13 +119,16 @@ export function getSpecLifecycleReport(
   const dispositions = new Map<string, SpecLifecyclePlan['slices'][number]>();
   const conflictedEntities = new Set<string>();
   const sliceIds = new Set<string>();
+  const duplicateSliceIds = new Set<string>();
   for (const slice of plan?.slices ?? []) {
-    if (sliceIds.has(slice.id))
+    if (sliceIds.has(slice.id)) {
+      duplicateSliceIds.add(slice.id);
       issues.push({
         code: 'duplicate-slice',
         sliceId: slice.id,
         message: `Duplicate slice ${slice.id}.`,
       });
+    }
     sliceIds.add(slice.id);
     for (const id of slice.entities) {
       if (!entities.some((entity) => entity.id === id)) {
@@ -148,7 +151,9 @@ export function getSpecLifecycleReport(
       dispositions.set(id, slice);
     }
   }
-  for (const id of conflictedEntities) dispositions.delete(id);
+  for (const [id, slice] of dispositions) {
+    if (conflictedEntities.has(id) || duplicateSliceIds.has(slice.id)) dispositions.delete(id);
+  }
   const blocks = entities.flatMap((entity) =>
     entity.openQuestions.flatMap((question) =>
       question.blocks.map((target) => ({
@@ -401,7 +406,8 @@ export function checkSpecLifecycleDispositions(
 
 export function checkSpecLifecycleAuthoring(
   before: SpecEntity | undefined,
-  after: SpecEntity | undefined
+  after: SpecEntity | undefined,
+  workspace?: SpecWorkspace
 ): string[] {
   if (!after)
     return before && before.type !== 'version'
@@ -433,6 +439,8 @@ export function checkSpecLifecycleAuthoring(
       (key) => before?.[key as keyof SpecEntity] !== after[key as keyof SpecEntity]
     );
   if (!changed) return issues;
+  if (!isNewIdentity && before?.activeSince && !after.activeSince)
+    issues.push(`${after.id}: lifecycle changes must retain recorded activeSince.`);
   if (!hasText(after.lifecycleRationale))
     issues.push(`${after.id}: new or lifecycle-changing authoring requires lifecycleRationale.`);
   else if (
@@ -470,6 +478,23 @@ export function checkSpecLifecycleAuthoring(
       issues.push(
         `${after.id}: promotion must preserve prior revisions and append a new admission revision with a summary at activeSince.`
       );
+  }
+  if (after.status === 'active' && (isNewIdentity || isPromotion) && after.activeSince) {
+    if (!workspace)
+      issues.push(
+        `${after.id}: active admission requires the current workspace for evidence checks.`
+      );
+    else {
+      const report = getSpecLifecycleReport(
+        { entities: [...workspace.entities.filter((entity) => entity.id !== after.id), after] },
+        after.activeSince
+      );
+      const row = report.rows.find((candidate) => candidate.entityId === after.id);
+      if (!row)
+        issues.push(`${after.id}: active admission is outside its activation version scope.`);
+      else
+        issues.push(...row.gaps.map((gap) => `${after.id}: admission ${gap.code}: ${gap.message}`));
+    }
   }
   return issues;
 }

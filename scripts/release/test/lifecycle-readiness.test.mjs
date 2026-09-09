@@ -115,6 +115,28 @@ test('authoring preserves identities across deletion, replacement, and file move
     assert.equal(promotedMove.status, 1);
     assert.match(promotedMove.stderr, /updated lifecycleRationale/);
     assert.match(promotedMove.stderr, /new admission revision/);
+    const draft = parse(original);
+    writeFileSync(
+      movedPath,
+      JSON.stringify({
+        ...draft,
+        status: 'active',
+        activeSince: '0.3.0-alpha.0',
+        lifecycleRationale: 'The proposed admission was reviewed.',
+        revisions: [
+          ...(draft.revisions ?? []),
+          {
+            version: '0.3.0-alpha.0',
+            change: 'admitted',
+            summary: 'Admission was reviewed.',
+          },
+        ],
+      })
+    );
+    const incompletePromotion = check();
+    assert.equal(incompletePromotion.status, 1);
+    assert.match(incompletePromotion.stderr, /admission activation-blocked/);
+    assert.match(incompletePromotion.stderr, /admission criterion-needs-evidence/);
     rmSync(movedPath);
     const deleted = check();
     assert.equal(deleted.status, 1);
@@ -140,6 +162,58 @@ test('authoring preserves identities across deletion, replacement, and file move
     const untracked = check();
     assert.equal(untracked.status, 1);
     assert.match(untracked.stderr, /C-REVIEW-UNTRACKED-0001: .*requires lifecycleRationale/);
+    const newActive = {
+      id: 'C-REVIEW-UNTRACKED-0001',
+      type: 'contract',
+      title: 'New admission',
+      status: 'active',
+      since: '0.3.0-alpha.0',
+      activeSince: '0.3.0-alpha.0',
+      lifecycleRationale: 'The initial admission was reviewed.',
+    };
+    const newPath = path.join(fixture, 'spec/contracts/C-REVIEW-UNTRACKED-0001.yaml');
+    writeFileSync(newPath, JSON.stringify(newActive));
+    const emptyAdmission = check();
+    assert.equal(emptyAdmission.status, 1);
+    assert.match(emptyAdmission.stderr, /admission missing-statement/);
+    assert.match(emptyAdmission.stderr, /admission missing-criteria/);
+    newActive.statement = 'A bounded requirement.';
+    newActive.criteria = [{ id: 'C-REVIEW-UNTRACKED-0001-A', text: 'A reviewed criterion.' }];
+    writeFileSync(newPath, JSON.stringify(newActive));
+    const evidencePath = path.join(fixture, 'spec/tests/T-REVIEW-UNTRACKED-0001.yaml');
+    writeFileSync(
+      evidencePath,
+      JSON.stringify({
+        id: 'T-REVIEW-UNTRACKED-0001',
+        type: 'test',
+        title: 'Admission evidence',
+        status: 'draft',
+        since: '0.3.0-alpha.0',
+        lifecycleRationale: 'The execution map remains under review.',
+        verifies: { contracts: [newActive.id] },
+        cases: [
+          {
+            id: 'T-REVIEW-UNTRACKED-0001-CASE-ONE',
+            title: 'Requirement',
+            covers: ['C-REVIEW-UNTRACKED-0001-A'],
+            expectation: 'governed-result',
+          },
+        ],
+        implementations: [
+          {
+            id: 'runtime',
+            kind: 'runtime-test',
+            status: 'passing',
+            required: true,
+            path: 'packages/spec/fixtures/test/lifecycle-readiness.test.ts',
+            consumesCases: ['T-REVIEW-UNTRACKED-0001-CASE-ONE'],
+          },
+        ],
+      })
+    );
+    const supportedAdmission = check();
+    assert.equal(supportedAdmission.status, 0, supportedAdmission.stderr);
+    rmSync(evidencePath);
     rmSync(path.join(fixture, 'spec/contracts/C-REVIEW-UNTRACKED-0001.yaml'));
     const linkedSource = path.join(fixture, 'relationship-source.txt');
     writeFileSync(linkedSource, original);

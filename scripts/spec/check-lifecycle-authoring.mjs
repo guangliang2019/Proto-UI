@@ -42,7 +42,9 @@ const current = new Map(
 const issues = [
   ...workspace.issues.map((issue) => `${issue.filePath}: ${issue.message}`),
   ...[...current.values()].flatMap(({ entity, file }) =>
-    checkSpecLifecycleAuthoring(previous.get(entity.id), entity).map((issue) => `${file}: ${issue}`)
+    checkSpecLifecycleAuthoring(previous.get(entity.id), entity, workspace).map(
+      (issue) => `${file}: ${issue}`
+    )
   ),
 ];
 for (const [id, entity] of previous) {

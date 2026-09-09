@@ -35,6 +35,8 @@ Every entity declares `since` and one of these statuses:
 
 An ordinary entity's `removed` status is terminal; authoring cannot return that identity to draft, active or deprecated status.
 
+Once `activeSince` is recorded, lifecycle changes must retain that activation history. Missing legacy provenance may remain unknown; clearing a known activation boundary is not a legacy migration.
+
 Retain cataloged ordinary identities for historical queries. Retiring one requires its `removed` lifecycle and history rather than deleting its file or replacing its ID. Moving a file while preserving the same entity ID does not create a new lifecycle.
 
 A package publication or dependency edge is evidence for lifecycle review, not automatic activation. Promotion remains an explicit semantic admission with applicable criteria, relations, and executable evidence.
@@ -60,6 +62,8 @@ All promotions share four gates: reviewable statement, criteria, ownership and r
 
 A passing implementation must declare a path before it can cover cases or criteria in a lifecycle report. The shared Node loader verifies that passing paths resolve to repository files; the catalog-integrity CI check also requires Git tracking. Implementation-level `exercises` contributes candidate evidence and required-implementation diagnostics, but does not become a `verifies` claim for normative criteria.
 
+Base-aware authoring checks new active entities and actual promotions against their current-workspace lifecycle report at `activeSince`. The admitted entity must have no reported readiness gaps; future-version evidence cannot support an earlier admission. This mechanical evidence check does not replace independent semantic approval. Already-active lifecycle maintenance retains the legacy audit boundary.
+
 Entity authoring and first inclusion of a governed surface in a release train both trigger lifecycle review. Release preparation records a disposition per reviewed semantic slice: `promote`, `remain-draft` with a named blocker, or `not-applicable` with a reason. `promote` proposes admission for review; it neither changes status nor grants permission to activate an entity.
 
 ### Activation blockers and legacy migration
@@ -81,6 +85,8 @@ Audit existing entities incrementally: Module/Contract/Test chains consumed by a
 ### Release readiness reports
 
 `pnpm release:lifecycle` reports all ordinary entities available in the selected release-version snapshot of the current catalog. This is a conservative review inventory, not a claim that every entity has shipped or belongs to a published stable guarantee. It reports recorded evidence, missing rationale, declared blockers, unclassified legacy values, activation-provenance gaps and dispositions from `internal/releases/<version>/lifecycle-dispositions.json`. Reviewers record explicit entity sets, rationale and evidence for each slice; drafts without a disposition remain in `unreviewedEntities`.
+
+Duplicate slice IDs or duplicate entity membership withhold the affected dispositions from reviewed counts and entity projections. The authored entries remain in report diagnostics so scoped checks can explain the conflict.
 
 `pnpm release:lifecycle -- --check --entities C-A11Y-PART-RELATIONSHIP-0001,T-A11Y-PART-RELATIONSHIP-0001` requires a disposition for every draft in that named scope. Omitting `--entities` checks all drafts in the full report inventory and fails on missing dispositions. Non-draft metadata and activation-provenance gaps remain visible for audit without making their dispositions mandatory. A passing scoped check does not mean the remaining catalog has been reviewed. Report generation never performs promotion, validates publication, or replaces the `V-*` evidence workflow. See [`release-workflow.md`](../internal/governance/release-workflow.md) for the preparation trigger.
 

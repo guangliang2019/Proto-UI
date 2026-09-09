@@ -249,8 +249,20 @@ describe('ordinary lifecycle targets and authoring', () => {
       ...draft.revisions,
       { version, change: 'admitted', summary: 'Required conformance was reviewed and accepted.' },
     ];
-    expect(checkSpecLifecycleAuthoring(draft, active)).toEqual([]);
-    expect(checkSpecLifecycleAuthoring(undefined, { ...active, revisions: [] })).toEqual([]);
+    expect(
+      checkSpecLifecycleAuthoring(
+        draft,
+        active,
+        createSpecWorkspace([active, testEntity('passing')])
+      )
+    ).toEqual([]);
+    expect(
+      checkSpecLifecycleAuthoring(
+        undefined,
+        { ...active, revisions: [] },
+        createSpecWorkspace([active, testEntity('passing')])
+      )
+    ).toEqual([]);
   });
 
   it('allows legacy active boundary maintenance without inventing activation provenance', () => {
@@ -269,6 +281,95 @@ describe('ordinary lifecycle targets and authoring', () => {
       checkSpecLifecycleAuthoring(legacy, { ...corrected, lifecycleRationale: undefined })
     ).toContainEqual(expect.stringContaining('requires lifecycleRationale'));
   });
+
+  it('checks actual active admission against catalog evidence at activeSince', () => {
+    const draft = contract();
+    const active = contract({
+      status: 'active',
+      activeSince: version,
+      lifecycleRationale: 'Required evidence was accepted.',
+      revisions: [{ version, change: 'admitted', summary: 'Admission was reviewed.' }],
+    });
+    expect(checkSpecLifecycleAuthoring(draft, active)).toContainEqual(
+      expect.stringContaining('requires the current workspace')
+    );
+    const empty = { ...active, statement: undefined, criteria: [] };
+    expect(checkSpecLifecycleAuthoring(draft, empty, createSpecWorkspace([empty]))).toEqual(
+      expect.arrayContaining([
+        expect.stringContaining('missing-statement'),
+        expect.stringContaining('missing-criteria'),
+      ])
+    );
+    const evidence = testEntity('passing');
+    evidence.since = '0.3.0';
+    expect(
+      checkSpecLifecycleAuthoring(draft, active, createSpecWorkspace([active, evidence]))
+    ).toContainEqual(expect.stringContaining('criterion-needs-evidence'));
+    evidence.since = version;
+    const ready = createSpecWorkspace([active, evidence]);
+    expect(checkSpecLifecycleAuthoring(draft, active, ready)).toEqual([]);
+    expect(checkSpecLifecycleAuthoring(undefined, active, ready)).toEqual([]);
+  });
+
+  it('rejects actual admission with blockers or incomplete required implementations', () => {
+    const draft = contract();
+    const active = contract({
+      status: 'active',
+      activeSince: version,
+      lifecycleRationale: 'Required evidence was accepted.',
+      revisions: [{ version, change: 'admitted', summary: 'Admission was reviewed.' }],
+    });
+    const evidence = testEntity('passing');
+    evidence.implementations.push({
+      ...evidence.implementations[0],
+      id: 'adapter',
+      status: 'planned',
+    });
+    evidence.openQuestions = [
+      {
+        id: `${testId}-Q-ADMISSION`,
+        question: 'Is the complete adapter scope ready?',
+        blocks: [`activation:${contractId}`],
+      },
+    ];
+    const issues = checkSpecLifecycleAuthoring(
+      draft,
+      active,
+      createSpecWorkspace([active, evidence])
+    );
+    expect(issues).toEqual(
+      expect.arrayContaining([
+        expect.stringContaining('activation-blocked'),
+        expect.stringContaining('required-evidence-incomplete'),
+      ])
+    );
+    evidence.openQuestions = [];
+    evidence.implementations[1].status = 'passing';
+    expect(
+      checkSpecLifecycleAuthoring(draft, active, createSpecWorkspace([active, evidence]))
+    ).toEqual([]);
+  });
+
+  it.each(['decision', 'knowledge'] as const)(
+    'does not invent runtime evidence for %s admission',
+    (type) => {
+      const id = `${type === 'decision' ? 'D' : 'K'}-LIFECYCLE-TEST-0001`;
+      const active = validateSpecEntity({
+        id,
+        type,
+        title: 'Reviewed explanation',
+        status: 'active',
+        since: version,
+        activeSince: version,
+        lifecycleRationale: 'The bounded explanation was reviewed.',
+        statement: 'A supported explanatory claim.',
+        criteria: [{ id: `${id}-A`, text: 'The claim has a reviewed basis.' }],
+      });
+      expect(checkSpecLifecycleAuthoring(undefined, active, createSpecWorkspace([active]))).toEqual(
+        []
+      );
+    }
+  );
 
   it.each(['deprecate', 'remove', 'correct-boundary'])(
     'preserves the revision prefix when an existing lifecycle changes: %s',
@@ -334,6 +435,24 @@ describe('ordinary lifecycle targets and authoring', () => {
     expect(checkSpecLifecycleAuthoring(legacy, { ...legacy, openQuestions: [] })).toEqual([]);
   });
 
+  it.each(['active', 'draft', 'deprecated', 'removed'] as const)(
+    'does not erase recorded activation provenance when changing to %s',
+    (status) => {
+      const before = contract({ status: 'active', activeSince: version });
+      const after = contract({
+        status,
+        deprecatedSince: status === 'deprecated' ? '0.3.0' : undefined,
+        removedSince: status === 'removed' ? '0.3.0' : undefined,
+        lifecycleRationale: 'The lifecycle boundary was reviewed.',
+      });
+      expect(checkSpecLifecycleAuthoring(before, after)).toContainEqual(
+        expect.stringContaining('retain recorded activeSince')
+      );
+      if (status !== 'draft')
+        expect(checkSpecLifecycleAuthoring(before, { ...after, activeSince: version })).toEqual([]);
+    }
+  );
+
   it('preserves ordinary identities instead of silently deleting their history', () => {
     expect(checkSpecLifecycleAuthoring(contract(), undefined)).toContainEqual(
       expect.stringContaining('retain the entity')
@@ -385,7 +504,13 @@ describe('ordinary lifecycle targets and authoring', () => {
       expect.stringContaining('new admission revision')
     );
     active.revisions = [...draft.revisions, admission];
-    expect(checkSpecLifecycleAuthoring(draft, active)).toEqual([]);
+    expect(
+      checkSpecLifecycleAuthoring(
+        draft,
+        active,
+        createSpecWorkspace([active, testEntity('passing')])
+      )
+    ).toEqual([]);
   });
 
   it('compares localized rationale content independently of language key order', () => {
@@ -406,7 +531,13 @@ describe('ordinary lifecycle targets and authoring', () => {
       en: 'Required evidence is complete.',
       'zh-CN': '必需证据已完成。',
     };
-    expect(checkSpecLifecycleAuthoring(draft, active)).toEqual([]);
+    expect(
+      checkSpecLifecycleAuthoring(
+        draft,
+        active,
+        createSpecWorkspace([active, testEntity('passing')])
+      )
+    ).toEqual([]);
   });
 });
 
@@ -657,6 +788,25 @@ describe('ordinary lifecycle reporting', () => {
         (issue) => issue.code
       )
     ).toContain('promotion-evidence-incomplete');
+  });
+
+  it('withholds every disposition sharing a slice ID even with disjoint members', () => {
+    const duplicate = plan([contractId]);
+    duplicate.slices.push(plan([testId]).slices[0]);
+    for (const slices of [duplicate.slices, [...duplicate.slices].reverse()]) {
+      const report = getSpecLifecycleReport(
+        createSpecWorkspace([contract(), testEntity()]),
+        version,
+        { ...duplicate, slices }
+      );
+      expect(report.rows.every((row) => row.disposition === undefined)).toBe(true);
+      expect(report.summary.reviewedDrafts).toBe(0);
+      expect(report.unreviewedEntities).toEqual([contractId, testId]);
+      expect(report.dispositionSlices).toHaveLength(2);
+      expect(checkSpecLifecycleDispositions(report, [contractId])).toContainEqual(
+        expect.objectContaining({ code: 'duplicate-slice' })
+      );
+    }
   });
 
   it('treats recorded passing evidence as a review input, never a lifecycle mutation', () => {

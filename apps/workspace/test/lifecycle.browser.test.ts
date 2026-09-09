@@ -325,31 +325,39 @@ describe.sequential('Workspace lifecycle review projection', () => {
     }
   }, 60_000);
 
-  it('keeps conflicting dispositions unreviewed in the workspace', async () => {
-    const context = await browser.newContext();
-    await context.route('**/spec-workspace.json', async (route) => {
-      const response = await route.fetch();
-      const data = await response.json();
-      const slice = data.lifecyclePlans[version].slices[0];
-      data.lifecyclePlans[version].slices.push({
-        ...slice,
-        id: 'conflicting-slice',
-        disposition: 'not-applicable',
+  it.each(['membership', 'slice ID'])(
+    'keeps conflicting %s dispositions unreviewed in the workspace',
+    async (conflict) => {
+      const context = await browser.newContext();
+      await context.route('**/spec-workspace.json', async (route) => {
+        const response = await route.fetch();
+        const data = await response.json();
+        const slice = data.lifecyclePlans[version].slices[0];
+        if (conflict === 'slice ID') slice.entities = [contractId];
+        data.lifecyclePlans[version].slices.push({
+          ...slice,
+          id: conflict === 'slice ID' ? slice.id : 'conflicting-slice',
+          entities: conflict === 'slice ID' ? [testId] : slice.entities,
+          disposition: 'not-applicable',
+        });
+        await route.fulfill({ response, json: data });
       });
-      await route.fulfill({ response, json: data });
-    });
-    const page = await context.newPage();
-    try {
-      await page.goto(`${baseUrl}/#/entities/${testId}`);
-      const panel = page.locator('.lifecycle-panel');
-      await panel.locator(`[data-lifecycle-entity="${testId}"]`).waitFor();
-      expect(await panel.locator('dd').first().innerText()).toMatch(/^0 \/ \d+$/);
-      const selected = panel.locator(`[data-lifecycle-entity="${testId}"]`);
-      expect(await selected.innerText()).toContain('未评审草案');
-      expect(await selected.innerText()).not.toContain('保持草案');
-      expect(await panel.innerText()).toContain('occurs in more than one disposition entry');
-    } finally {
-      await context.close();
-    }
-  }, 60_000);
+      const page = await context.newPage();
+      try {
+        await page.goto(`${baseUrl}/#/entities/${testId}`);
+        const panel = page.locator('.lifecycle-panel');
+        await panel.locator(`[data-lifecycle-entity="${testId}"]`).waitFor();
+        expect(await panel.locator('dd').first().innerText()).toMatch(/^0 \/ \d+$/);
+        const selected = panel.locator(`[data-lifecycle-entity="${testId}"]`);
+        expect(await selected.innerText()).toContain('未评审草案');
+        expect(await selected.innerText()).not.toContain('保持草案');
+        expect(await panel.innerText()).toContain(
+          conflict === 'slice ID' ? 'Duplicate slice' : 'occurs in more than one disposition entry'
+        );
+      } finally {
+        await context.close();
+      }
+    },
+    60_000
+  );
 });
