@@ -57,7 +57,7 @@ else {
     `[lifecycle] ${report.summary.reviewedDrafts} drafts have dispositions; ${report.unreviewedEntities.length} remain unreviewed`
   );
   console.log(
-    `[lifecycle] ${report.summary.legacyActive} legacy active entities lack activation provenance; ${report.summary.unclassifiedBlocks} legacy block targets are unclassified`
+    `[lifecycle] ${report.summary.legacyActive} non-draft entities lack activation provenance; ${report.summary.unclassifiedBlocks} legacy block targets are unclassified`
   );
   console.log(
     `[lifecycle] ${report.currentCatalogDigest}; recorded evidence is not an execution or admission verdict`

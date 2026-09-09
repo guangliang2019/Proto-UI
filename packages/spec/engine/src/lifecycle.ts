@@ -41,6 +41,7 @@ export type SpecLifecycleRow = {
   draftAtVersion: boolean;
   rationale?: SpecLocalizedText;
   activeSince?: string;
+  activationProvenanceMissing: boolean;
   stableAtVersion: boolean | null;
   activationBlockers: SpecLifecycleBlock[];
   targetedBlocks: SpecLifecycleBlock[];
@@ -57,6 +58,7 @@ export type SpecLifecycleReport = {
   version: string;
   scope: 'available-ordinary-entities';
   rows: SpecLifecycleRow[];
+  dispositionSlices: SpecLifecyclePlan['slices'];
   issues: SpecLifecycleIssue[];
   unreviewedEntities: string[];
   summary: {
@@ -213,11 +215,14 @@ export function getSpecLifecycleReport(
       gaps.push({ code, entityId: entity.id, message });
     if (!hasText(entity.lifecycleRationale))
       gap('missing-lifecycle-rationale', 'Lifecycle rationale is not recorded.');
-    const legacyActive = entity.status === 'active' && !entity.activeSince;
-    if (legacyActive)
+    const activationProvenanceMissing = entity.status !== 'draft' && !entity.activeSince;
+    const pastDeprecation =
+      entity.deprecatedSince !== undefined &&
+      compareSpecVersions(version, entity.deprecatedSince) >= 0;
+    if (activationProvenanceMissing)
       gap(
         'legacy-activation-provenance',
-        'Current active status has no recorded activation version; do not infer activeSince from since.'
+        'Lifecycle history has no recorded activation version; do not infer activeSince from since.'
       );
     if (activationBlockers.length)
       gap('activation-blocked', 'An open question explicitly blocks activation.');
@@ -309,7 +314,11 @@ export function getSpecLifecycleReport(
       draftAtVersion,
       ...(entity.lifecycleRationale ? { rationale: entity.lifecycleRationale } : {}),
       ...(entity.activeSince ? { activeSince: entity.activeSince } : {}),
-      stableAtVersion: legacyActive ? null : isSpecEntityActiveAt(entity, version),
+      activationProvenanceMissing,
+      stableAtVersion:
+        activationProvenanceMissing && !pastDeprecation
+          ? null
+          : isSpecEntityActiveAt(entity, version),
       activationBlockers,
       targetedBlocks,
       unclassifiedBlocks,
@@ -324,6 +333,7 @@ export function getSpecLifecycleReport(
     version,
     scope: 'available-ordinary-entities',
     rows,
+    dispositionSlices: plan?.version === version ? plan.slices : [],
     issues,
     unreviewedEntities: rows
       .filter((row) => row.draftAtVersion && !row.disposition)
@@ -332,7 +342,7 @@ export function getSpecLifecycleReport(
       entities: rows.length,
       drafts: rows.filter((row) => row.draftAtVersion).length,
       reviewedDrafts: rows.filter((row) => row.draftAtVersion && row.disposition).length,
-      legacyActive: rows.filter((row) => row.stableAtVersion === null).length,
+      legacyActive: rows.filter((row) => row.activationProvenanceMissing).length,
       unclassifiedBlocks: rows.reduce((sum, row) => sum + row.unclassifiedBlocks.length, 0),
     },
   };
@@ -344,8 +354,8 @@ export function checkSpecLifecycleDispositions(
   entityIds?: readonly string[]
 ): SpecLifecycleIssue[] {
   const selected = new Set(entityIds ?? report.rows.map((row) => row.entityId));
-  const dispositions = report.rows.flatMap((row) =>
-    selected.has(row.entityId) && row.disposition ? [row.disposition] : []
+  const dispositions = report.dispositionSlices.filter((slice) =>
+    slice.entities.some((id) => selected.has(id))
   );
   const selectedSlices = new Set(dispositions.map((slice) => slice.id));
   const selectedSliceEntities = new Set(dispositions.flatMap((slice) => slice.entities));

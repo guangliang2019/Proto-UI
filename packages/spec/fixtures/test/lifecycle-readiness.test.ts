@@ -415,6 +415,39 @@ describe('ordinary lifecycle reporting', () => {
     );
   });
 
+  it('recovers every implicated slice when the selected disposition is conflicted', () => {
+    const activeId = 'C-LIFECYCLE-TEST-0002';
+    const missingId = 'C-ABSENT-0001';
+    const active = contract({
+      id: activeId,
+      status: 'active',
+      activeSince: version,
+      criteria: [{ id: `${activeId}-A`, text: 'Another requirement.' }],
+    });
+    const dispositions = plan([contractId, activeId]);
+    dispositions.slices.push({
+      ...dispositions.slices[0],
+      id: 'conflicting',
+      entities: [contractId, missingId],
+    });
+    const report = getSpecLifecycleReport(
+      createSpecWorkspace([contract(), active]),
+      version,
+      dispositions
+    );
+    expect(report.rows.find((row) => row.entityId === contractId)?.disposition).toBeUndefined();
+    const issues = checkSpecLifecycleDispositions(report, [contractId]);
+    expect(issues).toContainEqual(
+      expect.objectContaining({ code: 'duplicate-disposition', entityId: contractId })
+    );
+    expect(issues).toContainEqual(
+      expect.objectContaining({ code: 'disposition-status-mismatch', entityId: activeId })
+    );
+    expect(issues).toContainEqual(
+      expect.objectContaining({ code: 'unknown-disposition-entity', entityId: missingId })
+    );
+  });
+
   it('withholds conflicting dispositions instead of selecting the last authored slice', () => {
     const dispositions = plan([contractId]);
     dispositions.slices.push({
@@ -521,6 +554,35 @@ describe('ordinary lifecycle reporting', () => {
     expect(deprecated.rows[0].draftAtVersion).toBe(false);
     expect(checkSpecLifecycleDispositions(deprecated)).toEqual([]);
   });
+
+  it.each(['deprecated', 'removed'])(
+    'retains unknown activation provenance for available legacy %s entities',
+    (status) => {
+      const workspace = createSpecWorkspace([
+        contract({
+          status,
+          since: '0.1.0',
+          deprecatedSince: '0.3.0',
+          removedSince: status === 'removed' ? '0.4.0' : undefined,
+        }),
+      ]);
+      const historical = getSpecLifecycleReport(workspace, version);
+      expect(historical.rows[0].stableAtVersion).toBeNull();
+      expect(historical.rows[0].draftAtVersion).toBe(false);
+      expect(historical.summary.legacyActive).toBe(1);
+      expect(historical.rows[0].gaps).toContainEqual(
+        expect.objectContaining({ code: 'legacy-activation-provenance' })
+      );
+      expect(checkSpecLifecycleDispositions(historical)).toEqual([]);
+      const deprecated = getSpecLifecycleReport(workspace, '0.3.0');
+      expect(deprecated.rows[0].stableAtVersion).toBe(false);
+      expect(deprecated.summary.legacyActive).toBe(1);
+      expect(deprecated.rows[0].gaps).toContainEqual(
+        expect.objectContaining({ code: 'legacy-activation-provenance' })
+      );
+      if (status === 'removed') expect(getSpecLifecycleReport(workspace, '0.4.0').rows).toEqual([]);
+    }
+  );
 
   it('attributes shared test implementations only to the entities they cover or exercise', () => {
     const secondId = 'C-LIFECYCLE-TEST-0002';

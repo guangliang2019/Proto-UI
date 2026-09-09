@@ -288,6 +288,37 @@ describe.sequential('Workspace lifecycle review projection', () => {
       await expect.poll(() => panel.innerText()).toContain('Lifecycle report is unavailable');
       await page.getByRole('combobox', { name: 'To', exact: true }).selectOption(version);
       await expect.poll(() => panel.locator('dd').first().innerText()).toBe('1 / 1');
+
+      await writeFile(
+        path.join(specDir, 'contract.yaml'),
+        JSON.stringify({
+          ...fixtureContract,
+          status: 'deprecated',
+          since: '0.2.0',
+          deprecatedSince: version,
+          lifecycleRationale: 'Deprecated with activation provenance still unrecorded.',
+        })
+      );
+      const deprecatedPlan = dataset.lifecyclePlans[version];
+      deprecatedPlan.slices[0].disposition = 'not-applicable';
+      deprecatedPlan.slices[0].rationale =
+        'Already deprecated at the selected version; activation provenance remains unrecorded.';
+      await writeFile(
+        path.join(directory, 'internal/releases', version, 'lifecycle-dispositions.json'),
+        JSON.stringify(deprecatedPlan)
+      );
+      dataset = await generate();
+      expect(dataset.catalogValid).toBe(true);
+      await page.reload();
+      const selected = panel.locator(`[data-lifecycle-entity="${contractId}"]`);
+      await selected.waitFor();
+      expect(await panel.locator('dd').first().innerText()).toBe('0 / 0');
+      expect(await panel.locator('dd').nth(2).innerText()).toBe('1');
+      expect(await selected.innerText()).toContain('生效历史未确认');
+      await page.getByRole('button', { name: 'English', exact: true }).click();
+      expect(await selected.innerText()).toContain('Unknown activation provenance');
+      expect(await selected.innerText()).not.toContain('Unreviewed drafts');
+      expect(await selected.innerText()).not.toContain('Draft at the selected version.');
     } finally {
       await context.close();
       await rm(directory, { recursive: true, force: true });

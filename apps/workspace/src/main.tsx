@@ -763,7 +763,7 @@ function LifecyclePanel(props: {
                     : props.t.noDisposition}
               </p>
               {selected.disposition ? <p>{selected.disposition.rationale}</p> : null}
-              {selected.stableAtVersion === null ? <p>{props.t.legacyActivation}</p> : null}
+              {selected.activationProvenanceMissing ? <p>{props.t.legacyActivation}</p> : null}
               {selected.activationBlockers.map((block) => (
                 <p key={`${block.sourceEntityId}:${block.questionId}:${block.target}`}>
                   {props.t.blocks}:{' '}
