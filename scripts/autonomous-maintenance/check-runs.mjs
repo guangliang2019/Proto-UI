@@ -611,8 +611,14 @@ function validateForwardRunState(run, label) {
       if (!Number.isInteger(receipt.pullRequest) || receipt.pullRequest <= 0) {
         fail(ledgerFile, `${label}.integration.receipt.pullRequest must be a positive integer`);
       }
-      if (receipt.authorizationId !== 'explicit-current-user' && receipt.authorizationId !== 'proto-ui-scheduled-merge-v1') {
-        fail(ledgerFile, `${label}.integration.receipt.authorizationId is not an authorized merge scope`);
+      if (
+        receipt.authorizationId !== 'explicit-current-user' &&
+        receipt.authorizationId !== 'proto-ui-scheduled-merge-v1'
+      ) {
+        fail(
+          ledgerFile,
+          `${label}.integration.receipt.authorizationId is not an authorized merge scope`
+        );
       }
       if (receipt.headSha !== integration.exactHeadSha) {
         fail(ledgerFile, `${label}.integration.receipt.headSha must match exactHeadSha`);
@@ -620,11 +626,40 @@ function validateForwardRunState(run, label) {
       if (receipt.liveHeadSha !== integration.exactHeadSha) {
         fail(ledgerFile, `${label}.integration.receipt.liveHeadSha must match exactHeadSha`);
       }
-      commitExists(
+      const mergeCommitIsLocal = commitExists(
         ledgerFile,
         receipt.mergeCommitSha,
         `${label}.integration.receipt.mergeCommitSha`
       );
+      if (mergeCommitIsLocal && receipt.mergeCommitSha === integration.exactHeadSha) {
+        fail(
+          ledgerFile,
+          `${label}.integration.receipt.mergeCommitSha must identify the post-merge squash commit`
+        );
+      }
+      if (mergeCommitIsLocal) {
+        try {
+          const mergePaths = committedChangedPaths(
+            `${receipt.mergeCommitSha}^`,
+            receipt.mergeCommitSha
+          );
+          const expectedIntegrationPaths = committedChangedPaths(
+            run.baselineCommit,
+            integration.exactHeadSha
+          );
+          if (JSON.stringify(mergePaths) !== JSON.stringify(expectedIntegrationPaths)) {
+            fail(
+              ledgerFile,
+              `${label}.integration.receipt.mergeCommitSha changed paths must match the reviewed exact-head inventory`
+            );
+          }
+        } catch (error) {
+          fail(
+            ledgerFile,
+            `${label}.integration.receipt.mergeCommitSha could not be verified: ${error.message}`
+          );
+        }
+      }
       if (receipt.mergeMethod !== 'squash') {
         fail(ledgerFile, `${label}.integration.receipt.mergeMethod must be squash`);
       }

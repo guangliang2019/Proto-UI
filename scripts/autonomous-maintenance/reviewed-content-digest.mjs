@@ -1,4 +1,4 @@
-import { execFileSync } from 'node:child_process';
+import { execFileSync, spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { lstatSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
@@ -92,6 +92,28 @@ function isUntrackedWorktreePath(root, repositoryPath) {
     return false;
   }
 }
+function readUntrackedDiff(root, repositoryPath) {
+  const result = spawnSync(
+    'git',
+    [
+      'diff',
+      '--no-index',
+      '--binary',
+      '--full-index',
+      '--no-color',
+      '--no-ext-diff',
+      '--no-textconv',
+      '--',
+      '/dev/null',
+      repositoryPath,
+    ],
+    { cwd: root, encoding: 'utf8' }
+  );
+  if (result.status !== 0 && result.status !== 1) {
+    throw new Error(result.stderr || `could not read untracked diff for ${repositoryPath}`);
+  }
+  return result.stdout;
+}
 function readWorktreeMode(root, repositoryPath) {
   try {
     const indexed = execFileSync('git', ['ls-files', '--stage', '--', repositoryPath], {
@@ -111,7 +133,6 @@ function readWorktreeMode(root, repositoryPath) {
     return null;
   }
 }
-
 
 export function computeReviewedContentDigest({
   root,
@@ -155,8 +176,8 @@ export function computeReviewedContentDigest({
       if (isUntrackedWorktreePath(root, reviewedPath)) {
         updateField(
           hash,
-          `worktree-untracked-content:${reviewedPath}`,
-          readWorktreePath(root, reviewedPath) ?? 'absent'
+          `worktree-untracked-diff:${reviewedPath}`,
+          readUntrackedDiff(root, reviewedPath)
         );
       }
     }
