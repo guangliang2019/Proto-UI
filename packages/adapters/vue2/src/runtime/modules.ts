@@ -423,11 +423,23 @@ export function createVue2Modules<Props extends PropsBaseType>(args: {
 
 function isNativelyFocusable(el: HTMLElement): boolean {
   const tag = el.tagName.toLowerCase();
-  if (tag === 'button' || tag === 'input' || tag === 'select' || tag === 'textarea') {
+  if (
+    tag === 'button' ||
+    tag === 'input' ||
+    tag === 'select' ||
+    tag === 'textarea' ||
+    tag === 'iframe'
+  ) {
     return true;
   }
-  if (tag === 'a') {
-    return el.hasAttribute('href');
+  if (tag === 'a' || tag === 'area') return el.hasAttribute('href');
+  if (tag === 'audio' || tag === 'video') return el.hasAttribute('controls');
+  if (tag === 'summary') {
+    const parent = el.parentElement;
+    return (
+      parent?.tagName.toLowerCase() === 'details' &&
+      Array.from(parent.children).find((child) => child.tagName.toLowerCase() === 'summary') === el
+    );
   }
   return false;
 }

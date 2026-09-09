@@ -48,6 +48,114 @@ export function focusCatalogAdapterConformance(
       }
     });
 
+    it.each(['self', 'none'] as const)(
+      'T-FOCUS-0002-CASE-NATIVE-ENTRY: native summary wins over %s fallback',
+      async (fallback) => {
+        let entry!: ReturnType<typeof asFocusEntry>;
+        const proto = definePrototype({
+          name: `focus-summary-${name}-${fallback}`,
+          setup() {
+            entry = asFocusEntry();
+            entry.configure({ strategy: 'descendant-first', fallback });
+            return (r) => r.el('details', [r.el('summary', 'native entry')]);
+          },
+        });
+        const mounted = await mount([{ proto }]);
+        try {
+          await mounted.flush();
+          const root = mounted.host.querySelector<HTMLElement>('[data-pui-root]')!;
+          const summary = root.querySelector('summary')!;
+          expect(summary.hasAttribute('tabindex')).toBe(false);
+          expect(root.hasAttribute('tabindex')).toBe(false);
+          entry.focus();
+          await mounted.flush();
+          expect(document.activeElement).toBe(summary);
+          expect(root.hasAttribute('tabindex')).toBe(false);
+          summary.blur();
+          summary.setAttribute('tabindex', '-1');
+          entry.setDisabled(true);
+          entry.setDisabled(false);
+          entry.focus();
+          await mounted.flush();
+          expect(document.activeElement).not.toBe(summary);
+          if (fallback === 'self') {
+            expect(document.activeElement).toBe(root);
+            expect(root.tabIndex).toBe(0);
+          } else {
+            expect(root.hasAttribute('tabindex')).toBe(false);
+            expect(document.activeElement).not.toBe(root);
+          }
+        } finally {
+          await mounted.unmount();
+        }
+      }
+    );
+
+    it.each(['orphan', 'second'] as const)(
+      'does not promote a %s summary to a native entry target',
+      async (kind) => {
+        let entry!: ReturnType<typeof asFocusEntry>;
+        const proto = definePrototype({
+          name: `focus-invalid-summary-${name}-${kind}`,
+          setup() {
+            entry = asFocusEntry();
+            entry.configure({ strategy: 'descendant-first', fallback: 'none' });
+            return (r) => r.el('div');
+          },
+        });
+        const mounted = await mount([{ proto }]);
+        try {
+          await mounted.flush();
+          const root = mounted.host.querySelector<HTMLElement>('[data-pui-root]')!;
+          const region = root.querySelector('div')!;
+          const summary = document.createElement('summary');
+          if (kind === 'second') {
+            const details = document.createElement('details');
+            const first = document.createElement('summary');
+            first.tabIndex = -1;
+            details.append(first, summary);
+            region.append(details);
+          } else region.append(summary);
+          entry.focus();
+          await mounted.flush();
+          expect(document.activeElement).not.toBe(summary);
+          expect(root.hasAttribute('tabindex')).toBe(false);
+        } finally {
+          await mounted.unmount();
+        }
+      }
+    );
+
+    it.each(['area', 'iframe', 'audio', 'video'] as const)(
+      'delegates to selected native %s candidates',
+      async (tag) => {
+        let entry!: ReturnType<typeof asFocusEntry>;
+        const proto = definePrototype({
+          name: `focus-native-${tag}-${name}`,
+          setup() {
+            entry = asFocusEntry();
+            entry.configure({ strategy: 'descendant-first', fallback: 'none' });
+            return (r) => r.el('div');
+          },
+        });
+        const mounted = await mount([{ proto }]);
+        try {
+          await mounted.flush();
+          const root = mounted.host.querySelector<HTMLElement>('[data-pui-root]')!;
+          const target = document.createElement(tag);
+          if (tag === 'area') target.setAttribute('href', '#target');
+          if (tag === 'audio' || tag === 'video') target.setAttribute('controls', '');
+          root.querySelector('div')!.append(target);
+          entry.focus();
+          await mounted.flush();
+          expect(document.activeElement).toBe(target);
+          expect(root.hasAttribute('tabindex')).toBe(false);
+        } finally {
+          await mounted.unmount();
+        }
+      }
+    );
+
     it('T-FOCUS-0002-CASE-ROVING: logical membership preserves programmatic focus outside Tab order', async () => {
       let roving!: ReturnType<typeof asFocusRoving>;
       const members: Array<ReturnType<typeof asFocusable>> = [];
