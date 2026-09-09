@@ -253,6 +253,9 @@ importers:
       '@proto.ui/module-hit-participation':
         specifier: workspace:*
         version: link:../../modules/hit-participation
+      '@proto.ui/module-image-view':
+        specifier: workspace:*
+        version: link:../../modules/image-view
       '@proto.ui/module-overlay':
         specifier: workspace:*
         version: link:../../modules/overlay
@@ -344,6 +347,9 @@ importers:
       '@proto.ui/module-hit-participation':
         specifier: workspace:*
         version: link:../../modules/hit-participation
+      '@proto.ui/module-image-view':
+        specifier: workspace:*
+        version: link:../../modules/image-view
       '@proto.ui/module-overlay':
         specifier: workspace:*
         version: link:../../modules/overlay
@@ -508,6 +514,9 @@ importers:
       '@proto.ui/module-hit-participation':
         specifier: workspace:*
         version: link:../../modules/hit-participation
+      '@proto.ui/module-image-view':
+        specifier: workspace:*
+        version: link:../../modules/image-view
       '@proto.ui/module-overlay':
         specifier: workspace:*
         version: link:../../modules/overlay
