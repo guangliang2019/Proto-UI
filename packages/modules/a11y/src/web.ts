@@ -51,6 +51,7 @@ type WebProjectorRecord = {
   lastTargetId: string | null;
   dependencyRefs: Set<A11ySemanticObjectRef>;
   projections: Map<string, StructuredProjection>;
+  scalarAttributes: Map<string, { target: HTMLElement; value: string }>;
   detached: boolean;
   disposed: boolean;
 };
@@ -74,6 +75,7 @@ export function createWebA11yProjectionRegistry(
     HTMLElement,
     Map<string, Map<string, { baseline: boolean; count: number }>>
   >();
+  const scalarAttributeRefs = new WeakMap<HTMLElement, Map<string, Map<string, number>>>();
 
   const acquireAppendTokens = (
     target: HTMLElement,
@@ -117,6 +119,46 @@ export function createWebA11yProjectionRegistry(
     if (remove.size) setTokenListAttr(target, attr, withoutTokens(current, [...remove]));
     if (byToken.size === 0) byAttribute?.delete(attr);
     if (byAttribute?.size === 0) appendTokenRefs.delete(target);
+  };
+
+  const releaseScalarAttributes = (record: WebProjectorRecord, removeOwned = true) => {
+    for (const [attr, ownership] of record.scalarAttributes) {
+      const byAttribute = scalarAttributeRefs.get(ownership.target);
+      const byValue = byAttribute?.get(attr);
+      const count = byValue?.get(ownership.value) ?? 0;
+      if (count <= 1) {
+        byValue?.delete(ownership.value);
+        if (removeOwned && ownership.target.getAttribute(attr) === ownership.value) {
+          ownership.target.removeAttribute(attr);
+        }
+      } else {
+        byValue?.set(ownership.value, count - 1);
+      }
+      if (byValue?.size === 0) byAttribute?.delete(attr);
+      if (byAttribute?.size === 0) scalarAttributeRefs.delete(ownership.target);
+    }
+    record.scalarAttributes.clear();
+  };
+
+  const acquireScalarAttributes = (
+    record: WebProjectorRecord,
+    target: HTMLElement,
+    snapshot: A11ySemanticObjectSnapshot
+  ) => {
+    for (const [attr, value] of projectedScalarAttributes(snapshot)) {
+      let byAttribute = scalarAttributeRefs.get(target);
+      if (!byAttribute) {
+        byAttribute = new Map();
+        scalarAttributeRefs.set(target, byAttribute);
+      }
+      let byValue = byAttribute.get(attr);
+      if (!byValue) {
+        byValue = new Map();
+        byAttribute.set(attr, byValue);
+      }
+      byValue.set(value, (byValue.get(value) ?? 0) + 1);
+      record.scalarAttributes.set(attr, { target, value });
+    }
   };
 
   let nextId = 1;
@@ -434,6 +476,7 @@ export function createWebA11yProjectionRegistry(
     const structuredChanged =
       bindingReplaced || structuredRelationsChanged(previousSnapshot, snapshot);
 
+    releaseScalarAttributes(record, !bindingReplaced);
     if (bindingReplaced) {
       clearProjections(record);
       if (record.target && previousSnapshot) clearWebA11ySnapshot(record.target, previousSnapshot);
@@ -463,6 +506,7 @@ export function createWebA11yProjectionRegistry(
         snapshot,
         !bindingReplaced ? (previousSnapshot ?? undefined) : undefined
       );
+      acquireScalarAttributes(record, nextTarget, snapshot);
     }
 
     if (!targetChanged && record.reservedId && nextTarget && nextTarget.id !== record.reservedId) {
@@ -494,6 +538,7 @@ export function createWebA11yProjectionRegistry(
         reservedDocument: null,
         ownedIdTarget: null,
         lastTargetId: null,
+        scalarAttributes: new Map(),
         dependencyRefs: new Set(),
         projections: new Map(),
         detached: false,
@@ -502,9 +547,10 @@ export function createWebA11yProjectionRegistry(
       let unsubscribe = subscribeTargetChange?.(() => {
         if (record.snapshot) update(record, record.snapshot);
       });
-      const detach = () => {
+      const detach = (removeOwned = false) => {
         if (record.disposed || record.detached) return;
         const affectedRef = record.objectRef;
+        releaseScalarAttributes(record, removeOwned);
         record.detached = true;
         unsubscribe?.();
         unsubscribe = undefined;
@@ -535,8 +581,8 @@ export function createWebA11yProjectionRegistry(
         if (record.disposed) return;
         const target = record.target;
         const snapshot = record.snapshot;
-        detach();
-        if (target && snapshot) clearOwnedWebA11ySnapshot(target, snapshot);
+        if (record.detached && target && snapshot) clearOwnedWebA11ySnapshot(target, snapshot);
+        detach(true);
         record.disposed = true;
         releaseReservation(record);
         record.snapshot = null;
@@ -571,6 +617,51 @@ function hasProjectedHeadingLevel(snapshot: A11ySemanticObjectSnapshot): boolean
     level <= 6
   );
 }
+function projectedScalarAttributes(snapshot: A11ySemanticObjectSnapshot): Map<string, string> {
+  const attrs = new Map<string, string>();
+  if (typeof snapshot.id === 'string') attrs.set('id', snapshot.id);
+  if (typeof snapshot.role === 'string') attrs.set('role', snapshot.role);
+  if (hasProjectedHeadingLevel(snapshot)) attrs.set('aria-level', String(snapshot.level));
+  if (snapshot.name?.kind === 'text') {
+    const value = readTextTarget(snapshot.name.value);
+    if (value !== undefined) attrs.set('aria-label', value);
+  }
+  if (snapshot.description?.kind === 'text') {
+    const value = readTextTarget(snapshot.description.value);
+    if (value !== undefined) attrs.set('aria-description', value);
+  }
+  for (const [key, attr] of Object.entries(ARIA_STATE_ATTRS)) {
+    if (Object.prototype.hasOwnProperty.call(snapshot.states, key)) {
+      const value = projectedAttributeValue(snapshot.states[key]);
+      if (value !== undefined) attrs.set(attr, value);
+    }
+  }
+  if (Object.prototype.hasOwnProperty.call(snapshot.states, 'hidden')) {
+    const value = projectedAttributeValue(snapshot.states.hidden);
+    if (value !== undefined) attrs.set('aria-hidden', value);
+  }
+  for (const [key, attr] of Object.entries(ARIA_RELATION_ATTRS)) {
+    const relation = snapshot.relations[key];
+    if (typeof relation === 'string' && snapshot.relationModes?.[key] !== 'append') {
+      attrs.set(attr, relation);
+    }
+  }
+  if (Object.keys(snapshot.actions).length) {
+    attrs.set('data-pui-a11y-actions', Object.keys(snapshot.actions).sort().join(' '));
+  }
+  if (snapshot.tree) {
+    if (Object.prototype.hasOwnProperty.call(snapshot.tree, 'hidden')) {
+      const value = projectedAttributeValue(snapshot.tree.hidden);
+      if (value !== undefined) attrs.set('aria-hidden', value);
+    }
+    if (Object.prototype.hasOwnProperty.call(snapshot.tree, 'mergeChildren')) {
+      const value = projectedAttributeValue(snapshot.tree.mergeChildren);
+      if (value !== undefined) attrs.set('data-pui-a11y-merge-children', value);
+    }
+  }
+  return attrs;
+}
+
 export function clearWebA11ySnapshot(el: HTMLElement, snapshot: A11ySemanticObjectSnapshot): void {
   if (typeof snapshot.id !== 'undefined') el.removeAttribute('id');
   if (typeof snapshot.role !== 'undefined') el.removeAttribute('role');

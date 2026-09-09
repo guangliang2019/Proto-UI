@@ -367,6 +367,19 @@ describe('Web A11y opaque semantic-object references', () => {
     }
   });
 
+  it('keeps shared scalar attributes until every projector releases them', () => {
+    const registry = createWebA11yProjectionRegistry();
+    const first = createWebA11yProjector(document.body, undefined, registry);
+    const second = createWebA11yProjector(document.body, undefined, registry);
+    first({ ...semanticSnapshot(createA11ySemanticObjectRef()), role: 'button' });
+    second({ ...semanticSnapshot(createA11ySemanticObjectRef()), role: 'button' });
+    expect(document.body.getAttribute('role')).toBe('button');
+    first.dispose?.();
+    expect(document.body.getAttribute('role')).toBe('button');
+    second.dispose?.();
+    expect(document.body.hasAttribute('role')).toBe(false);
+  });
+
   it('rebinds a reserved target when the host changes its id', () => {
     const registry = createWebA11yProjectionRegistry({ idPrefix: 'test-id-rebind' });
     const sourceRef = createA11ySemanticObjectRef();

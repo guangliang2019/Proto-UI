@@ -175,9 +175,13 @@ class A11yModuleImpl extends ModuleBase {
       next?.reactivate?.();
       return;
     }
+    const wasKnownProjector = next ? this.projectors.has(next) : false;
     this.activeProjector?.detach?.();
     this.activeProjector = next;
-    if (next) this.projectors.add(next);
+    if (next) {
+      if (wasKnownProjector) next.reactivate?.();
+      else this.projectors.add(next);
+    }
     if (
       next &&
       !this.projectionDisposed &&
