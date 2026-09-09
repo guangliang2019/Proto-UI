@@ -547,6 +547,29 @@ describe('module-scroll: end-follow host contract', () => {
     lease.dispose();
   });
 
+  it('clears canceled touch contacts so later unclassified scroll stays following', () => {
+    const frames = installFrameHarness();
+    const target = document.createElement('div');
+    installMetrics(target, {
+      clientWidth: 100,
+      scrollWidth: 100,
+      clientHeight: 100,
+      scrollHeight: 400,
+    });
+    document.body.append(target);
+    const snapshots: ScrollSurfaceSnapshot[] = [];
+    const lease = attachEndFollow(target, snapshots);
+    frames.runAll();
+
+    target.dispatchEvent(new Event('touchstart', { bubbles: true }));
+    window.dispatchEvent(new Event('touchcancel'));
+    target.scrollTop = 200;
+    target.dispatchEvent(new Event('scroll'));
+
+    expect(snapshots.at(-1)?.endFollow.state).toBe('following');
+    lease.dispose();
+  });
+
   it('does not preserve non-touch pointer cancellation as panning intent', () => {
     const frames = installFrameHarness();
     const target = document.createElement('div');
@@ -1145,6 +1168,39 @@ describe('module-scroll: end-follow host contract', () => {
       state: 'following',
       requestStatus: 'rejected',
     });
+    lease.dispose();
+  });
+
+  it('cancels older automatic work for a disabled-axis to-end request', () => {
+    const frames = installFrameHarness();
+    const target = document.createElement('div');
+    const updateMetrics = installMetrics(target, {
+      clientWidth: 100,
+      scrollWidth: 100,
+      clientHeight: 100,
+      scrollHeight: 400,
+    });
+    document.body.append(target);
+    const snapshots: ScrollSurfaceSnapshot[] = [];
+    const lease = createWebScrollSurfaceHost(target, { moveGestureHost }).attach({
+      config: {
+        axes: 'vertical',
+        projection: 'system',
+        endFollow: { mode: 'while-at-end', axis: 'vertical' },
+      },
+      projection: 'system',
+      onFacts: (snapshot) => snapshots.push(snapshot),
+    });
+    frames.runAll();
+
+    updateMetrics({ scrollHeight: 500 });
+    window.dispatchEvent(new Event('resize'));
+    expect(frames.pending()).toBe(1);
+    lease.request({ kind: 'to-end', axis: 'horizontal' });
+    expect(snapshots.at(-1)?.endFollow.requestStatus).toBe('rejected');
+    frames.runAll();
+    expect(target.scrollTop).toBe(300);
+    expect(snapshots.at(-1)?.endFollow.requestStatus).toBe('rejected');
     lease.dispose();
   });
 

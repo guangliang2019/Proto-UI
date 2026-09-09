@@ -360,6 +360,8 @@ export function createWebScrollSurfaceHost(
         requestedDepartureAxis = null;
         if (disposed) return;
         if (!isAxisEnabled(axis)) {
+          cancelScheduledEnd(false);
+          endFollowRequestEpoch++;
           endFollowRequestStatus = 'rejected';
           publish();
           return;
@@ -409,6 +411,7 @@ export function createWebScrollSurfaceHost(
         const followAxis = configuredFollowAxis();
         if (request.kind === 'to-end') {
           if (followAxis && request.axis !== followAxis) {
+            if (!isAxisEnabled(request.axis)) cancelScheduledEnd(false);
             endFollowRequestEpoch++;
             endFollowRequestStatus = 'rejected';
             publish();
@@ -581,6 +584,12 @@ export function createWebScrollSurfaceHost(
         activeTouchContacts = event.touches?.length ?? Math.max(0, activeTouchContacts - 1);
         maybeCompleteReaderIntent();
       };
+      const onTouchCancel = (event: TouchEvent) => {
+        const canceledContacts = Math.max(1, event.changedTouches?.length ?? 0);
+        activeTouchContacts =
+          event.touches?.length ?? Math.max(0, activeTouchContacts - canceledContacts);
+        maybeCompleteReaderIntent();
+      };
       const settleTouchCancellation = () => {
         readerGestureActive = activePointerIds.size > 0 || activeTouchContacts > 0;
         armReaderIntent();
@@ -667,7 +676,7 @@ export function createWebScrollSurfaceHost(
       ownerWindow?.addEventListener('pointercancel', onPointerCancel, { passive: true });
       target.addEventListener('touchstart', onTouchStart, { passive: true });
       ownerWindow?.addEventListener('touchend', onTouchEnd, { passive: true });
-      ownerWindow?.addEventListener('touchcancel', settleTouchCancellation, { passive: true });
+      ownerWindow?.addEventListener('touchcancel', onTouchCancel, { passive: true });
       target.addEventListener('keydown', onKeyDown);
       ownerWindow?.addEventListener('keyup', maybeCompleteReaderIntent);
       const resizeObserver =
@@ -774,7 +783,7 @@ export function createWebScrollSurfaceHost(
           ownerWindow?.removeEventListener('pointercancel', onPointerCancel);
           target.removeEventListener('touchstart', onTouchStart);
           ownerWindow?.removeEventListener('touchend', onTouchEnd);
-          ownerWindow?.removeEventListener('touchcancel', settleTouchCancellation);
+          ownerWindow?.removeEventListener('touchcancel', onTouchCancel);
           target.removeEventListener('keydown', onKeyDown);
           ownerWindow?.removeEventListener('keyup', maybeCompleteReaderIntent);
           ownerWindow?.removeEventListener('resize', onLayoutChange);
