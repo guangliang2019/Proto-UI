@@ -3274,7 +3274,8 @@ test('allows an app-local prototype row to advance to dogfooded with implementat
       'Target class': 'app-local-proto',
       State: 'dogfooded',
       Path: `\`${implementationPath}\``,
-      Evidence: 'Build: `internal/agent-harness/evidence/m1/build.log`; Browser: `internal/agent-harness/evidence/m1/browser-results.json`; Accessibility: `internal/agent-harness/evidence/m1/accessibility-results.json`; Lifecycle: `internal/agent-harness/evidence/m1/lifecycle-results.json`; Design: `internal/agent-harness/evidence/m1/design-review.txt`; `internal/agent-harness/evidence/m1/tool-invocation.md`',
+      Evidence:
+        'Build: `internal/agent-harness/evidence/m1/build.log`; Browser: `internal/agent-harness/evidence/m1/browser-results.json`; Accessibility: `internal/agent-harness/evidence/m1/accessibility-results.json`; Lifecycle: `internal/agent-harness/evidence/m1/lifecycle-results.json`; Design: `internal/agent-harness/evidence/m1/design-review.txt`; `internal/agent-harness/evidence/m1/tool-invocation.md`',
       'Dependency and owner': 'No blocker; owner: Harness application',
     }
   );
@@ -4144,7 +4145,7 @@ test('ignores Harness tests, strings, comments, and semantic component callbacks
       'const onKeyDown = requestAction;',
       'const handlers = { onKeyDown };',
       'export const Safe = () => <><ProtoButton {...handlers}>Run</ProtoButton><Composer onSubmit={send} /><Button onPress={approve} /></>;',
-      'export function Shadowed() {',
+      'function Shadowed() {',
       '  const handlers = { role: "button" };',
       '  return <div {...handlers}>Static</div>;',
       '}',
@@ -6605,15 +6606,18 @@ test('rejects non-active catalog entities from every shipped Website state', () 
       overrides.Path = '`apps/www/src/components/override/SiteTitle.astro`';
       overrides['Target class'] = 'native/static';
       overrides['Dependency and owner'] = 'No Proto UI dependency; owner: website team';
-      overrides['Escape or exemption'] = 'Reason: native semantic HTML owns the complete information path';
-      overrides['Re-review or removal issue'] = '#420 if application-owned interaction is introduced';
+      overrides['Escape or exemption'] =
+        'Reason: native semantic HTML owns the complete information path';
+      overrides['Re-review or removal issue'] =
+        '#420 if application-owned interaction is introduced';
     }
     if (state === 'infrastructure-exempt') {
       overrides.ID = 'www.demo.brutalist-theme-style';
       overrides.Path = '`apps/www/src/components/BrutalistPageStyle.astro`';
       overrides['Target class'] = 'infrastructure-exempt';
       overrides['Dependency and owner'] = 'No Proto UI dependency; owner: website demos';
-      overrides['Escape or exemption'] = 'Reason: static theme infrastructure remains bounded to demos';
+      overrides['Escape or exemption'] =
+        'Reason: static theme infrastructure remains bounded to demos';
       overrides['Re-review or removal issue'] = '#420 if the theme gains interaction state';
     }
     writeValidMatrices(root, overrides);
@@ -6635,15 +6639,19 @@ test('requires Harness dogfooded matrix dimensions to bind retained artifacts', 
   writeValidMatrices(root);
   const revision = commitFixtureRoot(root);
   const { evidencePath } = writeHarnessPromotionArtifacts(root, revision);
-  writeValidMatrices(root, {}, {
-    ID: 'harness.run.tool-invocation',
-    'Target owner': 'Harness app-local Tool Invocation prototype',
-    'Target class': 'app-local-proto',
-    State: 'dogfooded',
-    Path: `\`${implementationPath}\``,
-    Evidence: `Build: passed; Browser: passed; Accessibility: passed; Lifecycle: passed; Design: Brutalist; \`${evidencePath}\``,
-    'Dependency and owner': 'No blocker; owner: Harness application',
-  });
+  writeValidMatrices(
+    root,
+    {},
+    {
+      ID: 'harness.run.tool-invocation',
+      'Target owner': 'Harness app-local Tool Invocation prototype',
+      'Target class': 'app-local-proto',
+      State: 'dogfooded',
+      Path: `\`${implementationPath}\``,
+      Evidence: `Build: passed; Browser: passed; Accessibility: passed; Lifecycle: passed; Design: Brutalist; \`${evidencePath}\``,
+      'Dependency and owner': 'No blocker; owner: Harness application',
+    }
+  );
   assert.match(
     validationMessage(root, promotionOptions(revision)),
     /dogfooded matrix Evidence Build: must bind exactly one retained artifact/
@@ -6702,7 +6710,11 @@ test('discovers element-valued DOM property receivers in Website and Harness sou
     const absolutePath = path.join(root, relativePath);
     fs.mkdirSync(path.dirname(absolutePath), { recursive: true });
     fs.writeFileSync(absolutePath, content, 'utf8');
-    writeValidMatrices(root, {}, relativePath.startsWith('apps/agent-harness/') ? { Path: `\`${relativePath}\`` } : {});
+    writeValidMatrices(
+      root,
+      {},
+      relativePath.startsWith('apps/agent-harness/') ? { Path: `\`${relativePath}\`` } : {}
+    );
     assert.match(validationMessage(root), expected);
   }
 });
@@ -6721,7 +6733,9 @@ test('rejects Agent actions from derived-state class lifecycles', () => {
     writeValidMatrices(root, {}, { Path: `\`${relativePath}\`` });
     assert.match(
       validationMessage(root),
-      new RegExp(`Harness source \`${relativePath.replaceAll('/', '\\/')}\` contains a forbidden interaction`)
+      new RegExp(
+        `Harness source \`${relativePath.replaceAll('/', '\\/')}\` contains a forbidden interaction`
+      )
     );
   }
 });
@@ -6748,8 +6762,16 @@ test('scans test-named modules reachable from production Website sources', () =>
   const productionPath = 'apps/www/src/components/ProductionBridge.astro';
   const bridgePath = 'apps/www/src/components/bridge.test.ts';
   fs.mkdirSync(path.dirname(path.join(root, productionPath)), { recursive: true });
-  fs.writeFileSync(path.join(root, productionPath), '---\nimport bridge from \'./bridge.test\';\n---\n<main>{bridge}</main>', 'utf8');
-  fs.writeFileSync(path.join(root, bridgePath), "import '@proto.ui/runtime'; export default 'bridge';", 'utf8');
+  fs.writeFileSync(
+    path.join(root, productionPath),
+    "---\nimport bridge from './bridge.test';\n---\n<main>{bridge}</main>",
+    'utf8'
+  );
+  fs.writeFileSync(
+    path.join(root, bridgePath),
+    "import '@proto.ui/runtime'; export default 'bridge';",
+    'utf8'
+  );
   writeValidMatrices(root);
   assert.match(
     validationMessage(root),
