@@ -132,7 +132,9 @@ export function createWebScrollSurfaceHost(
       let disposed = false;
       let scrolling = false;
       let endTimer: ReturnType<typeof setTimeout> | undefined;
+      let chromeHidden = false;
       const thumbStyles = new Map<HTMLElement, ThumbStyleSnapshot>();
+      const trackStyles = new Map<HTMLElement, string>();
       const moveLeases = new Map<HTMLElement, MoveGestureHostLease>();
       const dragGrabOffsets = new Map<HTMLElement, number>();
       const original = {
@@ -195,11 +197,57 @@ export function createWebScrollSurfaceHost(
           if (!active.has(thumb)) restoreThumb(thumb);
         }
       };
+      const restoreTrackDisplay = (track: HTMLElement) => {
+        const original = trackStyles.get(track);
+        if (original === undefined) return;
+        if (original) track.style.setProperty('display', original);
+        else track.style.removeProperty('display');
+        trackStyles.delete(track);
+      };
       const projectComposedChrome = (facts: ScrollSurfaceSnapshot) => {
-        const active = new Set<HTMLElement>();
         if (connection.projection !== 'composed') {
+          // Hide authored Scrollbar/Thumb chrome while the host projects the
+          // system scrollbar. Reconciled against the current controls on every
+          // pass so controls attached or replaced after the fallback starts
+          // are hidden too: the track (touch-none absolute element) would
+          // otherwise intercept pointer input over the native scrollbar, and
+          // the Thumb (flex-1 bg-border) would paint over it.
+          chromeHidden = true;
+          const active = new Set<HTMLElement>();
+          for (const control of connection.composedChrome?.controls ?? []) {
+            if (!isWebControl(control)) continue;
+            const track = control.trackTarget;
+            const thumb = control.thumbTarget;
+            active.add(thumb);
+            active.add(track);
+            if (!trackStyles.has(track)) {
+              trackStyles.set(track, track.style.getPropertyValue('display'));
+            }
+            if (track.style.getPropertyValue('display') !== 'none') {
+              track.style.setProperty('display', 'none');
+            }
+            if (!thumbStyles.has(thumb)) {
+              rememberThumb(thumb);
+            }
+            thumb.style.display = 'none';
+          }
+          for (const track of Array.from(trackStyles.keys())) {
+            if (active.has(track)) continue;
+            restoreTrackDisplay(track);
+          }
           restoreInactiveThumbs(active);
           return;
+        }
+        const active = new Set<HTMLElement>();
+        // Restore authored chrome visibility when the host re-projects composed.
+        if (chromeHidden) {
+          chromeHidden = false;
+          for (const track of Array.from(trackStyles.keys())) {
+            restoreTrackDisplay(track);
+          }
+          // Thumb display is restored by restoreInactiveThumbs below when
+          // the thumb is no longer active, or by the composed projection
+          // loop when the thumb is active.
         }
         for (const control of connection.composedChrome?.controls ?? []) {
           if (!isWebControl(control)) continue;
@@ -389,6 +437,9 @@ export function createWebScrollSurfaceHost(
           moveLeases.clear();
           dragGrabOffsets.clear();
           restoreInactiveThumbs(new Set());
+          for (const track of Array.from(trackStyles.keys())) {
+            restoreTrackDisplay(track);
+          }
           target.style.overflowX = original.overflowX;
           target.style.overflowY = original.overflowY;
           target.style.scrollbarWidth = original.scrollbarWidth;
