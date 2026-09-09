@@ -515,6 +515,17 @@ export function applyGitHubCollaborationMutation(request, preState, options = {}
   const runner = options.runner ?? execFileSync;
   const collectState = options.collectState ?? collectLiveCollaborationState;
   let rawResponse;
+  if (request.action === 'resolve-fixed-review-thread') {
+    const latestState = collectState(request, { runner });
+    if (
+      latestState.current.threadUpdatedAt !== request.target.threadUpdatedAt ||
+      latestState.current.isResolved !== request.expected.isResolved
+    ) {
+      throw new Error(
+        `${request.action} desired state was not verified before mutation; do not retry blindly`
+      );
+    }
+  }
   try {
     const mutationRequest =
       request.action === 'mark-exact-head-ready-for-review'

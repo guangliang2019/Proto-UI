@@ -436,9 +436,7 @@ test('thread collection binds the GraphQL node to the exact pull request', () =>
     },
     expected: { isResolved: false },
     desired: { isResolved: true },
-    evidence: [
-      { type: 'review-thread-resolution', reference: 'artifact://review-thread/fix' },
-    ],
+    evidence: [{ type: 'review-thread-resolution', reference: 'artifact://review-thread/fix' }],
     rationale: 'Resolve the exact fixed thread revision.',
   });
   const response = (repository = 'Proto-UI/Proto-UI') => ({
@@ -1299,13 +1297,17 @@ test('each non-metadata collaboration action maps to one exact GitHub mutation p
       },
     };
     const calls = [];
+    let collectionCount = 0;
     const result = applyGitHubCollaborationMutation(fixture.request, preState, {
       runner(command, args, options) {
         calls.push({ command, args, options });
         return fixture.response;
       },
       collectState() {
-        return postState;
+        collectionCount += 1;
+        return fixture.request.action === 'resolve-fixed-review-thread' && collectionCount === 1
+          ? preState
+          : postState;
       },
     });
     assert.equal(calls.length, 1, `${fixture.name} must perform one mutation call`);
