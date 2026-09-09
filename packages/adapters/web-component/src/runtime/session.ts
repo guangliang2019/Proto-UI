@@ -15,7 +15,8 @@ export function createWebComponentHostSession<Props extends PropsBaseType>(args:
   root: Element | ShadowRoot;
   schedule: (task: () => void) => void;
   rawPropsSource: RawPropsSource<Props>;
-  textControlTarget: HTMLTextAreaElement | null;
+  textControlTarget: HTMLElement | null;
+  imageViewTarget: HTMLImageElement | null;
   wiring: ReturnType<typeof createHostWiring>;
   eventGate: {
     enable(): void;
@@ -43,6 +44,7 @@ export function createWebComponentHostSession<Props extends PropsBaseType>(args:
     rawPropsSource,
     wiring,
     textControlTarget,
+    imageViewTarget,
     eventGate,
     router,
     onLifecycleCheckpoint,
@@ -69,6 +71,7 @@ export function createWebComponentHostSession<Props extends PropsBaseType>(args:
           children,
           shadow,
           textControlTarget,
+          imageViewTarget,
           eventGate,
           getSlotProjector,
           ensureSlotProjector,
@@ -108,7 +111,8 @@ function commitWebComponentChildren(args: {
   root: Element | ShadowRoot;
   children: TemplateChildren;
   shadow: boolean;
-  textControlTarget: HTMLTextAreaElement | null;
+  textControlTarget: HTMLElement | null;
+  imageViewTarget: HTMLImageElement | null;
   eventGate: { enable(): void };
   getSlotProjector: () => SlotProjector | null;
   ensureSlotProjector: () => SlotProjector;
@@ -119,6 +123,7 @@ function commitWebComponentChildren(args: {
     children,
     shadow,
     textControlTarget,
+    imageViewTarget,
     eventGate,
     getSlotProjector,
     ensureSlotProjector,
@@ -131,6 +136,19 @@ function commitWebComponentChildren(args: {
     }
     if (root.firstChild !== textControlTarget || root.childNodes.length !== 1) {
       root.replaceChildren(textControlTarget);
+    }
+    clearSlotProjector();
+    eventGate.enable();
+    return;
+  }
+
+  if (imageViewTarget) {
+    const hasChildren = Array.isArray(children) ? children.length > 0 : children != null;
+    if (hasChildren) {
+      throw new Error('[WC Adapter] image-view prototypes must return empty Template children.');
+    }
+    if (root.firstChild !== imageViewTarget || root.childNodes.length !== 1) {
+      root.replaceChildren(imageViewTarget);
     }
     clearSlotProjector();
     eventGate.enable();

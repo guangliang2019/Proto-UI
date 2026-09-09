@@ -279,6 +279,22 @@ const manualPrototypeModules: Record<string, PrototypeModuleLoader> = {
     const mod = await import('../../../../../packages/prototypes/brutalist/src/scroll-area/index');
     registerPrototype('brutalist-scroll-area-thumb', mod.BrutalistScrollAreaThumb);
   },
+  'brutalist-tooltip-group': async () => {
+    const mod = await import('@proto.ui/prototypes-brutalist/tooltip');
+    registerPrototype('brutalist-tooltip-group', mod.BrutalistTooltipGroup);
+  },
+  'brutalist-tooltip-root': async () => {
+    const mod = await import('@proto.ui/prototypes-brutalist/tooltip');
+    registerPrototype('brutalist-tooltip-root', mod.BrutalistTooltipRoot);
+  },
+  'brutalist-tooltip-trigger': async () => {
+    const mod = await import('@proto.ui/prototypes-brutalist/tooltip');
+    registerPrototype('brutalist-tooltip-trigger', mod.BrutalistTooltipTrigger);
+  },
+  'brutalist-tooltip-content': async () => {
+    const mod = await import('@proto.ui/prototypes-brutalist/tooltip');
+    registerPrototype('brutalist-tooltip-content', mod.BrutalistTooltipContent);
+  },
   'shadcn-toggle': async () => {
     const mod = await import('../../../../../packages/prototypes/shadcn/src/toggle/index');
     registerPrototype('shadcn-toggle', mod.default);
@@ -533,6 +549,32 @@ const manualPrototypeModules: Record<string, PrototypeModuleLoader> = {
   'shadcn-checkbox-indicator': async () => {
     const mod = await import('@proto.ui/prototypes-shadcn/checkbox');
     registerPrototype('shadcn-checkbox-indicator', mod.shadcnCheckboxIndicator);
+  },
+  // Runtime-selected preview registry keeps the real public family import lazy.
+  'brutalist-checkbox-root': async () => {
+    const mod = await import('@proto.ui/prototypes-brutalist/checkbox');
+    registerPrototype('brutalist-checkbox-root', mod.brutalistCheckboxRoot);
+  },
+  'brutalist-checkbox-indicator': async () => {
+    const mod = await import('@proto.ui/prototypes-brutalist/checkbox');
+    registerPrototype('brutalist-checkbox-indicator', mod.brutalistCheckboxIndicator);
+  },
+  // Runtime-selected preview registry keeps the public Tooltip package import lazy.
+  'shadcn-tooltip-group': async () => {
+    const mod = await import('@proto.ui/prototypes-shadcn/tooltip');
+    registerPrototype('shadcn-tooltip-group', mod.shadcnTooltipGroup);
+  },
+  'shadcn-tooltip-root': async () => {
+    const mod = await import('@proto.ui/prototypes-shadcn/tooltip');
+    registerPrototype('shadcn-tooltip-root', mod.shadcnTooltipRoot);
+  },
+  'shadcn-tooltip-trigger': async () => {
+    const mod = await import('@proto.ui/prototypes-shadcn/tooltip');
+    registerPrototype('shadcn-tooltip-trigger', mod.shadcnTooltipTrigger);
+  },
+  'shadcn-tooltip-content': async () => {
+    const mod = await import('@proto.ui/prototypes-shadcn/tooltip');
+    registerPrototype('shadcn-tooltip-content', mod.shadcnTooltipContent);
   },
   'shadcn-textarea-root': async () => {
     const mod = await import('@proto.ui/prototypes-shadcn/textarea');

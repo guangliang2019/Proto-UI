@@ -95,10 +95,20 @@
       "import": "./dist/scroll-area/index.js",
       "default": "./dist/scroll-area/index.js"
     },
+    "./tooltip": {
+      "types": "./dist/tooltip/index.d.ts",
+      "import": "./dist/tooltip/index.js",
+      "default": "./dist/tooltip/index.js"
+    },
     "./textarea": {
       "types": "./dist/textarea/index.d.ts",
       "import": "./dist/textarea/index.js",
       "default": "./dist/textarea/index.js"
+    },
+    "./checkbox": {
+      "types": "./dist/checkbox/index.d.ts",
+      "import": "./dist/checkbox/index.js",
+      "default": "./dist/checkbox/index.js"
     }
   },
   "description": "Neo-Brutalist Proto UI prototype library with package and CLI family imports.",

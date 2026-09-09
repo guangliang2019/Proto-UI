@@ -52,18 +52,9 @@ query($owner: String!, $name: String!, $number: Int!) {
       }
       reviewThreads(first: 100) {
         nodes {
-          id
-          isResolved
-          comments(first: 100) {
-            nodes { databaseId author { login } body updatedAt }
-            pageInfo { hasNextPage }
-          }
-        }
-        pageInfo { hasNextPage }
-      }
-      headRef {
-        target {
-          ... on Commit {
+          commit {
+            oid
+            messageHeadline
             statusCheckRollup {
               contexts(first: 100) {
                 nodes {
@@ -90,6 +81,26 @@ query($owner: String!, $name: String!, $number: Int!) {
             }
           }
         }
+        pageInfo { hasNextPage }
+      }
+      reviews(first: 100) {
+        nodes { id author { login } state commit { oid } submittedAt body }
+        pageInfo { hasNextPage }
+      }
+      comments(first: 100) {
+        nodes { id author { login } body updatedAt }
+        pageInfo { hasNextPage }
+      }
+      reviewThreads(first: 100) {
+        nodes {
+          id
+          isResolved
+          comments(first: 100) {
+            nodes { databaseId author { login } body updatedAt }
+            pageInfo { hasNextPage }
+          }
+        }
+        pageInfo { hasNextPage }
       }
     }
   }
@@ -297,7 +308,11 @@ export function buildLiveReviewInput(
     }
   }
 
-  const checkContexts = pullRequestPayload.headRef?.target?.statusCheckRollup?.contexts;
+  const headCommit = pullRequestPayload.commits.nodes.at(-1)?.commit;
+  if (!headCommit || headCommit.oid !== pullRequestPayload.headRefOid) {
+    throw new Error('live head commit collection does not match the pull-request head');
+  }
+  const checkContexts = headCommit.statusCheckRollup?.contexts;
   assertNoTruncation(checkContexts?.nodes, checkContexts?.pageInfo, 'check contexts');
   const checks = (checkContexts?.nodes ?? []).map(normalizeCheck);
 
@@ -566,7 +581,6 @@ export function submitGitHubMerge(
     mergedAt: live.merged_at,
     message: response.message ?? null,
   };
-
 }
 export function collectLiveReviewInput(repositoryId, pullRequest, options = {}) {
   const { owner, name } = parseRepositoryId(repositoryId);

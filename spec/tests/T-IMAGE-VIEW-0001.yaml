@@ -1,0 +1,179 @@
+id: T-IMAGE-VIEW-0001
+type: test
+title: Image View declaration, module, fake-host, and official Web adapter contract tests
+status: draft
+since: 0.3.0-alpha.0
+summary: Covers host-neutral image presentation requirements, portable property projection, a11y binary input, generation-bound lease lifecycle, loading status transitions, stale completion rejection, replacement visual clearing, lease cleanup, and the bounded Web Component, React, and Vue profile.
+cases:
+  - id: T-IMAGE-VIEW-0001-CASE-DECLARATION
+    title: Host-neutral static requirement declares one image presentation target
+    covers:
+      - C-IMAGE-VIEW-0001-A
+    expectation: semantic-image-requirement-resolves-to-one-host-target-before-render
+  - id: T-IMAGE-VIEW-0001-CASE-PROPERTIES
+    title: Portable patches project source, a11yMode, alternativeText, fit, and loadingStatus
+    covers:
+      - C-IMAGE-VIEW-0001-B
+    expectation: portable-image-properties-project-live
+  - id: T-IMAGE-VIEW-0001-CASE-A11Y
+    title: A11y binary input requires alternativeText for informative and excludes semantic content for decorative
+    covers:
+      - C-IMAGE-VIEW-0001-C
+    expectation: a11y-binary-input-fail-closed-on-contradiction
+  - id: T-IMAGE-VIEW-0001-CASE-GENERATION-LEASE
+    title: New source creates new generation and loading state before host work
+    covers:
+      - C-IMAGE-VIEW-0001-E
+    expectation: new-source-creates-generation-and-loading-before-host-work
+  - id: T-IMAGE-VIEW-0001-CASE-STATUS-TRANSITION
+    title: loadingStatus and loadingStatusChange are the only status and transition surfaces
+    covers:
+      - C-IMAGE-VIEW-0001-F
+    expectation: loading-status-and-transition-are-canonical-surfaces
+  - id: T-IMAGE-VIEW-0001-CASE-REPLACEMENT
+    title: Replacement v0 clears previous visual
+    covers:
+      - C-IMAGE-VIEW-0001-G
+    expectation: replacement-clears-previous-visual
+  - id: T-IMAGE-VIEW-0001-CASE-STALE-COMPLETION
+    title: Stale completion from old generation does not change current state
+    covers:
+      - C-IMAGE-VIEW-0001-E
+      - C-IMAGE-VIEW-0001-H
+    expectation: stale-completion-rejected-and-does-not-emit-outward-signal
+  - id: T-IMAGE-VIEW-0001-CASE-LEASE-BOUNDARY
+    title: Lease boundary revokes listeners on detach and disposal
+    covers:
+      - C-IMAGE-VIEW-0001-H
+    expectation: lease-boundary-revokes-listeners-on-detach-and-dispose
+  - id: T-IMAGE-VIEW-0001-CASE-WEB-PROJECTION
+    title: Official Web adapters materialize one physical img and split boundary, surface, and a11y ownership
+    covers:
+      - C-IMAGE-VIEW-0001-A
+      - C-IMAGE-VIEW-0001-B
+      - C-IMAGE-VIEW-0001-C
+      - D-IMAGE-VIEW-PROJECTION-0001-E
+    expectation: official-web-adapters-materialize-one-img-and-project-source-fit-and-a11y-without-duplicating-the-boundary
+  - id: T-IMAGE-VIEW-0001-CASE-WEB-LIFECYCLE
+    title: Official Web adapter image leases report completion and revoke old targets across replacement and teardown
+    covers:
+      - C-IMAGE-VIEW-0001-E
+      - C-IMAGE-VIEW-0001-F
+      - C-IMAGE-VIEW-0001-G
+      - C-IMAGE-VIEW-0001-H
+      - D-IMAGE-VIEW-PROJECTION-0001-F
+    expectation: web-image-leases-map-cache-hit-or-request-scoped-decode-to-terminal-status-and-retire-old-settlements-on-replacement-or-detach
+implementations:
+  - id: module-image-view-impl-contract
+    kind: module-test
+    status: passing
+    path: packages/modules/image-view/test/impl-spec.test.ts
+    required: true
+    consumesCases:
+      - T-IMAGE-VIEW-0001-CASE-DECLARATION
+      - T-IMAGE-VIEW-0001-CASE-PROPERTIES
+      - T-IMAGE-VIEW-0001-CASE-A11Y
+      - T-IMAGE-VIEW-0001-CASE-GENERATION-LEASE
+      - T-IMAGE-VIEW-0001-CASE-STATUS-TRANSITION
+      - T-IMAGE-VIEW-0001-CASE-REPLACEMENT
+      - T-IMAGE-VIEW-0001-CASE-STALE-COMPLETION
+      - T-IMAGE-VIEW-0001-CASE-LEASE-BOUNDARY
+    exercises:
+      - M-IMAGE-VIEW-0001
+      - HC-IMAGE-VIEW-0001
+  - id: module-image-view-web-host-contract
+    kind: module-test
+    status: passing
+    path: packages/modules/image-view/test/web.test.ts
+    required: true
+    consumesCases:
+      - T-IMAGE-VIEW-0001-CASE-WEB-PROJECTION
+      - T-IMAGE-VIEW-0001-CASE-WEB-LIFECYCLE
+    exercises:
+      - M-IMAGE-VIEW-0001
+      - HC-IMAGE-VIEW-0001
+  - id: base-image-runtime-contract
+    kind: runtime-test
+    status: passing
+    path: packages/prototypes/base/test/image.test.ts
+    required: true
+    consumesCases:
+      - T-IMAGE-VIEW-0001-CASE-DECLARATION
+      - T-IMAGE-VIEW-0001-CASE-PROPERTIES
+      - T-IMAGE-VIEW-0001-CASE-STATUS-TRANSITION
+  - id: adapter-web-component-image-view-integration
+    kind: adapter-test
+    status: passing
+    path: packages/adapters/web-component/test/image-view.integration.test.ts
+    required: true
+    consumesCases:
+      - T-IMAGE-VIEW-0001-CASE-WEB-PROJECTION
+      - T-IMAGE-VIEW-0001-CASE-WEB-LIFECYCLE
+    exercises:
+      - M-IMAGE-VIEW-0001
+      - HC-IMAGE-VIEW-0001
+      - P-BASE-IMAGE
+  - id: adapter-react-image-view-integration
+    kind: adapter-test
+    status: passing
+    path: packages/adapters/react/test/image-view.integration.test.ts
+    required: true
+    consumesCases:
+      - T-IMAGE-VIEW-0001-CASE-WEB-PROJECTION
+      - T-IMAGE-VIEW-0001-CASE-WEB-LIFECYCLE
+    exercises:
+      - M-IMAGE-VIEW-0001
+      - HC-IMAGE-VIEW-0001
+      - P-BASE-IMAGE
+  - id: adapter-vue-image-view-integration
+    kind: adapter-test
+    status: passing
+    path: packages/adapters/vue/test/image-view.integration.test.ts
+    required: true
+    consumesCases:
+      - T-IMAGE-VIEW-0001-CASE-WEB-PROJECTION
+      - T-IMAGE-VIEW-0001-CASE-WEB-LIFECYCLE
+    exercises:
+      - M-IMAGE-VIEW-0001
+      - HC-IMAGE-VIEW-0001
+      - P-BASE-IMAGE
+verifies:
+  contracts:
+    - id: C-IMAGE-VIEW-0001
+      anchors:
+        - C-IMAGE-VIEW-0001-A
+        - C-IMAGE-VIEW-0001-B
+        - C-IMAGE-VIEW-0001-C
+        - C-IMAGE-VIEW-0001-E
+        - C-IMAGE-VIEW-0001-F
+        - C-IMAGE-VIEW-0001-G
+        - C-IMAGE-VIEW-0001-H
+exercises:
+  modules:
+    - M-IMAGE-VIEW-0001
+  hostCaps:
+    - HC-IMAGE-VIEW-0001
+  prototypes:
+    - P-BASE-IMAGE
+  adapters:
+    - A-WEB-COMPONENT-0001
+    - A-REACT-18-19-0001
+    - A-VUE-3-0001
+sources:
+  - path: packages/modules/image-view/test/impl-spec.test.ts
+  - path: packages/modules/image-view/test/web.test.ts
+  - path: packages/prototypes/base/test/image.test.ts
+  - path: packages/adapters/web-component/test/image-view.integration.test.ts
+  - path: packages/adapters/react/test/image-view.integration.test.ts
+  - path: packages/adapters/vue/test/image-view.integration.test.ts
+revisions:
+  - version: 0.3.0-alpha.0
+    change: introduced
+    summary: >-
+      Introduced Image View declaration, module, fake-host, Base runtime, and bounded Web Component, React, and Vue evidence for portable properties, request-scoped readiness, source replacement, stale completion, detach/rematerialization, disposal, terminal-once, and transition ordering.
+
+
+tags:
+  - image
+  - test
+  - module
