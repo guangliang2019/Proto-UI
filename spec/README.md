@@ -33,6 +33,8 @@ Every entity declares `since` and one of these statuses:
 
 `since` records catalog/version-history introduction. It does not mean that a draft entity was already a stable guarantee. `activeSince` is the distinct activation boundary for ordinary lifecycle-complete entities; it must not precede `since`. A snapshot query for identity availability uses `since`/`removedSince`, while a query for stable applicability additionally requires the activation boundary and lifecycle status. `replacedBy` points to a replacement of the same entity type. `revisions` records semantic changes against project versions. Relations may also have `since` and `until` bounds.
 
+An ordinary entity's `removed` status is terminal; authoring cannot return that identity to draft, active or deprecated status.
+
 Retain cataloged ordinary identities for historical queries. Retiring one requires its `removed` lifecycle and history rather than deleting its file or replacing its ID. Moving a file while preserving the same entity ID does not create a new lifecycle.
 
 A package publication or dependency edge is evidence for lifecycle review, not automatic activation. Promotion remains an explicit semantic admission with applicable criteria, relations, and executable evidence.
@@ -79,6 +81,8 @@ Audit existing entities incrementally: Module/Contract/Test chains consumed by a
 `pnpm release:lifecycle -- --check --entities C-A11Y-PART-RELATIONSHIP-0001,T-A11Y-PART-RELATIONSHIP-0001` requires a disposition for every draft in that named scope. Omitting `--entities` checks all drafts in the full report inventory and fails on missing dispositions. Non-draft metadata and activation-provenance gaps remain visible for audit without making their dispositions mandatory. A passing scoped check does not mean the remaining catalog has been reviewed. Report generation never performs promotion, validates publication, or replaces the `V-*` evidence workflow. See [`release-workflow.md`](../internal/governance/release-workflow.md) for the preparation trigger.
 
 Draft disposition requirements use the selected report version. An available ordinary entity is a known draft when its current status is `draft` or the selected version precedes its recorded `activeSince`; `draftAtVersion` records that distinction while `status` retains the current catalog value. Missing activation provenance does not imply a historical draft. The workspace withholds lifecycle results when the catalog is invalid, independently of per-version disposition-plan validity.
+
+A scoped check retains global structural errors and errors in any disposition slice used by the selected entities; errors in unrelated slices remain outside that scope. Authoring discovers the current catalog through the same loader as reports, so a file-type change or symbolic link cannot stand in for a retained catalog identity.
 
 ## Core fields
 

@@ -140,6 +140,25 @@ test('authoring preserves identities across deletion, replacement, and file move
     const untracked = check();
     assert.equal(untracked.status, 1);
     assert.match(untracked.stderr, /C-REVIEW-UNTRACKED-0001: .*requires lifecycleRationale/);
+    rmSync(path.join(fixture, 'spec/contracts/C-REVIEW-UNTRACKED-0001.yaml'));
+    const linkedSource = path.join(fixture, 'relationship-source.txt');
+    writeFileSync(linkedSource, original);
+    rmSync(entityPath);
+    symlinkSync(linkedSource, entityPath, 'file');
+    const typeChange = run('git', ['diff', '--name-status', 'HEAD', '--', 'spec/contracts']);
+    assert.match(typeChange.stdout, /^T\s+spec\/contracts\/C-A11Y-PART-RELATIONSHIP-0001.yaml/m);
+    const linked = check();
+    assert.equal(linked.status, 1);
+    assert.match(linked.stderr, /C-A11Y-PART-RELATIONSHIP-0001: retain the entity/);
+    rmSync(entityPath);
+    writeFileSync(entityPath, original);
+    const contractsDir = path.join(fixture, 'spec/contracts');
+    const linkedDirectory = path.join(fixture, 'linked-contracts');
+    renameSync(contractsDir, linkedDirectory);
+    symlinkSync(linkedDirectory, contractsDir, 'dir');
+    const parentLinked = check();
+    assert.equal(parentLinked.status, 1);
+    assert.match(parentLinked.stderr, /C-A11Y-PART-RELATIONSHIP-0001: retain the entity/);
   } finally {
     rmSync(fixture, { recursive: true, force: true });
   }

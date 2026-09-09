@@ -252,6 +252,26 @@ describe('ordinary lifecycle targets and authoring', () => {
     expect(checkSpecLifecycleAuthoring(undefined, undefined)).toEqual([]);
   });
 
+  it.each(['draft', 'active', 'deprecated'])(
+    'does not reactivate a removed identity as %s',
+    (status) => {
+      const removed = contract({ status: 'removed', removedSince: '0.3.0' });
+      const after = contract({
+        status,
+        lifecycleRationale: 'A new review attempts to restore availability.',
+        activeSince: status === 'active' ? version : undefined,
+        deprecatedSince: status === 'deprecated' ? '0.3.0' : undefined,
+        revisions: [{ version, change: 'admitted', summary: 'Required conformance was accepted.' }],
+      });
+      expect(checkSpecLifecycleAuthoring(removed, after)).toContainEqual(
+        expect.stringContaining('removed is terminal')
+      );
+      expect(
+        checkSpecLifecycleAuthoring(removed, { ...removed, title: 'Clarified historical title' })
+      ).toEqual([]);
+    }
+  );
+
   it('requires appending admission evidence without replacing earlier revisions', () => {
     const draft = contract({
       revisions: [{ version, change: 'clarified', summary: 'The draft boundary was clarified.' }],
@@ -364,6 +384,34 @@ describe('ordinary lifecycle reporting', () => {
     });
     expect(checkSpecLifecycleDispositions(wrongVersion, [contractId])).toContainEqual(
       expect.objectContaining({ code: 'plan-version-mismatch' })
+    );
+  });
+
+  it('retains errors from another entity in the selected disposition slice', () => {
+    const activeId = 'C-LIFECYCLE-TEST-0002';
+    const active = contract({
+      id: activeId,
+      status: 'active',
+      activeSince: version,
+      criteria: [{ id: `${activeId}-A`, text: 'Another requirement.' }],
+    });
+    const report = getSpecLifecycleReport(
+      createSpecWorkspace([contract(), active]),
+      version,
+      plan([contractId, activeId])
+    );
+    expect(checkSpecLifecycleDispositions(report, [contractId])).toContainEqual(
+      expect.objectContaining({ code: 'disposition-status-mismatch', entityId: activeId })
+    );
+    const duplicatePlan = plan([contractId, activeId]);
+    duplicatePlan.slices.push({ ...plan([activeId]).slices[0], id: 'duplicate-owner' });
+    const duplicate = getSpecLifecycleReport(
+      createSpecWorkspace([contract(), { ...active, status: 'draft', activeSince: undefined }]),
+      version,
+      duplicatePlan
+    );
+    expect(checkSpecLifecycleDispositions(duplicate, [contractId])).toContainEqual(
+      expect.objectContaining({ code: 'duplicate-disposition', entityId: activeId })
     );
   });
 

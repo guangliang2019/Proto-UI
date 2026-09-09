@@ -344,8 +344,18 @@ export function checkSpecLifecycleDispositions(
   entityIds?: readonly string[]
 ): SpecLifecycleIssue[] {
   const selected = new Set(entityIds ?? report.rows.map((row) => row.entityId));
+  const dispositions = report.rows.flatMap((row) =>
+    selected.has(row.entityId) && row.disposition ? [row.disposition] : []
+  );
+  const selectedSlices = new Set(dispositions.map((slice) => slice.id));
+  const selectedSliceEntities = new Set(dispositions.flatMap((slice) => slice.entities));
   const issues = report.issues.filter(
-    (issue) => !entityIds || !issue.entityId || selected.has(issue.entityId)
+    (issue) =>
+      !entityIds ||
+      !issue.entityId ||
+      selected.has(issue.entityId) ||
+      selectedSliceEntities.has(issue.entityId) ||
+      (issue.sliceId !== undefined && selectedSlices.has(issue.sliceId))
   );
   for (const id of [...selected].sort()) {
     const row = report.rows.find((candidate) => candidate.entityId === id);
@@ -374,6 +384,8 @@ export function checkSpecLifecycleAuthoring(
       ? [`${before.id}: retain the entity and record removal through its lifecycle history.`]
       : [];
   if (after.type === 'version') return [];
+  if (before?.status === 'removed' && after.status !== 'removed')
+    return [`${after.id}: removed is terminal and cannot transition to ${after.status}.`];
   const changed =
     !before ||
     before.id !== after.id ||
