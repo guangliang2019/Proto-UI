@@ -103,6 +103,7 @@ implementations:
       - T-A11Y-0001-CASE-DYNAMIC-ROLE
       - T-A11Y-0001-CASE-IR
       - T-A11Y-0001-CASE-OPAQUE-RELATIONS
+      - T-A11Y-0001-CASE-HEADING-LEVEL
   - id: module-a11y-web-reference-projector
     kind: module-test
     status: passing

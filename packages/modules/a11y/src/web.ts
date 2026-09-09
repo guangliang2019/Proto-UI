@@ -481,13 +481,10 @@ export function createWebA11yProjectionRegistry(
         Object.prototype.hasOwnProperty.call(next.relations, key) &&
         !Array.isArray(next.relations[key]);
       if (nextHasLegacyRelation) continue;
-      if (previous.relationModes?.[key] === 'append') {
-        setTokenListAttr(
-          target,
-          attr,
-          withoutTokens(readTokens(target.getAttribute(attr)), relationTokens(previous, key))
-        );
-      } else if (target.getAttribute(attr) === previous.relations[key]) {
+      if (
+        previous.relationModes?.[key] !== 'append' &&
+        target.getAttribute(attr) === previous.relations[key]
+      ) {
         target.removeAttribute(attr);
       }
     }
@@ -678,6 +675,7 @@ function projectedScalarAttributes(snapshot: A11ySemanticObjectSnapshot): Map<st
   if (Object.prototype.hasOwnProperty.call(snapshot.states, 'hidden')) {
     const value = projectedAttributeValue(snapshot.states.hidden);
     if (value !== undefined) attrs.set('aria-hidden', value);
+    if (snapshot.states.hidden === true) attrs.set('hidden', '');
   }
   for (const [key, attr] of Object.entries(ARIA_RELATION_ATTRS)) {
     const relation = snapshot.relations[key];
