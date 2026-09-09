@@ -24,6 +24,7 @@ cases:
     title: New source creates new generation and loading state before host work
     covers:
       - C-IMAGE-VIEW-0001-E
+      - M-IMAGE-VIEW-0001-A
     expectation: new-source-creates-generation-and-loading-before-host-work
   - id: T-IMAGE-VIEW-0001-CASE-STATUS-TRANSITION
     title: loadingStatus and loadingStatusChange are the only status and transition surfaces
@@ -45,6 +46,7 @@ cases:
     title: Lease boundary revokes listeners on detach and disposal
     covers:
       - C-IMAGE-VIEW-0001-H
+      - M-IMAGE-VIEW-0001-B
     expectation: lease-boundary-revokes-listeners-on-detach-and-dispose
   - id: T-IMAGE-VIEW-0001-CASE-WEB-PROJECTION
     title: Official Web adapters materialize one physical img and split boundary, surface, and a11y ownership
@@ -62,7 +64,22 @@ cases:
       - C-IMAGE-VIEW-0001-G
       - C-IMAGE-VIEW-0001-H
       - D-IMAGE-VIEW-PROJECTION-0001-F
+      - HC-IMAGE-VIEW-0001-A
+      - A-REACT-18-19-0001-IMAGE-VIEW
+      - A-VUE-3-0001-IMAGE-VIEW
+      - A-WEB-COMPONENT-0001-IMAGE-VIEW
     expectation: web-image-leases-map-cache-hit-or-request-scoped-decode-to-terminal-status-and-retire-old-settlements-on-replacement-or-detach
+  - id: T-IMAGE-VIEW-0001-CASE-CANCEL
+    title: Setup cancellation and explicit callback scope
+    covers:
+      - M-IMAGE-VIEW-0001-C
+      - C-CORE-SYNTAX-0007-A
+    expectation: runtime-removal-rejected-and-async-dispatch-requires-valid-callback-scope
+  - id: T-IMAGE-VIEW-0001-CASE-VUE2
+    title: Vue 2 physical image, source replacement and pending completion retirement
+    covers:
+      - A-VUE-2-0001-IMAGE-VIEW
+    expectation: one-current-source-and-no-late-transition-after-unmount
 implementations:
   - id: module-image-view-impl-contract
     kind: module-test
@@ -78,6 +95,7 @@ implementations:
       - T-IMAGE-VIEW-0001-CASE-REPLACEMENT
       - T-IMAGE-VIEW-0001-CASE-STALE-COMPLETION
       - T-IMAGE-VIEW-0001-CASE-LEASE-BOUNDARY
+      - T-IMAGE-VIEW-0001-CASE-CANCEL
     exercises:
       - M-IMAGE-VIEW-0001
       - HC-IMAGE-VIEW-0001
@@ -137,6 +155,13 @@ implementations:
       - M-IMAGE-VIEW-0001
       - HC-IMAGE-VIEW-0001
       - P-BASE-IMAGE
+  - id: adapter-vue2-image-view
+    kind: adapter-test
+    status: passing
+    path: packages/adapters/vue2/test/image-view.integration.test.ts
+    required: true
+    consumesCases:
+      - T-IMAGE-VIEW-0001-CASE-VUE2
 verifies:
   contracts:
     - id: C-IMAGE-VIEW-0001
@@ -148,6 +173,39 @@ verifies:
         - C-IMAGE-VIEW-0001-F
         - C-IMAGE-VIEW-0001-G
         - C-IMAGE-VIEW-0001-H
+    - id: C-CORE-SYNTAX-0007
+      since: 0.3.0-alpha.0
+      anchors:
+        - C-CORE-SYNTAX-0007-A
+  modules:
+    - id: M-IMAGE-VIEW-0001
+      since: 0.3.0-alpha.0
+      anchors:
+        - M-IMAGE-VIEW-0001-A
+        - M-IMAGE-VIEW-0001-B
+        - M-IMAGE-VIEW-0001-C
+  hostCaps:
+    - id: HC-IMAGE-VIEW-0001
+      since: 0.3.0-alpha.0
+      anchors:
+        - HC-IMAGE-VIEW-0001-A
+  adapters:
+    - id: A-REACT-18-19-0001
+      since: 0.3.0-alpha.0
+      anchors:
+        - A-REACT-18-19-0001-IMAGE-VIEW
+    - id: A-VUE-3-0001
+      since: 0.3.0-alpha.0
+      anchors:
+        - A-VUE-3-0001-IMAGE-VIEW
+    - id: A-VUE-2-0001
+      since: 0.3.0-alpha.0
+      anchors:
+        - A-VUE-2-0001-IMAGE-VIEW
+    - id: A-WEB-COMPONENT-0001
+      since: 0.3.0-alpha.0
+      anchors:
+        - A-WEB-COMPONENT-0001-IMAGE-VIEW
 exercises:
   modules:
     - M-IMAGE-VIEW-0001
@@ -172,6 +230,10 @@ revisions:
     summary: >-
       Introduced Image View declaration, module, fake-host, Base runtime, and bounded Web Component, React, and Vue evidence for portable properties, request-scoped readiness, source replacement, stale completion, detach/rematerialization, disposal, terminal-once, and transition ordering.
 
+
+  - version: 0.3.0-alpha.0
+    change: clarified
+    summary: Connected M/HC/A criteria and added Vue 2 current-generation and setup-removal evidence.
 
 tags:
   - image

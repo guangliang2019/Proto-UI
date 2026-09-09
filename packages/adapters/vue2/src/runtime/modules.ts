@@ -1,3 +1,8 @@
+import {
+  IMAGE_VIEW_HOST_CAP,
+  IMAGE_VIEW_RUN_IN_CALLBACK_CAP,
+  createWebImageViewHost,
+} from '@proto.ui/module-image-view';
 import type { FocusEntryConfig } from '@proto.ui/core';
 import { resolveWebFocusEntryTarget } from '@proto.ui/adapter-base';
 import {
@@ -262,6 +267,13 @@ export function createVue2Modules<Props extends PropsBaseType>(args: {
     .use('text-control', [
       [TEXT_CONTROL_HOST_CAP, createWebTextControlHost(physicalControl)],
       [TEXT_CONTROL_RUN_IN_CALLBACK_CAP, args.runInCallbackScope],
+    ])
+    .use('image-view', [
+      [
+        IMAGE_VIEW_HOST_CAP,
+        createWebImageViewHost(() => args.getCurrentElement() as HTMLImageElement | null),
+      ],
+      [IMAGE_VIEW_RUN_IN_CALLBACK_CAP, args.runInCallbackScope],
     ])
     .use('props', [[RAW_PROPS_SOURCE_CAP, rawPropsSource]])
     .use('feedback', [[EFFECTS_CAP, effectsPort]])

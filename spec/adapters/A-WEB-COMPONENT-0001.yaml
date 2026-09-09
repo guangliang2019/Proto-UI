@@ -132,6 +132,10 @@ criteria:
     text:
       en: The standard Web Adapter installs Text Control and resolves static line mode to one physical input or textarea before rendering. It projects common hints and normalized input, owns callback scope and releases the editing lease. Web Component retains its logical wrapper; native frameworks use the physical editor root.
       zh-CN: standard Web Adapter 安装 Text Control，在 render 前将静态 line mode 解析为一个物理 input 或 textarea，投射 common hint 与 normalized input，提供 callback scope 并释放 editing lease。Web Component 保留 logical wrapper，原生框架使用物理 editor root。
+  - id: A-WEB-COMPONENT-0001-IMAGE-VIEW
+    text:
+      en: The Web Adapter resolves a static Image View declaration to one physical image, projects portable properties, and retires obsolete decode completions on source replacement or unmount. Completion uses the existing callback bridge; native image events are not a second author transition protocol.
+      zh-CN: Web Adapter 将静态 Image View declaration 解析为一个物理 image，投射 portable property，并在 source 替换或 unmount 后撤销过期 decode completion。completion 使用既有 callback bridge；native image event 不是第二套 author transition 协议。
 supports:
   modules:
     - id: M-POSITIONING-0001
@@ -431,5 +435,8 @@ revisions:
   - version: 0.3.0-alpha.0
     change: clarified
     summary: Cataloged existing single-line and multiline Text Control realization with executable Adapter evidence.
+  - version: 0.3.0-alpha.0
+    change: clarified
+    summary: Connected Image View support to bounded Adapter generation evidence.
 tags:
   [adapter, web-component, custom-elements, web, props, event, lifecycle, state, expose, official]
