@@ -2196,6 +2196,59 @@ test('accepts reviewed demo raw imports and ignores import-looking code strings'
   assert.deepEqual(validateCoverageMatrices({ rootDir: root }), { matrixCount: 2 });
 });
 
+test('allows reviewed prototype package dependencies only through an approved prototype entry', () => {
+  const root = createRoot();
+  writeValidMatrices(root);
+  const prototypeEntry = path.join(
+    root,
+    'apps/www/src/components/PrototypePreviewer/prototype-modules.ts'
+  );
+  const prototypeSource = path.join(root, 'packages/prototypes/shadcn/src/button/index.ts');
+  const prototypeTypes = path.join(root, 'packages/prototypes/shadcn/src/button/types.ts');
+  fs.mkdirSync(path.dirname(prototypeEntry), { recursive: true });
+  fs.mkdirSync(path.dirname(prototypeSource), { recursive: true });
+  fs.writeFileSync(
+    prototypeEntry,
+    "export const load = () => import('../../../../../packages/prototypes/shadcn/src/button/index');",
+    'utf8'
+  );
+  fs.writeFileSync(
+    prototypeSource,
+    "import '@proto.ui/core';\nimport '@proto.ui/prototypes-base/button';\nimport './types';",
+    'utf8'
+  );
+  fs.writeFileSync(
+    prototypeTypes,
+    'export type ButtonOptions = Record<string, unknown>;\n',
+    'utf8'
+  );
+
+  assert.deepEqual(validateCoverageMatrices({ rootDir: root }), { matrixCount: 2 });
+});
+
+test('rejects forbidden consumer imports transitive from an approved prototype entry', () => {
+  const root = createRoot();
+  writeValidMatrices(root);
+  const prototypeEntry = path.join(
+    root,
+    'apps/www/src/components/PrototypePreviewer/prototype-modules.ts'
+  );
+  const prototypeSource = path.join(root, 'packages/prototypes/shadcn/src/button/index.ts');
+  fs.mkdirSync(path.dirname(prototypeEntry), { recursive: true });
+  fs.mkdirSync(path.dirname(prototypeSource), { recursive: true });
+  fs.writeFileSync(
+    prototypeEntry,
+    "export const load = () => import('../../../../../packages/prototypes/shadcn/src/button/index');",
+    'utf8'
+  );
+  fs.writeFileSync(prototypeSource, "import '@proto.ui/adapter-react';\n", 'utf8');
+
+  assert.match(
+    validationMessage(root),
+    /raw Proto UI import `@proto\.ui\/adapter-react` in `packages\/prototypes\/shadcn\/src\/button\/index\.ts` escapes/
+  );
+});
+
 test('binds inherited surface manifests to the resolved dependency version', () => {
   const root = createRoot();
   writeValidMatrices(root);

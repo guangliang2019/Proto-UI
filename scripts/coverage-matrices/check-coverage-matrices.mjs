@@ -3307,7 +3307,26 @@ function guardedHarnessImport(rootDir, sourcePath, specifier) {
   return null;
 }
 
+const REVIEWED_PROTOTYPE_PACKAGE_DEPENDENCY_CATEGORIES = new Set([
+  'prototype-internal',
+  'prototype-package',
+  'core-package',
+  'hooks-package',
+]);
+
+function isReviewedPrototypePackageSource(sourcePath) {
+  return /^packages\/prototypes\/[^/]+\/src(?:\/|$)/u.test(sourcePath);
+}
+
+function isReviewedPrototypePackageDependency(sourcePath, guardedImport) {
+  return (
+    isReviewedPrototypePackageSource(sourcePath) &&
+    REVIEWED_PROTOTYPE_PACKAGE_DEPENDENCY_CATEGORIES.has(guardedImport.category)
+  );
+}
+
 function websiteRawImportIsAllowed(sourcePath, specifier, guardedImport) {
+  if (isReviewedPrototypePackageDependency(sourcePath, guardedImport)) return true;
   const allowance = WEBSITE_RAW_IMPORT_ALLOWLIST[sourcePath];
   if (!allowance) return false;
   if (allowance.specifiers?.includes(specifier)) return true;
