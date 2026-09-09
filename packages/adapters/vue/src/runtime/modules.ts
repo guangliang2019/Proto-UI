@@ -1,3 +1,5 @@
+import type { FocusEntryConfig } from '@proto.ui/core';
+import { resolveWebFocusEntryTarget } from '@proto.ui/adapter-base';
 import {
   cancelWebEventDefaultAction,
   createCapsWiring,
@@ -43,6 +45,8 @@ import {
   FOCUS_PARENT_CAP,
   FOCUS_REQUEST_FOCUS_CAP,
   FOCUS_ROOT_TARGET_CAP,
+  FOCUS_RESOLVE_ENTRY_TARGET_CAP,
+  FOCUS_SET_ENTRY_FOCUSABLE_CAP,
   FOCUS_RUN_IN_CALLBACK_CAP,
   FOCUS_SET_FOCUSABLE_CAP,
   FOCUS_TARGET_READY_CAP,
@@ -274,6 +278,20 @@ export function createVueModules<Props extends PropsBaseType>(args: {
         },
       ],
       [
+        FOCUS_RESOLVE_ENTRY_TARGET_CAP,
+        (target: HTMLElement, config: FocusEntryConfig) =>
+          resolveWebFocusEntryTarget(target, config, isNativelyFocusable),
+      ],
+      [
+        FOCUS_SET_ENTRY_FOCUSABLE_CAP,
+        (target: HTMLElement, config: FocusEntryConfig, enabled: boolean) => {
+          const resolved = enabled
+            ? resolveWebFocusEntryTarget(target, config, isNativelyFocusable)
+            : null;
+          projectFocusable(target, resolved === target);
+        },
+      ],
+      [
         FOCUS_REQUEST_FOCUS_CAP,
         (target: HTMLElement, options?: FocusRequestOptions) => {
           if (!target.isConnected) return false;
@@ -385,15 +403,31 @@ export function createVueModules<Props extends PropsBaseType>(args: {
 
 function isNativelyFocusable(el: HTMLElement): boolean {
   const tag = el.tagName.toLowerCase();
-  if (tag === 'button' || tag === 'input' || tag === 'select' || tag === 'textarea') {
+  if (tag === 'button' || tag === 'select' || tag === 'textarea' || tag === 'iframe') {
     return true;
   }
-  if (tag === 'a') {
-    return el.hasAttribute('href');
+  if (tag === 'input') return (el as HTMLInputElement).type !== 'hidden';
+  if (tag === 'a') return el.hasAttribute('href');
+  if (tag === 'area') {
+    const map = el.closest('map');
+    if (!el.hasAttribute('href') || !map?.name || !el.isConnected) return false;
+    return Array.from(el.ownerDocument.querySelectorAll('img[usemap]')).some(
+      (image) =>
+        image.getAttribute('usemap') === `#${map.name}` &&
+        !image.closest('[hidden],[inert],[aria-hidden="true"]')
+    );
   }
-
+  if (tag === 'audio' || tag === 'video') return el.hasAttribute('controls');
+  if (tag === 'summary') {
+    const parent = el.parentElement;
+    return (
+      parent?.tagName.toLowerCase() === 'details' &&
+      Array.from(parent.children).find((child) => child.tagName.toLowerCase() === 'summary') === el
+    );
+  }
   return false;
 }
+
 function projectFocusable(
   target: HTMLElement,
   enabled: boolean,

@@ -1,3 +1,4 @@
+import { resolveWebFocusEntryTarget } from '@proto.ui/adapter-base';
 import {
   cancelWebEventDefaultAction,
   createCapsWiring,
@@ -391,7 +392,8 @@ export function createWebComponentModules<Props extends PropsBaseType>(args: {
       ],
       [
         FOCUS_RESOLVE_ENTRY_TARGET_CAP,
-        (target: HTMLElement, config: FocusEntryConfig) => resolveFocusEntryTarget(target, config),
+        (target: HTMLElement, config: FocusEntryConfig) =>
+          resolveWebFocusEntryTarget(target, config, isNativelyFocusable),
       ],
       [
         FOCUS_SET_ENTRY_FOCUSABLE_CAP,
@@ -401,7 +403,7 @@ export function createWebComponentModules<Props extends PropsBaseType>(args: {
             return;
           }
 
-          const resolved = resolveFocusEntryTarget(target, config);
+          const resolved = resolveWebFocusEntryTarget(target, config, isNativelyFocusable);
           projectFocusable(target, resolved === target);
         },
       ],
@@ -560,11 +562,27 @@ export function createWebComponentModules<Props extends PropsBaseType>(args: {
 
 function isNativelyFocusable(el: HTMLElement): boolean {
   const tag = el.tagName.toLowerCase();
-  if (tag === 'button' || tag === 'input' || tag === 'select' || tag === 'textarea') {
+  if (tag === 'button' || tag === 'select' || tag === 'textarea' || tag === 'iframe') {
     return true;
   }
-  if (tag === 'a') {
-    return el.hasAttribute('href');
+  if (tag === 'input') return (el as HTMLInputElement).type !== 'hidden';
+  if (tag === 'a') return el.hasAttribute('href');
+  if (tag === 'area') {
+    const map = el.closest('map');
+    if (!el.hasAttribute('href') || !map?.name || !el.isConnected) return false;
+    return Array.from(el.ownerDocument.querySelectorAll('img[usemap]')).some(
+      (image) =>
+        image.getAttribute('usemap') === `#${map.name}` &&
+        !image.closest('[hidden],[inert],[aria-hidden="true"]')
+    );
+  }
+  if (tag === 'audio' || tag === 'video') return el.hasAttribute('controls');
+  if (tag === 'summary') {
+    const parent = el.parentElement;
+    return (
+      parent?.tagName.toLowerCase() === 'details' &&
+      Array.from(parent.children).find((child) => child.tagName.toLowerCase() === 'summary') === el
+    );
   }
   return false;
 }
@@ -581,49 +599,4 @@ function projectFocusable(
   } else {
     target.removeAttribute('tabindex');
   }
-}
-
-function resolveFocusEntryTarget(
-  container: HTMLElement,
-  config: { strategy: 'self' | 'descendant-first'; fallback: 'self' | 'none' }
-): HTMLElement | null {
-  if (config.strategy === 'descendant-first') {
-    const descendant = findFirstTabbableDescendant(container);
-    if (descendant) return descendant;
-  }
-
-  if (config.fallback === 'self') return container;
-  return null;
-}
-
-const FOCUSABLE_SELECTOR = [
-  'a[href]',
-  'area[href]',
-  'button',
-  'input',
-  'select',
-  'textarea',
-  'summary',
-  'iframe',
-  'audio[controls]',
-  'video[controls]',
-  '[contenteditable]',
-  '[tabindex]',
-].join(',');
-
-function findFirstTabbableDescendant(container: HTMLElement): HTMLElement | null {
-  const candidates = Array.from(container.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR));
-  return candidates.find((candidate) => isTabbableDescendant(container, candidate)) ?? null;
-}
-
-function isTabbableDescendant(container: HTMLElement, el: HTMLElement): boolean {
-  if (el === container) return false;
-  if (!container.contains(el)) return false;
-  if (el.closest('[hidden],[inert],[aria-hidden="true"]')) return false;
-  if (el.hasAttribute('disabled')) return false;
-  const ariaDisabled = el.getAttribute('aria-disabled');
-  if (ariaDisabled === 'true') return false;
-  const tabIndexAttr = el.getAttribute('tabindex');
-  if (tabIndexAttr !== null && Number(tabIndexAttr) < 0) return false;
-  return isNativelyFocusable(el) || tabIndexAttr !== null || el.isContentEditable;
 }

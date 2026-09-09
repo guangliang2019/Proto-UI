@@ -57,6 +57,7 @@ export type ExposeMap = Record<
 
 export type RuleHandle = {
   readonly id: number;
+  /** Setup-only cancellation of this declaration; not lifecycle cleanup. */
   dispose(): void;
 };
 
@@ -281,6 +282,7 @@ export interface DefHandle<Props extends PropsBaseType, Exposes = Record<string,
 
   anatomy: {
     claim(family: AnatomyFamily, decl: AnatomyClaimDecl): void;
+    /** Setup-only registration and cancellation; lifecycle cleanup is internal. */
     subscribeParts(
       family: AnatomyFamily,
       role: string,
