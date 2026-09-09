@@ -100,6 +100,28 @@ function reviewedNullFacadeRuntimeModules(chunk) {
     ),
   ];
 }
+function runtimeFamilyForModule(moduleId) {
+  return forbiddenFrameworkFamily(moduleId);
+}
+
+function dynamicRuntimeChunksForFamily(chunks, family) {
+  return chunks.filter(
+    (chunk) =>
+      chunk.isDynamicEntry &&
+      chunk.moduleIds.some((moduleId) => runtimeFamilyForModule(moduleId) === family)
+  );
+}
+
+function runtimeFamilyModulesInClosure(chunksByFileName, rootFileName, edgeFields) {
+  const families = new Set();
+  for (const fileName of closure(chunksByFileName, rootFileName, edgeFields)) {
+    for (const moduleId of chunksByFileName.get(fileName)?.moduleIds ?? []) {
+      const family = runtimeFamilyForModule(moduleId);
+      if (family && REQUIRED_ADAPTER_FAMILIES.includes(family)) families.add(family);
+    }
+  }
+  return families;
+}
 function loadGraph(rootDir, graphPath, issues) {
   const absolutePath = path.resolve(rootDir, graphPath);
   if (!fs.existsSync(absolutePath) || !fs.statSync(absolutePath).isFile()) {
@@ -286,6 +308,39 @@ export function collectWebsiteProductionBundleIssues({
     }
   }
 
+  const dynamicAdapterFamilies = new Set();
+  for (const family of REQUIRED_ADAPTER_FAMILIES) {
+    const owners = dynamicRuntimeChunksForFamily(chunks, family);
+    if (owners.length === 0) {
+      issues.push(`production bundle graph has no dynamic runtime chunk for the ${family} Adapter`);
+    } else {
+      dynamicAdapterFamilies.add(family);
+    }
+  }
+
+  for (const demoRoot of routeOwnedDemoRoots) {
+    const staticFamilies = runtimeFamilyModulesInClosure(chunksByFileName, demoRoot.fileName, [
+      'imports',
+    ]);
+    for (const family of staticFamilies) {
+      issues.push(
+        `route-owned demonstration entry \`${demoRoot.facadeModuleId}\` statically includes the ${family} Adapter; framework runtimes must remain lazy`
+      );
+    }
+    const completeClosure = closure(chunksByFileName, demoRoot.fileName, [
+      'imports',
+      'dynamicImports',
+    ]);
+    for (const family of dynamicAdapterFamilies) {
+      const owners = dynamicRuntimeChunksForFamily(chunks, family);
+      if (!owners.some((owner) => completeClosure.has(owner.fileName))) {
+        issues.push(
+          `route-owned demonstration entry \`${demoRoot.facadeModuleId}\` does not dynamically reach a ${family} Adapter runtime chunk`
+        );
+      }
+    }
+  }
+
   const reviewedWebsiteControlChunks = new Set(
     chunks
       .filter((chunk) =>
@@ -349,15 +404,26 @@ export function collectWebsiteProductionBundleIssues({
   }
 
   const demoStaticClosure = new Set();
+  const demoCompleteClosure = new Set();
   for (const demoRoot of approvedDemoRoots) {
     for (const fileName of closure(chunksByFileName, demoRoot.fileName, ['imports'])) {
       demoStaticClosure.add(fileName);
     }
+    for (const fileName of closure(chunksByFileName, demoRoot.fileName, [
+      'imports',
+      'dynamicImports',
+    ])) {
+      demoCompleteClosure.add(fileName);
+    }
   }
   for (const [fileName, forbiddenModules] of forbiddenModulesByChunk) {
-    if (forbiddenModules.length > 0 && !demoStaticClosure.has(fileName)) {
+    if (
+      forbiddenModules.length > 0 &&
+      !demoStaticClosure.has(fileName) &&
+      !demoCompleteClosure.has(fileName)
+    ) {
       issues.push(
-        `forbidden framework chunk \`${fileName}\` is not statically owned by an approved demonstration entry`
+        `forbidden framework chunk \`${fileName}\` is not owned by an approved demonstration entry`
       );
     }
   }

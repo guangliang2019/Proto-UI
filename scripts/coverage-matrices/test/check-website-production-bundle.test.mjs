@@ -48,7 +48,8 @@ function graphFixture() {
       chunk('_astro/home-demo.js', {
         isEntry: true,
         facadeModuleId: HOME_DEMO_FACADE,
-        imports: ['_astro/wc-host.js', '_astro/react.js', '_astro/vue.js', '_astro/vue2.js'],
+        imports: ['_astro/wc-host.js'],
+        dynamicImports: ['_astro/react.js', '_astro/vue.js', '_astro/vue2.js'],
         moduleIds: ['apps/www/src/components/PrototypePreviewer/home-demo-client.ts'],
       }),
       chunk('_astro/wc-host.js', {
@@ -105,7 +106,7 @@ test('accepts coalesced module-proven demo runtime chunks', () => {
   graph.chunks = graph.chunks.filter((candidate) => !runtimeFileNames.has(candidate.fileName));
   graph.chunks
     .find((candidate) => candidate.fileName === '_astro/home-demo.js')
-    .imports.splice(1, 3, '_astro/coalesced-runtimes.js');
+    .dynamicImports.splice(0, 3, '_astro/coalesced-runtimes.js');
   graph.chunks.push(
     chunk('_astro/coalesced-runtimes.js', {
       isDynamicEntry: true,
@@ -114,6 +115,31 @@ test('accepts coalesced module-proven demo runtime chunks', () => {
   );
 
   assert.deepEqual(collectWebsiteProductionBundleIssues({ graph }), []);
+});
+
+test('rejects framework Adapter modules statically owned by a route demo', () => {
+  const graph = graphFixture();
+  graph.chunks
+    .find((candidate) => candidate.fileName === '_astro/home-demo.js')
+    .imports.push('_astro/react.js');
+
+  assert.ok(
+    collectWebsiteProductionBundleIssues({ graph }).some((issue) =>
+      issue.includes('statically includes the react Adapter')
+    )
+  );
+});
+
+test('rejects runtime chunks that are not dynamically reachable from a route demo', () => {
+  const graph = graphFixture();
+  graph.chunks.find((candidate) => candidate.fileName === '_astro/home-demo.js').dynamicImports =
+    [];
+
+  assert.ok(
+    collectWebsiteProductionBundleIssues({ graph }).some((issue) =>
+      issue.includes('does not dynamically reach a react Adapter runtime chunk')
+    )
+  );
 });
 
 test('rejects a graph without route-owned Web Component host provenance', () => {
@@ -190,8 +216,8 @@ test('rejects renamed or inlined framework modules in a shell chunk', () => {
     issues.some((issue) => issue.includes('statically reaches forbidden React/Vue module(s)'))
   );
   assert.ok(
-    issues.includes(
-      'forbidden framework chunk `_astro/innocent-helper.js` is not statically owned by an approved demonstration entry'
+    issues.some((issue) =>
+      issue.includes('forbidden framework chunk `_astro/innocent-helper.js` is not owned')
     )
   );
 });
