@@ -433,4 +433,37 @@ describe('Web A11y opaque semantic-object references', () => {
     projector.dispose?.();
     expect(target.id).toBe('host-id');
   });
+  it('preserves a host id written after detach before terminal disposal', () => {
+    const registry = createWebA11yProjectionRegistry();
+    const projector = createWebA11yProjector(document.createElement('div'), undefined, registry);
+    const target = document.createElement('div');
+    const slot = targetSlot(target);
+    const targetProjector = createWebA11yProjector(slot.get, slot.subscribe, registry);
+    targetProjector({ ...semanticSnapshot(createA11ySemanticObjectRef()), id: 'projected-id' });
+    targetProjector.detach?.();
+    target.id = 'host-id';
+    targetProjector.dispose?.();
+    expect(target.id).toBe('host-id');
+    projector.dispose?.();
+  });
+
+  it('retains a token when one projector changes append mode to replace', () => {
+    const registry = createWebA11yProjectionRegistry({ idPrefix: 'test-append-replace' });
+    const sourceRef = createA11ySemanticObjectRef();
+    const targetRef = createA11ySemanticObjectRef();
+    const source = document.createElement('div');
+    const target = document.createElement('div');
+    const first = createWebA11yProjector(source, undefined, registry);
+    const second = createWebA11yProjector(source, undefined, registry);
+    const targetProjector = createWebA11yProjector(target, undefined, registry);
+    targetProjector(semanticSnapshot(targetRef));
+    first(semanticSnapshot(sourceRef, { labelledBy: [targetRef] }, { labelledBy: 'append' }));
+    second(semanticSnapshot(sourceRef, { labelledBy: [targetRef] }, { labelledBy: 'append' }));
+    const targetId = source.getAttribute('aria-labelledby');
+    first(semanticSnapshot(sourceRef, { labelledBy: [targetRef] }));
+    second.dispose?.();
+    expect(source.getAttribute('aria-labelledby')).toBe(targetId);
+    first.dispose?.();
+    targetProjector.dispose?.();
+  });
 });

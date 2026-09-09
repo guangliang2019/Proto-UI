@@ -120,6 +120,8 @@ export function createWebA11yProjectionRegistry(
     if (byToken.size === 0) byAttribute?.delete(attr);
     if (byAttribute?.size === 0) appendTokenRefs.delete(target);
   };
+  const appendTokenIsReferenced = (target: HTMLElement, attr: string, token: string) =>
+    (appendTokenRefs.get(target)?.get(attr)?.get(token)?.count ?? 0) > 0;
 
   const releaseScalarAttributes = (record: WebProjectorRecord, removeOwned = true) => {
     for (const [attr, ownership] of record.scalarAttributes) {
@@ -137,7 +139,7 @@ export function createWebA11yProjectionRegistry(
       if (byValue?.size === 0) byAttribute?.delete(attr);
       if (byAttribute?.size === 0) scalarAttributeRefs.delete(ownership.target);
     }
-    record.scalarAttributes.clear();
+    if (removeOwned) record.scalarAttributes.clear();
   };
 
   const acquireScalarAttributes = (
@@ -202,8 +204,17 @@ export function createWebA11yProjectionRegistry(
     if (!projection) return;
     if (projection.mode === 'append') {
       releaseAppendTokens(projection.target, projection.attr, projection.tokens);
-    } else if (projection.target.getAttribute(projection.attr) === projection.projectedValue) {
-      setOptionalAttr(projection.target, projection.attr, projection.previousValue ?? undefined);
+    } else {
+      const previous = readTokens(projection.previousValue);
+      releaseAppendTokens(projection.target, projection.attr, projection.tokens);
+      const current = readTokens(projection.target.getAttribute(projection.attr));
+      const remove = projection.tokens.filter(
+        (token) =>
+          !previous.includes(token) &&
+          !appendTokenIsReferenced(projection.target, projection.attr, token)
+      );
+      const preserved = withoutTokens(current, remove);
+      setTokenListAttr(projection.target, projection.attr, [...previous, ...preserved]);
     }
     record.projections.delete(key);
   };
@@ -391,6 +402,7 @@ export function createWebA11yProjectionRegistry(
 
     const previousValue = record.target.getAttribute(attr);
     const projectedValue = tokens.join(' ');
+    acquireAppendTokens(record.target, attr, tokens, readTokens(previousValue));
     setOptionalAttr(record.target, attr, projectedValue);
     record.projections.set(key, {
       target: record.target,
@@ -509,12 +521,17 @@ export function createWebA11yProjectionRegistry(
       acquireScalarAttributes(record, nextTarget, snapshot);
     }
 
-    if (!targetChanged && record.reservedId && nextTarget && nextTarget.id !== record.reservedId) {
-      // The host may have changed the live id before this replay. Release only
-      // the stale reservation; never overwrite the host's current value.
+    const currentTargetId = nextTarget?.id || null;
+    if (
+      !targetChanged &&
+      record.reservedId &&
+      nextTarget &&
+      currentTargetId !== previousTargetId &&
+      currentTargetId !== record.reservedId
+    ) {
+      // Release only after a live id transition within the same binding.
       releaseReservation(record);
     }
-    const currentTargetId = nextTarget?.id || null;
     const bindingChanged = bindingReplaced || currentTargetId !== previousTargetId;
     record.lastTargetId = currentTargetId;
     if (structuredChanged) reconcileSource(record);
@@ -579,10 +596,8 @@ export function createWebA11yProjectionRegistry(
       };
       projector.dispose = () => {
         if (record.disposed) return;
-        const target = record.target;
-        const snapshot = record.snapshot;
-        if (record.detached && target && snapshot) clearOwnedWebA11ySnapshot(target, snapshot);
-        detach(true);
+        if (record.detached) releaseScalarAttributes(record, true);
+        else detach(true);
         record.disposed = true;
         releaseReservation(record);
         record.snapshot = null;
@@ -696,56 +711,6 @@ export function clearWebA11ySnapshot(el: HTMLElement, snapshot: A11ySemanticObje
     }
     if (Object.prototype.hasOwnProperty.call(snapshot.tree, 'mergeChildren')) {
       el.removeAttribute('data-pui-a11y-merge-children');
-    }
-  }
-}
-
-function clearOwnedWebA11ySnapshot(el: HTMLElement, snapshot: A11ySemanticObjectSnapshot): void {
-  const clearIfEqual = (attr: string, expected: string | null | undefined) => {
-    if (el.getAttribute(attr) === (expected ?? null)) el.removeAttribute(attr);
-  };
-  if (typeof snapshot.id !== 'undefined') clearIfEqual('id', snapshot.id);
-  if (typeof snapshot.role !== 'undefined') clearIfEqual('role', snapshot.role);
-  if (hasProjectedHeadingLevel(snapshot)) clearIfEqual('aria-level', String(snapshot.level));
-  if (snapshot.name?.kind === 'text') {
-    clearIfEqual('aria-label', readTextTarget(snapshot.name.value));
-  }
-  if (snapshot.description?.kind === 'text') {
-    clearIfEqual('aria-description', readTextTarget(snapshot.description.value));
-  }
-  for (const [key, attr] of Object.entries(ARIA_STATE_ATTRS)) {
-    if (!Object.prototype.hasOwnProperty.call(snapshot.states, key)) continue;
-    clearIfEqual(attr, projectedAttributeValue(snapshot.states[key]));
-  }
-  if (Object.prototype.hasOwnProperty.call(snapshot.states, 'hidden')) {
-    clearIfEqual('aria-hidden', projectedAttributeValue(snapshot.states.hidden));
-    if (el.hasAttribute('hidden') && snapshot.states.hidden === true) el.removeAttribute('hidden');
-  }
-  for (const [key, attr] of Object.entries(ARIA_RELATION_ATTRS)) {
-    const relation = snapshot.relations[key];
-    if (typeof relation !== 'string') continue;
-    if (snapshot.relationModes?.[key] === 'append') {
-      setTokenListAttr(
-        el,
-        attr,
-        withoutTokens(readTokens(el.getAttribute(attr)), readTokens(relation))
-      );
-    } else {
-      clearIfEqual(attr, relation);
-    }
-  }
-  if (Object.keys(snapshot.actions).length) {
-    clearIfEqual('data-pui-a11y-actions', Object.keys(snapshot.actions).sort().join(' '));
-  }
-  if (snapshot.tree) {
-    if (Object.prototype.hasOwnProperty.call(snapshot.tree, 'hidden')) {
-      clearIfEqual('aria-hidden', projectedAttributeValue(snapshot.tree.hidden));
-    }
-    if (Object.prototype.hasOwnProperty.call(snapshot.tree, 'mergeChildren')) {
-      clearIfEqual(
-        'data-pui-a11y-merge-children',
-        projectedAttributeValue(snapshot.tree.mergeChildren)
-      );
     }
   }
 }
