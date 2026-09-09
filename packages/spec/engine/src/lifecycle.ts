@@ -258,6 +258,8 @@ export function getSpecLifecycleReport(
         }
       }
     } else {
+      if (entity.type === 'prototype' && !entity.anatomy)
+        gap('missing-anatomy', 'No governed Prototype anatomy is recorded.');
       if (!hasText(entity.statement))
         gap('missing-statement', 'No reviewable statement is recorded.');
       if (!entity.criteria.length) gap('missing-criteria', 'No admission criteria are recorded.');
@@ -479,7 +481,11 @@ export function checkSpecLifecycleAuthoring(
         `${after.id}: promotion must preserve prior revisions and append a new admission revision with a summary at activeSince.`
       );
   }
-  if (after.status === 'active' && (isNewIdentity || isPromotion) && after.activeSince) {
+  const activationChanged = !isNewIdentity && before?.activeSince !== after.activeSince;
+  if (
+    after.activeSince &&
+    ((after.status === 'active' && (isNewIdentity || isPromotion)) || activationChanged)
+  ) {
     if (!workspace)
       issues.push(
         `${after.id}: active admission requires the current workspace for evidence checks.`

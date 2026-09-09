@@ -100,6 +100,17 @@ test('authoring preserves identities across deletion, replacement, and file move
     const entityPath = path.join(fixture, 'spec/contracts/C-A11Y-PART-RELATIONSHIP-0001.yaml');
     const movedPath = path.join(fixture, 'spec/contracts/moved-relationship.yaml');
     const original = readFileSync(entityPath, 'utf8');
+    for (const extension of ['txt', 'YAML']) {
+      const renamedPath = path.join(fixture, `spec/contracts/renamed-relationship.${extension}`);
+      const renamed = run('git', ['mv', entityPath, renamedPath]);
+      assert.equal(renamed.status, 0, renamed.stderr);
+      assert.match(run('git', ['diff', '--name-status', 'HEAD', '--', 'spec']).stdout, /^R100\s/m);
+      const lostIdentity = check();
+      assert.equal(lostIdentity.status, 1, lostIdentity.stdout);
+      assert.match(lostIdentity.stderr, /C-A11Y-PART-RELATIONSHIP-0001: retain the entity/);
+      const restored = run('git', ['mv', renamedPath, entityPath]);
+      assert.equal(restored.status, 0, restored.stderr);
+    }
     renameSync(entityPath, movedPath);
     const moved = check();
     assert.equal(moved.status, 0, moved.stderr);

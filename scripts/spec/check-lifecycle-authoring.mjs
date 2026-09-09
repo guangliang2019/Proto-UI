@@ -16,7 +16,7 @@ const git = (args) =>
   execFileSync('git', args, { cwd: root, encoding: 'utf8', maxBuffer: 1 << 26 });
 const base = git(['rev-parse', '--verify', '--end-of-options', `${args[1]}^{commit}`]).trim();
 const paths = [
-  ...git(['diff', '--name-only', '-z', base, '--', 'spec']).split('\0'),
+  ...git(['diff', '--no-renames', '--name-only', '-z', base, '--', 'spec']).split('\0'),
   ...git(['ls-files', '--others', '--exclude-standard', '-z', '--', 'spec']).split('\0'),
 ].filter((file) => /^spec\/.+\.ya?ml$/.test(file));
 if (paths.length === 0) {

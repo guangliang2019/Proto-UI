@@ -215,11 +215,15 @@ describe('ordinary lifecycle targets and authoring', () => {
     expect(checkSpecLifecycleAuthoring(undefined, legacy)).toHaveLength(2);
     expect(checkSpecLifecycleAuthoring(contract(), legacy)).toHaveLength(3);
     expect(
-      checkSpecLifecycleAuthoring(legacy, {
-        ...legacy,
-        activeSince: version,
-        lifecycleRationale: 'Reviewed at the recorded version.',
-      })
+      checkSpecLifecycleAuthoring(
+        legacy,
+        {
+          ...legacy,
+          activeSince: version,
+          lifecycleRationale: 'Reviewed at the recorded version.',
+        },
+        createSpecWorkspace([legacy, testEntity('passing')])
+      )
     ).toEqual([]);
     const draft = contract({ lifecycleRationale: undefined });
     expect(checkSpecLifecycleAuthoring(draft, { ...draft, since: '0.1.0' })).toContainEqual(
@@ -311,6 +315,37 @@ describe('ordinary lifecycle targets and authoring', () => {
     expect(checkSpecLifecycleAuthoring(undefined, active, ready)).toEqual([]);
   });
 
+  it('requires recorded Prototype anatomy even when generic admission evidence passes', () => {
+    const id = 'P-LIFECYCLE-TEST-0001';
+    const draft = contract({
+      id,
+      type: 'prototype',
+      criteria: [{ id: `${id}-A`, text: 'A governed requirement.' }],
+    });
+    const active = {
+      ...draft,
+      status: 'active' as const,
+      activeSince: version,
+      lifecycleRationale: 'The prototype was reviewed.',
+      revisions: [{ version, change: 'admitted', summary: 'Admission was reviewed.' }],
+    };
+    const evidence = testEntity('passing');
+    evidence.verifies = { prototypes: [{ id }] };
+    evidence.cases[0].covers = [`${id}-A`];
+    const workspace = createSpecWorkspace([active, evidence]);
+    expect(checkSpecLifecycleAuthoring(draft, active, workspace)).toContainEqual(
+      expect.stringContaining('missing-anatomy')
+    );
+    const declared = validateSpecEntity({
+      ...active,
+      anatomy: {
+        family: 'lifecycle-fixture',
+        roles: { root: { cardinality: { min: 1, max: 1 } } },
+      },
+    });
+    expect(checkSpecLifecycleAuthoring(draft, declared, workspace)).toEqual([]);
+  });
+
   it('rejects actual admission with blockers or incomplete required implementations', () => {
     const draft = contract();
     const active = contract({
@@ -349,6 +384,36 @@ describe('ordinary lifecycle targets and authoring', () => {
       checkSpecLifecycleAuthoring(draft, active, createSpecWorkspace([active, evidence]))
     ).toEqual([]);
   });
+
+  it.each(['active', 'deprecated', 'removed'] as const)(
+    'revalidates a replacement activation boundary for %s',
+    (status) => {
+      const before = contract({
+        status,
+        activeSince: '0.3.0',
+        deprecatedSince: status === 'deprecated' ? '0.4.0' : undefined,
+        removedSince: status === 'removed' ? '0.4.0' : undefined,
+      });
+      const after = {
+        ...before,
+        activeSince: version,
+        lifecycleRationale: 'The activation record was corrected.',
+      };
+      const evidence = testEntity('passing');
+      evidence.since = '0.3.0';
+      expect(
+        checkSpecLifecycleAuthoring(before, after, createSpecWorkspace([before, evidence]))
+      ).toContainEqual(expect.stringContaining('criterion-needs-evidence'));
+      expect(checkSpecLifecycleAuthoring(before, after)).toContainEqual(
+        expect.stringContaining('requires the current workspace')
+      );
+      evidence.since = version;
+      expect(
+        checkSpecLifecycleAuthoring(before, after, createSpecWorkspace([before, evidence]))
+      ).toEqual([]);
+      expect(checkSpecLifecycleAuthoring(before, { ...before, title: 'Edited prose' })).toEqual([]);
+    }
+  );
 
   it.each(['decision', 'knowledge'] as const)(
     'does not invent runtime evidence for %s admission',
