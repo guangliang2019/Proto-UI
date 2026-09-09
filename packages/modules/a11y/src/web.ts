@@ -50,8 +50,8 @@ type WebProjectorRecord = {
   ownedIdTarget: HTMLElement | null;
   lastTargetId: string | null;
   dependencyRefs: Set<A11ySemanticObjectRef>;
-  projections: Map<string, StructuredProjection>;
-  scalarAttributes: Map<string, { target: HTMLElement; value: string }>;
+  scalarAttributes: Map<HTMLElement, Map<string, string>>;
+  legacyAppendAttributes: Map<string, { target: HTMLElement; tokens: readonly string[] }>;
   detached: boolean;
   disposed: boolean;
 };
@@ -75,7 +75,10 @@ export function createWebA11yProjectionRegistry(
     HTMLElement,
     Map<string, Map<string, { baseline: boolean; count: number }>>
   >();
-  const scalarAttributeRefs = new WeakMap<HTMLElement, Map<string, Map<string, number>>>();
+  const scalarAttributeRefs = new WeakMap<
+    HTMLElement,
+    Map<string, Map<string, { count: number; baseline: boolean }>>
+  >();
 
   const acquireAppendTokens = (
     target: HTMLElement,
@@ -124,22 +127,27 @@ export function createWebA11yProjectionRegistry(
     (appendTokenRefs.get(target)?.get(attr)?.get(token)?.count ?? 0) > 0;
 
   const releaseScalarAttributes = (record: WebProjectorRecord, removeOwned = true) => {
-    for (const [attr, ownership] of record.scalarAttributes) {
-      const byAttribute = scalarAttributeRefs.get(ownership.target);
-      const byValue = byAttribute?.get(attr);
-      const count = byValue?.get(ownership.value) ?? 0;
-      if (count <= 1) {
-        byValue?.delete(ownership.value);
-        if (removeOwned && ownership.target.getAttribute(attr) === ownership.value) {
-          ownership.target.removeAttribute(attr);
+    if (!removeOwned) return;
+    for (const [target, attributes] of record.scalarAttributes) {
+      for (const [attr, value] of attributes) {
+        const byAttribute = scalarAttributeRefs.get(target);
+        const byValue = byAttribute?.get(attr);
+        const entry = byValue?.get(value);
+        if (!entry) continue;
+        entry.count -= 1;
+        if (entry.count === 0) {
+          byValue?.delete(value);
+          if (!entry.baseline && target.getAttribute(attr) === value) target.removeAttribute(attr);
         }
-      } else {
-        byValue?.set(ownership.value, count - 1);
+        if (byValue?.size === 0) byAttribute?.delete(attr);
+        if (byAttribute?.size === 0) scalarAttributeRefs.delete(target);
       }
-      if (byValue?.size === 0) byAttribute?.delete(attr);
-      if (byAttribute?.size === 0) scalarAttributeRefs.delete(ownership.target);
     }
-    if (removeOwned) record.scalarAttributes.clear();
+    for (const [attr, ownership] of record.legacyAppendAttributes) {
+      releaseAppendTokens(ownership.target, attr, ownership.tokens);
+    }
+    record.legacyAppendAttributes.clear();
+    record.scalarAttributes.clear();
   };
 
   const acquireScalarAttributes = (
@@ -158,8 +166,19 @@ export function createWebA11yProjectionRegistry(
         byValue = new Map();
         byAttribute.set(attr, byValue);
       }
-      byValue.set(value, (byValue.get(value) ?? 0) + 1);
-      record.scalarAttributes.set(attr, { target, value });
+      const entry = byValue.get(value);
+      if (entry) entry.count += 1;
+      else byValue.set(value, { count: 1, baseline: target.getAttribute(attr) === value });
+      const ownedAttributes = record.scalarAttributes.get(target) ?? new Map<string, string>();
+      ownedAttributes.set(attr, value);
+      record.scalarAttributes.set(target, ownedAttributes);
+    }
+    for (const [key, attr] of Object.entries(ARIA_RELATION_ATTRS)) {
+      const relation = snapshot.relations[key];
+      if (typeof relation !== 'string' || snapshot.relationModes?.[key] !== 'append') continue;
+      const tokens = readTokens(relation);
+      acquireAppendTokens(target, attr, tokens, readTokens(target.getAttribute(attr)));
+      record.legacyAppendAttributes.set(attr, { target, tokens });
     }
   };
 
@@ -474,7 +493,11 @@ export function createWebA11yProjectionRegistry(
     }
   };
 
-  const update = (record: WebProjectorRecord, snapshot: A11ySemanticObjectSnapshot) => {
+  const update = (
+    record: WebProjectorRecord,
+    snapshot: A11ySemanticObjectSnapshot,
+    forceStructured = false
+  ) => {
     if (record.disposed || record.detached) return;
     const nextTarget = record.getTarget();
     const nextDocument = nextTarget?.ownerDocument ?? record.targetDocument;
@@ -486,7 +509,7 @@ export function createWebA11yProjectionRegistry(
     const previousTargetId = record.lastTargetId;
     const bindingReplaced = targetChanged || documentChanged || refChanged;
     const structuredChanged =
-      bindingReplaced || structuredRelationsChanged(previousSnapshot, snapshot);
+      forceStructured || bindingReplaced || structuredRelationsChanged(previousSnapshot, snapshot);
 
     releaseScalarAttributes(record, !bindingReplaced);
     if (bindingReplaced) {
@@ -513,12 +536,12 @@ export function createWebA11yProjectionRegistry(
       const indexed = recordsByRef.get(snapshot.objectRef) ?? new Set<WebProjectorRecord>();
       indexed.add(record);
       recordsByRef.set(snapshot.objectRef, indexed);
+      acquireScalarAttributes(record, nextTarget, snapshot);
       applyWebA11ySnapshot(
         nextTarget,
         snapshot,
         !bindingReplaced ? (previousSnapshot ?? undefined) : undefined
       );
-      acquireScalarAttributes(record, nextTarget, snapshot);
     }
 
     const currentTargetId = nextTarget?.id || null;
@@ -556,6 +579,7 @@ export function createWebA11yProjectionRegistry(
         ownedIdTarget: null,
         lastTargetId: null,
         scalarAttributes: new Map(),
+        legacyAppendAttributes: new Map(),
         dependencyRefs: new Set(),
         projections: new Map(),
         detached: false,
@@ -587,7 +611,7 @@ export function createWebA11yProjectionRegistry(
             if (record.snapshot) update(record, record.snapshot);
           });
         }
-        if (record.snapshot) update(record, record.snapshot);
+        if (record.snapshot) update(record, record.snapshot, true);
       };
       projector.clearHeadingLevel = () => {
         if (record.snapshot && hasProjectedHeadingLevel(record.snapshot)) {

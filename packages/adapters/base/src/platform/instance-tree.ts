@@ -341,7 +341,7 @@ export function createInstanceTreeMarkers(
     delete (current as unknown as Record<PropertyKey, unknown>)[PROTO_INSTANCE];
     delete (current as ElementWithProtoParent)[TRIGGER_OWNER_MARK];
     unregisterTriggerMember(token);
-    if (!wasTrigger) notifyInstanceLifecycle(token);
+    notifyInstanceLifecycle(token);
   }
 
   function mergeLogicalTriggerGroup(
