@@ -165,6 +165,6 @@
     "apps/www/src/styles/markdown.css": "2de6d5097d4aa13f7e60c0299a5cb27af89c95157f1db3bbb91d78a689c57a7b",
     "apps/www/src/styles/code-surfaces.css": "74551feb1cb892a57802196b60fb113d4eeb4cc6fa1851282c28e432a1469c14",
     "apps/www/src/components/PrototypePreviewer/code-themes.mjs": "0ed06f21952d00ee1e956182ba47e30a38f8a8f7c6d02bbcc790a52ff28220da",
-    "apps/www/src/content/docs/zh-cn/code-surfaces.browser.test.ts": "5471dda8652475661bad9e3d646aafa22f5cdfd3f14d7558bce9903f277eec2"
+    "apps/www/src/content/docs/zh-cn/code-surfaces.browser.test.ts": "5471dda8652475661bad9e3d646aafa22f5cdfd3f14d7558bce9903f277eec2e"
   }
 }
