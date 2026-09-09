@@ -346,6 +346,58 @@ describe('ordinary lifecycle targets and authoring', () => {
     expect(checkSpecLifecycleAuthoring(draft, declared, workspace)).toEqual([]);
   });
 
+  it.each([{ covers: [] }, { covers: ['C-ABSENT-0001-A'] }, { covers: ['C-OTHER-0001-A'] }])(
+    'rejects Test admission with invalid case covers: $covers',
+    ({ covers }) => {
+      const draft = testEntity('passing');
+      const active: SpecEntity = {
+        ...draft,
+        status: 'active',
+        activeSince: version,
+        lifecycleRationale: 'The execution map was reviewed.',
+        revisions: [{ version, change: 'admitted', summary: 'Admission was reviewed.' }],
+        cases: [{ ...draft.cases[0], covers }],
+      };
+      const other = contract({
+        id: 'C-OTHER-0001',
+        criteria: [{ id: 'C-OTHER-0001-A', text: 'Another requirement.' }],
+      });
+      const workspace = createSpecWorkspace([contract(), other, active]);
+      expect(checkSpecLifecycleAuthoring(draft, active, workspace)).toContainEqual(
+        expect.stringMatching(/case-(needs-criteria|invalid-criterion)/)
+      );
+      active.cases[0].covers = [criterionId];
+      expect(checkSpecLifecycleAuthoring(draft, active, workspace)).toEqual([]);
+    }
+  );
+
+  it('accepts case mappings on exercised targets without turning them into verifies', () => {
+    const draft = testEntity('passing');
+    const active: SpecEntity = {
+      ...draft,
+      status: 'active',
+      activeSince: version,
+      lifecycleRationale: 'The execution map was reviewed.',
+      revisions: [{ version, change: 'admitted', summary: 'Admission was reviewed.' }],
+      verifies: {},
+      exercises: { contracts: [{ id: contractId }] },
+    };
+    const workspace = createSpecWorkspace([contract(), active]);
+    expect(checkSpecLifecycleAuthoring(draft, active, workspace)).toEqual([]);
+    expect(
+      getSpecLifecycleReport(workspace, version).rows.find((row) => row.entityId === contractId)
+        ?.gaps
+    ).toContainEqual(expect.objectContaining({ code: 'criterion-needs-evidence' }));
+    active.exercises = {};
+    active.implementations[0].exercises = [contractId];
+    expect(checkSpecLifecycleAuthoring(draft, active, workspace)).toEqual([]);
+    active.implementations[0].exercises = [];
+    const owner = contract({ verifies: { tests: [testId] } });
+    expect(
+      checkSpecLifecycleAuthoring(draft, active, createSpecWorkspace([owner, active]))
+    ).toEqual([]);
+  });
+
   it('rejects actual admission with blockers or incomplete required implementations', () => {
     const draft = contract();
     const active = contract({

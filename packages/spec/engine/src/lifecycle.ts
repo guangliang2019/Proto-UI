@@ -246,7 +246,34 @@ export function getSpecLifecycleReport(
       if (!entity.cases.length) gap('missing-cases', 'No conformance cases are recorded.');
       if (!entity.implementations.length)
         gap('missing-evidence', 'No executable implementation is recorded.');
+      const governedTargets = [
+        ...relationIds(entity.verifies, version),
+        ...relationIds(entity.exercises, version),
+        ...entities
+          .filter((target) => relationIds(target.verifies, version).includes(entity.id))
+          .map((target) => target.id),
+      ];
       for (const testCase of entity.cases) {
+        const targets = new Set([
+          ...governedTargets,
+          ...entity.implementations
+            .filter((implementation) => implementation.consumesCases.includes(testCase.id))
+            .flatMap((implementation) => implementation.exercises),
+        ]);
+        const criteria = new Set(
+          entities
+            .filter((target) => targets.has(target.id))
+            .flatMap((target) => target.criteria.map((criterion) => criterion.id))
+        );
+        if (!testCase.covers.length)
+          gap('case-needs-criteria', `${testCase.id} has no criterion mapping.`);
+        for (const criterion of testCase.covers) {
+          if (!criteria.has(criterion))
+            gap(
+              'case-invalid-criterion',
+              `${testCase.id} covers ${criterion}, which is not a criterion on an available governed target.`
+            );
+        }
         if (
           !entity.implementations.some(
             (implementation) =>
