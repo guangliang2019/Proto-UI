@@ -2007,6 +2007,11 @@ function countHarnessExportedUserFacingSurfaces(content, absolutePath) {
     if (isExported && (ts.isFunctionDeclaration(statement) || ts.isClassDeclaration(statement))) {
       if (statement.name && renderedLocalNames.has(statement.name.text)) {
         exportedNames.add(statement.name.text);
+      } else if (
+        !statement.name &&
+        statement.modifiers?.some((modifier) => modifier.kind === ts.SyntaxKind.DefaultKeyword)
+      ) {
+        exportedNames.add('default');
       }
     } else if (isExported && ts.isVariableStatement(statement)) {
       for (const declaration of statement.declarationList.declarations) {
@@ -2542,7 +2547,10 @@ function astContainsHarnessRenderOrEffectAction(content, absolutePath) {
         found = true;
         return;
       }
-      if (node !== executionRoot && ts.isFunctionLike(node)) return;
+      if (node !== executionRoot && ts.isFunctionLike(node)) {
+        if (ts.isReturnStatement(node.parent) && node.body) visit(node.body, node.body);
+        return;
+      }
       if (ts.isCallExpression(node)) {
         const callee = unwrapTypeScriptExpression(node.expression);
         const callable =
@@ -2635,6 +2643,7 @@ function astContainsHarnessRenderOrEffectAction(content, absolutePath) {
   };
   const renderedLocalDeclarations = new Map();
   const classMemberCallable = (member) => {
+    if (ts.isConstructorDeclaration(member) && member.body) return member;
     if (ts.isMethodDeclaration(member) && member.body) return member;
     if (ts.isPropertyDeclaration(member) && member.initializer) {
       const initializer = unwrapTypeScriptExpression(member.initializer);
@@ -2645,9 +2654,11 @@ function astContainsHarnessRenderOrEffectAction(content, absolutePath) {
     return null;
   };
   const classMemberName = (member) =>
-    member.name && (ts.isIdentifier(member.name) || ts.isStringLiteralLike(member.name))
-      ? member.name.text
-      : null;
+    ts.isConstructorDeclaration(member)
+      ? 'constructor'
+      : member.name && (ts.isIdentifier(member.name) || ts.isStringLiteralLike(member.name))
+        ? member.name.text
+        : null;
   const collectRenderedFunctionLikes = (root, destination) => {
     const visit = (node) => {
       if (ts.isArrowFunction(node) || ts.isFunctionExpression(node)) {
@@ -2670,7 +2681,7 @@ function astContainsHarnessRenderOrEffectAction(content, absolutePath) {
             if (
               callable &&
               memberName &&
-              /^(?:UNSAFE_componentWillMount|UNSAFE_componentWillReceiveProps|UNSAFE_componentWillUpdate|componentDidMount|componentDidUpdate|componentWillMount|componentWillReceiveProps|componentWillUpdate|getDerivedStateFromError|getDerivedStateFromProps|getSnapshotBeforeUpdate|render|shouldComponentUpdate)$/u.test(
+              /^(?:constructor|UNSAFE_componentWillMount|UNSAFE_componentWillReceiveProps|UNSAFE_componentWillUpdate|componentDidMount|componentDidUpdate|componentWillMount|componentWillReceiveProps|componentWillUpdate|getDerivedStateFromError|getDerivedStateFromProps|getSnapshotBeforeUpdate|render|shouldComponentUpdate)$/u.test(
                 memberName
               )
             ) {
@@ -3032,6 +3043,14 @@ function moduleSpecifiersForWebsiteSource(absolutePath) {
   if (/\.(?:css|less|s[ac]ss)$/i.test(absolutePath)) {
     return styleModuleSpecifiers(content);
   }
+  if (/\.html?$/i.test(absolutePath)) {
+    return [
+      ...externalScriptModuleSpecifiers(content),
+      ...embeddedScriptSegments(content).flatMap((segment) =>
+        scriptModuleSpecifiers(segment, absolutePath)
+      ),
+    ];
+  }
   if (/\.(?:astro|vue|svelte)$/i.test(absolutePath)) {
     return [
       ...externalScriptModuleSpecifiers(content),
@@ -3305,7 +3324,8 @@ function isTestNamedSource(absolutePath) {
 
 function reachableSourcePaths(
   candidates,
-  aliasConfig = { aliases: new Map(), unsupported: new Set() }
+  aliasConfig = { aliases: new Map(), unsupported: new Set() },
+  root = process.cwd()
 ) {
   const candidateByPath = new Map(
     candidates.map((candidate) => [path.resolve(candidate), candidate])
@@ -3364,6 +3384,21 @@ function reachableSourcePaths(
         pending.push(target);
       }
     }
+    const relativeSourcePath = path.relative(root, sourcePath).replaceAll('\\', '/');
+    const viteRoot = relativeSourcePath.startsWith('apps/www/')
+      ? path.join(root, 'apps', 'www')
+      : path.join(root, 'apps', 'agent-harness');
+    for (const patterns of viteGlobPatternGroupsForWebsiteSource(sourcePath)) {
+      for (const target of viteGlobTargets(root, relativeSourcePath, patterns, {
+        aliasConfig,
+        viteRoot,
+      })) {
+        if (target.absolutePath && !reachable.has(target.absolutePath)) {
+          reachable.add(target.absolutePath);
+          pending.push(target.absolutePath);
+        }
+      }
+    }
   }
   return reachable;
 }
@@ -3377,10 +3412,10 @@ function discoverWebsiteRawImports(rootDir) {
     .concat(walkFiles(publicRoot))
     .concat(fs.existsSync(configPath) ? [configPath] : [])
     .filter((absolutePath) =>
-      /\.(?:astro|mdx?|[cm]?[jt]sx?|css|less|s[ac]ss|vue|svelte)$/i.test(absolutePath)
+      /\.(?:html?|astro|mdx?|[cm]?[jt]sx?|css|less|s[ac]ss|vue|svelte)$/i.test(absolutePath)
     );
   const websiteAliasConfig = configuredWebsiteSourceAliases(rootDir);
-  const reachable = reachableSourcePaths(allCandidates, websiteAliasConfig);
+  const reachable = reachableSourcePaths(allCandidates, websiteAliasConfig, rootDir);
   const candidates = [...new Set([...allCandidates, ...reachable])].filter(
     (absolutePath) => !isTestNamedSource(absolutePath) || reachable.has(absolutePath)
   );
@@ -3454,7 +3489,7 @@ function discoverHarnessRawImports(rootDir) {
   const allCandidates = walkFiles(sourceRoot).filter((absolutePath) =>
     /\.(?:[cm]?[jt]sx?|css|less|s[ac]ss)$/i.test(absolutePath)
   );
-  const reachable = reachableSourcePaths(allCandidates);
+  const reachable = reachableSourcePaths(allCandidates, undefined, rootDir);
   const candidates = allCandidates.filter(
     (absolutePath) => !isTestNamedSource(absolutePath) || reachable.has(absolutePath)
   );
