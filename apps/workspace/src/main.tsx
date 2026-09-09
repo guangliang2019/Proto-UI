@@ -50,9 +50,10 @@ const UI_TEXT = {
     lifecycleBasis:
       'Current catalog, filtered by version. Recorded evidence and dispositions are not execution results or admission approval.',
     lifecycleUnavailable: 'Lifecycle report is unavailable; inspect the validation issues.',
+    draftAtVersion: 'Draft at the selected version.',
     unreviewed: 'Unreviewed drafts',
     noDisposition: 'No authored disposition',
-    recordedDispositions: 'Drafts with dispositions',
+    recordedDispositions: 'Drafts with dispositions at this version',
     legacyActivation: 'Unknown activation provenance',
     unclassified: 'Unclassified',
     recordedGaps: 'Recorded gaps',
@@ -188,9 +189,10 @@ const UI_TEXT = {
     lifecycleRationale: '生命周期理由',
     lifecycleBasis: '按版本筛选的当前目录。已记录的证据与处置不等于测试执行结果或稳定性批准。',
     lifecycleUnavailable: '生命周期报告不可用，请检查验证问题。',
+    draftAtVersion: '在所选版本仍为草案。',
     unreviewed: '未评审草案',
     noDisposition: '尚无已记录处置',
-    recordedDispositions: '已记录处置的草案',
+    recordedDispositions: '所选版本已记录处置的草案',
     legacyActivation: '生效历史未确认',
     unclassified: '未分类',
     recordedGaps: '已记录缺口',
@@ -316,6 +318,7 @@ type SpecWorkspaceDataset = {
   versions: string[];
   latestVersion: string;
   entities: SpecEntity[];
+  catalogValid: boolean;
   lifecyclePlans: Record<string, SpecLifecyclePlan | null | undefined>;
   issues: Array<{ filePath?: string; message: string }>;
 };
@@ -394,7 +397,7 @@ function App() {
   const diff = diffSpecSnapshots(getSpecSnapshot(workspace, fromVersion), snapshot);
   const graph = buildSpecGraph(snapshot);
   const lifecycleReport =
-    dataset.lifecyclePlans[toVersion] === null
+    dataset.catalogValid !== true || dataset.lifecyclePlans[toVersion] === null
       ? null
       : getSpecLifecycleReport(workspace, toVersion, dataset.lifecyclePlans[toVersion]);
   const selectedEntity =
@@ -743,6 +746,9 @@ function LifecyclePanel(props: {
               <strong>
                 {selected.entityId} · {selected.status}
               </strong>
+              {selected.draftAtVersion && selected.status !== 'draft' ? (
+                <p>{props.t.draftAtVersion}</p>
+              ) : null}
               <h3>{props.t.lifecycleRationale}</h3>
               <p>
                 {selected.rationale
@@ -752,7 +758,7 @@ function LifecyclePanel(props: {
               <p>
                 {selected.disposition
                   ? props.t.dispositions[selected.disposition.disposition]
-                  : selected.status === 'draft'
+                  : selected.draftAtVersion
                     ? props.t.unreviewed
                     : props.t.noDisposition}
               </p>

@@ -74,6 +74,8 @@ Record reviewed semantic slices in `internal/releases/<version>/lifecycle-dispos
 
 Use `pnpm release:lifecycle -- --check --entities <entity-ids>` to require a disposition for every draft in a reviewed scope. Without `--entities`, `--check` validates all drafts in the full report inventory and fails if any draft disposition is missing. Non-draft metadata and activation-provenance gaps remain visible for audit without making their dispositions mandatory. The preparation PR must state which scope passed and what remains unreviewed. `release:rehearse` generates the full report as the review trigger; generation alone is not a full-catalog readiness check. No report or disposition changes entity status, backfills activation history, or replaces the separate V-entity publication-evidence workflow.
 
+Draft requirements are evaluated at the selected report version: current drafts and available entities whose recorded `activeSince` is later than that version require a disposition. Missing activation provenance is not inferred.
+
 ## 4. Publication
 
 Real publication is manually triggered from `main` and protected by the GitHub `npm` environment approval.

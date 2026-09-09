@@ -51,7 +51,7 @@ if (out) {
 if (json) process.stdout.write(contents);
 else {
   console.log(
-    `[lifecycle] current catalog ${version}: ${report.summary.entities} ordinary entities, ${report.summary.drafts} drafts`
+    `[lifecycle] current catalog ${version}: ${report.summary.entities} ordinary entities, ${report.summary.drafts} known drafts at this version`
   );
   console.log(
     `[lifecycle] ${report.summary.reviewedDrafts} drafts have dispositions; ${report.unreviewedEntities.length} remain unreviewed`

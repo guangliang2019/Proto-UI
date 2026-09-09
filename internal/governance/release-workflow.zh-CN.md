@@ -74,6 +74,8 @@ npm Trusted Publisher 是 package 级配置，因此 package identity 不存在�
 
 使用 `pnpm release:lifecycle -- --check --entities <entity-ids>` 要求已评审范围内的每个 draft 都有 disposition；省略 `--entities` 时，`--check` 检查完整报告 inventory 中的全部 draft，任何 draft disposition 缺失都会失败。非 draft 实体的元数据与 activation-provenance 缺口继续展示供审计，但不因此强制要求 disposition。准备 PR 必须说明通过检查的范围和仍未评审的余量。`release:rehearse` 生成完整报告以触发评审；生成成功不代表全目录已经通过 readiness 检查。报告和 disposition 不修改实体 status、不回填 activation history，也不替代独立的 V 实体发布证据流程。
 
+Draft disposition 按所选报告版本判断：当前为 draft，或所选版本早于已记录 `activeSince` 的可用普通实体，属于已知草案；缺少 activation provenance 时不推断其历史状态。
+
 ## 4. 发布流程
 
 真实发布只允许从 `main` 手动触发，并由 GitHub `npm` environment 审批保护。

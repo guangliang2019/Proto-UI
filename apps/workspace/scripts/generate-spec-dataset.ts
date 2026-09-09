@@ -13,6 +13,7 @@ const outDir = path.join(appDir, 'public');
 const outFile = path.join(outDir, 'spec-workspace.json');
 
 const workspace = await loadSpecWorkspaceFromDirectory(specDir);
+const catalogValid = workspace.issues.length === 0;
 const releases = getSpecReleases(workspace);
 const versions = releases.map((release) => release.version);
 const latestVersion = versions.at(-1) ?? '0.1.0';
@@ -40,6 +41,7 @@ await writeFile(
       versions,
       latestVersion,
       entities: workspace.entities,
+      catalogValid,
       lifecyclePlans,
       issues: workspace.issues,
     },

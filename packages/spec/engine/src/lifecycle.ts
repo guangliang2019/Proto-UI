@@ -1,4 +1,5 @@
 import {
+  compareSpecVersions,
   isSpecEntityActiveAt,
   isSpecEntityAvailableAt,
   parseSpecBlockTarget,
@@ -37,6 +38,7 @@ export type SpecLifecycleRow = {
   entityId: string;
   type: SpecEntity['type'];
   status: SpecEntity['status'];
+  draftAtVersion: boolean;
   rationale?: SpecLocalizedText;
   activeSince?: string;
   stableAtVersion: boolean | null;
@@ -79,6 +81,13 @@ function hasText(text: SpecLocalizedText | undefined): boolean {
       Boolean(value?.trim())
     )
   );
+}
+
+function rationaleContent(text: SpecLocalizedText | undefined): string {
+  if (typeof text === 'string') return JSON.stringify([text.trim(), text.trim()]);
+  const en = text?.en?.trim() ?? '';
+  const zh = text?.['zh-CN']?.trim() ?? '';
+  return JSON.stringify([en || zh, zh || en]);
 }
 
 /** Records catalog facts and authored dispositions; it never changes entity lifecycle. */
@@ -145,6 +154,9 @@ export function getSpecLifecycleReport(
     )
   );
   const rows = entities.map((entity): SpecLifecycleRow => {
+    const draftAtVersion =
+      entity.status === 'draft' ||
+      (entity.activeSince !== undefined && compareSpecVersions(version, entity.activeSince) < 0);
     const verifyingTests = tests.filter(
       (test) =>
         test.id === entity.id ||
@@ -265,21 +277,22 @@ export function getSpecLifecycleReport(
       );
     }
     const disposition = plan?.version === version ? dispositions.get(entity.id) : undefined;
-    if (disposition?.disposition === 'remain-draft' && entity.status !== 'draft') {
+    if (disposition?.disposition === 'remain-draft' && !draftAtVersion) {
       issues.push({
         code: 'disposition-status-mismatch',
         entityId: entity.id,
         sliceId: disposition.id,
-        message: 'remain-draft applies only to a draft entity.',
+        message: 'remain-draft applies only to a known draft at the selected version.',
       });
     }
     if (disposition?.disposition === 'promote') {
-      if (entity.status !== 'draft')
+      if (!draftAtVersion)
         issues.push({
           code: 'disposition-status-mismatch',
           entityId: entity.id,
           sliceId: disposition.id,
-          message: 'promote is a review proposal for a draft entity, not a lifecycle mutation.',
+          message:
+            'promote is a review proposal for a known draft at the selected version, not a lifecycle mutation.',
         });
       if (gaps.length)
         issues.push({
@@ -293,6 +306,7 @@ export function getSpecLifecycleReport(
       entityId: entity.id,
       type: entity.type,
       status: entity.status,
+      draftAtVersion,
       ...(entity.lifecycleRationale ? { rationale: entity.lifecycleRationale } : {}),
       ...(entity.activeSince ? { activeSince: entity.activeSince } : {}),
       stableAtVersion: legacyActive ? null : isSpecEntityActiveAt(entity, version),
@@ -312,12 +326,12 @@ export function getSpecLifecycleReport(
     rows,
     issues,
     unreviewedEntities: rows
-      .filter((row) => row.status === 'draft' && !row.disposition)
+      .filter((row) => row.draftAtVersion && !row.disposition)
       .map((row) => row.entityId),
     summary: {
       entities: rows.length,
-      drafts: rows.filter((row) => row.status === 'draft').length,
-      reviewedDrafts: rows.filter((row) => row.status === 'draft' && row.disposition).length,
+      drafts: rows.filter((row) => row.draftAtVersion).length,
+      reviewedDrafts: rows.filter((row) => row.draftAtVersion && row.disposition).length,
       legacyActive: rows.filter((row) => row.stableAtVersion === null).length,
       unclassifiedBlocks: rows.reduce((sum, row) => sum + row.unclassifiedBlocks.length, 0),
     },
@@ -341,7 +355,7 @@ export function checkSpecLifecycleDispositions(
         entityId: id,
         message: `${id} is outside the report scope.`,
       });
-    else if (row.status === 'draft' && !row.disposition)
+    else if (row.draftAtVersion && !row.disposition)
       issues.push({
         code: 'missing-disposition',
         entityId: id,
@@ -372,7 +386,7 @@ export function checkSpecLifecycleAuthoring(
     issues.push(`${after.id}: new or lifecycle-changing authoring requires lifecycleRationale.`);
   else if (
     before &&
-    JSON.stringify(before.lifecycleRationale) === JSON.stringify(after.lifecycleRationale)
+    rationaleContent(before.lifecycleRationale) === rationaleContent(after.lifecycleRationale)
   )
     issues.push(`${after.id}: changed lifecycle requires updated lifecycleRationale.`);
   if (after.status === 'active' && !after.activeSince)
@@ -380,17 +394,26 @@ export function checkSpecLifecycleAuthoring(
       `${after.id}: newly admitted active status requires activation provenance in activeSince.`
     );
   if (before && before.status !== 'active' && after.status === 'active') {
-    const previousRevisions = new Set(before.revisions.map((revision) => JSON.stringify(revision)));
+    const revisionKey = (revision: SpecEntity['revisions'][number]) =>
+      JSON.stringify([revision.version, revision.change, revision.summary, revision.breaking]);
+    const previousRevisions = before.revisions.map(revisionKey);
+    const currentRevisions = after.revisions.map(revisionKey);
+    const historyPreserved = previousRevisions.every(
+      (revision, index) => currentRevisions[index] === revision
+    );
     if (
-      !after.revisions.some(
-        (revision) =>
-          revision.version === after.activeSince &&
-          hasText(revision.summary) &&
-          !previousRevisions.has(JSON.stringify(revision))
-      )
+      !historyPreserved ||
+      !after.revisions
+        .slice(before.revisions.length)
+        .some(
+          (revision) =>
+            revision.version === after.activeSince &&
+            hasText(revision.summary) &&
+            !previousRevisions.includes(revisionKey(revision))
+        )
     )
       issues.push(
-        `${after.id}: promotion requires a new admission revision with a summary at activeSince.`
+        `${after.id}: promotion must preserve prior revisions and append a new admission revision with a summary at activeSince.`
       );
   }
   return issues;

@@ -1,9 +1,11 @@
 // @vitest-environment node
 
-import { spawn, type ChildProcess } from 'node:child_process';
-import { mkdir } from 'node:fs/promises';
+import { execFile, spawn, type ChildProcess } from 'node:child_process';
+import { copyFile, mkdir, mkdtemp, readFile, rm, symlink, writeFile } from 'node:fs/promises';
 import { createServer } from 'node:net';
+import { tmpdir } from 'node:os';
 import path from 'node:path';
+import { promisify } from 'node:util';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { launchBrowser } from '../../www/src/content/docs/zh-cn/browser-harness';
 
@@ -166,6 +168,129 @@ describe.sequential('Workspace lifecycle review projection', () => {
       );
     } finally {
       await context.close();
+    }
+  }, 60_000);
+
+  it('withholds an invalid generated catalog independently of per-version plan validity', async () => {
+    const directory = await mkdtemp(path.join(tmpdir(), 'pui-workspace-lifecycle-'));
+    const context = await browser.newContext();
+    try {
+      const fixtureApp = path.join(directory, 'apps/workspace');
+      const generator = path.join(fixtureApp, 'scripts/generate-spec-dataset.ts');
+      const specDir = path.join(directory, 'spec');
+      await mkdir(path.dirname(generator), { recursive: true });
+      await mkdir(specDir);
+      await copyFile('apps/workspace/scripts/generate-spec-dataset.ts', generator);
+      await copyFile('apps/workspace/package.json', path.join(fixtureApp, 'package.json'));
+      await symlink(
+        path.resolve('apps/workspace/node_modules'),
+        path.join(fixtureApp, 'node_modules'),
+        'junction'
+      );
+      for (const [index, releaseVersion] of ['0.2.0', version].entries()) {
+        await writeFile(
+          path.join(specDir, `version-${index}.yaml`),
+          JSON.stringify({
+            id: `V-WORKSPACE-000${index + 1}`,
+            type: 'version',
+            title: releaseVersion,
+            status: 'draft',
+            since: releaseVersion,
+            release: {
+              version: releaseVersion,
+              channel: index ? 'prerelease' : 'stable',
+              gitTag: `v${releaseVersion}`,
+              npmDistTag: index ? 'next' : 'latest',
+              packageVersionPolicy: 'exact',
+              packageScope: 'public-@proto.ui',
+            },
+          })
+        );
+        await mkdir(path.join(directory, 'internal/releases', releaseVersion), { recursive: true });
+      }
+      const fixtureContract = {
+        id: contractId,
+        type: 'contract',
+        title: 'Generated lifecycle fixture',
+        status: 'draft',
+        since: version,
+        lifecycleRationale: 'Implementation remains incomplete.',
+      };
+      await writeFile(path.join(specDir, 'contract.yaml'), JSON.stringify(fixtureContract));
+      await writeFile(
+        path.join(directory, 'internal/releases', version, 'lifecycle-dispositions.json'),
+        JSON.stringify({
+          schemaVersion: 1,
+          version,
+          slices: [
+            {
+              id: 'fixture',
+              entities: [contractId],
+              disposition: 'remain-draft',
+              rationale: 'Implementation remains incomplete.',
+              evidence: ['spec/contract.yaml'],
+            },
+          ],
+        })
+      );
+      await writeFile(
+        path.join(directory, 'internal/releases/0.2.0/lifecycle-dispositions.json'),
+        '{}'
+      );
+      const invalidEntity = path.join(specDir, 'invalid.yaml');
+      await writeFile(
+        invalidEntity,
+        'id: C-WORKSPACE-BROKEN-0001\ntype: contract\nstatus: invalid\n'
+      );
+      const generate = async () => {
+        await promisify(execFile)(process.execPath, ['--import', 'tsx', generator], {
+          cwd: process.cwd(),
+        });
+        return JSON.parse(
+          await readFile(path.join(fixtureApp, 'public/spec-workspace.json'), 'utf8')
+        );
+      };
+      let dataset = await generate();
+      expect(dataset.catalogValid).toBe(false);
+      expect(dataset.lifecyclePlans[version].slices[0].disposition).toBe('remain-draft');
+      expect(dataset.lifecyclePlans['0.2.0']).toBeNull();
+      await context.route('**/spec-workspace.json', (route) => route.fulfill({ json: dataset }));
+      const page = await context.newPage();
+      await page.goto(`${baseUrl}/#/entities/${contractId}`);
+      const panel = page.locator('.lifecycle-panel');
+      await panel.waitFor();
+      expect(await panel.innerText()).toContain('生命周期报告不可用');
+      expect(await panel.locator('dd, [data-lifecycle-entity]').count()).toBe(0);
+      expect(await page.locator('.issues-panel').innerText()).toContain('invalid.yaml');
+
+      await rm(invalidEntity);
+      await writeFile(
+        path.join(specDir, 'contract.yaml'),
+        JSON.stringify({
+          ...fixtureContract,
+          status: 'active',
+          activeSince: '0.3.0',
+          lifecycleRationale: 'Admitted at 0.3.0 after conformance review.',
+        })
+      );
+      dataset = await generate();
+      expect(dataset.catalogValid).toBe(true);
+      expect(dataset.issues.length).toBeGreaterThan(0);
+      expect(dataset.lifecyclePlans['0.2.0']).toBeNull();
+      await page.reload();
+      await panel.locator(`[data-lifecycle-entity="${contractId}"]`).waitFor();
+      expect(await panel.locator('dd').first().innerText()).toBe('1 / 1');
+      expect(await panel.innerText()).toContain('保持草案');
+      expect(await panel.innerText()).toContain('在所选版本仍为草案。');
+      await page.getByRole('button', { name: 'English', exact: true }).click();
+      expect(await panel.innerText()).toContain('Draft at the selected version.');
+      await page.getByRole('combobox', { name: 'To', exact: true }).selectOption('0.2.0');
+      await expect.poll(() => panel.innerText()).toContain('Lifecycle report is unavailable');
+      await page.getByRole('combobox', { name: 'To', exact: true }).selectOption(version);
+      await expect.poll(() => panel.locator('dd').first().innerText()).toBe('1 / 1');
+    } finally {
+      await context.close();
+      await rm(directory, { recursive: true, force: true });
     }
   }, 60_000);
 

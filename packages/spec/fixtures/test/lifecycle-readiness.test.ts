@@ -251,6 +251,54 @@ describe('ordinary lifecycle targets and authoring', () => {
     );
     expect(checkSpecLifecycleAuthoring(undefined, undefined)).toEqual([]);
   });
+
+  it('requires appending admission evidence without replacing earlier revisions', () => {
+    const draft = contract({
+      revisions: [{ version, change: 'clarified', summary: 'The draft boundary was clarified.' }],
+    });
+    const admission = {
+      version,
+      change: 'admitted',
+      summary: 'Required conformance was accepted.',
+    };
+    const active: SpecEntity = {
+      ...draft,
+      status: 'active' as const,
+      activeSince: version,
+      lifecycleRationale: 'The completed evidence supports admission.',
+      revisions: [admission],
+    };
+    expect(checkSpecLifecycleAuthoring(draft, active)).toContainEqual(
+      expect.stringContaining('new admission revision')
+    );
+    active.revisions = [{ ...draft.revisions[0], summary: admission.summary }];
+    expect(checkSpecLifecycleAuthoring(draft, active)).toContainEqual(
+      expect.stringContaining('new admission revision')
+    );
+    active.revisions = [...draft.revisions, admission];
+    expect(checkSpecLifecycleAuthoring(draft, active)).toEqual([]);
+  });
+
+  it('compares localized rationale content independently of language key order', () => {
+    const draft = contract({
+      lifecycleRationale: { en: 'Evidence remains open.', 'zh-CN': '证据尚未完成。' },
+    });
+    const active = {
+      ...draft,
+      status: 'active' as const,
+      activeSince: version,
+      lifecycleRationale: { 'zh-CN': '证据尚未完成。', en: 'Evidence remains open.' },
+      revisions: [{ version, change: 'admitted', summary: 'Required conformance was accepted.' }],
+    };
+    expect(checkSpecLifecycleAuthoring(draft, active)).toContainEqual(
+      expect.stringContaining('updated lifecycleRationale')
+    );
+    active.lifecycleRationale = {
+      en: 'Required evidence is complete.',
+      'zh-CN': '必需证据已完成。',
+    };
+    expect(checkSpecLifecycleAuthoring(draft, active)).toEqual([]);
+  });
 });
 
 describe('ordinary lifecycle reporting', () => {
@@ -394,8 +442,36 @@ describe('ordinary lifecycle reporting', () => {
     );
     expect(checkSpecLifecycleDispositions(legacy)).toEqual([]);
     const future = createSpecWorkspace([contract({ status: 'active', activeSince: '0.3.0' })]);
-    expect(getSpecLifecycleReport(future, version).rows[0].stableAtVersion).toBe(false);
-    expect(getSpecLifecycleReport(future, '0.3.0').rows[0].stableAtVersion).toBe(true);
+    const historicalDraft = getSpecLifecycleReport(future, version);
+    expect(historicalDraft.rows[0].stableAtVersion).toBe(false);
+    expect(historicalDraft.rows[0].draftAtVersion).toBe(true);
+    expect(historicalDraft.summary.drafts).toBe(1);
+    expect(historicalDraft.unreviewedEntities).toEqual([contractId]);
+    expect(checkSpecLifecycleDispositions(historicalDraft, [contractId])).toContainEqual(
+      expect.objectContaining({ code: 'missing-disposition' })
+    );
+    expect(checkSpecLifecycleDispositions(historicalDraft)).toHaveLength(1);
+    expect(
+      checkSpecLifecycleDispositions(getSpecLifecycleReport(future, version, plan([contractId])))
+    ).toEqual([]);
+    const admitted = getSpecLifecycleReport(future, '0.3.0');
+    expect(admitted.rows[0].stableAtVersion).toBe(true);
+    expect(admitted.rows[0].draftAtVersion).toBe(false);
+    expect(checkSpecLifecycleDispositions(admitted)).toEqual([]);
+    const deprecated = getSpecLifecycleReport(
+      createSpecWorkspace([
+        contract({
+          status: 'deprecated',
+          since: '0.1.0',
+          activeSince: '0.1.0',
+          deprecatedSince: version,
+        }),
+      ]),
+      version
+    );
+    expect(deprecated.rows[0].stableAtVersion).toBe(false);
+    expect(deprecated.rows[0].draftAtVersion).toBe(false);
+    expect(checkSpecLifecycleDispositions(deprecated)).toEqual([]);
   });
 
   it('attributes shared test implementations only to the entities they cover or exercise', () => {
