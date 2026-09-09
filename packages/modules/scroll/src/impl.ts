@@ -289,7 +289,9 @@ export class ScrollModuleImpl extends ModuleBase {
     const host = this.getHost();
     if (!host) {
       this.set(this.projectionOwned, 'unresolved');
+      if (epoch !== this.leaseEpoch || !this.mounted) return;
       this.set(this.endFollowStateOwned, 'off');
+      if (epoch !== this.leaseEpoch || !this.mounted) return;
       this.set(this.endFollowRequestStatusOwned, 'idle');
       return;
     }

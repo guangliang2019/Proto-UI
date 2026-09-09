@@ -300,4 +300,32 @@ describe('module-scroll: fake host contract', () => {
 
     expect(harness.surface.endFollow.requestStatus.get()).toBe('rejected');
   });
+  it('does not overwrite replacement facts from a stale no-host reset', () => {
+    const harness = createHarness();
+    harness.module.hooks.onMountPhase?.('mounted', 1);
+    const replacementHost: ScrollSurfaceHost = {
+      support: Object.freeze({ system: true, composed: false }),
+      attach(connection) {
+        connection.onFacts(snapshot('following', 'applied'));
+        return {
+          update() {},
+          request() {},
+          dispose() {},
+        };
+      },
+    };
+    let replaced = false;
+    harness.surface.projection.watch((_run, event) => {
+      if (event.type !== 'next' || event.next !== 'unresolved' || replaced) return;
+      replaced = true;
+      harness.vault.attach([[SCROLL_SURFACE_HOST_CAP, replacementHost]]);
+    });
+    harness.sys.phase = 'callback';
+
+    harness.vault.resetAttached();
+
+    expect(harness.surface.projection.get()).toBe('system');
+    expect(harness.surface.endFollow.state.get()).toBe('following');
+    expect(harness.surface.endFollow.requestStatus.get()).toBe('applied');
+  });
 });
