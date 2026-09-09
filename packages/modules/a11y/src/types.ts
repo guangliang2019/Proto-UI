@@ -38,6 +38,7 @@ export type A11ySemanticObjectIR = {
   actions: Map<A11yActionKey, A11yActionSpec>;
   relations: Map<A11yRelationKey, A11yRelationBinding>;
   tree?: A11yTreeBehavior;
+  level?: number | State<number>;
 };
 
 export type A11yPort = ModulePort & {

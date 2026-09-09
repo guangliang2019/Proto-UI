@@ -467,6 +467,11 @@ export function createWebA11yProjectionRegistry(
       };
       const projector: A11yProjector = (snapshot) => update(record, snapshot);
       projector.detach = detach;
+      projector.clearHeadingLevel = () => {
+        if (record.snapshot && hasProjectedHeadingLevel(record.snapshot)) {
+          record.target?.removeAttribute('aria-level');
+        }
+      };
       projector.dispose = () => {
         if (record.disposed) return;
         const target = record.target;
@@ -497,9 +502,20 @@ export function createWebA11yProjector(
   return registry.createProjector(getTarget, subscribeTargetChange);
 }
 
+function hasProjectedHeadingLevel(snapshot: A11ySemanticObjectSnapshot): boolean {
+  const level = snapshot.level;
+  return (
+    snapshot.role === 'heading' &&
+    typeof level === 'number' &&
+    Number.isInteger(level) &&
+    level >= 1 &&
+    level <= 6
+  );
+}
 export function clearWebA11ySnapshot(el: HTMLElement, snapshot: A11ySemanticObjectSnapshot): void {
   if (typeof snapshot.id !== 'undefined') el.removeAttribute('id');
   if (typeof snapshot.role !== 'undefined') el.removeAttribute('role');
+  if (hasProjectedHeadingLevel(snapshot)) el.removeAttribute('aria-level');
   if (snapshot.name) el.removeAttribute('aria-label');
   if (snapshot.description) el.removeAttribute('aria-description');
 
@@ -543,8 +559,20 @@ export function applyWebA11ySnapshot(
     setOptionalAttr(el, 'id', snapshot.id ?? undefined);
   }
 
+  const level = snapshot.level;
   if (typeof snapshot.role !== 'undefined') {
     setOptionalAttr(el, 'role', snapshot.role);
+  }
+  if (
+    snapshot.role === 'heading' &&
+    typeof level === 'number' &&
+    Number.isInteger(level) &&
+    level >= 1 &&
+    level <= 6
+  ) {
+    setOptionalAttr(el, 'aria-level', String(level));
+  } else if (hasProjectedHeadingLevel(previousSnapshot ?? ({} as A11ySemanticObjectSnapshot))) {
+    el.removeAttribute('aria-level');
   }
 
   if (snapshot.name) {

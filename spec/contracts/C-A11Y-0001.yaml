@@ -78,6 +78,16 @@ criteria:
     text:
       zh-CN: Web direct-ref projector 必须从 opaque ref 保留 target identity，而不是从 protocol key 生成 host id；reservation 作用域必须限定为 target owner document，projector cap replacement 必须立即 replay current semantic snapshot，dependent-source re-resolution 必须按 dependency 定向且不得 sweep unrelated legacy projections；target detach/rematerialize、owner-document transition、source/target physical replacement 与 terminal disposal 必须撤销 stale IDREF/id ownership、重新解析 dependent sources，并保留 host-authored additive tokens 与不再由 projector 拥有的值。
       en: The Web direct-ref projector must reserve target identity from the opaque ref rather than derive a host id from a protocol key; reservations must be scoped to the target owner document, projector-cap replacement must immediately replay the current semantic snapshot, and dependent-source re-resolution must be dependency-targeted without sweeping unrelated legacy projections. Target detach or rematerialization, owner-document transition, source or target physical replacement, and terminal disposal must revoke stale IDREF or id ownership, re-resolve dependent sources, and preserve host-authored additive tokens and values the projector no longer owns.
+  - id: C-A11Y-0001-LEVEL
+    text:
+      zh-CN: >-
+        a11y 语义对象可以携带 portable heading level。只有 resolved role 为 heading 且 level 是 1-6 的整数时，snapshot 才投影 level，Web adapter 将其投影为 aria-level。静态、初始 state-backed 与 final-setup 声明中的 0、负数、分数、NaN 和 Infinity 必须 fail closed 并被拒绝。setup 完成后的无效 state-backed runtime 值仍由 State 拥有；a11y 不得修改、否决或回滚该源，只从 snapshot 省略 level 并让 Web adapter 移除旧 aria-level，后续有效值必须恢复投影。非 heading role、target replacement、detach 或 disposal 必须清理旧物理 target 的 aria-level；runtime 值无效时不得改写独立治理的 role。
+
+
+      en: >-
+        The a11y semantic object may carry a portable heading level. A snapshot projects level only when the resolved role is heading and level is an integer from 1 through 6; the Web adapter projects it as aria-level. Static, initial state-backed, and final-setup declarations containing 0, negatives, fractions, NaN, or Infinity must fail closed and be rejected. After setup, an invalid state-backed runtime value remains owned by State; A11y must not mutate, veto, or roll back that source, must omit level from the snapshot so the Web adapter removes stale aria-level, and must restore projection after a later valid value. A non-heading role, target replacement, detach, or disposal must clear aria-level from the previous physical target; an invalid runtime level must not rewrite the independently governed role.
+
+
 sources:
   - path: internal/records/2026-06-30-a11y-module-planning-for-button.zh-CN.md
   - path: packages/modules/a11y/src/types.ts
@@ -118,7 +128,10 @@ revisions:
     summary: Added additive relation projection, state-backed semantic tree behavior, and optional Web a11y state omission.
   - version: 0.3.0-alpha.0
     change: refined
-    summary: Added opaque logical semantic-object refs, ordered multi-target relations, runtime mutation, and bounded Web direct-ref projection lifecycle.
+    summary: >-
+      Added opaque logical semantic-object refs, ordered multi-target relations, runtime mutation, bounded Web direct-ref projection lifecycle, and role-gated portable heading-level semantics with State-owned runtime omission and recovery plus stale aria-level cleanup.
+
+
 tags:
   - a11y
   - accessibility
