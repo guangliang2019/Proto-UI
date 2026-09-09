@@ -21,6 +21,10 @@ statement:
 
 
 criteria:
+  - id: A-REACT-18-19-0001-POSITIONING
+    text:
+      en: 'The Web Adapter installs Positioning and translates anchored geometry through the shared Floating UI host. Active Overlay placement, resize updates, non-transform projection and cleanup have executable Adapter evidence; this slice does not claim native browser layout fidelity.'
+      zh-CN: 'Web Adapter 安装 Positioning 并通过共享 Floating UI host 翻译锚定几何。active Overlay placement、resize 更新、非 transform 投射与清理已有 Adapter executable evidence；此 slice 不声称证明原生浏览器布局 fidelity。'
   - id: A-REACT-18-19-0001-HIT-PARTICIPATION
     text:
       en: The Adapter wires the current owner boundary and Hit Participation bridge, preserving identical-mode sharing, atomic conflict rejection, and restoration after cleanup. This bounded Web projection does not imply Event cancellation, outside classification or modal policy.
@@ -123,6 +127,9 @@ criteria:
       zh-CN: standard Web Adapter 安装此 partial Rule optimization slice 并提供 native-variant policy。有界 State selector、default fallback 和 view cleanup 已有证据；live replanning 与完整 CSS 等价仍 open。
 supports:
   modules:
+    - id: M-POSITIONING-0001
+      since: 0.3.0-alpha.0
+      role: required-module
     - id: M-HIT-PARTICIPATION-0001
       since: 0.3.0-alpha.0
       role: required-module
@@ -187,6 +194,9 @@ supports:
       note: Required in this standard Web profile; not a cross-host requirement.
 provides:
   hostCaps:
+    - id: HC-ANCHORED-POSITION-0001
+      since: 0.3.0-alpha.0
+      role: translated-capability
     - id: HC-HIT-PARTICIPATION-0001
       since: 0.3.0-alpha.0
       role: translated-capability
@@ -248,6 +258,8 @@ relates:
     - D-ADAPTER-PROFILE-0001
 verifies:
   tests:
+    - id: T-ANCHORED-POSITIONING-0001
+      since: 0.3.0-alpha.0
     - id: T-HIT-PARTICIPATION-0001
       since: 0.3.0-alpha.0
     - id: T-BOUNDARY-0002
@@ -310,6 +322,9 @@ sources:
   - path: packages/adapters/react/test/context.integration.test.ts
   - path: packages/adapters/react/test/expose-state-web.integration.test.ts
 revisions:
+  - version: 0.3.0-alpha.0
+    change: clarified
+    summary: Cataloged bounded Positioning support with active-view geometry and cleanup evidence.
   - version: 0.3.0-alpha.0
     change: revised
     summary: Added bounded Hit Participation translation and shared owner evidence.
