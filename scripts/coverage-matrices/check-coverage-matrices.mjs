@@ -1969,6 +1969,14 @@ function countHarnessExportedUserFacingSurfaces(content, absolutePath) {
     visit(root);
     return rendered;
   };
+  const wrappedExpressionReferencesRenderedLocal = (expression) => {
+    const candidate = unwrapTypeScriptExpression(expression);
+    if (ts.isIdentifier(candidate)) return renderedLocalNames.has(candidate.text);
+    return (
+      ts.isCallExpression(candidate) &&
+      candidate.arguments.some(wrappedExpressionReferencesRenderedLocal)
+    );
+  };
   for (const statement of sourceFile.statements) {
     if (
       (ts.isFunctionDeclaration(statement) || ts.isClassDeclaration(statement)) &&
@@ -2006,8 +2014,7 @@ function countHarnessExportedUserFacingSurfaces(content, absolutePath) {
           ts.isIdentifier(declaration.name) &&
           declaration.initializer &&
           (containsRenderedSurface(declaration.initializer) ||
-            (ts.isIdentifier(declaration.initializer) &&
-              renderedLocalNames.has(declaration.initializer.text)))
+            wrappedExpressionReferencesRenderedLocal(declaration.initializer))
         ) {
           exportedNames.add(declaration.name.text);
         }
@@ -2015,7 +2022,7 @@ function countHarnessExportedUserFacingSurfaces(content, absolutePath) {
     } else if (ts.isExportAssignment(statement)) {
       if (
         containsRenderedSurface(statement.expression) ||
-        (ts.isIdentifier(statement.expression) && renderedLocalNames.has(statement.expression.text))
+        wrappedExpressionReferencesRenderedLocal(statement.expression)
       ) {
         exportedNames.add('default');
       }
