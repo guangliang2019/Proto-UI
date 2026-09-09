@@ -3,6 +3,7 @@ import type { A11ySemanticObjectSnapshot } from '@proto.ui/core';
 
 export type A11yProjector = ((snapshot: A11ySemanticObjectSnapshot) => void) & {
   detach?(): void;
+  reactivate?(): void;
   dispose?(): void;
   clearHeadingLevel?(): void;
 };

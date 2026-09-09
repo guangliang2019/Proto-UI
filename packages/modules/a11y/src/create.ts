@@ -52,6 +52,7 @@ class A11yModuleImpl extends ModuleBase {
     if (phase === 'alive' && isState(this.ir.level)) resolveA11yLevel(this.ir.level);
     if (phase !== 'disposing' || this.projectionDisposed) return;
     this.projectionDisposed = true;
+    this.projectionActive = false;
     for (const projector of this.projectors) projector.dispose?.();
     this.projectors.clear();
     this.activeProjector = null;
@@ -170,7 +171,10 @@ class A11yModuleImpl extends ModuleBase {
 
   protected override onCapsEpoch(_epoch: number): void {
     const next = this.caps.has(A11Y_PROJECT_CAP) ? this.caps.get(A11Y_PROJECT_CAP) : null;
-    if (next === this.activeProjector) return;
+    if (next === this.activeProjector) {
+      next?.reactivate?.();
+      return;
+    }
     this.activeProjector?.detach?.();
     this.activeProjector = next;
     if (next) this.projectors.add(next);

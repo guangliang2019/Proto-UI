@@ -65,7 +65,7 @@ export type WebA11yProjectionRegistry = {
 export function createWebA11yProjectionRegistry(
   options: { idPrefix?: string } = {}
 ): WebA11yProjectionRegistry {
-  const idPrefix = options.idPrefix?.trim() || 'pui-a11y';
+  const idPrefix = options.idPrefix?.trim().replace(/\s+/g, '-') || 'pui-a11y';
   const dependentSourcesByRef = new Map<A11ySemanticObjectRef, Set<WebProjectorRecord>>();
   const recordsByRef = new Map<A11ySemanticObjectRef, Set<WebProjectorRecord>>();
   const reservedIdsByDocument = new Map<Document, Map<string, A11ySemanticObjectRef>>();
@@ -467,6 +467,16 @@ export function createWebA11yProjectionRegistry(
       };
       const projector: A11yProjector = (snapshot) => update(record, snapshot);
       projector.detach = detach;
+      projector.reactivate = () => {
+        if (record.disposed) return;
+        record.detached = false;
+        if (!unsubscribe) {
+          unsubscribe = subscribeTargetChange?.(() => {
+            if (record.snapshot) update(record, record.snapshot);
+          });
+        }
+        if (record.snapshot) update(record, record.snapshot);
+      };
       projector.clearHeadingLevel = () => {
         if (record.snapshot && hasProjectedHeadingLevel(record.snapshot)) {
           record.target?.removeAttribute('aria-level');
