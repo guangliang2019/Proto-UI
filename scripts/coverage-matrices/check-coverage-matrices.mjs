@@ -1752,7 +1752,7 @@ function discoverWebsiteInteractiveSources(rootDir) {
   const contentRoot = path.join(sourceRoot, 'content', 'docs');
   const publicRoot = path.join(rootDir, 'apps', 'www', 'public');
   return walkFiles(sourceRoot)
-    .filter((absolutePath) => /\.(?:astro|vue|svelte|[cm]?[jt]sx?)$/.test(absolutePath))
+    .filter((absolutePath) => /\.(?:html?|astro|vue|svelte|[cm]?[jt]sx?)$/.test(absolutePath))
     .filter((absolutePath) => !absolutePath.startsWith(`${contentRoot}${path.sep}`))
     .concat(
       walkFiles(contentRoot).filter((absolutePath) =>
@@ -1760,7 +1760,11 @@ function discoverWebsiteInteractiveSources(rootDir) {
       )
     )
     .concat(walkFiles(contentRoot).filter((absolutePath) => /\.[cm]?[jt]sx?$/.test(absolutePath)))
-    .concat(walkFiles(publicRoot).filter((absolutePath) => /\.[cm]?[jt]sx?$/.test(absolutePath)))
+    .concat(
+      walkFiles(publicRoot).filter((absolutePath) =>
+        /\.(?:html?|[cm]?[jt]sx?)$/i.test(absolutePath)
+      )
+    )
     .filter(
       (absolutePath, index, files) =>
         files.indexOf(absolutePath) === index &&
@@ -3422,7 +3426,7 @@ function discoverWebsiteRawImports(rootDir) {
   const rawImports = [];
   for (const absolutePath of candidates) {
     const sourcePath = path.relative(rootDir, absolutePath).replaceAll('\\', '/');
-    if (/\.(?:astro|vue|svelte)$/i.test(absolutePath)) {
+    if (/\.(?:html?|astro|vue|svelte)$/i.test(absolutePath)) {
       const content = fs.readFileSync(absolutePath, 'utf8');
       for (const specifier of externalScriptModuleSpecifiers(content)) {
         if (isExternalExecutableScriptSpecifier(specifier)) {
@@ -5031,10 +5035,10 @@ function parseSourceBindings(lines, afterIndex, relativePath, issues) {
     const sourcePath = sourcePaths[0];
     const isWebsiteSource = sourcePath?.startsWith('apps/www/src/');
     const isPublicExecutable =
-      sourcePath?.startsWith('apps/www/public/') && /\.(?:cjs|js|mjs)$/iu.test(sourcePath);
+      sourcePath?.startsWith('apps/www/public/') && /\.(?:cjs|html?|js|mjs)$/iu.test(sourcePath);
     if (sourcePaths.length !== 1 || (!isWebsiteSource && !isPublicExecutable)) {
       issues.push(
-        `${context}: source binding must name exactly one \`apps/www/src/**\` path or executable \`apps/www/public/**/*.{js,mjs,cjs}\` path`
+        `${context}: source binding must name exactly one \`apps/www/src/**\` path or executable \`apps/www/public/**/*.{html,js,mjs,cjs}\` path`
       );
       continue;
     }
