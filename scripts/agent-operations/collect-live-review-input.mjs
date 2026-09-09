@@ -38,23 +38,6 @@ query($owner: String!, $name: String!, $number: Int!) {
             message
             author { name email user { login } }
             committer { name email user { login } }
-          }
-        }
-        pageInfo { hasNextPage }
-      }
-      reviews(first: 100) {
-        nodes { id author { login } state commit { oid } submittedAt body }
-        pageInfo { hasNextPage }
-      }
-      comments(first: 100) {
-        nodes { id author { login } body updatedAt }
-        pageInfo { hasNextPage }
-      }
-      reviewThreads(first: 100) {
-        nodes {
-          commit {
-            oid
-            messageHeadline
             statusCheckRollup {
               contexts(first: 100) {
                 nodes {

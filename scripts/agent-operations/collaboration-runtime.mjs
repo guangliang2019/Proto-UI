@@ -355,6 +355,25 @@ export function validateCollaborationHandoffBinding(
       'validation-report artifact does not bind the ready-for-review evidence'
     );
   }
+  const requiredEvidenceType =
+    request.action === 'resolve-fixed-review-thread'
+      ? 'review-thread-resolution'
+      : request.action === 'rerun-exact-trusted-workflow'
+        ? 'ci-diagnosis'
+        : null;
+  if (requiredEvidenceType) {
+    const evidence = request.evidence?.find((entry) => entry.type === requiredEvidenceType);
+    assert(
+      evidence && DIGEST.test(evidence.digest ?? ''),
+      `${requiredEvidenceType} evidence requires a digest`
+    );
+    const artifact = handoff.artifacts.find((entry) => entry.type === requiredEvidenceType);
+    assert(artifact, `collaboration handoff is missing the ${requiredEvidenceType} artifact`);
+    assert(
+      artifact.reference === evidence.reference && artifact.digest === evidence.digest,
+      `${requiredEvidenceType} artifact does not bind the request evidence`
+    );
+  }
   if (handoff.executionMode === 'autonomous') {
     assert(
       selfAssessment?.kind === 'proto-ui.agent-capability-self-result' &&
