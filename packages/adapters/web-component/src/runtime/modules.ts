@@ -34,6 +34,7 @@ import { EFFECTS_CAP } from '@proto.ui/module-feedback';
 import {
   EVENT_CANCEL_DEFAULT_ACTION_CAP,
   EVENT_GLOBAL_TARGET_CAP,
+  EVENT_GLOBAL_INPUT_SCOPE_CAP,
   EVENT_ROOT_TARGET_CAP,
 } from '@proto.ui/module-event';
 import { EXPOSE_EVENT_SINK_CAP } from '@proto.ui/module-expose-event';
@@ -66,6 +67,7 @@ import {
   OVERLAY_GLOBAL_MOUNT_CAP,
   OVERLAY_LAYER_SCHEDULER_CAP,
   OVERLAY_MODAL_CAP,
+  createWebOverlayModal,
   type OverlayLayerScheduler,
 } from '@proto.ui/module-overlay';
 import {
@@ -128,10 +130,6 @@ function resolveWebComponentTriggerSurface(
     surface = next;
   }
 }
-
-type BodyWithOverflowSnapshot = HTMLElement & {
-  __proto_ui_original_overflow?: string;
-};
 
 type WebComponentOwnerModulesArgs<Props extends PropsBaseType> = {
   el: HTMLElement;
@@ -361,6 +359,7 @@ export function createWebComponentModules<Props extends PropsBaseType>(args: {
     .use('event', [
       [EVENT_ROOT_TARGET_CAP, () => router.rootTarget],
       [EVENT_GLOBAL_TARGET_CAP, () => router.globalTarget],
+      [EVENT_GLOBAL_INPUT_SCOPE_CAP, () => el.ownerDocument],
       [EVENT_CANCEL_DEFAULT_ACTION_CAP, cancelWebEventDefaultAction],
     ])
     .use('expose-event', [
@@ -536,23 +535,7 @@ export function createWebComponentModules<Props extends PropsBaseType>(args: {
           },
         },
       ],
-      [
-        OVERLAY_MODAL_CAP,
-        {
-          lock() {
-            const body = document.body as BodyWithOverflowSnapshot;
-            const original = body.style.overflow;
-            body.__proto_ui_original_overflow = original;
-            body.style.overflow = 'hidden';
-          },
-          unlock() {
-            const body = document.body as BodyWithOverflowSnapshot;
-            const original = body.__proto_ui_original_overflow ?? '';
-            body.style.overflow = original;
-            delete body.__proto_ui_original_overflow;
-          },
-        },
-      ],
+      [OVERLAY_MODAL_CAP, createWebOverlayModal(el.ownerDocument)],
       ...(args.overlayLayerScheduler
         ? [[OVERLAY_LAYER_SCHEDULER_CAP, args.overlayLayerScheduler] as const]
         : []),
