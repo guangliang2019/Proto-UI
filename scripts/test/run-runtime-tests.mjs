@@ -32,6 +32,8 @@ const READY_ROUTES = [
   '/en/ui-libraries/shadcn/dropdown-menu/',
   '/en/ui-libraries/shadcn/switch/',
   '/en/ui-libraries/shadcn/textarea/',
+  '/zh-cn/ui-libraries/base/transition/',
+  '/zh-cn/ui-libraries/shadcn/button/',
   '/zh-cn/',
   '/zh-cn/start-here/quick-start/',
   '/zh-cn/internal/demo-matrix/',
