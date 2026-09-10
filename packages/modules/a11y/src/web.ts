@@ -580,7 +580,8 @@ export function createWebA11yProjectionRegistry(
       // Release only after a live id transition within the same binding.
       releaseReservation(record);
     }
-    const bindingChanged = bindingReplaced || currentTargetId !== previousTargetId;
+    const bindingChanged =
+      forceStructured || bindingReplaced || currentTargetId !== previousTargetId;
     record.lastTargetId = currentTargetId;
     if (structuredChanged) reconcileSource(record);
     if (bindingChanged) {
@@ -610,9 +611,11 @@ export function createWebA11yProjectionRegistry(
         detached: false,
         disposed: false,
       };
-      let unsubscribe = subscribeTargetChange?.(() => {
+      const onTargetChange = () => {
         if (record.snapshot) update(record, record.snapshot);
-      });
+      };
+      let unsubscribe = subscribeTargetChange?.(onTargetChange);
+      let needsReplay = false;
       const detach = (removeOwned = false) => {
         if (record.disposed || record.detached) return;
         const affectedRef = record.objectRef;
@@ -626,17 +629,19 @@ export function createWebA11yProjectionRegistry(
         releaseOwnedId(record);
         if (affectedRef) reconcileDependents(new Set([affectedRef]));
       };
-      const projector: A11yProjector = (snapshot) => update(record, snapshot);
+      const projector: A11yProjector = (snapshot) => {
+        if (record.disposed || record.detached) return;
+        const replay = needsReplay;
+        needsReplay = false;
+        update(record, snapshot, replay);
+        if (!unsubscribe) unsubscribe = subscribeTargetChange?.(onTargetChange);
+      };
       projector.detach = detach;
       projector.reactivate = () => {
-        if (record.disposed) return;
+        if (record.disposed || !record.detached) return;
         record.detached = false;
-        if (!unsubscribe) {
-          unsubscribe = subscribeTargetChange?.(() => {
-            if (record.snapshot) update(record, record.snapshot);
-          });
-        }
-        if (record.snapshot) update(record, record.snapshot, true);
+        // Resume only after the Module supplies its current snapshot, never a stale cache.
+        needsReplay = true;
       };
       projector.clearHeadingLevel = () => {
         if (record.snapshot && hasProjectedHeadingLevel(record.snapshot)) {

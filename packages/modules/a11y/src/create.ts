@@ -26,6 +26,7 @@ class A11yModuleImpl extends ModuleBase {
   private readonly objectRef = createA11ySemanticObjectRef();
   private projectionDisposed = false;
   private activeProjector: A11yProjector | null = null;
+  private projectorNeedsActivation = false;
   private readonly projectors = new Set<A11yProjector>();
   private readonly ir: A11ySemanticObjectIR = {
     states: new Map(),
@@ -170,27 +171,17 @@ class A11yModuleImpl extends ModuleBase {
   }
 
   protected override onCapsEpoch(_epoch: number): void {
-    const next = this.caps.has(A11Y_PROJECT_CAP) ? this.caps.get(A11Y_PROJECT_CAP) : null;
-    if (next === this.activeProjector) {
-      next?.reactivate?.();
-      return;
-    }
-    const wasKnownProjector = next ? this.projectors.has(next) : false;
+    if (this.projectionDisposed) return;
+    this.selectProjector(this.caps.has(A11Y_PROJECT_CAP) ? this.caps.get(A11Y_PROJECT_CAP) : null);
+    this.applyProjection();
+  }
+
+  private selectProjector(next: A11yProjector | null): void {
+    if (next === this.activeProjector) return;
     this.activeProjector?.detach?.();
     this.activeProjector = next;
-    if (next) {
-      if (wasKnownProjector) next.reactivate?.();
-      else this.projectors.add(next);
-    }
-    if (
-      next &&
-      !this.projectionDisposed &&
-      this.mountPhase !== 'detached' &&
-      this.mountPhase !== 'unmounting'
-    ) {
-      next(this.getSnapshot());
-      this.projectionActive = true;
-    }
+    this.projectorNeedsActivation = next !== null && this.projectors.has(next);
+    if (next) this.projectors.add(next);
   }
 
   private clearHeadingLevelProjection(): void {
@@ -362,10 +353,10 @@ class A11yModuleImpl extends ModuleBase {
     if (this.mountPhase === 'detached' || this.mountPhase === 'unmounting') return;
     if (!this.caps.has(A11Y_PROJECT_CAP)) return;
     const projector = this.caps.get(A11Y_PROJECT_CAP);
-    if (projector !== this.activeProjector) {
-      this.activeProjector?.detach?.();
-      this.activeProjector = projector;
-      this.projectors.add(projector);
+    this.selectProjector(projector);
+    if (this.projectorNeedsActivation) {
+      projector.reactivate?.();
+      this.projectorNeedsActivation = false;
     }
     projector(this.getSnapshot());
     this.projectionActive = true;

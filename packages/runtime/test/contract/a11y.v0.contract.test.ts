@@ -7,7 +7,12 @@ import type {
 } from '@proto.ui/core';
 import { createA11ySemanticObjectRef, defineAsHook, definePrototype } from '@proto.ui/core';
 import { asScrollSurface } from '@proto.ui/hooks';
-import { A11Y_PROJECT_CAP, type A11yPort, type A11yProjector } from '@proto.ui/module-a11y';
+import {
+  A11Y_PROJECT_CAP,
+  createWebA11yProjector,
+  type A11yPort,
+  type A11yProjector,
+} from '@proto.ui/module-a11y';
 import { SCROLL_SURFACE_HOST_CAP, type ScrollSurfaceHostAttachment } from '@proto.ui/module-scroll';
 import { createRuntimeSession, executeWithHost, type RuntimeHost } from '../../src';
 
@@ -286,6 +291,55 @@ describe('runtime contract: a11y (v0)', () => {
     expect(level.get()).toBe(4);
     expect(ctx.snapshots.at(-1)?.level).toBe(4);
     await session.dispose();
+  });
+
+  it('PUI-625-LOCAL-DETACHED-REACTIVATION: defers same-cap replay until remount with current State', async () => {
+    // T-A11Y-0001-CASE-HEADING-LEVEL; HC-A11Y-0001-C; C-LIFECYCLE-0006-C.
+    const element = document.createElement('h2');
+    const projector = createWebA11yProjector(element);
+    let level!: OwnedStateHandle<number>;
+    let reattach!: () => void;
+    const P = definePrototype({
+      name: 'x-a11y-detached-cap-reactivation',
+      setup(def) {
+        level = def.state.numberDiscrete('heading.level', 2);
+        def.a11y.role('heading');
+        def.a11y.level(level);
+      },
+    });
+    const ctx = createHost();
+    ctx.host.onRuntimeReady = (wiring) => {
+      wiring.attach('a11y', [[A11Y_PROJECT_CAP, projector]]);
+      reattach = () => {
+        wiring.reset('a11y');
+        wiring.attach('a11y', [[A11Y_PROJECT_CAP, projector]]);
+      };
+    };
+    const session = createRuntimeSession(P, ctx.host);
+    const mutations: MutationRecord[] = [];
+    const observer = new MutationObserver((records) => mutations.push(...records));
+    try {
+      await session.mount();
+      expect(element.getAttribute('aria-level')).toBe('2');
+      await session.unmount();
+      expect(session.mountPhase).toBe('detached');
+      expect(element.hasAttribute('aria-level')).toBe(false);
+      observer.observe(element, {
+        attributes: true,
+        attributeFilter: ['aria-level'],
+        attributeOldValue: true,
+      });
+      session.invokeInCallbackScope(() => level.set(4, 'new level while detached'));
+      reattach();
+      expect(element.hasAttribute('aria-level')).toBe(false);
+      await session.mount();
+      expect(element.getAttribute('aria-level')).toBe('4');
+      mutations.push(...observer.takeRecords());
+      expect(mutations.map((record) => record.oldValue)).not.toContain('2');
+    } finally {
+      observer.disconnect();
+      await session.dispose();
+    }
   });
 
   it('tracks a replacement level source during setup', () => {
