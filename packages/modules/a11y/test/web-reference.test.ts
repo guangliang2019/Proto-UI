@@ -562,4 +562,74 @@ describe('Web A11y opaque semantic-object references', () => {
     expect(original.hasAttribute('role')).toBe(false);
     expect(original.getAttribute('aria-label')).toBe('host-label');
   });
+
+  it('PUI-625-LOCAL-LIVE-APPEND-RESTORE: restores a live append after replacement release', () => {
+    // T-A11Y-0001-CASE-OPAQUE-RELATION-PROJECTION; C-A11Y-0001-K/P.
+    const registry = createWebA11yProjectionRegistry();
+    const source = document.createElement('div');
+    source.setAttribute('aria-labelledby', 'host-label');
+    const targets = ['a', 'b'].map((id) => {
+      const target = document.createElement('span');
+      target.id = id;
+      const ref = createA11ySemanticObjectRef();
+      const projector = createWebA11yProjector(target, undefined, registry);
+      projector(semanticSnapshot(ref));
+      return { ref, projector };
+    });
+    const append = createWebA11yProjector(source, undefined, registry);
+    const replace = createWebA11yProjector(source, undefined, registry);
+    append(
+      semanticSnapshot(
+        createA11ySemanticObjectRef(),
+        { labelledBy: [targets[0].ref] },
+        { labelledBy: 'append' }
+      )
+    );
+    expect(source.getAttribute('aria-labelledby')).toBe('host-label a');
+    replace(semanticSnapshot(createA11ySemanticObjectRef(), { labelledBy: [targets[1].ref] }));
+    expect(source.getAttribute('aria-labelledby')).toBe('b');
+    replace.dispose?.();
+    expect(source.getAttribute('aria-labelledby')).toBe('host-label a');
+    append.dispose?.();
+    expect(source.getAttribute('aria-labelledby')).toBe('host-label');
+    for (const target of targets) target.projector.dispose?.();
+  });
+
+  it.each([
+    { releaseOrder: 'legacy-first', hostBaseline: false },
+    { releaseOrder: 'structured-first', hostBaseline: false },
+    { releaseOrder: 'legacy-first', hostBaseline: true },
+    { releaseOrder: 'structured-first', hostBaseline: true },
+  ])(
+    'PUI-625-LOCAL-MIXED-IDREF-OWNERS: $releaseOrder, host baseline=$hostBaseline',
+    ({ releaseOrder, hostBaseline }) => {
+      // T-A11Y-0001-CASE-OPAQUE-RELATION-PROJECTION; C-A11Y-0001-H/K/P.
+      const registry = createWebA11yProjectionRegistry();
+      const source = document.createElement('div');
+      if (hostBaseline) source.setAttribute('aria-labelledby', 't');
+      const target = document.createElement('span');
+      target.id = 't';
+      const targetRef = createA11ySemanticObjectRef();
+      const targetProjector = createWebA11yProjector(target, undefined, registry);
+      targetProjector(semanticSnapshot(targetRef));
+      const legacy = createWebA11yProjector(source, undefined, registry);
+      const structured = createWebA11yProjector(source, undefined, registry);
+      legacy(semanticSnapshot(createA11ySemanticObjectRef(), { labelledBy: 't' }));
+      structured(
+        semanticSnapshot(
+          createA11ySemanticObjectRef(),
+          { labelledBy: [targetRef] },
+          { labelledBy: 'append' }
+        )
+      );
+      expect(source.getAttribute('aria-labelledby')).toBe('t');
+      const [first, last] =
+        releaseOrder === 'legacy-first' ? [legacy, structured] : [structured, legacy];
+      first.dispose?.();
+      expect(source.getAttribute('aria-labelledby')).toBe('t');
+      last.dispose?.();
+      expect(source.getAttribute('aria-labelledby')).toBe(hostBaseline ? 't' : null);
+      targetProjector.dispose?.();
+    }
+  );
 });

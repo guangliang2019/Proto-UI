@@ -29,17 +29,21 @@ const ARIA_RELATION_ATTRS: Record<string, string> = {
   labelledBy: 'aria-labelledby',
 };
 
-type StructuredProjection = {
+type RelationProjection = {
   target: HTMLElement;
   attr: string;
   mode: A11yRelationMode;
   tokens: readonly string[];
+  // Preserve authored string serialization; undefined denotes a structured relation.
+  value?: string;
 };
 
-type StructuredReplacement = {
-  baseline: readonly string[];
-  projections: Set<StructuredProjection>;
-  projectedValue: string | null;
+type RelationOwnership = {
+  baseline: Set<string>;
+  counts: Map<string, number>;
+  projections: Set<RelationProjection>;
+  // undefined invalidates restoration after a host rewrite; null is an owned removal.
+  projectedValue: string | null | undefined;
 };
 
 type ScalarAttributes = Map<string, string | undefined>;
@@ -55,10 +59,9 @@ type WebProjectorRecord = {
   ownedIdTarget: HTMLElement | null;
   lastTargetId: string | null;
   dependencyRefs: Set<A11ySemanticObjectRef>;
-  projections: Map<string, StructuredProjection>;
+  projections: Map<string, RelationProjection>;
   // Released before record.target changes, including an A -> null -> A transition.
   scalarAttributes: ScalarAttributes;
-  legacyAppendAttributes: Map<string, readonly string[]>;
   detached: boolean;
   disposed: boolean;
 };
@@ -78,66 +81,11 @@ export function createWebA11yProjectionRegistry(
   const recordsByRef = new Map<A11ySemanticObjectRef, Set<WebProjectorRecord>>();
   const reservedIdsByDocument = new Map<Document, Map<string, A11ySemanticObjectRef>>();
   const reservedIdsByRef = new Map<A11ySemanticObjectRef, Map<Document, string>>();
-  const appendTokenRefs = new WeakMap<
-    HTMLElement,
-    Map<string, Map<string, { baseline: boolean; count: number }>>
-  >();
   const scalarAttributeRefs = new WeakMap<
     HTMLElement,
     Map<string, Map<string, { count: number; baseline: boolean }>>
   >();
-  const replacementsByTarget = new WeakMap<HTMLElement, Map<string, StructuredReplacement>>();
-
-  const acquireAppendTokens = (
-    target: HTMLElement,
-    attr: string,
-    tokens: readonly string[],
-    baseline: readonly string[]
-  ) => {
-    let byAttribute = appendTokenRefs.get(target);
-    if (!byAttribute) {
-      byAttribute = new Map();
-      appendTokenRefs.set(target, byAttribute);
-    }
-    let byToken = byAttribute.get(attr);
-    if (!byToken) {
-      byToken = new Map();
-      byAttribute.set(attr, byToken);
-    }
-    const baselineSet = new Set(baseline);
-    for (const token of tokens) {
-      const entry = byToken.get(token) ?? { baseline: baselineSet.has(token), count: 0 };
-      entry.count += 1;
-      byToken.set(token, entry);
-    }
-  };
-
-  const releaseAppendTokens = (target: HTMLElement, attr: string, tokens: readonly string[]) => {
-    const byAttribute = appendTokenRefs.get(target);
-    const byToken = byAttribute?.get(attr);
-    if (!byToken) return;
-    const current = readTokens(target.getAttribute(attr));
-    const remove = new Set<string>();
-    for (const token of tokens) {
-      const entry = byToken.get(token);
-      if (!entry) continue;
-      entry.count -= 1;
-      if (entry.count === 0) {
-        if (!entry.baseline && current.includes(token)) remove.add(token);
-        byToken.delete(token);
-      }
-    }
-    if (remove.size)
-      setTokenListAttr(
-        target,
-        attr,
-        current.filter((token) => !remove.has(token))
-      );
-    if (byToken.size === 0) byAttribute?.delete(attr);
-    if (byAttribute?.size === 0) appendTokenRefs.delete(target);
-  };
-  const appendTokenIsReferenced = (target: HTMLElement, attr: string, token: string) =>
-    (appendTokenRefs.get(target)?.get(attr)?.get(token)?.count ?? 0) > 0;
+  const relationOwnerships = new WeakMap<HTMLElement, Map<string, RelationOwnership>>();
 
   const releaseScalarAttributes = (record: WebProjectorRecord, removeOwned = true) => {
     const target = record.target;
@@ -156,10 +104,6 @@ export function createWebA11yProjectionRegistry(
       if (byValue?.size === 0) byAttribute?.delete(attr);
     }
     if (byAttribute?.size === 0) scalarAttributeRefs.delete(target);
-    for (const [attr, tokens] of record.legacyAppendAttributes) {
-      releaseAppendTokens(target, attr, tokens);
-    }
-    record.legacyAppendAttributes.clear();
     record.scalarAttributes.clear();
   };
 
@@ -168,7 +112,7 @@ export function createWebA11yProjectionRegistry(
     target: HTMLElement,
     snapshot: A11ySemanticObjectSnapshot
   ) => {
-    const attributes = projectedScalarAttributes(snapshot);
+    const attributes = projectedScalarAttributes(snapshot, false);
     let byAttribute = scalarAttributeRefs.get(target);
     for (const [attr, value] of attributes) {
       if (value === undefined) continue;
@@ -184,13 +128,6 @@ export function createWebA11yProjectionRegistry(
       const entry = byValue.get(value);
       if (entry) entry.count += 1;
       else byValue.set(value, { count: 1, baseline: target.getAttribute(attr) === value });
-    }
-    for (const [key, attr] of Object.entries(ARIA_RELATION_ATTRS)) {
-      const relation = snapshot.relations[key];
-      if (typeof relation !== 'string' || snapshot.relationModes?.[key] !== 'append') continue;
-      const tokens = readTokens(relation);
-      acquireAppendTokens(target, attr, tokens, readTokens(target.getAttribute(attr)));
-      record.legacyAppendAttributes.set(attr, tokens);
     }
     record.scalarAttributes = attributes;
     return attributes;
@@ -236,33 +173,49 @@ export function createWebA11yProjectionRegistry(
     const projection = record.projections.get(key);
     if (!projection) return;
     const { target, attr, tokens } = projection;
-    const replacements = replacementsByTarget.get(target);
-    const replacement = replacements?.get(attr);
+    // Each recorded projection keeps its shared attribute ledger alive.
+    const byAttribute = relationOwnerships.get(target)!;
+    const ownership = byAttribute.get(attr)!;
+    const currentValue = target.getAttribute(attr);
     const canRestore =
-      replacement?.projectedValue != null &&
-      target.getAttribute(attr) === replacement.projectedValue;
-    releaseAppendTokens(target, attr, tokens);
-    if (projection.mode === 'replace' && replacement) {
-      replacement.projections.delete(projection);
-      if (canRestore) {
-        let surviving: StructuredProjection | undefined;
-        for (const candidate of replacement.projections) surviving = candidate;
-        const retained = readTokens(target.getAttribute(attr)).filter((token) =>
-          appendTokenIsReferenced(target, attr, token)
-        );
-        setTokenListAttr(target, attr, [
-          ...(surviving?.tokens ?? replacement.baseline),
-          ...retained,
-        ]);
-      }
-      if (replacement.projections.size === 0) {
-        replacements?.delete(attr);
-        if (replacements?.size === 0) replacementsByTarget.delete(target);
+      ownership.projectedValue !== undefined && currentValue === ownership.projectedValue;
+    const currentTokens = canRestore ? undefined : readTokens(currentValue);
+    const remove = canRestore ? undefined : new Set<string>();
+    for (const token of tokens) {
+      const count = ownership.counts.get(token)! - 1;
+      if (count) ownership.counts.set(token, count);
+      else {
+        ownership.counts.delete(token);
+        if (!ownership.baseline.has(token) && currentTokens?.includes(token)) remove?.add(token);
       }
     }
-    if (replacement) {
-      // A host rewrite ends compare-and-restore ownership of the historical baseline.
-      replacement.projectedValue = canRestore ? target.getAttribute(attr) : null;
+    ownership.projections.delete(projection);
+    if (canRestore) {
+      const visible = [...ownership.baseline];
+      let value: string | undefined;
+      for (const owner of ownership.projections) {
+        if (owner.mode === 'replace') {
+          visible.length = 0;
+          value = owner.value;
+        } else value = undefined;
+        visible.push(...owner.tokens);
+      }
+      if (value !== undefined) setOptionalAttr(target, attr, value);
+      else setTokenListAttr(target, attr, visible);
+      ownership.projectedValue = target.getAttribute(attr);
+    } else {
+      // Do not replay hidden contributions or an old baseline over host-authored output.
+      if (remove?.size)
+        setTokenListAttr(
+          target,
+          attr,
+          currentTokens!.filter((token) => !remove.has(token))
+        );
+      ownership.projectedValue = undefined;
+    }
+    if (ownership.projections.size === 0) {
+      byAttribute.delete(attr);
+      if (byAttribute.size === 0) relationOwnerships.delete(target);
     }
     record.projections.delete(key);
   };
@@ -410,55 +363,67 @@ export function createWebA11yProjectionRegistry(
     return ids;
   };
 
-  const applyStructuredProjection = (
+  const applyRelationProjection = (
     record: WebProjectorRecord,
     key: string,
     attr: string,
     mode: A11yRelationMode,
-    tokens: readonly string[] | null
+    tokens: readonly string[] | null,
+    value?: string
   ) => {
     const current = record.projections.get(key);
     if (
       current &&
       current.target === record.target &&
       current.mode === mode &&
+      current.value === value &&
       tokens &&
       current.tokens.length === tokens.length &&
       current.tokens.every((token, index) => token === tokens[index])
-    ) {
+    )
       return;
-    }
     clearProjection(record, key);
-    if (!record.target || !tokens || tokens.length === 0) return;
+    if (
+      !record.target ||
+      !tokens ||
+      (tokens.length === 0 && (value === undefined || mode === 'append'))
+    )
+      return;
 
     const target = record.target;
     const previousValue = target.getAttribute(attr);
-    const baseline = readTokens(previousValue);
-    const projection: StructuredProjection = { target, attr, mode, tokens };
-    let replacements = replacementsByTarget.get(target);
-    let replacement = replacements?.get(attr);
-    if (mode === 'replace') {
-      if (!replacements) {
-        replacements = new Map();
-        replacementsByTarget.set(target, replacements);
-      }
-      if (!replacement) {
-        replacement = { baseline: [], projections: new Set(), projectedValue: null };
-        replacements.set(attr, replacement);
-      }
-      if (replacement.projections.size === 0 || previousValue !== replacement.projectedValue) {
-        // A live projector's token is not a host baseline that can outlive its owner.
-        replacement.baseline = baseline.filter(
-          (token) => appendTokenRefs.get(target)?.get(attr)?.get(token)?.baseline ?? true
-        );
-      }
-      replacement.projections.add(projection);
+    const previousTokens = readTokens(previousValue);
+    let byAttribute = relationOwnerships.get(target);
+    if (!byAttribute) {
+      byAttribute = new Map();
+      relationOwnerships.set(target, byAttribute);
     }
-    acquireAppendTokens(target, attr, tokens, baseline);
-    setTokenListAttr(target, attr, mode === 'append' ? [...baseline, ...tokens] : tokens);
-    if (replacement && (mode === 'replace' || previousValue === replacement.projectedValue)) {
-      replacement.projectedValue = target.getAttribute(attr);
+    let ownership = byAttribute.get(attr);
+    if (!ownership) {
+      ownership = {
+        baseline: new Set(),
+        counts: new Map(),
+        projections: new Set(),
+        projectedValue: undefined,
+      };
+      byAttribute.set(attr, ownership);
     }
+    if (previousValue !== ownership.projectedValue) {
+      // Another live owner's token is never a newly discovered host baseline.
+      const previousBaseline = ownership.baseline;
+      ownership.baseline = new Set(
+        previousTokens.filter(
+          (token) => !ownership.counts.has(token) || previousBaseline.has(token)
+        )
+      );
+    }
+    const projection: RelationProjection = { target, attr, mode, tokens, value };
+    for (const token of tokens) ownership.counts.set(token, (ownership.counts.get(token) ?? 0) + 1);
+    ownership.projections.add(projection);
+    if (mode === 'replace' && value !== undefined) setOptionalAttr(target, attr, value);
+    else
+      setTokenListAttr(target, attr, mode === 'append' ? [...previousTokens, ...tokens] : tokens);
+    ownership.projectedValue = target.getAttribute(attr);
     record.projections.set(key, projection);
   };
 
@@ -471,7 +436,7 @@ export function createWebA11yProjectionRegistry(
         active.add(key);
         const refs = relation.filter(isA11ySemanticObjectRef);
         const tokens = refs.length === relation.length ? resolveTargets(record, refs) : null;
-        applyStructuredProjection(
+        applyRelationProjection(
           record,
           key,
           attr,
@@ -480,8 +445,8 @@ export function createWebA11yProjectionRegistry(
         );
       }
     }
-    for (const key of [...record.projections.keys()]) {
-      if (!active.has(key)) clearProjection(record, key);
+    for (const [key, projection] of record.projections) {
+      if (projection.value === undefined && !active.has(key)) clearProjection(record, key);
     }
   };
 
@@ -495,27 +460,6 @@ export function createWebA11yProjectionRegistry(
     }
     if (alreadyReconciled) affected.delete(alreadyReconciled);
     for (const source of affected) reconcileSource(source);
-  };
-
-  const clearPreviousLegacyRelations = (
-    target: HTMLElement,
-    previous: A11ySemanticObjectSnapshot,
-    next: A11ySemanticObjectSnapshot
-  ) => {
-    for (const [key, attr] of Object.entries(ARIA_RELATION_ATTRS)) {
-      if (!Object.prototype.hasOwnProperty.call(previous.relations, key)) continue;
-      if (Array.isArray(previous.relations[key])) continue;
-      const nextHasLegacyRelation =
-        Object.prototype.hasOwnProperty.call(next.relations, key) &&
-        !Array.isArray(next.relations[key]);
-      if (nextHasLegacyRelation) continue;
-      if (
-        previous.relationModes?.[key] !== 'append' &&
-        target.getAttribute(attr) === previous.relations[key]
-      ) {
-        target.removeAttribute(attr);
-      }
-    }
   };
 
   const update = (
@@ -543,9 +487,6 @@ export function createWebA11yProjectionRegistry(
       releaseOwnedId(record);
       if (documentChanged || refChanged) releaseReservation(record);
     } else {
-      if (record.target && previousSnapshot) {
-        clearPreviousLegacyRelations(record.target, previousSnapshot, snapshot);
-      }
       for (const key of [...record.projections.keys()]) {
         if (!Array.isArray(snapshot.relations[key])) clearProjection(record, key);
       }
@@ -565,8 +506,23 @@ export function createWebA11yProjectionRegistry(
         nextTarget,
         snapshot,
         !bindingReplaced ? (previousSnapshot ?? undefined) : undefined,
-        attributes
+        attributes,
+        false
       );
+      for (const [key, attr] of Object.entries(ARIA_RELATION_ATTRS)) {
+        if (!Object.prototype.hasOwnProperty.call(snapshot.relations, key)) continue;
+        const relation = snapshot.relations[key];
+        if (Array.isArray(relation)) continue;
+        const value = typeof relation === 'string' ? relation : '';
+        applyRelationProjection(
+          record,
+          key,
+          attr,
+          snapshot.relationModes?.[key] ?? 'replace',
+          readTokens(value),
+          value
+        );
+      }
     }
 
     const currentTargetId = nextTarget?.id || null;
@@ -605,7 +561,6 @@ export function createWebA11yProjectionRegistry(
         ownedIdTarget: null,
         lastTargetId: null,
         scalarAttributes: new Map(),
-        legacyAppendAttributes: new Map(),
         dependencyRefs: new Set(),
         projections: new Map(),
         detached: false,
@@ -686,7 +641,10 @@ function hasProjectedHeadingLevel(snapshot: A11ySemanticObjectSnapshot): boolean
     level <= 6
   );
 }
-function projectedScalarAttributes(snapshot: A11ySemanticObjectSnapshot): ScalarAttributes {
+function projectedScalarAttributes(
+  snapshot: A11ySemanticObjectSnapshot,
+  includeRelations = true
+): ScalarAttributes {
   const attrs: ScalarAttributes = new Map();
   if (snapshot.id !== undefined) attrs.set('id', snapshot.id || undefined);
   if (snapshot.role !== undefined) attrs.set('role', snapshot.role || undefined);
@@ -714,11 +672,13 @@ function projectedScalarAttributes(snapshot: A11ySemanticObjectSnapshot): Scalar
     attrs.set('aria-hidden', projectedAttributeValue(snapshot.states.hidden));
     attrs.set('hidden', snapshot.states.hidden === true ? '' : undefined);
   }
-  for (const [key, attr] of Object.entries(ARIA_RELATION_ATTRS)) {
-    if (!Object.prototype.hasOwnProperty.call(snapshot.relations, key)) continue;
-    const relation = snapshot.relations[key];
-    if (!Array.isArray(relation) && snapshot.relationModes?.[key] !== 'append') {
-      attrs.set(attr, typeof relation === 'string' ? relation || undefined : undefined);
+  if (includeRelations) {
+    for (const [key, attr] of Object.entries(ARIA_RELATION_ATTRS)) {
+      if (!Object.prototype.hasOwnProperty.call(snapshot.relations, key)) continue;
+      const relation = snapshot.relations[key];
+      if (!Array.isArray(relation) && snapshot.relationModes?.[key] !== 'append') {
+        attrs.set(attr, typeof relation === 'string' ? relation || undefined : undefined);
+      }
     }
   }
   const actionKeys = Object.keys(snapshot.actions).sort();
@@ -792,7 +752,8 @@ function applySnapshot(
   el: HTMLElement,
   snapshot: A11ySemanticObjectSnapshot,
   previousSnapshot: A11ySemanticObjectSnapshot | undefined,
-  attributes: ScalarAttributes
+  attributes: ScalarAttributes,
+  includeRelations = true
 ): void {
   for (const [attr, value] of attributes) {
     if (value === undefined) el.removeAttribute(attr);
@@ -805,6 +766,7 @@ function applySnapshot(
   ) {
     el.removeAttribute('aria-level');
   }
+  if (!includeRelations) return;
   for (const [key, attr] of Object.entries(ARIA_RELATION_ATTRS)) {
     if (
       Object.prototype.hasOwnProperty.call(snapshot.relations, key) &&
