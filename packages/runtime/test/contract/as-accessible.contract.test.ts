@@ -1,7 +1,7 @@
 // @ts-expect-error 0.3 removes the former public type as well as the def property.
 import type { A11yDefAPI } from '@proto.ui/core';
 import { expect, it } from 'vitest';
-import { definePrototype, type AccessibleHandle } from '@proto.ui/core';
+import { defineAsHook, definePrototype, type AccessibleHandle } from '@proto.ui/core';
 import { asAccessible } from '@proto.ui/hooks';
 import type { A11yPort } from '@proto.ui/module-a11y';
 import { executeWithHost } from '../../src';
@@ -71,3 +71,40 @@ it('shares one setup handle, composes declarations and rejects retained runtime 
   expect(accessible).not.toBe(firstHandle);
   expect(port.getSnapshot()).toEqual(before);
 });
+
+it.each(['authored-first', 'privileged-first'] as const)(
+  'rejects a privileged/authored name collision before reuse (%s)',
+  (order) => {
+    let authoredRuns = 0;
+    let returned!: AccessibleHandle;
+    const authored = defineAsHook({
+      name: 'asAccessible',
+      setup() {
+        authoredRuns += 1;
+      },
+    });
+    const P = definePrototype({
+      name: `accessible-collision-${order}`,
+      setup() {
+        if (order === 'authored-first') {
+          authored();
+          returned = asAccessible();
+        } else {
+          returned = asAccessible();
+          authored();
+        }
+      },
+    });
+    expect(() =>
+      executeWithHost(P, {
+        prototypeName: P.name,
+        getRawProps: () => ({}),
+        commit: (_children, signal) => signal?.done(),
+        schedule: (task) => task(),
+      })
+    ).toThrow(/asHook.*asAccessible.*privileged.*authored/i);
+    expect(authoredRuns).toBe(order === 'authored-first' ? 1 : 0);
+    if (order === 'authored-first') expect(returned).toBeUndefined();
+    else expect(typeof returned.role).toBe('function');
+  }
+);

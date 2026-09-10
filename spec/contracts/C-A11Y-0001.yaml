@@ -16,8 +16,8 @@ statement:
 criteria:
   - id: C-A11Y-0001-AUTHOR-HANDLE
     text:
-      en: From 0.3.0-alpha.0, asAccessible() returns the current logical instance's AccessibleHandle during setup. Repeated calls share one handle and semantic object without resetting declarations. DefHandle has no a11y property and A11yDefAPI is not exported; no compatibility alias is provided.
-      zh-CN: 从 0.3.0-alpha.0 起，asAccessible() 在 setup 返回当前逻辑实例的 AccessibleHandle。重复调用共享同一 handle 与语义对象，不重置声明。DefHandle 不再具有 a11y 属性，不再导出 A11yDefAPI，且不提供兼容别名。
+      en: From 0.3.0-alpha.0, asAccessible() returns the current logical instance's AccessibleHandle during setup. Repeated calls share one handle and semantic object without resetting declarations. DefHandle has no a11y property and A11yDefAPI is not exported; no compatibility alias is provided. A privileged/authored hook name collision must be rejected before cached handle reuse or setup suppression.
+      zh-CN: 从 0.3.0-alpha.0 起，asAccessible() 在 setup 返回当前逻辑实例的 AccessibleHandle。重复调用共享同一 handle 与语义对象，不重置声明。DefHandle 不再具有 a11y 属性，不再导出 A11yDefAPI，且不提供兼容别名。特权与 authored hook 同名冲突必须在复用缓存 handle 或跳过 setup 前被拒绝。
   - id: C-A11Y-0001-DECLARATION-LIFETIME
     text:
       en: All AccessibleHandle declaration methods are setup-only, including calls through a retained handle. The last setup declaration wins for a scalar field or the same state/action/relation key; tree patches merge by field. Runtime changes follow bound State values. The handle exposes no dispose or generic runtime mutation; view detach releases projection resources without discarding instance declarations, and remount projects current facts.

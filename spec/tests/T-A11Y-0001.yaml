@@ -6,7 +6,7 @@ since: 0.1.0
 summary: Contract tests for a11y semantic object IR, Button consumption, identity/relation projection, Web adapter projection, portable heading-level validation, role coherence, target rebinding, and cross-adapter lifecycle behavior.
 cases:
   - id: T-A11Y-0001-CASE-ACCESSIBLE-HANDLE
-    title: Shared setup handle, removed legacy entry and guarded retained declarations
+    title: Shared setup handle, removed legacy entry, guarded declarations and both name-collision orders
     covers:
       - C-A11Y-0001-AUTHOR-HANDLE
       - C-A11Y-0001-DECLARATION-LIFETIME

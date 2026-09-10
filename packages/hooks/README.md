@@ -58,3 +58,5 @@ accessible.nameFromContent();
 This declares host-projectable semantics; it does not install keyboard handling, focus movement, or guarantee complete accessibility. State and interaction owners remain unchanged. The handle has no dispose, generic runtime mutation, arbitrary host target, or public internal-relation port.
 
 0.3 replaces `def.a11y` and `A11yDefAPI` directly, without compatibility aliases. 0.2 release history is unchanged; this migration is not backported.
+
+A setup cannot register both an authored and a privileged hook under the same name. Runtime rejects that collision explicitly before reusing a handle or skipping setup; rename the authored hook when its name conflicts with a built-in.
