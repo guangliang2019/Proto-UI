@@ -48,6 +48,12 @@ type RelationOwnership = {
 
 type ScalarAttributes = Map<string, string | undefined>;
 
+type IdReservation = {
+  id: string;
+  objectRef: A11ySemanticObjectRef;
+  count: number;
+};
+
 type WebProjectorRecord = {
   getTarget: () => HTMLElement | null;
   target: HTMLElement | null;
@@ -79,11 +85,9 @@ export function createWebA11yProjectionRegistry(
   const idPrefix = options.idPrefix?.trim().replace(/\s+/g, '-') || 'pui-a11y';
   const dependentSourcesByRef = new Map<A11ySemanticObjectRef, Set<WebProjectorRecord>>();
   const recordsByRef = new Map<A11ySemanticObjectRef, Set<WebProjectorRecord>>();
-  const reservedIdsByDocument = new Map<Document, Map<string, A11ySemanticObjectRef>>();
-  const reservedIdsByRef = new Map<
-    A11ySemanticObjectRef,
-    Map<Document, { id: string; count: number }>
-  >();
+  const reservedIdsByDocument = new Map<Document, Map<string, IdReservation>>();
+  // Current shared choice; older cap leases can retain a different ID until disposal.
+  const reservedIdsByRef = new Map<A11ySemanticObjectRef, Map<Document, IdReservation>>();
   const scalarAttributeRefs = new WeakMap<
     HTMLElement,
     Map<string, Map<string, { count: number; baseline: boolean }>>
@@ -157,16 +161,16 @@ export function createWebA11yProjectionRegistry(
     releaseOwnedId(record);
     const { objectRef, reservedDocument, reservedId } = record;
     if (objectRef && reservedDocument && reservedId) {
-      const refReservations = reservedIdsByRef.get(objectRef);
-      const reservation = refReservations?.get(reservedDocument);
-      if (reservation?.id === reservedId && --reservation.count === 0) {
-        const documentReservations = reservedIdsByDocument.get(reservedDocument);
-        if (documentReservations?.get(reservedId) === objectRef) {
-          documentReservations.delete(reservedId);
-          if (documentReservations.size === 0) reservedIdsByDocument.delete(reservedDocument);
+      const documentReservations = reservedIdsByDocument.get(reservedDocument);
+      const reservation = documentReservations?.get(reservedId);
+      if (reservation?.objectRef === objectRef && --reservation.count === 0) {
+        documentReservations!.delete(reservedId);
+        if (documentReservations!.size === 0) reservedIdsByDocument.delete(reservedDocument);
+        const refReservations = reservedIdsByRef.get(objectRef);
+        if (refReservations?.get(reservedDocument) === reservation) {
+          refReservations.delete(reservedDocument);
+          if (refReservations.size === 0) reservedIdsByRef.delete(objectRef);
         }
-        refReservations!.delete(reservedDocument);
-        if (refReservations!.size === 0) reservedIdsByRef.delete(objectRef);
       }
     }
     record.reservedDocument = null;
@@ -282,7 +286,7 @@ export function createWebA11yProjectionRegistry(
     objectRef: A11ySemanticObjectRef
   ) => {
     const reservation = reservedIdsByDocument.get(document)?.get(id);
-    if (reservation && reservation !== objectRef) return false;
+    if (reservation && reservation.objectRef !== objectRef) return false;
     for (const element of document.querySelectorAll<HTMLElement>('[id]')) {
       if (element.id === id && element !== target) return false;
     }
@@ -294,10 +298,12 @@ export function createWebA11yProjectionRegistry(
     if (!objectRef || !target) return;
     const document = target.ownerDocument;
     const documentReservations = reservedIdsByDocument.get(document) ?? new Map();
-    documentReservations.set(id, objectRef);
+    const reservation = documentReservations.get(id) ?? { id, objectRef, count: 0 };
+    reservation.count += 1;
+    documentReservations.set(id, reservation);
     reservedIdsByDocument.set(document, documentReservations);
     const refReservations = reservedIdsByRef.get(objectRef) ?? new Map();
-    refReservations.set(document, { id, count: 1 });
+    refReservations.set(document, reservation);
     reservedIdsByRef.set(objectRef, refReservations);
     record.reservedDocument = document;
     record.reservedId = id;
@@ -326,6 +332,12 @@ export function createWebA11yProjectionRegistry(
       if (!target.id) {
         target.id = record.reservedId;
         record.ownedIdTarget = target;
+      }
+      const refReservations = reservedIdsByRef.get(objectRef);
+      if (refReservations?.get(document)?.id !== record.reservedId) {
+        const current = refReservations ?? new Map();
+        current.set(document, reservedIdsByDocument.get(document)!.get(record.reservedId)!);
+        reservedIdsByRef.set(objectRef, current);
       }
       record.lastTargetId = record.reservedId;
       return record.reservedId;
@@ -540,6 +552,13 @@ export function createWebA11yProjectionRegistry(
     ) {
       // Release only after a live id transition within the same binding.
       releaseReservation(record);
+      if (
+        currentTargetId &&
+        idIsAvailable(nextTarget.ownerDocument, currentTargetId, nextTarget, snapshot.objectRef)
+      ) {
+        // A confirmed live host-ID change selects the new ID without revoking other leases.
+        reserveId(record, currentTargetId);
+      }
     }
     const bindingChanged =
       forceStructured || bindingReplaced || currentTargetId !== previousTargetId;

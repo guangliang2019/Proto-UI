@@ -468,6 +468,46 @@ describe('Web A11y opaque semantic-object references', () => {
     targetProjector.dispose?.();
   });
 
+  it('PUI-625-LOCAL-LEASED-HOST-ID-REBIND: follows a live ID change with an older cap lease', () => {
+    // C-A11Y-0001-P; HC-A11Y-0001-C. Distinct from a replacement's initial ID mismatch.
+    const registry = createWebA11yProjectionRegistry({ idPrefix: 'test-cap-id-rebind' });
+    const doc = document.implementation.createHTMLDocument('cap-id-rebind');
+    const source = doc.createElement('div');
+    const target = doc.createElement('div');
+    doc.body.append(source, target);
+    source.setAttribute('aria-labelledby', 'host-label');
+    const targetRef = createA11ySemanticObjectRef();
+    const slot = targetSlot(target);
+    const sourceProjector = createWebA11yProjector(source, undefined, registry);
+    const first = createWebA11yProjector(target, undefined, registry);
+    const second = createWebA11yProjector(slot.get, slot.subscribe, registry);
+    try {
+      sourceProjector(semanticSnapshot(createA11ySemanticObjectRef(), { labelledBy: [targetRef] }));
+      first(semanticSnapshot(targetRef));
+      const reservedId = target.id;
+      expect(source.getAttribute('aria-labelledby')).toBe(reservedId);
+      first.detach?.();
+      second(semanticSnapshot(targetRef));
+      // Successful resolution proves A is no longer a duplicate live binding.
+      expect(source.getAttribute('aria-labelledby')).toBe(reservedId);
+      target.id = 'current-host-id';
+      expect(doc.querySelectorAll('[id="current-host-id"]')).toHaveLength(1);
+      expect(doc.getElementById(reservedId)).toBeNull();
+      slot.set(target);
+      expect(target.id).toBe('current-host-id');
+      expect(source.getAttribute('aria-labelledby')).toBe('current-host-id');
+      first.dispose?.();
+      expect(source.getAttribute('aria-labelledby')).toBe('current-host-id');
+      second.dispose?.();
+      expect(target.id).toBe('current-host-id');
+      expect(source.getAttribute('aria-labelledby')).toBe('host-label');
+    } finally {
+      first.dispose?.();
+      second.dispose?.();
+      sourceProjector.dispose?.();
+    }
+  });
+
   it('keeps an appended token until every projector releases it', () => {
     const registry = createWebA11yProjectionRegistry({ idPrefix: 'test-shared-append' });
     const sourceRef = createA11ySemanticObjectRef();
