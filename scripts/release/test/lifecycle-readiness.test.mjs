@@ -138,6 +138,27 @@ test('authoring preserves identities across deletion, replacement, and file move
     const disconnectedCase = check();
     assert.equal(disconnectedCase.status, 1, disconnectedCase.stdout);
     assert.match(disconnectedCase.stderr, /T-AS-TRANSITION-0001: case-needs-criteria/);
+    for (const status of ['deprecated', 'removed']) {
+      const retirementOwner = parse(targetSource);
+      if (status === 'removed') {
+        retirementOwner.verifies.tests = [{ id: 'T-AS-TRANSITION-0001', until: '0.5.0' }];
+        writeFileSync(targetPath, JSON.stringify(retirementOwner));
+      }
+      writeFileSync(
+        activeTestPath,
+        JSON.stringify({
+          ...editedActiveTest,
+          status,
+          deprecatedSince: '0.4.0',
+          removedSince: status === 'removed' ? '0.5.0' : undefined,
+          lifecycleRationale: 'The future retirement boundary was reviewed.',
+        })
+      );
+      const futureRetirement = check();
+      assert.equal(futureRetirement.status, 1, futureRetirement.stdout);
+      assert.match(futureRetirement.stderr, /T-AS-TRANSITION-0001: case-needs-criteria/);
+      writeFileSync(targetPath, targetSource);
+    }
     writeFileSync(activeTestPath, activeTestSource);
 
     const entityPath = path.join(fixture, 'spec/contracts/C-A11Y-PART-RELATIONSHIP-0001.yaml');

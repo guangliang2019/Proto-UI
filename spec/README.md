@@ -64,13 +64,15 @@ A passing implementation must declare a path before it can cover cases or criter
 
 Each admitted Test case must map to existing criteria on its applicable verified or exercised targets, including targets exercised by its consuming implementation. A case mapping on an exercised target does not create a `verifies` claim.
 
-The authoring command checks current active Test mappings as a workspace invariant whenever catalog inputs or `VERSION` change. This includes Test edits and changes to their external targets, without requiring legacy activation history or lifecycle rationale to be backfilled. Unrelated draft mapping gaps remain review inventory.
+The authoring command checks applicable non-draft Test mappings as a workspace invariant whenever catalog inputs or `VERSION` change. A future deprecation or removal does not waive this check before its boundary; unknown legacy activation provenance also does not waive mapping integrity or become a proven activation date. Tests at a known deprecation boundary, removed from the selected version, or known draft are excluded. This includes Test edits and changes to their external targets, without requiring legacy activation history or lifecycle rationale to be backfilled.
+
+Prototype readiness traces an available Contract through applicable `dependsOn.contracts`, criterion dependencies, or `satisfies.contracts`, including those reached through semantic Prototype dependencies or `inherits.prototypes`. Supporting references and unrelated graph paths do not supply this evidence.
 
 Host Capability readiness also requires an available Adapter with an applicable `provides.hostCaps` declaration; generic Test evidence alone does not establish a provider or host/profile scope.
 
 Module readiness requires an explicit `owns` relation to an available target of the declared relation type, applicable `satisfies.contracts`, and incoming Adapter `supports.modules`. These declarations provide traceability for semantic review; they do not establish execution success or imply full Adapter conformance beyond the declared support bounds.
 
-Adapter readiness requires at least one applicable `supports.modules` or `omits.modules` declaration naming an available Module at the admission version. Future or expired scope declarations do not establish the Adapter's current reviewed scope.
+Adapter readiness requires at least one applicable `supports.modules` or `omits.modules` declaration naming an available Module, and an applicable `provides.hostCaps` declaration naming an available Host Capability at the admission version. Future or expired declarations do not establish the Adapter's current reviewed scope. These minimum declarations do not replace the full capability and conformance obligations of its official profile.
 
 Base-aware authoring uses the current release train from the repository's `VERSION`. It rejects a newly recorded or replaced `activeSince` earlier than that train, and rejects replacing an already recorded historical boundary even with a current or future value. Current-catalog contents, including newly authored Test mappings or undated implementation records, cannot establish or revise historical activation. Historical backfill requires independent audit of original admission and executable evidence through a separately reviewed provenance mechanism; this slice introduces no such mechanism. Unknown legacy provenance and unchanged recorded history remain intact.
 

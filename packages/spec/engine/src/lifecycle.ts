@@ -108,6 +108,27 @@ export function getSpecLifecycleReport(
     .filter((entity) => entity.type !== 'version' && isSpecEntityAvailableAt(entity, version))
     .slice()
     .sort((a, b) => a.id.localeCompare(b.id));
+  const hasPrototypeContract = (prototype: SpecEntity, visited = new Set<string>()): boolean => {
+    if (visited.has(prototype.id)) return false;
+    visited.add(prototype.id);
+    const dependencies = [prototype.dependsOn, ...prototype.criteria.map((item) => item.dependsOn)];
+    if (
+      [...dependencies, prototype.satisfies].some((relations) =>
+        filterRelationsForVersion(relations, version)?.contracts?.some((target) =>
+          entities.some((candidate) => candidate.id === target.id && candidate.type === 'contract')
+        )
+      )
+    )
+      return true;
+    return [...dependencies, prototype.inherits].some((relations) =>
+      filterRelationsForVersion(relations, version)?.prototypes?.some((target) => {
+        const parent = entities.find(
+          (candidate) => candidate.id === target.id && candidate.type === 'prototype'
+        );
+        return parent !== undefined && hasPrototypeContract(parent, visited);
+      })
+    );
+  };
   const tests = entities.filter((entity) => entity.type === 'test');
   const plan = planInput === undefined ? undefined : specLifecyclePlanSchema.parse(planInput);
   const issues: SpecLifecycleIssue[] = [];
@@ -288,6 +309,11 @@ export function getSpecLifecycleReport(
     } else {
       if (entity.type === 'prototype' && !entity.anatomy)
         gap('missing-anatomy', 'No governed Prototype anatomy is recorded.');
+      if (entity.type === 'prototype' && !hasPrototypeContract(entity))
+        gap(
+          'missing-contract-evidence',
+          'No applicable semantic relation traces an available Contract.'
+        );
       if (
         entity.type === 'adapter' &&
         ![entity.supports, entity.omits].some((relations) =>
@@ -297,6 +323,16 @@ export function getSpecLifecycleReport(
         )
       )
         gap('missing-module-scope', 'No applicable support or omission names an available Module.');
+      if (
+        entity.type === 'adapter' &&
+        !filterRelationsForVersion(entity.provides, version)?.hostCaps?.some((target) =>
+          entities.some((candidate) => candidate.id === target.id && candidate.type === 'host-cap')
+        )
+      )
+        gap(
+          'missing-provided-capability',
+          'No applicable provision names an available Host Capability.'
+        );
       if (entity.type === 'module') {
         const ownership = filterRelationsForVersion(entity.owns, version);
         if (
@@ -456,7 +492,7 @@ export function getSpecLifecycleReport(
 
 export function checkSpecActiveTestMappings(report: SpecLifecycleReport): SpecLifecycleIssue[] {
   return report.rows.flatMap((row) =>
-    row.type === 'test' && row.status === 'active' && !row.draftAtVersion
+    row.type === 'test' && !row.draftAtVersion && row.stableAtVersion !== false
       ? row.gaps.filter((gap) =>
           ['missing-cases', 'case-needs-criteria', 'case-invalid-criterion'].includes(gap.code)
         )
