@@ -288,6 +288,15 @@ export function getSpecLifecycleReport(
     } else {
       if (entity.type === 'prototype' && !entity.anatomy)
         gap('missing-anatomy', 'No governed Prototype anatomy is recorded.');
+      if (
+        entity.type === 'adapter' &&
+        ![entity.supports, entity.omits].some((relations) =>
+          filterRelationsForVersion(relations, version)?.modules?.some((target) =>
+            entities.some((candidate) => candidate.id === target.id && candidate.type === 'module')
+          )
+        )
+      )
+        gap('missing-module-scope', 'No applicable support or omission names an available Module.');
       if (entity.type === 'module') {
         const ownership = filterRelationsForVersion(entity.owns, version);
         if (
@@ -527,7 +536,11 @@ export function checkSpecLifecycleAuthoring(
     ['status', 'since', 'activeSince', 'deprecatedSince', 'removedSince'].some(
       (key) => before?.[key as keyof SpecEntity] !== after[key as keyof SpecEntity]
     );
-  if (!changed) return issues;
+  if (!changed) {
+    if (hasText(before?.lifecycleRationale) && !hasText(after.lifecycleRationale))
+      issues.push(`${after.id}: authoring must retain recorded lifecycleRationale.`);
+    return issues;
+  }
   if (!isNewIdentity && before?.activeSince && !after.activeSince)
     issues.push(`${after.id}: lifecycle changes must retain recorded activeSince.`);
   if (!hasText(after.lifecycleRationale))

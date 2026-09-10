@@ -246,6 +246,24 @@ describe('ordinary lifecycle targets and authoring', () => {
     expect(() => contract({ lifecycleRationale: {} })).toThrow(/non-whitespace/);
   });
 
+  it.each(['Recorded draft rationale.', { en: 'Recorded draft rationale.' }])(
+    'retains recorded rationale when lifecycle fields are unchanged: %j',
+    (lifecycleRationale) => {
+      const before = contract({ lifecycleRationale });
+      const after = contract({ lifecycleRationale: undefined });
+      expect(checkSpecLifecycleAuthoring(before, after)).toContainEqual(
+        expect.stringContaining('retain recorded lifecycleRationale')
+      );
+      expect(checkSpecLifecycleAuthoring(before, { ...before, title: 'Edited prose' })).toEqual([]);
+      expect(
+        checkSpecLifecycleAuthoring(before, {
+          ...before,
+          lifecycleRationale: 'Clarified draft evidence gap.',
+        })
+      ).toEqual([]);
+    }
+  );
+
   it('requires fresh rationale and a new admission revision for an existing promotion', () => {
     const draft = contract({
       revisions: [{ version, change: 'clarified', summary: 'The draft boundary was clarified.' }],
@@ -362,6 +380,53 @@ describe('ordinary lifecycle targets and authoring', () => {
     });
     expect(checkSpecLifecycleAuthoring(draft, declared, workspace, version)).toEqual([]);
   });
+
+  it.each(['supports', 'omits'] as const)(
+    'requires applicable Adapter %s scope at admission',
+    (kind) => {
+      const id = 'A-LIFECYCLE-TEST-0001';
+      const module = contract({ id: 'M-LIFECYCLE-TEST-0001', type: 'module', criteria: [] });
+      const target = {
+        id: module.id,
+        role: kind === 'supports' ? 'required-module' : 'unsupported-module',
+        since: '0.3.0',
+      };
+      const draft = contract({
+        id,
+        type: 'adapter',
+        adapterProfile: { package: '@proto.ui/adapter-test', target: { platform: 'web' } },
+        [kind]: { modules: [target] },
+        criteria: [{ id: `${id}-A`, text: 'A governed adapter requirement.' }],
+      });
+      const active = {
+        ...draft,
+        status: 'active' as const,
+        activeSince: version,
+        lifecycleRationale: 'The adapter scope was reviewed.',
+        revisions: [{ version, change: 'admitted', summary: 'Admission was reviewed.' }],
+      };
+      const evidence = testEntity('passing');
+      evidence.verifies = { adapters: [{ id }] };
+      evidence.cases[0].covers = [`${id}-A`];
+      const workspace = createSpecWorkspace([active, module, evidence]);
+      const check = () => checkSpecLifecycleAuthoring(draft, active, workspace, version);
+      expect(check()).toContainEqual(expect.stringContaining('missing-module-scope'));
+      expect(checkSpecLifecycleAuthoring(undefined, active, workspace, version)).toContainEqual(
+        expect.stringContaining('missing-module-scope')
+      );
+      const relation = active[kind]!.modules![0];
+      relation.since = '0.1.0';
+      relation.until = version;
+      expect(check()).toContainEqual(expect.stringContaining('missing-module-scope'));
+      relation.until = '0.3.0';
+      expect(check()).toEqual([]);
+      expect(checkSpecLifecycleAuthoring(undefined, active, workspace, version)).toEqual([]);
+      module.since = '0.3.0';
+      expect(check()).toContainEqual(expect.stringContaining('missing-module-scope'));
+      module.since = version;
+      expect(check()).toEqual([]);
+    }
+  );
 
   it('requires an applicable Adapter provider before Host Capability admission', () => {
     const id = 'HC-LIFECYCLE-TEST-0001';

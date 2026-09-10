@@ -106,6 +106,16 @@ test('authoring preserves identities across deletion, replacement, and file move
     assert.match(versionOnly.stdout, /1 changed catalog inputs checked/);
     writeFileSync(versionPath, originalVersion);
 
+    const rationalePath = path.join(fixture, 'spec/contracts/C-A11Y-PART-RELATIONSHIP-0001.yaml');
+    const rationaleSource = readFileSync(rationalePath, 'utf8');
+    const withoutRationale = parse(rationaleSource);
+    delete withoutRationale.lifecycleRationale;
+    writeFileSync(rationalePath, JSON.stringify(withoutRationale));
+    const rationaleRemoval = check();
+    assert.equal(rationaleRemoval.status, 1);
+    assert.match(rationaleRemoval.stderr, /retain recorded lifecycleRationale/);
+    writeFileSync(rationalePath, rationaleSource);
+
     const targetPath = path.join(fixture, 'spec/contracts/C-AS-TRANSITION-0001.yaml');
     const targetSource = readFileSync(targetPath, 'utf8');
     const activeTestPath = path.join(fixture, 'spec/tests/T-AS-TRANSITION-0001.yaml');
