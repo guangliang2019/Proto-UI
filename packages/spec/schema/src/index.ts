@@ -41,6 +41,16 @@ export const SPEC_RELATION_KINDS = [
   'provides',
   'omits',
 ] as const;
+export const SPEC_RELATION_TARGET_TYPES = {
+  contracts: 'contract',
+  prototypes: 'prototype',
+  modules: 'module',
+  adapters: 'adapter',
+  decisions: 'decision',
+  hostCaps: 'host-cap',
+  tests: 'test',
+  knowledge: 'knowledge',
+} as const satisfies Record<keyof NonNullable<SpecRelations>, SpecEntityType>;
 export const SPEC_ADAPTER_MODULE_SUPPORT_ROLES = [
   'required-module',
   'recommended-module',

@@ -6,7 +6,11 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { parse } from 'yaml';
 import { specVersionSchema, validateSpecEntity } from '@proto.ui/spec-schema';
-import { checkSpecLifecycleAuthoring } from '@proto.ui/spec-engine';
+import {
+  checkSpecActiveTestMappings,
+  checkSpecLifecycleAuthoring,
+  getSpecLifecycleReport,
+} from '@proto.ui/spec-engine';
 import { loadSpecWorkspaceFromDirectory } from '@proto.ui/spec-engine/node';
 
 const root = path.resolve(fileURLToPath(new URL('../..', import.meta.url)));
@@ -20,11 +24,11 @@ const git = (args) =>
   execFileSync('git', args, { cwd: root, encoding: 'utf8', maxBuffer: 1 << 26 });
 const base = git(['rev-parse', '--verify', '--end-of-options', `${args[1]}^{commit}`]).trim();
 const paths = [
-  ...git(['diff', '--no-renames', '--name-only', '-z', base, '--', 'spec']).split('\0'),
+  ...git(['diff', '--no-renames', '--name-only', '-z', base, '--', 'spec', 'VERSION']).split('\0'),
   ...git(['ls-files', '--others', '--exclude-standard', '-z', '--', 'spec']).split('\0'),
-].filter((file) => /^spec\/.+\.ya?ml$/.test(file));
+].filter((file) => file === 'VERSION' || /^spec\/.+\.ya?ml$/.test(file));
 if (paths.length === 0) {
-  console.log(`[spec-authoring] No changed entity files against ${base}`);
+  console.log(`[spec-authoring] No changed catalog inputs against ${base}`);
   process.exit(0);
 }
 // Match by identity, so moving a legacy entity does not invent a new lifecycle.
@@ -43,8 +47,12 @@ const current = new Map(
     { entity, file: path.relative(root, filePath) },
   ])
 );
+const mappingIssues = workspace.issues.length
+  ? []
+  : checkSpecActiveTestMappings(getSpecLifecycleReport(workspace, currentVersion));
 const issues = [
   ...workspace.issues.map((issue) => `${issue.filePath}: ${issue.message}`),
+  ...mappingIssues.map((issue) => `${issue.entityId}: ${issue.code}: ${issue.message}`),
   ...[...current.values()].flatMap(({ entity, file }) =>
     checkSpecLifecycleAuthoring(previous.get(entity.id), entity, workspace, currentVersion).map(
       (issue) => `${file}: ${issue}`
@@ -58,4 +66,5 @@ for (const [id, entity] of previous) {
 if (issues.length) {
   issues.forEach((issue) => console.error(`[spec-authoring] ${issue}`));
   process.exitCode = 1;
-} else console.log(`[spec-authoring] ${paths.length} changed entity files checked against ${base}`);
+} else
+  console.log(`[spec-authoring] ${paths.length} changed catalog inputs checked against ${base}`);

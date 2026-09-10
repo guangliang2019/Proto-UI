@@ -97,6 +97,39 @@ test('authoring preserves identities across deletion, replacement, and file move
       path.join(root, 'scripts/spec/check-lifecycle-authoring.mjs'),
       path.join(fixture, 'scripts/spec/check-lifecycle-authoring.mjs')
     );
+    const versionPath = path.join(fixture, 'VERSION');
+    const originalVersion = readFileSync(versionPath, 'utf8');
+    writeFileSync(versionPath, '0.2.0\n');
+    assert.equal(run('git', ['diff', '--name-only', 'HEAD', '--', 'spec']).stdout, '');
+    const versionOnly = check();
+    assert.equal(versionOnly.status, 0, versionOnly.stderr);
+    assert.match(versionOnly.stdout, /1 changed catalog inputs checked/);
+    writeFileSync(versionPath, originalVersion);
+
+    const targetPath = path.join(fixture, 'spec/contracts/C-AS-TRANSITION-0001.yaml');
+    const targetSource = readFileSync(targetPath, 'utf8');
+    const activeTestPath = path.join(fixture, 'spec/tests/T-AS-TRANSITION-0001.yaml');
+    const activeTestSource = readFileSync(activeTestPath, 'utf8');
+    const target = parse(targetSource);
+    target.criteria = target.criteria.filter(
+      (criterion) => criterion.id !== 'C-AS-TRANSITION-0001-K'
+    );
+    writeFileSync(targetPath, JSON.stringify(target));
+    const externalCriterion = check();
+    assert.equal(externalCriterion.status, 1, externalCriterion.stdout);
+    assert.match(externalCriterion.stderr, /T-AS-TRANSITION-0001: case-invalid-criterion/);
+    assert.match(externalCriterion.stderr, /C-AS-TRANSITION-0001-K/);
+    assert.equal(readFileSync(activeTestPath, 'utf8'), activeTestSource);
+    writeFileSync(targetPath, targetSource);
+
+    const editedActiveTest = parse(activeTestSource);
+    editedActiveTest.cases[0].covers = [];
+    writeFileSync(activeTestPath, JSON.stringify(editedActiveTest));
+    const disconnectedCase = check();
+    assert.equal(disconnectedCase.status, 1, disconnectedCase.stdout);
+    assert.match(disconnectedCase.stderr, /T-AS-TRANSITION-0001: case-needs-criteria/);
+    writeFileSync(activeTestPath, activeTestSource);
+
     const entityPath = path.join(fixture, 'spec/contracts/C-A11Y-PART-RELATIONSHIP-0001.yaml');
     const movedPath = path.join(fixture, 'spec/contracts/moved-relationship.yaml');
     const original = readFileSync(entityPath, 'utf8');

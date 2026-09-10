@@ -64,6 +64,12 @@ A passing implementation must declare a path before it can cover cases or criter
 
 Each admitted Test case must map to existing criteria on its applicable verified or exercised targets, including targets exercised by its consuming implementation. A case mapping on an exercised target does not create a `verifies` claim.
 
+The authoring command checks current active Test mappings as a workspace invariant whenever catalog inputs or `VERSION` change. This includes Test edits and changes to their external targets, without requiring legacy activation history or lifecycle rationale to be backfilled. Unrelated draft mapping gaps remain review inventory.
+
+Host Capability readiness also requires an available Adapter with an applicable `provides.hostCaps` declaration; generic Test evidence alone does not establish a provider or host/profile scope.
+
+Module readiness requires an explicit `owns` relation to an available target of the declared relation type, applicable `satisfies.contracts`, and incoming Adapter `supports.modules`. These declarations provide traceability for semantic review; they do not establish execution success or imply full Adapter conformance beyond the declared support bounds.
+
 Base-aware authoring uses the current release train from the repository's `VERSION`. It rejects a newly recorded or replaced `activeSince` earlier than that train, and rejects replacing an already recorded historical boundary even with a current or future value. Current-catalog contents, including newly authored Test mappings or undated implementation records, cannot establish or revise historical activation. Historical backfill requires independent audit of original admission and executable evidence through a separately reviewed provenance mechanism; this slice introduces no such mechanism. Unknown legacy provenance and unchanged recorded history remain intact.
 
 For admission through this current-catalog path, the entity must have no reported readiness gaps at `activeSince`; Test entities and relations outside that version cannot supply evidence. Prototype readiness includes recorded anatomy. This mechanical evidence check does not replace independent semantic approval. Lifecycle maintenance that leaves activation provenance unchanged retains the legacy audit boundary.

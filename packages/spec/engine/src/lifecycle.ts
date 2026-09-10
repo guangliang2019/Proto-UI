@@ -1,4 +1,5 @@
 import {
+  SPEC_RELATION_TARGET_TYPES,
   compareSpecVersions,
   isSpecEntityActiveAt,
   isSpecEntityAvailableAt,
@@ -287,6 +288,54 @@ export function getSpecLifecycleReport(
     } else {
       if (entity.type === 'prototype' && !entity.anatomy)
         gap('missing-anatomy', 'No governed Prototype anatomy is recorded.');
+      if (entity.type === 'module') {
+        const ownership = filterRelationsForVersion(entity.owns, version);
+        if (
+          !Object.entries(ownership ?? {}).some(([kind, targets]) =>
+            targets?.some((target) =>
+              entities.some(
+                (candidate) =>
+                  candidate.id === target.id &&
+                  candidate.type ===
+                    SPEC_RELATION_TARGET_TYPES[kind as keyof NonNullable<SpecRelations>]
+              )
+            )
+          )
+        )
+          gap('missing-ownership', 'No explicit ownership relation names an available target.');
+        if (
+          !filterRelationsForVersion(entity.satisfies, version)?.contracts?.some((target) =>
+            entities.some(
+              (candidate) => candidate.id === target.id && candidate.type === 'contract'
+            )
+          )
+        )
+          gap(
+            'missing-contract-satisfaction',
+            'No applicable satisfaction declaration names an available Contract.'
+          );
+        if (
+          !entities.some(
+            (adapter) =>
+              adapter.type === 'adapter' &&
+              filterRelationsForVersion(adapter.supports, version)?.modules?.some(
+                (target) => target.id === entity.id
+              )
+          )
+        )
+          gap('missing-adapter-support', 'No available Adapter declares support for this Module.');
+      }
+      if (
+        entity.type === 'host-cap' &&
+        !entities.some(
+          (provider) =>
+            provider.type === 'adapter' &&
+            filterRelationsForVersion(provider.provides, version)?.hostCaps?.some(
+              (target) => target.id === entity.id
+            )
+        )
+      )
+        gap('missing-provider', 'No available Adapter declares this Host Capability as provided.');
       if (!hasText(entity.statement))
         gap('missing-statement', 'No reviewable statement is recorded.');
       if (!entity.criteria.length) gap('missing-criteria', 'No admission criteria are recorded.');
@@ -396,6 +445,16 @@ export function getSpecLifecycleReport(
   };
 }
 
+export function checkSpecActiveTestMappings(report: SpecLifecycleReport): SpecLifecycleIssue[] {
+  return report.rows.flatMap((row) =>
+    row.type === 'test' && row.status === 'active' && !row.draftAtVersion
+      ? row.gaps.filter((gap) =>
+          ['missing-cases', 'case-needs-criteria', 'case-invalid-criterion'].includes(gap.code)
+        )
+      : []
+  );
+}
+
 /** Completeness of dispositions in an explicit scope is separate from semantic approval. */
 export function checkSpecLifecycleDispositions(
   report: SpecLifecycleReport,
@@ -410,9 +469,9 @@ export function checkSpecLifecycleDispositions(
   const issues = report.issues.filter(
     (issue) =>
       !entityIds ||
-      !issue.entityId ||
-      selected.has(issue.entityId) ||
-      selectedSliceEntities.has(issue.entityId) ||
+      (!issue.entityId && !issue.sliceId) ||
+      (issue.entityId !== undefined &&
+        (selected.has(issue.entityId) || selectedSliceEntities.has(issue.entityId))) ||
       (issue.sliceId !== undefined && selectedSlices.has(issue.sliceId))
   );
   for (const id of [...selected].sort()) {

@@ -10,6 +10,7 @@ import {
 } from '@proto.ui/spec-schema';
 import {
   checkSpecLifecycleAuthoring,
+  checkSpecActiveTestMappings,
   checkSpecLifecycleDispositions,
   createSpecWorkspace,
   getSpecLifecycleReport,
@@ -61,6 +62,17 @@ function testEntity(status = 'planned'): SpecEntity {
       },
     ],
     verifies: { contracts: [contractId] },
+  });
+}
+
+function legacyActiveTest(): SpecEntity {
+  return validateSpecEntity({
+    ...testEntity('passing'),
+    status: 'active',
+    lifecycleRationale: undefined,
+    openQuestions: [
+      { id: `${testId}-Q-LEGACY`, question: 'Legacy note', blocks: ['legacy follow-up'] },
+    ],
   });
 }
 
@@ -349,6 +361,249 @@ describe('ordinary lifecycle targets and authoring', () => {
       },
     });
     expect(checkSpecLifecycleAuthoring(draft, declared, workspace, version)).toEqual([]);
+  });
+
+  it('requires an applicable Adapter provider before Host Capability admission', () => {
+    const id = 'HC-LIFECYCLE-TEST-0001';
+    const draft = contract({
+      id,
+      type: 'host-cap',
+      criteria: [{ id: `${id}-A`, text: 'A governed host requirement.' }],
+    });
+    const active = {
+      ...draft,
+      status: 'active' as const,
+      activeSince: version,
+      lifecycleRationale: 'The host contract was reviewed.',
+      revisions: [{ version, change: 'admitted', summary: 'Admission was reviewed.' }],
+    };
+    const evidence = testEntity('passing');
+    evidence.verifies = { hostCaps: [{ id }] };
+    evidence.cases[0].covers = [`${id}-A`];
+    const workspace = createSpecWorkspace([active, evidence]);
+    const check = () => checkSpecLifecycleAuthoring(draft, active, workspace, version);
+    expect(check()).toContainEqual(expect.stringContaining('missing-provider'));
+    workspace.entities.push(
+      contract({ id: 'M-LIFECYCLE-TEST-0001', type: 'module', criteria: [] })
+    );
+    expect(check()).toContainEqual(expect.stringContaining('missing-provider'));
+    const provider = validateSpecEntity({
+      id: 'A-LIFECYCLE-TEST-0001',
+      type: 'adapter',
+      title: 'Test provider',
+      status: 'draft',
+      since: version,
+      adapterProfile: { package: '@proto.ui/adapter-test', target: { platform: 'web' } },
+      supports: { modules: [{ id: 'M-LIFECYCLE-TEST-0001', role: 'required-module' }] },
+      provides: { hostCaps: [{ id, since: version, role: 'translated-capability' }] },
+    });
+    workspace.entities.push(provider);
+    expect(check()).toEqual([]);
+    provider.since = '0.3.0';
+    expect(check()).toContainEqual(expect.stringContaining('missing-provider'));
+    provider.since = version;
+    const provision = provider.provides!.hostCaps![0];
+    provision.since = '0.3.0';
+    expect(check()).toContainEqual(expect.stringContaining('missing-provider'));
+    provision.since = '0.1.0';
+    provision.until = version;
+    expect(check()).toContainEqual(expect.stringContaining('missing-provider'));
+    provision.until = '0.3.0';
+    expect(check()).toEqual([]);
+  });
+
+  it('requires traceable Module ownership, Contract satisfaction, and Adapter support', () => {
+    const id = 'M-LIFECYCLE-TEST-0001';
+    const draft = contract({
+      id,
+      type: 'module',
+      criteria: [{ id: `${id}-A`, text: 'The module requirement is verified.' }],
+    });
+    const active = {
+      ...draft,
+      status: 'active' as const,
+      activeSince: version,
+      lifecycleRationale: 'The module slice was reviewed.',
+      revisions: [{ version, change: 'admitted', summary: 'Admission was reviewed.' }],
+    };
+    const owner = contract();
+    const evidence = testEntity('passing');
+    evidence.verifies = { modules: [{ id }] };
+    evidence.cases[0].covers = [`${id}-A`];
+    const workspace = createSpecWorkspace([active, owner, evidence]);
+    const check = () => checkSpecLifecycleAuthoring(draft, active, workspace, version);
+    expect(check()).toEqual(
+      expect.arrayContaining([
+        expect.stringContaining('missing-ownership'),
+        expect.stringContaining('missing-contract-satisfaction'),
+        expect.stringContaining('missing-adapter-support'),
+      ])
+    );
+    active.owns = { contracts: [{ id: contractId }] };
+    active.satisfies = { contracts: [{ id: contractId }] };
+    expect(check()).toHaveLength(1);
+    const adapter = validateSpecEntity({
+      id: 'A-MODULE-TEST-0001',
+      type: 'adapter',
+      title: 'Test Adapter',
+      status: 'draft',
+      since: version,
+      adapterProfile: { package: '@proto.ui/adapter-test', target: { platform: 'web' } },
+      supports: { modules: [{ id, role: 'partial-module', note: 'Bounded support.' }] },
+    });
+    workspace.entities.push(adapter);
+    expect(check()).toEqual([]);
+    for (const target of ['C-ABSENT-0001', id]) {
+      active.owns = { contracts: [{ id: target }] };
+      expect(check()).toContainEqual(expect.stringContaining('missing-ownership'));
+      active.satisfies = { contracts: [{ id: target }] };
+      expect(check()).toContainEqual(expect.stringContaining('missing-contract-satisfaction'));
+    }
+    active.owns = { contracts: [{ id: contractId, since: '0.3.0' }] };
+    active.satisfies = { contracts: [{ id: contractId, since: '0.1.0', until: version }] };
+    expect(check()).toEqual(
+      expect.arrayContaining([
+        expect.stringContaining('missing-ownership'),
+        expect.stringContaining('missing-contract-satisfaction'),
+      ])
+    );
+    active.owns = { contracts: [{ id: contractId }] };
+    active.satisfies = { contracts: [{ id: contractId }] };
+    owner.since = '0.3.0';
+    expect(check()).toContainEqual(expect.stringContaining('missing-ownership'));
+    expect(check()).toContainEqual(expect.stringContaining('missing-contract-satisfaction'));
+    owner.since = version;
+    adapter.supports = undefined;
+    adapter.omits = { modules: [{ id, role: 'unsupported-module' }] };
+    expect(check()).toContainEqual(expect.stringContaining('missing-adapter-support'));
+    adapter.omits = undefined;
+    adapter.supports = { modules: [{ id, role: 'partial-module', since: '0.3.0' }] };
+    expect(check()).toContainEqual(expect.stringContaining('missing-adapter-support'));
+    adapter.supports.modules![0] = { id, role: 'partial-module', since: '0.1.0', until: version };
+    expect(check()).toContainEqual(expect.stringContaining('missing-adapter-support'));
+    adapter.supports.modules![0].until = '0.3.0';
+    expect(check()).toEqual([]);
+  });
+
+  it.each([{ covers: [] }, { covers: ['C-ABSENT-0001-A'] }, { covers: ['C-OTHER-0001-A'] }])(
+    'checks mapping-only edits to legacy active Tests: $covers',
+    ({ covers }) => {
+      const before = legacyActiveTest();
+      const after = { ...before, cases: [{ ...before.cases[0], covers }] };
+      const owner = contract({
+        criteria: [
+          { id: criterionId, text: 'Original criterion.' },
+          { id: `${contractId}-B`, text: 'Another governed criterion.' },
+        ],
+      });
+      const other = contract({
+        id: 'C-OTHER-0001',
+        criteria: [{ id: 'C-OTHER-0001-A', text: 'Another owner.' }],
+      });
+      const workspace = createSpecWorkspace([after, owner, other]);
+      const issues = checkSpecActiveTestMappings(getSpecLifecycleReport(workspace, version));
+      expect(issues).toContainEqual(
+        expect.objectContaining({
+          code: covers.length ? 'case-invalid-criterion' : 'case-needs-criteria',
+        })
+      );
+      expect(issues.every((issue) => issue.entityId === testId)).toBe(true);
+      after.cases[0].covers = [`${contractId}-B`];
+      expect(checkSpecActiveTestMappings(getSpecLifecycleReport(workspace, version))).toEqual([]);
+      expect(after.activeSince).toBeUndefined();
+      expect(after.lifecycleRationale).toBeUndefined();
+    }
+  );
+
+  it('checks removed active cases but leaves non-mapping prose maintenance alone', () => {
+    const before = legacyActiveTest();
+    const after = { ...before, cases: [] };
+    expect(
+      checkSpecActiveTestMappings(
+        getSpecLifecycleReport(createSpecWorkspace([after, contract()]), version)
+      )
+    ).toContainEqual(expect.objectContaining({ code: 'missing-cases' }));
+    const prose = validateSpecEntity({
+      ...before,
+      title: 'Clarified title',
+      cases: before.cases.map((testCase) => ({ ...testCase, title: 'Clarified case title' })),
+      implementations: before.implementations.map((implementation) => ({
+        ...implementation,
+        notes: ['Clarified note'],
+      })),
+      verifies: {
+        contracts: before.verifies?.contracts?.map((target) => ({
+          ...target,
+          note: 'Clarified relation note',
+        })),
+      },
+    });
+    expect(checkSpecLifecycleAuthoring(before, prose)).toEqual([]);
+    expect(
+      checkSpecActiveTestMappings(
+        getSpecLifecycleReport(createSpecWorkspace([prose, contract()]), version)
+      )
+    ).toEqual([]);
+  });
+
+  it('checks changes to the implementation scope consumed by an active case', () => {
+    const before = legacyActiveTest();
+    before.verifies = {};
+    before.implementations[0].exercises = [contractId];
+    const after: SpecEntity = {
+      ...before,
+      implementations: [{ ...before.implementations[0], exercises: [] }],
+    };
+    const workspace = createSpecWorkspace([after, contract()]);
+    expect(checkSpecActiveTestMappings(getSpecLifecycleReport(workspace, version))).toContainEqual(
+      expect.objectContaining({ code: 'case-invalid-criterion' })
+    );
+    after.implementations[0].exercises = [contractId];
+    after.implementations[0].consumesCases = [];
+    expect(checkSpecActiveTestMappings(getSpecLifecycleReport(workspace, version))).toContainEqual(
+      expect.objectContaining({ code: 'case-invalid-criterion' })
+    );
+    after.implementations[0].consumesCases = [caseId];
+    expect(checkSpecActiveTestMappings(getSpecLifecycleReport(workspace, version))).toEqual([]);
+  });
+
+  it('checks current active mappings when external criteria or the version changes', () => {
+    const active = legacyActiveTest();
+    const owner = contract();
+    const draft = validateSpecEntity({
+      id: 'T-UNRELATED-DRAFT-0001',
+      type: 'test',
+      title: 'Unrelated draft',
+      since: version,
+      cases: [
+        {
+          id: 'T-UNRELATED-DRAFT-0001-CASE-ONE',
+          title: 'Unmapped draft',
+          covers: [],
+          expectation: 'pending',
+        },
+      ],
+    });
+    const workspace = createSpecWorkspace([active, owner, draft]);
+    const check = (at = version) =>
+      checkSpecActiveTestMappings(getSpecLifecycleReport(workspace, at));
+    expect(check()).toEqual([]);
+    owner.criteria = [];
+    expect(check()).toContainEqual(
+      expect.objectContaining({ entityId: testId, code: 'case-invalid-criterion' })
+    );
+    owner.criteria = contract().criteria;
+    active.verifies!.contracts![0].until = '0.3.0';
+    expect(check()).toEqual([]);
+    expect(check('0.3.0')).toContainEqual(
+      expect.objectContaining({ entityId: testId, code: 'case-invalid-criterion' })
+    );
+    active.activeSince = '0.3.0';
+    active.cases[0].covers = [];
+    expect(check()).toEqual([]);
+    expect(check('0.3.0')).toContainEqual(
+      expect.objectContaining({ entityId: testId, code: 'case-needs-criteria' })
+    );
   });
 
   it.each([{ covers: [] }, { covers: ['C-ABSENT-0001-A'] }, { covers: ['C-OTHER-0001-A'] }])(
@@ -1026,6 +1281,28 @@ describe('ordinary lifecycle reporting', () => {
         expect.objectContaining({ code: 'duplicate-slice' })
       );
     }
+  });
+
+  it('keeps unrelated duplicate-slice errors outside an explicit review scope', () => {
+    const first = contract({ id: 'C-UNRELATED-0001', criteria: [] });
+    const second = contract({ id: 'C-UNRELATED-0002', criteria: [] });
+    const input = plan([contractId]);
+    input.slices.push(
+      { ...plan([first.id]).slices[0], id: 'unrelated-duplicate' },
+      { ...plan([second.id]).slices[0], id: 'unrelated-duplicate' }
+    );
+    const report = getSpecLifecycleReport(
+      createSpecWorkspace([contract(), first, second]),
+      version,
+      input
+    );
+    expect(checkSpecLifecycleDispositions(report, [contractId])).toEqual([]);
+    expect(checkSpecLifecycleDispositions(report, [first.id])).toContainEqual(
+      expect.objectContaining({ code: 'duplicate-slice' })
+    );
+    expect(checkSpecLifecycleDispositions(report)).toContainEqual(
+      expect.objectContaining({ code: 'duplicate-slice' })
+    );
   });
 
   it('treats recorded passing evidence as a review input, never a lifecycle mutation', () => {

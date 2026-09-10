@@ -5,13 +5,13 @@ import { parse } from 'yaml';
 
 import {
   SPEC_RELATION_KINDS,
+  SPEC_RELATION_TARGET_TYPES as RELATION_TARGET_TYPES,
   compareSpecVersions,
   validateSpecEntity,
   parseSpecBlockTarget,
   specLifecyclePlanSchema,
   specVersionSchema,
   type SpecEntity,
-  type SpecEntityType,
   type SpecRelationKind,
   type SpecRelations,
   type SpecLifecyclePlan,
@@ -220,17 +220,6 @@ function validateEntityTimelines(loaded: LoadedSpecEntity[], issues: SpecValidat
   }
 }
 
-const RELATION_TARGET_TYPES = {
-  contracts: 'contract',
-  prototypes: 'prototype',
-  modules: 'module',
-  adapters: 'adapter',
-  decisions: 'decision',
-  hostCaps: 'host-cap',
-  tests: 'test',
-  knowledge: 'knowledge',
-} as const satisfies Record<keyof NonNullable<SpecRelations>, SpecEntityType>;
-
 function validateWorkspaceRelations(
   loaded: LoadedSpecEntity[],
   issues: SpecValidationIssue[]
@@ -271,6 +260,23 @@ function validateWorkspaceRelations(
 
     for (const relationKind of SPEC_RELATION_KINDS) {
       validateRelationGroup(entry, byId, issues, relationKind, entry.entity[relationKind]);
+    }
+
+    for (const implementation of entry.entity.implementations) {
+      for (const targetId of implementation.exercises) {
+        const target = byId.get(targetId)?.entity;
+        if (!target) {
+          issues.push({
+            filePath: entry.filePath,
+            message: `${entry.entity.id} implementation ${implementation.id} exercises target does not exist: ${targetId}.`,
+          });
+        } else if (target.type === 'version') {
+          issues.push({
+            filePath: entry.filePath,
+            message: `${entry.entity.id} implementation ${implementation.id} exercises target ${targetId} is version, expected ordinary entity.`,
+          });
+        }
+      }
     }
 
     for (const criterion of entry.entity.criteria) {
