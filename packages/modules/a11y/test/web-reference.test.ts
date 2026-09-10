@@ -464,6 +464,102 @@ describe('Web A11y opaque semantic-object references', () => {
     second.dispose?.();
     expect(source.getAttribute('aria-labelledby')).toBe(targetId);
     first.dispose?.();
+    expect(source.hasAttribute('aria-labelledby')).toBe(false);
     targetProjector.dispose?.();
+  });
+
+  it('does not restore historical IDREFs over a host rewrite', () => {
+    const registry = createWebA11yProjectionRegistry();
+    const source = document.createElement('div');
+    const target = document.createElement('div');
+    const targetRef = createA11ySemanticObjectRef();
+    const sourceProjector = createWebA11yProjector(source, undefined, registry);
+    const targetProjector = createWebA11yProjector(target, undefined, registry);
+    source.setAttribute('aria-labelledby', 'host-old');
+    targetProjector(semanticSnapshot(targetRef));
+    sourceProjector(semanticSnapshot(createA11ySemanticObjectRef(), { labelledBy: [targetRef] }));
+    expect(source.getAttribute('aria-labelledby')).toBe(target.id);
+    source.setAttribute('aria-labelledby', 'host-new');
+    sourceProjector.dispose?.();
+    targetProjector.dispose?.();
+    expect(source.getAttribute('aria-labelledby')).toBe('host-new');
+  });
+
+  it.each(['older-first', 'newer-first'] as const)(
+    'restores only the host baseline after overlapping replacements are disposed %s',
+    (order) => {
+      const registry = createWebA11yProjectionRegistry();
+      const source = document.createElement('div');
+      source.setAttribute('aria-labelledby', 'host-label');
+      const targets = [document.createElement('div'), document.createElement('div')];
+      const refs = targets.map(() => createA11ySemanticObjectRef());
+      const targetProjectors = targets.map((target, index) => {
+        const projector = createWebA11yProjector(target, undefined, registry);
+        projector(semanticSnapshot(refs[index]));
+        return projector;
+      });
+      const sources = refs.map((ref) => {
+        const projector = createWebA11yProjector(source, undefined, registry);
+        projector(semanticSnapshot(createA11ySemanticObjectRef(), { labelledBy: [ref] }));
+        return projector;
+      });
+      expect(source.getAttribute('aria-labelledby')).toBe(targets[1].id);
+      const first = order === 'older-first' ? 0 : 1;
+      sources[first].dispose?.();
+      expect(source.getAttribute('aria-labelledby')).toBe(targets[1 - first].id);
+      sources[1 - first].dispose?.();
+      expect(source.getAttribute('aria-labelledby')).toBe('host-label');
+      for (const projector of targetProjectors) projector.dispose?.();
+    }
+  );
+
+  it('releases one scalar binding before reentering the same physical target', () => {
+    const registry = createWebA11yProjectionRegistry();
+    const target = document.createElement('div');
+    const slot = targetSlot(target);
+    const projector = createWebA11yProjector(slot.get, slot.subscribe, registry);
+    projector({
+      ...semanticSnapshot(createA11ySemanticObjectRef()),
+      role: 'button',
+      states: { busy: true },
+    });
+    expect(target.getAttribute('role')).toBe('button');
+    expect(target.getAttribute('aria-busy')).toBe('true');
+    slot.set(null);
+    expect(target.hasAttribute('role')).toBe(false);
+    expect(target.hasAttribute('aria-busy')).toBe(false);
+    slot.set(target);
+    expect(target.getAttribute('role')).toBe('button');
+    expect(target.getAttribute('aria-busy')).toBe('true');
+    projector.dispose?.();
+    expect(target.hasAttribute('role')).toBe(false);
+    expect(target.hasAttribute('aria-busy')).toBe(false);
+  });
+
+  it('preserves shared scalar ownership and host rewrites during physical replacement', () => {
+    const registry = createWebA11yProjectionRegistry();
+    const original = document.createElement('div');
+    const replacement = document.createElement('div');
+    const slot = targetSlot(original);
+    const moving = createWebA11yProjector(slot.get, slot.subscribe, registry);
+    const staying = createWebA11yProjector(original, undefined, registry);
+    moving({
+      ...semanticSnapshot(createA11ySemanticObjectRef()),
+      role: 'button',
+      name: { kind: 'text', value: 'projected' },
+    });
+    staying({ ...semanticSnapshot(createA11ySemanticObjectRef()), role: 'button' });
+    original.setAttribute('aria-label', 'host-label');
+    slot.set(replacement);
+    expect(original.getAttribute('role')).toBe('button');
+    expect(original.getAttribute('aria-label')).toBe('host-label');
+    expect(replacement.getAttribute('role')).toBe('button');
+    moving.dispose?.();
+    expect(replacement.hasAttribute('role')).toBe(false);
+    expect(replacement.hasAttribute('aria-label')).toBe(false);
+    expect(original.getAttribute('role')).toBe('button');
+    staying.dispose?.();
+    expect(original.hasAttribute('role')).toBe(false);
+    expect(original.getAttribute('aria-label')).toBe('host-label');
   });
 });

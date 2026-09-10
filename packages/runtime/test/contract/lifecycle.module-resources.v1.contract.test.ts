@@ -113,6 +113,7 @@ describe('runtime contract: lifecycle module resource ownership (v1)', () => {
     await session.unmount();
     const feedback = session.caps.getPort<FeedbackPort>('feedback')!;
     session.invokeInCallbackScope(() => feedback.patchStyle(tw('detached-token')));
+    feedback.applyMergedStyle(tw('stale-view-token'));
     expect(queued).toEqual([]);
 
     await session.mount();
@@ -124,6 +125,17 @@ describe('runtime contract: lifecycle module resource ownership (v1)', () => {
       kind: 'tw',
       tokens: expect.arrayContaining(['base-token', 'detached-token']),
     });
+    const off = feedback.useStyleRuntime(tw('runtime-token'));
+    const unsafeOff = feedback.useStyleUnsafe(tw('hover:opacity-50'));
+    await session.dispose();
+    queued.length = 0;
+    off();
+    unsafeOff();
+    feedback.applyMergedStyle(tw('after-dispose-token'));
+    expect(() => feedback.useStyleRuntime(tw('after-dispose-token'))).toThrow();
+    expect(() => feedback.useStyleUnsafe(tw('hover:opacity-100'))).toThrow();
+    expect(() => feedback.patchStyle(tw('after-dispose-token'))).toThrow();
+    expect(queued).toEqual([]);
   });
 
   it('suspends A11y and ExposeState host projection but publishes latest state on remount', async () => {
