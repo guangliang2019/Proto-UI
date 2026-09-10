@@ -2,6 +2,9 @@ id: HC-OVERLAY-PORTAL-0001
 type: host-cap
 title: Host projects Overlay into a global view location
 status: draft
+lifecycleRationale: >-
+  Retained as draft pending admission review of renderer-owned projection and provider-replacement cleanup across the declared Web profiles. This catalog does not certify arbitrary host portal realizations.
+
 since: 0.3.0-alpha.0
 summary: Portal projection follows renderer ownership and is revoked through its acquiring provider.
 criteria:

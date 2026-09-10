@@ -377,6 +377,11 @@ export default defineConfig({
                   slug: 'ui-libraries/base/textarea',
                 },
                 {
+                  label: 'Image',
+                  translations: { en: 'Image', 'zh-CN': 'Image' },
+                  slug: 'ui-libraries/base/image',
+                },
+                {
                   label: 'Separator',
                   translations: { en: 'Separator', 'zh-CN': 'Separator' },
                   slug: 'ui-libraries/base/separator',

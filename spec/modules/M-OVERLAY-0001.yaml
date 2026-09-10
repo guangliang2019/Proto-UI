@@ -2,6 +2,9 @@ id: M-OVERLAY-0001
 type: module
 title: Overlay owns logical open and active-view resource coordination
 status: draft
+lifecycleRationale: >-
+  Retained as draft while the newly cataloged scoped Escape arbitration and active-view resource ownership await stable admission review. Generic focus and additional dismissal policies remain explicitly outside this slice; their future design is not a prerequisite to reviewing the bounded current semantics.
+
 since: 0.3.0-alpha.0
 summary: Overlay coordinates one Presence driver, explicit dismissal and optional host resources while delegating outside classification, geometry and input transport.
 criteria:
@@ -53,10 +56,9 @@ openQuestions:
       en: What governed use cases should admit generic focus entry/restore, anchor/trigger dismissal and a stronger layer hierarchy?
       zh-CN: 哪些治理后的需求应推动通用 focus entry/restore、anchor/trigger dismissal 和更强 layer hierarchy？
     context:
-      en: Stored configuration and numeric role offsets are not evidence of these policies. Presence legacy compatibility is a separate inventory.
-      zh-CN: 已有配置和数字 role offset 不能证明这些策略已实现；旧 Presence compatibility 另行盘点。
-    blocks:
-      - generic-overlay-policy-evolution
+      en: Stored configuration and numeric role offsets are not evidence of these policies. Presence legacy compatibility is a separate inventory. This is an out-of-scope evolution question, not an activation blocker for the bounded current slice.
+      zh-CN: 已有配置和数字 role offset 不能证明这些策略已实现；旧 Presence compatibility 另行盘点。此处为范围外演进问题，不阻塞当前有界切片的准入。
+    blocks: []
 revisions:
   - version: 0.3.0-alpha.0
     change: introduced

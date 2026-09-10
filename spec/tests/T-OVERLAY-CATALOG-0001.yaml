@@ -2,6 +2,9 @@ id: T-OVERLAY-CATALOG-0001
 type: test
 title: Overlay scoped dismissal and host resource catalog evidence
 status: draft
+lifecycleRationale: >-
+  Retained as draft while the new criterion mappings and required runtime, simulated-DOM Adapter and consumer evidence await admission review. These tests cover scoped Escape and resource cleanup, not generic focus or complete modal certification.
+
 since: 0.3.0-alpha.0
 summary: Runtime input identity, real Adapter wiring with simulated DOM, resource replacement and shared modal locks; no generic focus or full modal certification.
 cases:

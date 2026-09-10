@@ -5,6 +5,26 @@ status: draft
 since: 0.3.0-alpha.0
 summary: Covers host-neutral image presentation requirements, portable property projection, a11y binary input, generation-bound lease lifecycle, loading status transitions, stale completion rejection, replacement visual clearing, lease cleanup, and the bounded Web Component, React, and Vue profile.
 cases:
+  - id: T-IMAGE-VIEW-0001-CASE-BASE-ENTRIES
+    title: Direct and authored Base Image entries share frozen static requirements
+    covers: [P-BASE-IMAGE-DECLARATION]
+    expectation: direct-and-authored-image-entries-retain-the-same-frozen-requirement
+  - id: T-IMAGE-VIEW-0001-CASE-BASE-PROPERTIES
+    title: Base Image props and exposes retain Image View ownership
+    covers: [P-BASE-IMAGE-SOURCE, P-BASE-IMAGE-FIT, P-BASE-IMAGE-STATUS]
+    expectation: base-image-props-and-source-replacement-project-canonical-status-and-fit
+  - id: T-IMAGE-VIEW-0001-CASE-PUBLIC-CONSUMER
+    title: Installed public Image exports generate typed components in the three supported adapters
+    covers: [P-BASE-IMAGE-DECLARATION, P-BASE-IMAGE-FIT]
+    expectation: packed-image-exports-generate-typed-wc-react-vue-components-with-one-physical-image
+  - id: T-IMAGE-VIEW-0001-CASE-PUBLIC-BROWSER
+    title: Public Image demo renders fit, accessibility, and actual resource transitions
+    covers:
+      - P-BASE-IMAGE-SOURCE
+      - P-BASE-IMAGE-ALT-TEXT
+      - P-BASE-IMAGE-FIT
+      - P-BASE-IMAGE-STATUS
+    expectation: real-wc-react-vue-images-show-fit-and-alt-with-idle-loading-loaded-error-replacement-and-clear-transitions
   - id: T-IMAGE-VIEW-0001-CASE-DECLARATION
     title: Host-neutral static requirement declares one image presentation target
     covers:
@@ -116,6 +136,8 @@ implementations:
     path: packages/prototypes/base/test/image.test.ts
     required: true
     consumesCases:
+      - T-IMAGE-VIEW-0001-CASE-BASE-ENTRIES
+      - T-IMAGE-VIEW-0001-CASE-BASE-PROPERTIES
       - T-IMAGE-VIEW-0001-CASE-DECLARATION
       - T-IMAGE-VIEW-0001-CASE-PROPERTIES
       - T-IMAGE-VIEW-0001-CASE-STATUS-TRANSITION
@@ -162,7 +184,29 @@ implementations:
     required: true
     consumesCases:
       - T-IMAGE-VIEW-0001-CASE-VUE2
+  - id: base-image-packed-consumer
+    kind: workspace-check
+    status: passing
+    path: scripts/release/consumer-smoke-cli.mjs
+    required: true
+    consumesCases: [T-IMAGE-VIEW-0001-CASE-PUBLIC-CONSUMER]
+    exercises: [P-BASE-IMAGE]
+  - id: base-image-public-browser
+    kind: runtime-test
+    status: passing
+    path: apps/www/src/content/docs/zh-cn/demo-base-image.browser.test.ts
+    required: true
+    consumesCases: [T-IMAGE-VIEW-0001-CASE-PUBLIC-BROWSER]
+    exercises: [P-BASE-IMAGE]
 verifies:
+  prototypes:
+    - id: P-BASE-IMAGE
+      anchors:
+        - P-BASE-IMAGE-DECLARATION
+        - P-BASE-IMAGE-SOURCE
+        - P-BASE-IMAGE-ALT-TEXT
+        - P-BASE-IMAGE-FIT
+        - P-BASE-IMAGE-STATUS
   contracts:
     - id: C-IMAGE-VIEW-0001
       anchors:
@@ -218,6 +262,8 @@ exercises:
     - A-REACT-18-19-0001
     - A-VUE-3-0001
 sources:
+  - path: scripts/release/consumer-smoke-cli.mjs
+  - path: apps/www/src/content/docs/zh-cn/demo-base-image.browser.test.ts
   - path: packages/modules/image-view/test/impl-spec.test.ts
   - path: packages/modules/image-view/test/web.test.ts
   - path: packages/prototypes/base/test/image.test.ts
@@ -225,6 +271,9 @@ sources:
   - path: packages/adapters/react/test/image-view.integration.test.ts
   - path: packages/adapters/vue/test/image-view.integration.test.ts
 revisions:
+  - version: 0.3.0-alpha.0
+    change: extended
+    summary: Mapped Base Image criteria to frozen authoring entries, installed consumer facades, and public Web resource/fit/accessibility evidence.
   - version: 0.3.0-alpha.0
     change: introduced
     summary: >-
