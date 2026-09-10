@@ -252,6 +252,74 @@ describe('Web A11y opaque semantic-object references', () => {
     expect(source.getAttribute('aria-labelledby')).toBe('host-label');
   });
 
+  it('3967157821: preserves the survivor reservation after releasing the reserved duplicate', () => {
+    // C-A11Y-0001-N/O/P; T-A11Y-0001-CASE-OPAQUE-RELATION-PROJECTION.
+    const registry = createWebA11yProjectionRegistry({ idPrefix: 'test-surviving-reservation' });
+    const doc = document.implementation.createHTMLDocument('reservation-transfer');
+    const targetRef = createA11ySemanticObjectRef();
+    const otherRef = createA11ySemanticObjectRef();
+    const source = doc.createElement('div');
+    const otherSource = doc.createElement('div');
+    const firstTarget = doc.createElement('span');
+    const survivingTarget = doc.createElement('span');
+    const rematerialized = doc.createElement('span');
+    const otherTarget = doc.createElement('span');
+    source.setAttribute('aria-controls', 'host-controls');
+    doc.body.append(source, otherSource, firstTarget, survivingTarget, rematerialized);
+    const survivingSlot = targetSlot(survivingTarget);
+    const otherSlot = targetSlot(otherTarget);
+    const sourceProjector = createWebA11yProjector(source, undefined, registry);
+    const otherSourceProjector = createWebA11yProjector(otherSource, undefined, registry);
+    const firstProjector = createWebA11yProjector(firstTarget, undefined, registry);
+    const survivingProjector = createWebA11yProjector(
+      survivingSlot.get,
+      survivingSlot.subscribe,
+      registry
+    );
+    const otherProjector = createWebA11yProjector(otherSlot.get, otherSlot.subscribe, registry);
+    try {
+      firstProjector(semanticSnapshot(targetRef));
+      sourceProjector(semanticSnapshot(createA11ySemanticObjectRef(), { controls: [targetRef] }));
+      const reservedId = firstTarget.id;
+      expect(source.getAttribute('aria-controls')).toBe(reservedId);
+      survivingProjector(semanticSnapshot(targetRef));
+      expect(source.getAttribute('aria-controls')).toBe('host-controls');
+      firstProjector.dispose?.();
+      expect(survivingTarget.id).toBe(reservedId);
+      expect(source.getAttribute('aria-controls')).toBe(reservedId);
+      survivingSlot.set(null);
+
+      otherTarget.id = reservedId;
+      doc.body.append(otherTarget);
+      otherProjector(semanticSnapshot(otherRef));
+      otherSourceProjector(
+        semanticSnapshot(createA11ySemanticObjectRef(), { controls: [otherRef] })
+      );
+      const competingRelation = otherSource.getAttribute('aria-controls');
+      survivingSlot.set(rematerialized);
+      // A real competing DOM id must still fail closed, even with a retained reservation.
+      expect(doc.getElementById(reservedId)).toBe(otherTarget);
+      expect(source.getAttribute('aria-controls')).toBe('host-controls');
+
+      otherTarget.remove();
+      otherSlot.set(null);
+      expect(otherTarget.id).toBe(reservedId);
+      expect(doc.getElementById(reservedId)).toBeNull();
+      survivingSlot.set(null);
+      survivingSlot.set(rematerialized);
+      // Y remains logically alive, but has no physical id collision with the survivor.
+      expect(source.getAttribute('aria-controls')).toBe(reservedId);
+      expect(rematerialized.id).toBe(reservedId);
+      expect(competingRelation).toBeNull();
+    } finally {
+      firstProjector.dispose?.();
+      survivingProjector.dispose?.();
+      otherProjector.dispose?.();
+      sourceProjector.dispose?.();
+      otherSourceProjector.dispose?.();
+    }
+  });
+
   it('scopes adopted target-id reservations to each owner document', () => {
     // T-A11Y-0001-CASE-OPAQUE-RELATION-PROJECTION
     const registry = createWebA11yProjectionRegistry({ idPrefix: 'test-document-scope' });

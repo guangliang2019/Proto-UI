@@ -80,7 +80,10 @@ export function createWebA11yProjectionRegistry(
   const dependentSourcesByRef = new Map<A11ySemanticObjectRef, Set<WebProjectorRecord>>();
   const recordsByRef = new Map<A11ySemanticObjectRef, Set<WebProjectorRecord>>();
   const reservedIdsByDocument = new Map<Document, Map<string, A11ySemanticObjectRef>>();
-  const reservedIdsByRef = new Map<A11ySemanticObjectRef, Map<Document, string>>();
+  const reservedIdsByRef = new Map<
+    A11ySemanticObjectRef,
+    Map<Document, { id: string; count: number }>
+  >();
   const scalarAttributeRefs = new WeakMap<
     HTMLElement,
     Map<string, Map<string, { count: number; baseline: boolean }>>
@@ -154,15 +157,16 @@ export function createWebA11yProjectionRegistry(
     releaseOwnedId(record);
     const { objectRef, reservedDocument, reservedId } = record;
     if (objectRef && reservedDocument && reservedId) {
-      const documentReservations = reservedIdsByDocument.get(reservedDocument);
-      if (documentReservations?.get(reservedId) === objectRef) {
-        documentReservations.delete(reservedId);
-        if (documentReservations.size === 0) reservedIdsByDocument.delete(reservedDocument);
-      }
       const refReservations = reservedIdsByRef.get(objectRef);
-      if (refReservations?.get(reservedDocument) === reservedId) {
-        refReservations.delete(reservedDocument);
-        if (refReservations.size === 0) reservedIdsByRef.delete(objectRef);
+      const reservation = refReservations?.get(reservedDocument);
+      if (reservation?.id === reservedId && --reservation.count === 0) {
+        const documentReservations = reservedIdsByDocument.get(reservedDocument);
+        if (documentReservations?.get(reservedId) === objectRef) {
+          documentReservations.delete(reservedId);
+          if (documentReservations.size === 0) reservedIdsByDocument.delete(reservedDocument);
+        }
+        refReservations!.delete(reservedDocument);
+        if (refReservations!.size === 0) reservedIdsByRef.delete(objectRef);
       }
     }
     record.reservedDocument = null;
@@ -293,7 +297,7 @@ export function createWebA11yProjectionRegistry(
     documentReservations.set(id, objectRef);
     reservedIdsByDocument.set(document, documentReservations);
     const refReservations = reservedIdsByRef.get(objectRef) ?? new Map();
-    refReservations.set(document, id);
+    refReservations.set(document, { id, count: 1 });
     reservedIdsByRef.set(objectRef, refReservations);
     record.reservedDocument = document;
     record.reservedId = id;
@@ -308,10 +312,11 @@ export function createWebA11yProjectionRegistry(
       releaseReservation(record);
     }
     if (!record.reservedId) {
-      const reservedId = reservedIdsByRef.get(objectRef)?.get(document);
-      if (reservedId) {
+      const reservation = reservedIdsByRef.get(objectRef)?.get(document);
+      if (reservation) {
+        reservation.count += 1;
         record.reservedDocument = document;
-        record.reservedId = reservedId;
+        record.reservedId = reservation.id;
       }
     }
 
@@ -601,6 +606,8 @@ export function createWebA11yProjectionRegistry(
       projector.clearHeadingLevel = () => {
         if (record.snapshot && hasProjectedHeadingLevel(record.snapshot)) {
           record.target?.removeAttribute('aria-level');
+          // Target notifications may replay only the still-valid cached projection.
+          record.snapshot = { ...record.snapshot, level: undefined };
         }
       };
       projector.dispose = () => {
