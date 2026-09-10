@@ -73,6 +73,7 @@ When changing behavior:
 
 - Prefer updating the source of truth and its projections in the same change.
 - Keep entity IDs, criteria IDs, relations, version ranges, revisions, and implementation paths consistent with `spec/README.md` and the schema.
+- Record `lifecycleRationale` for new ordinary entities or lifecycle changes, classify activation blockers explicitly, and follow `spec/README.md` for lifecycle authoring checks and release-readiness dispositions.
 - Add or update executable coverage when a normative rule changes.
 - Preserve cross-adapter semantics unless the applicable spec explicitly defines a host-specific difference.
 - Do not create empty catalog entities merely to match package or capability counts; catalog a coherent semantic slice with evidence.
